@@ -3,6 +3,9 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 DIST_SUBDIRS = secp256k1 univalue
+TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel \
+	-lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
+LIBS+= -lssl -lcrypto -lcurl
 
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
@@ -446,7 +449,7 @@ pivxd_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-pivxd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+pivxd_LDADD += $(TOR_LIBS) $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 
 # pivx-cli binary #
 pivx_cli_SOURCES = pivx-cli.cpp

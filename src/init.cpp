@@ -176,6 +176,7 @@ void Interrupt(boost::thread_group& threadGroup)
     InterruptRPC();
     InterruptREST();
     InterruptTorControl();
+    InterruptTor();
     threadGroup.interrupt_all();
 }
 
@@ -211,6 +212,7 @@ void PrepareShutdown()
     DumpMasternodePayments();
     UnregisterNodeSignals(GetNodeSignals());
 
+    StopTorControl();
     if (fFeeEstimatesInitialized) {
         boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
         CAutoFile est_fileout(fopen(est_path.string().c_str(), "wb"), SER_DISK, CLIENT_VERSION);
@@ -874,11 +876,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (GetBoolArg("-debugnet", false))
         InitWarning(_("Warning: Unsupported argument -debugnet ignored, use -debug=net."));
     // Check for -socks - as this is a privacy risk to continue, exit here
+    /*
     if (mapArgs.count("-socks"))
         return InitError(_("Error: Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported."));
     // Check for -tor - as this is a privacy risk to continue, exit here
     if (GetBoolArg("-tor", false))
         return InitError(_("Error: Unsupported argument -tor found, use -onion."));
+     */
     // Check level must be 4 for zerocoin checks
     if (mapArgs.count("-checklevel"))
         return InitError(_("Error: Unsupported argument -checklevel found. Checklevel must be level 4."));
@@ -1231,48 +1235,6 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // Check for host lookup allowed before parsing any network related parameters
     fNameLookup = GetBoolArg("-dns", DEFAULT_NAME_LOOKUP);
-
-    bool proxyRandomize = GetBoolArg("-proxyrandomize", true);
-    // -proxy sets a proxy for all outgoing network traffic
-    // -noproxy (or -proxy=0) as well as the empty string can be used to not set a proxy, this is the default
-    std::string proxyArg = GetArg("-proxy", "");
-    SetLimited(NET_TOR);
-    if (proxyArg != "" && proxyArg != "0") {
-        CService proxyAddr;
-        if (!Lookup(proxyArg.c_str(), proxyAddr, 9050, fNameLookup)) {
-            return InitError(strprintf(_("Lookup(): Invalid -proxy address or hostname: '%s'"), proxyArg));
-        }
-
-        proxyType addrProxy = proxyType(proxyAddr, proxyRandomize);
-        if (!addrProxy.IsValid())
-            return InitError(strprintf(_("isValid(): Invalid -proxy address or hostname: '%s'"), proxyArg));
-
-        SetProxy(NET_IPV4, addrProxy);
-        SetProxy(NET_IPV6, addrProxy);
-        SetProxy(NET_TOR, addrProxy);
-        SetNameProxy(addrProxy);
-        SetLimited(NET_TOR, false); // by default, -proxy sets onion as reachable, unless -noonion later
-    }
-
-    // -onion can be used to set only a proxy for .onion, or override normal proxy for .onion addresses
-    // -noonion (or -onion=0) disables connecting to .onion entirely
-    // An empty string is used to not override the onion proxy (in which case it defaults to -proxy set above, or none)
-    std::string onionArg = GetArg("-onion", "");
-    if (onionArg != "") {
-        if (onionArg == "0") { // Handle -noonion/-onion=0
-            SetLimited(NET_TOR); // set onions as unreachable
-        } else {
-            CService onionProxy;
-            if (!Lookup(onionArg.c_str(), onionProxy, 9050, fNameLookup)) {
-                return InitError(strprintf(_("Invalid -onion address or hostname: '%s'"), onionArg));
-            }
-            proxyType addrOnion = proxyType(onionProxy, proxyRandomize);
-            if (!addrOnion.IsValid())
-                return InitError(strprintf(_("Invalid -onion address or hostname: '%s'"), onionArg));
-            SetProxy(NET_TOR, addrOnion);
-            SetLimited(NET_TOR, false);
-        }
-    }
 
     // see Step 2: parameter interactions for more information about these
     fListen = GetBoolArg("-listen", DEFAULT_LISTEN);
@@ -1928,6 +1890,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     LogPrintf("mapWallet.size() = %u\n", pwalletMain ? pwalletMain->mapWallet.size() : 0);
     LogPrintf("mapAddressBook.size() = %u\n", pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
 #endif
+
+    StartTor();
 
     if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION))
         StartTorControl(threadGroup);

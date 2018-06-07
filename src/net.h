@@ -95,6 +95,9 @@ struct CNodeSignals {
 
 CNodeSignals& GetNodeSignals();
 
+void StartTor();
+void InterruptTor();
+void StopTor();
 
 enum {
     LOCAL_NONE,   // unknown

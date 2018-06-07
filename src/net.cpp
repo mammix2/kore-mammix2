@@ -37,6 +37,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 
+namespace fs = boost::filesystem;
+extern "C" {
+    int tor_main(int argc, char *argv[]);
+}
+
 // Dump addresses to peers.dat every 15 minutes (900s)
 #define DUMP_ADDRESSES_INTERVAL 900
 
@@ -1222,6 +1227,80 @@ void MapPort(bool)
     // Intentionally left blank.
 }
 #endif
+
+static char * convert_arg(const std::string &arg) {
+    char *r = new char[arg.size() + 1];
+    std::strcpy(r, arg.c_str());
+    return r;
+}
+
+void TorThread()
+{
+    fs::path tor_directory = GetDataDir() / "tor";
+    fs::path tor_log = GetDataDir() / "tor.log";
+
+    // set up command line arguments for tor
+    std::vector<std::string> tor_args;
+    tor_args.push_back("tor");
+    tor_args.push_back("--Log");
+    tor_args.push_back("notice file " + tor_log.string());
+    tor_args.push_back("--SocksPort");
+    //tor_args.push_back("9979");
+    tor_args.push_back(std::to_string(TOR_SOCKS_PORT));
+    tor_args.push_back("--ControlPort");
+    tor_args.push_back("9978");
+    tor_args.push_back("--CookieAuthentication");
+    tor_args.push_back("1");
+    tor_args.push_back("--GeoIPFile");
+    tor_args.push_back((tor_directory / "geoip").string());
+    tor_args.push_back("--GeoIPv6File");
+    tor_args.push_back((tor_directory / "geoip6").string());
+//    tor_args.push_back("--HiddenServiceDir");
+//    tor_args.push_back((tor_directory / "onion").string());
+    tor_args.push_back("-f");
+    tor_args.push_back((tor_directory / "torrc").string());
+    tor_args.push_back("--DataDirectory");
+    tor_args.push_back(tor_directory.string());
+    tor_args.push_back("--ignore-missing-torrc");
+
+    // set up args in memory and call tor_main()
+    std::vector<char *> argv;
+    std::transform(tor_args.begin(), tor_args.end(), std::back_inserter(argv), convert_arg);
+    tor_main(argv.size(), &argv[0]);
+}
+
+static boost::thread *tor_thread = nullptr;
+
+extern const char tor_git_revision[] = "";
+
+void StartTor()
+{
+    assert(!tor_thread);
+    tor_thread = new boost::thread(boost::bind(&TraceThread<void (*)()>, "tor", &TorThread));
+}
+
+void InterruptTor()
+{
+    tor_thread->interrupt();
+}
+
+void StopTor()
+{
+    tor_thread->join();
+    delete tor_thread;
+}
+
+static std::string GetDNSHost(const CDNSSeedData& data, ServiceFlags* requiredServiceBits)
+{
+    //use default host for non-filter-capable seeds or if we use the default service bits (NODE_NETWORK)
+    if (!data.supportsServiceBitsFiltering || *requiredServiceBits == NODE_NETWORK) {
+        *requiredServiceBits = NODE_NETWORK;
+        return data.host;
+    }
+
+    // See chainparams.cpp, most dnsseeds only support one or two possible servicebits hostnames
+    return strprintf("x%x.%s", *requiredServiceBits, data.host);
+}
 
 
 void ThreadDNSAddressSeed()
