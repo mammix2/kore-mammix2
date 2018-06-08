@@ -66,7 +66,7 @@ public:
 };
 
 /** nServices flags */
-enum {
+enum ServiceFlags : uint64_t {
     NODE_NETWORK = (1 << 0),
 
     // NODE_BLOOM means the node is capable and willing to handle bloom-filtered connections.

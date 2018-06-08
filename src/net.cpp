@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2018      The Kore developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -1245,8 +1246,7 @@ void TorThread()
     tor_args.push_back("--Log");
     tor_args.push_back("notice file " + tor_log.string());
     tor_args.push_back("--SocksPort");
-    //tor_args.push_back("9979");
-    tor_args.push_back(std::to_string(TOR_SOCKS_PORT));
+    tor_args.push_back(std::to_string(9979));
     tor_args.push_back("--ControlPort");
     tor_args.push_back("9978");
     tor_args.push_back("--CookieAuthentication");
@@ -1288,18 +1288,6 @@ void StopTor()
 {
     tor_thread->join();
     delete tor_thread;
-}
-
-static std::string GetDNSHost(const CDNSSeedData& data, ServiceFlags* requiredServiceBits)
-{
-    //use default host for non-filter-capable seeds or if we use the default service bits (NODE_NETWORK)
-    if (!data.supportsServiceBitsFiltering || *requiredServiceBits == NODE_NETWORK) {
-        *requiredServiceBits = NODE_NETWORK;
-        return data.host;
-    }
-
-    // See chainparams.cpp, most dnsseeds only support one or two possible servicebits hostnames
-    return strprintf("x%x.%s", *requiredServiceBits, data.host);
 }
 
 

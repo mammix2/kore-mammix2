@@ -1,6 +1,7 @@
 // Copyright (c) 2015-2016 The Bitcoin Core developers
 // Copyright (c) 2017 The Zcash developers
 // Copyright (c) 2017-2018 The PIVX developers
+// Copyright (c) 2018      The Kore developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,11 +17,8 @@
 #include <set>
 #include <stdlib.h>
 
-#include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <boost/signals2/signal.hpp>
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -32,7 +30,7 @@
 #include <event2/thread.h>
 
 /** Default control port */
-const std::string DEFAULT_TOR_CONTROL = "127.0.0.1:9051";
+const std::string DEFAULT_TOR_CONTROL = "127.0.0.1:9978";
 /** Tor cookie size (from control-spec.txt) */
 static const int TOR_COOKIE_SIZE = 32;
 /** Size of client/server nonce for SAFECOOKIE */
@@ -504,7 +502,7 @@ void TorController::add_onion_cb(TorControlConnection& _conn, const TorControlRe
             }
             return;
         }
-        LookupNumeric(std::string(service_id+".onion").c_str(), service, GetListenPort());
+        LookupNumeric(std::string(service_id+".onion").c_str(), GetListenPort());
         LogPrintf("tor: Got service ID %s, advertising service %s\n", service_id, service.ToString());
         if (WriteBinaryFile(GetPrivateKeyFile(), private_key)) {
             LogPrint("tor", "tor: Cached service private key to %s\n", GetPrivateKeyFile());
@@ -527,13 +525,10 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
 
         // Now that we know Tor is running setup the proxy for onion addresses
         // if -onion isn't set to something else.
-        if (GetArg("-onion", "") == "") {
-            CService resolved;
-            assert(LookupNumeric("127.0.0.1", resolved, 9050));
-            CService addrOnion = CService(resolved, 9050);
-            SetProxy(NET_TOR, addrOnion);
-            SetLimited(NET_TOR, false);
-        }
+        CService resolved(LookupNumeric("127.0.0.1", 9979));
+        proxyType addrOnion = proxyType(resolved, true);
+        SetProxy(NET_TOR, addrOnion);
+        SetLimited(NET_TOR, false);
 
         // Finally - now create the service
         if (private_key.empty()) // No private key, generate one

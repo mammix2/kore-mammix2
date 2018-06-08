@@ -213,6 +213,7 @@ void PrepareShutdown()
     UnregisterNodeSignals(GetNodeSignals());
 
     StopTorControl();
+    //StopTor();
     if (fFeeEstimatesInitialized) {
         boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
         CAutoFile est_fileout(fopen(est_path.string().c_str(), "wb"), SER_DISK, CLIENT_VERSION);
@@ -1893,8 +1894,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     StartTor();
 
-    if (GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION))
-        StartTorControl(threadGroup);
+    StartTorControl(threadGroup, scheduler);
 
     StartNode(threadGroup, scheduler);
 
