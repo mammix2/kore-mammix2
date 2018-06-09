@@ -37,6 +37,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
+#include <sys/stat.h>
 
 namespace fs = boost::filesystem;
 extern "C" {
@@ -1239,6 +1240,34 @@ void TorThread()
 {
     fs::path tor_directory = GetDataDir() / "tor";
     fs::path tor_log = GetDataDir() / "tor.log";
+    boost::optional<std::string> clientTransportPlugin;
+    struct stat sb;
+    /*
+    TOR - OBFS4
+    1) Install obfs4
+      * linux, you can do like this:
+      sudo apt-get update && sudo apt-get install obfs4proxy
+
+    2) Get bridges (don´t need to be IPV6)
+      visit  https://bridges.torproject.org with your browser
+
+    3) Add a torrc file at: /home/kore/.pivx/tor
+       add the bridges for torrc file, for example:
+    bridge obfs4 216.105.171.92:443 223B0045E80C57E3DA06CC1C60B006AB598BA4B8 cert=ofCL3Wiw2IpLUc+BwhzYlYTvLwdTzQnNZIomoaqjSsyoDWQLJdLcpetZA5VzOjvgVhUIUw iat-mode=0
+    bridge obfs4 34.207.17.234:9443 5376E7D45629B310C551CC692B8A708E67F946DE cert=RdeLCwFKDvWVx/8cB1gujdfrp7DG+j116DhlNG6rNkSruaJUibvMq5FpTU/iQ+rwTmK7bQ iat-mode=0
+
+    */
+#ifdef WIN32
+    if (stat("obfs4proxy.exe", &sb) == 0 && sb.st_mode & S_IXUSR) {
+      clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
+    }
+#else
+    if ((stat("obfs4proxy", &sb) == 0 && sb.st_mode & S_IXUSR) || !std::system("which obfs4proxy")) {
+      LogPrintf("Attention Attention, please list your bridges !");
+      LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
+      clientTransportPlugin = "obfs4 exec /usr/bin/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
+    }
+#endif
 
     // set up command line arguments for tor
     std::vector<std::string> tor_args;
@@ -1262,6 +1291,15 @@ void TorThread()
     tor_args.push_back("--DataDirectory");
     tor_args.push_back(tor_directory.string());
     tor_args.push_back("--ignore-missing-torrc");
+
+    if (clientTransportPlugin) {
+      LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
+      tor_args.push_back("--ClientTransportPlugin");
+      tor_args.push_back(*clientTransportPlugin);
+      tor_args.push_back("--UseBridges");
+      tor_args.push_back("1");
+    }
+
 
     // set up args in memory and call tor_main()
     std::vector<char *> argv;
@@ -1791,7 +1829,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     CNode::SetBannedSetDirty(false); //no need to write down just read or nonexistent data
     CNode::SweepBanned(); //sweap out unused entries
 
-    // Initialize random numbers. Even when rand() is only usable for trivial use-cases most nodes should have a different 
+    // Initialize random numbers. Even when rand() is only usable for trivial use-cases most nodes should have a different
     // seed after all the file-IO done at this point. Should be good enough even when nodes are started via scripts.
     srand(time(NULL));
 
