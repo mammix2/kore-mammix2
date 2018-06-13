@@ -69,7 +69,6 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     result.push_back(Pair("bits", strprintf("%08x", blockindex->nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
-    result.push_back(Pair("acc_checkpoint", blockindex->nAccumulatorCheckpoint.GetHex()));
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
@@ -92,7 +91,6 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     result.push_back(Pair("height", blockindex->nHeight));
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
-    result.push_back(Pair("acc_checkpoint", block.nAccumulatorCheckpoint.GetHex()));
     UniValue txs(UniValue::VARR);
     BOOST_FOREACH (const CTransaction& tx, block.vtx) {
         if (txDetails) {
@@ -116,13 +114,6 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
 
     result.push_back(Pair("moneysupply",ValueFromAmount(blockindex->nMoneySupply)));
-
-    UniValue zpivObj(UniValue::VOBJ);
-    for (auto denom : libzerocoin::zerocoinDenomList) {
-        zpivObj.push_back(Pair(to_string(denom), ValueFromAmount(blockindex->mapZerocoinSupply.at(denom) * (denom*COIN))));
-    }
-    zpivObj.push_back(Pair("total", ValueFromAmount(blockindex->GetZerocoinSupply())));
-    result.push_back(Pair("zPIVsupply", zpivObj));
 
     return result;
 }

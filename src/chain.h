@@ -173,7 +173,6 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
-    uint256 nAccumulatorCheckpoint;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
@@ -210,7 +209,6 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
-        nAccumulatorCheckpoint = 0;
         // Start supply of each denomination with 0s
         for (auto& denom : libzerocoin::zerocoinDenomList) {
             mapZerocoinSupply.insert(make_pair(denom, 0));
@@ -232,9 +230,6 @@ public:
         nTime = block.nTime;
         nBits = block.nBits;
         nNonce = block.nNonce;
-        if(block.nVersion > 3)
-            nAccumulatorCheckpoint = block.nAccumulatorCheckpoint;
-
         //Proof of Stake
         bnChainTrust = uint256();
         nMint = 0;
@@ -285,17 +280,7 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
-        block.nAccumulatorCheckpoint = nAccumulatorCheckpoint;
         return block;
-    }
-
-    int64_t GetZerocoinSupply() const
-    {
-        int64_t nTotal = 0;
-        for (auto& denom : libzerocoin::zerocoinDenomList) {
-            nTotal += libzerocoin::ZerocoinDenominationToAmount(denom) * mapZerocoinSupply.at(denom);
-        }
-        return nTotal;
     }
 
     bool MintedDenomination(libzerocoin::CoinDenomination denom) const
@@ -477,8 +462,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-        if(this->nVersion > 3) {
-            READWRITE(nAccumulatorCheckpoint);
+        if(this->nVersion > 3) {           
             READWRITE(mapZerocoinSupply);
             READWRITE(vMintDenominationsInBlock);
         }
@@ -494,7 +478,6 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
-        block.nAccumulatorCheckpoint = nAccumulatorCheckpoint;
         return block.GetHash();
     }
 

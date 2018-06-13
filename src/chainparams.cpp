@@ -26,6 +26,45 @@ struct SeedSpec6 {
 #include "chainparamsseeds.h"
 
 /**
+* Build the genesis block. Note that the output of the genesis coinbase cannot
+* be spent as it did not originally exist in the database.
+*
+* CBlock(hash=00000ffd590b14, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=e0028e, nTime=1390095618, nBits=1e0ffff0, nNonce=28917698, vtx=1)
+*   CTransaction(hash=e0028e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+*     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d01044c5957697265642030392f4a616e2f3230313420546865204772616e64204578706572696d656e7420476f6573204c6976653a204f76657273746f636b2e636f6d204973204e6f7720416363657074696e6720426974636f696e73)
+*     CTxOut(nValue=50.00000000, scriptPubKey=0xA9037BAC7050C479B121CF)
+*   vMerkleTree: e0028e
+*/
+static CBlock CreateGenesisBlock(const char* pszTimestamp, uint32_t nTime, uint32_t nNonce, uint32_t nBirthdayA, uint32_t nBirthdayB, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+{
+    CMutableTransaction txNew;
+    txNew.vin.resize(1);
+    txNew.vout.resize(1);
+    
+    txNew.nTime = nTime;
+    txNew.nVersion = 1;
+    // TODO - check which one to use
+    // txNew.vin[0].scriptSig = CScript() << 0 << OP_0;
+    txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+
+    txNew.vout[0].nValue = genesisReward;
+    CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
+    txNew.vout[0].scriptPubKey = genesisOutputScript;
+
+    CBlock genesis;
+    genesis.nTime    = nTime;
+    genesis.nBits    = nBits;
+    genesis.nNonce   = nNonce;
+    genesis.nBirthdayA   = nBirthdayA;
+    genesis.nBirthdayB   = nBirthdayB;
+    genesis.nVersion = nVersion;
+    genesis.vtx.push_back(txNew);
+    genesis.hashPrevBlock = 0;
+    genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+    return genesis;
+}
+
+/**
  * Main network
  */
 
@@ -92,23 +131,6 @@ static const Checkpoints::CCheckpointData dataRegtest = {
     0,
     100};
 
-libzerocoin::ZerocoinParams* CChainParams::Zerocoin_Params(bool useModulusV1) const
-{
-    assert(this);
-    static CBigNum bnHexModulus = 0;
-    if (!bnHexModulus)
-        bnHexModulus.SetHex(zerocoinModulus);
-    static libzerocoin::ZerocoinParams ZCParamsHex = libzerocoin::ZerocoinParams(bnHexModulus);
-    static CBigNum bnDecModulus = 0;
-    if (!bnDecModulus)
-        bnDecModulus.SetDec(zerocoinModulus);
-    static libzerocoin::ZerocoinParams ZCParamsDec = libzerocoin::ZerocoinParams(bnDecModulus);
-
-    if (useModulusV1)
-        return &ZCParamsHex;
-
-    return &ZCParamsDec;
-}
 
 class CMainParams : public CChainParams
 {
@@ -122,12 +144,12 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 4-byte int at any alignment.
          */
-        pchMessageStart[0] = 0x90;
-        pchMessageStart[1] = 0xc4;
-        pchMessageStart[2] = 0xfd;
-        pchMessageStart[3] = 0xe9;
-        vAlertPubKey = ParseHex("0000098d3ba6ba6e7423fa5cbd6a89e0a9a5348f88d332b44a5cb1a8b7ed2c1eaa335fc8dc4f012cb8241cc0bdafd6ca70c5f5448916e4e6f511bcd746ed57dc50");
-        nDefaultPort = 51472;
+        pchMessageStart[0] = 0xe4;
+        pchMessageStart[1] = 0x7b;
+        pchMessageStart[2] = 0xb3;
+        pchMessageStart[3] = 0x4a;
+        vAlertPubKey = ParseHex("042b0fb78026380244cc458a914dae461899b121f53bc42105d134158b9773e3fdadca67ca3015dc9c4ef9b9df91f2ef05b890a15cd2d2b85930d37376b2196002");
+        nDefaultPort = 10743;
         bnProofOfWorkLimit = ~uint256(0) >> 20; // PIVX starting difficulty is 1 / 2^12
         nSubsidyHalvingInterval = 210000;
         nMaxReorganizationDepth = 100;
@@ -156,40 +178,15 @@ public:
         nEnforceNewSporkKey = 1525158000; //!> Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
 
-        /**
-         * Build the genesis block. Note that the output of the genesis coinbase cannot
-         * be spent as it did not originally exist in the database.
-         *
-         * CBlock(hash=00000ffd590b14, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=e0028e, nTime=1390095618, nBits=1e0ffff0, nNonce=28917698, vtx=1)
-         *   CTransaction(hash=e0028e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-         *     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d01044c5957697265642030392f4a616e2f3230313420546865204772616e64204578706572696d656e7420476f6573204c6976653a204f76657273746f636b2e636f6d204973204e6f7720416363657074696e6720426974636f696e73)
-         *     CTxOut(nValue=50.00000000, scriptPubKey=0xA9037BAC7050C479B121CF)
-         *   vMerkleTree: e0028e
-         */
         const char* pszTimestamp = "U.S. News & World Report Jan 28 2016 With His Absence, Trump Dominates Another Debate";
-        CMutableTransaction txNew;
-        txNew.vin.resize(1);
-        txNew.vout.resize(1);
-        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].nValue = 250 * COIN;
-        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04c10e83b2703ccf322f7dbd62dd5855ac7c10bd055814ce121ba32607d573b8810c02c0582aed05b4deb9c4b77b26d92428c61256cd42774babea0a073b2ed0c9") << OP_CHECKSIG;
-        genesis.vtx.push_back(txNew);
-        genesis.hashPrevBlock = 0;
-        genesis.hashMerkleRoot = genesis.BuildMerkleTree();
-        genesis.nVersion = 1;
-        genesis.nTime = 1454124731;
-        genesis.nBits = 0x1e0ffff0;
-        genesis.nNonce = 2402015;
-
+        
+	    genesis = CreateGenesisBlock(pszTimestamp, 1454124731, 2402015, 58284520, 0x201fffff,0x1e0ffff0,1,250 * COIN);
         hashGenesisBlock = genesis.GetHash();
         assert(hashGenesisBlock == uint256("0x0000041e482b9b9691d98eefb48473405c0b8ec31b76df3797c74a78680ef818"));
         assert(genesis.hashMerkleRoot == uint256("0x1b2ef6e2f28be914103a277377ae7729dcd125dfeb8bf97bd5964ba72b6dc39b"));
 
-        vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "pivx.seed.fuzzbawls.pw"));     // Primary DNS Seeder from Fuzzbawls
-        vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "pivx.seed2.fuzzbawls.pw"));    // Secondary DNS Seeder from Fuzzbawls
-        vSeeds.push_back(CDNSSeedData("coin-server.com", "coin-server.com"));         // Single node address
-        vSeeds.push_back(CDNSSeedData("s3v3nh4cks.ddns.net", "s3v3nh4cks.ddns.net")); // Single node address
-        vSeeds.push_back(CDNSSeedData("178.254.23.111", "178.254.23.111"));           // Single node address
+        // Primary DNS Seeder 
+        vSeeds.push_back(CDNSSeedData("korednsseed.pw", "kore.dnsseed.com"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 30);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 13);
@@ -294,14 +291,14 @@ public:
         vSeeds.push_back(CDNSSeedData("s3v3nh4cks.ddns.net", "s3v3nh4cks.ddns.net"));
         vSeeds.push_back(CDNSSeedData("88.198.192.110", "88.198.192.110"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 139); // Testnet pivx addresses start with 'x' or 'y'
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 19);  // Testnet pivx script addresses start with '8' or '9'
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 239);     // Testnet private keys start with '9' or 'c' (Bitcoin defaults)
-        // Testnet pivx BIP32 pubkeys start with 'DRKV'
-        base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x3a)(0x80)(0x61)(0xa0).convert_to_container<std::vector<unsigned char> >();
-        // Testnet pivx BIP32 prvkeys start with 'DRKP'
-        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x3a)(0x80)(0x58)(0x37).convert_to_container<std::vector<unsigned char> >();
-        // Testnet pivx BIP44 coin type is '1' (All coin's testnet default)
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,105);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,190);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,233);
+        // Kore BIP32 pubkeys
+        base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();
+        // Kore BIP32 prvkeys
+        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
+        // Kore BIP44
         base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x01).convert_to_container<std::vector<unsigned char> >();
 
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));

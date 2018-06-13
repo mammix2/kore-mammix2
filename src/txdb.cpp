@@ -247,11 +247,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 pindexNew->nStatus = diskindex.nStatus;
                 pindexNew->nTx = diskindex.nTx;
 
-                //zerocoin
-                pindexNew->nAccumulatorCheckpoint = diskindex.nAccumulatorCheckpoint;
-                pindexNew->mapZerocoinSupply = diskindex.mapZerocoinSupply;
-                pindexNew->vMintDenominationsInBlock = diskindex.vMintDenominationsInBlock;
-
                 //Proof Of Stake
                 pindexNew->nMint = diskindex.nMint;
                 pindexNew->nMoneySupply = diskindex.nMoneySupply;
@@ -268,16 +263,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 // ppcoin: build setStakeSeen
                 if (pindexNew->IsProofOfStake())
                     setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
-
-                //populate accumulator checksum map in memory
-                if(pindexNew->nAccumulatorCheckpoint != 0 && pindexNew->nAccumulatorCheckpoint != nPreviousCheckpoint) {
-                    //Don't load any checkpoints that exist before v2 zpiv. The accumulator is invalid for v1 and not used.
-                    if (pindexNew->nHeight >= Params().Zerocoin_Block_V2_Start())
-                        LoadAccumulatorValuesFromDB(pindexNew->nAccumulatorCheckpoint);
-
-                    nPreviousCheckpoint = pindexNew->nAccumulatorCheckpoint;
-                }
-
+                
                 pcursor->Next();
             } else {
                 break; // if shutdown requested or finished loading block index

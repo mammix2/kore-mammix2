@@ -309,6 +309,7 @@ public:
 struct CMutableTransaction
 {
     int32_t nVersion;
+    uint32_t nTime;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     uint32_t nLockTime;
@@ -322,6 +323,7 @@ struct CMutableTransaction
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(this->nVersion);
         nVersion = this->nVersion;
+        READWRITE(nTime);
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);

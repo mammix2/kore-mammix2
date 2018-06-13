@@ -27,14 +27,15 @@ class CBlockHeader
 {
 public:
     // header
-    static const int32_t CURRENT_VERSION=4;
+    static const int32_t CURRENT_VERSION=1;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
-    uint256 nAccumulatorCheckpoint;
+    uint32_t nBirthdayA;
+    uint32_t nBirthdayB;
 
     CBlockHeader()
     {
@@ -52,10 +53,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-
-        //zerocoin active, header changes to include accumulator checksum
-        if(nVersion > 3)
-            READWRITE(nAccumulatorCheckpoint);
+        READWRITE(nBirthdayA);
+        READWRITE(nBirthdayB);
     }
 
     void SetNull()
@@ -66,7 +65,8 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
-        nAccumulatorCheckpoint = 0;
+        nBirthdayA = 0;
+	    nBirthdayB = 0;
     }
 
     bool IsNull() const
@@ -135,7 +135,8 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-        block.nAccumulatorCheckpoint = nAccumulatorCheckpoint;
+	block.nBirthdayA     = nBirthdayA;
+        block.nBirthdayB     = nBirthdayB; 
         return block;
     }
 
@@ -149,8 +150,6 @@ public:
     {
         return !IsProofOfStake();
     }
-
-    bool IsZerocoinStake() const;
 
     std::pair<COutPoint, unsigned int> GetProofOfStake() const
     {
@@ -199,7 +198,7 @@ struct CBlockLocator
         vHave.clear();
     }
 
-    bool IsNull()
+    bool IsNull() const
     {
         return vHave.empty();
     }

@@ -112,13 +112,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     if (Params().MineBlocksOnDemand())
         pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
-    // Make sure to create the correct block version after zerocoin is enabled
-    bool fZerocoinActive = GetAdjustedTime() >= Params().Zerocoin_StartTime();
-    if (fZerocoinActive)
-        pblock->nVersion = 4;
-    else
-        pblock->nVersion = 3;
-
     // Create coinbase tx
     CMutableTransaction txNew;
     txNew.vin.resize(1);
@@ -347,33 +340,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             if (!view.HaveInputs(tx))
                 continue;
 
-            // double check that there are no double spent zPIV spends in this block or tx
-            if (tx.IsZerocoinSpend()) {
-                int nHeightTx = 0;
-                if (IsTransactionInChain(tx.GetHash(), nHeightTx))
-                    continue;
-
-                bool fDoubleSerial = false;
-                for (const CTxIn txIn : tx.vin) {
-                    if (txIn.scriptSig.IsZerocoinSpend()) {
-                        libzerocoin::CoinSpend spend = TxInToZerocoinSpend(txIn);
-                        bool fUseV1Params = libzerocoin::ExtractVersionFromSerial(spend.getCoinSerialNumber()) < libzerocoin::PrivateCoin::PUBKEY_VERSION;
-                        if (!spend.HasValidSerial(Params().Zerocoin_Params(fUseV1Params)))
-                            fDoubleSerial = true;
-                        if (count(vBlockSerials.begin(), vBlockSerials.end(), spend.getCoinSerialNumber()))
-                            fDoubleSerial = true;
-                        if (count(vTxSerials.begin(), vTxSerials.end(), spend.getCoinSerialNumber()))
-                            fDoubleSerial = true;
-                        if (fDoubleSerial)
-                            break;
-                        vTxSerials.emplace_back(spend.getCoinSerialNumber());
-                    }
-                }
-                //This zPIV serial has already been included in the block, do not add this tx.
-                if (fDoubleSerial)
-                    continue;
-            }
-
             CAmount nTxFees = view.GetValueIn(tx) - tx.GetValueOut();
 
             nTxSigOps += GetP2SHSigOpCount(tx, view);
@@ -449,28 +415,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         pblock->nBits = GetNextWorkRequired(pindexPrev, pblock);
         pblock->nNonce = 0;
 
-        //Calculate the accumulator checkpoint only if the previous cached checkpoint need to be updated
-        uint256 nCheckpoint;
-        uint256 hashBlockLastAccumulated = chainActive[nHeight - (nHeight % 10) - 10]->GetBlockHash();
-        if (nHeight >= pCheckpointCache.first || pCheckpointCache.second.first != hashBlockLastAccumulated) {
-            //For the period before v2 activation, zPIV will be disabled and previous block's checkpoint is all that will be needed
-            pCheckpointCache.second.second = pindexPrev->nAccumulatorCheckpoint;
-            if (pindexPrev->nHeight + 1 >= Params().Zerocoin_Block_V2_Start()) {
-                AccumulatorMap mapAccumulators(Params().Zerocoin_Params(false));
-                if (fZerocoinActive && !CalculateAccumulatorCheckpoint(nHeight, nCheckpoint, mapAccumulators)) {
-                    LogPrintf("%s: failed to get accumulator checkpoint\n", __func__);
-                } else {
-                    // the next time the accumulator checkpoint should be recalculated ( the next height that is multiple of 10)
-                    pCheckpointCache.first = nHeight + (10 - (nHeight % 10));
-
-                    // the block hash of the last block used in the accumulator checkpoint calc. This will handle reorg situations.
-                    pCheckpointCache.second.first = hashBlockLastAccumulated;
-                    pCheckpointCache.second.second = nCheckpoint;
-                }
-            }
-        }
-
-        pblock->nAccumulatorCheckpoint = pCheckpointCache.second.second;
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 
         CValidationState state;
@@ -552,8 +496,6 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     // Process this block the same as if we had received it from another node
     CValidationState state;
     if (!ProcessNewBlock(state, NULL, pblock)) {
-        if (pblock->IsZerocoinStake())
-            pwalletMain->zpivTracker->RemovePending(pblock->vtx[1].GetHash());
         return error("PIVXMiner : ProcessNewBlock, block not accepted");
     }
 
@@ -637,22 +579,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         //Stake miner main
         if (fProofOfStake) {
             LogPrintf("CPUMiner : proof-of-stake block found %s \n", pblock->GetHash().ToString().c_str());
-            if (pblock->IsZerocoinStake()) {
-                //Find the key associated with the zerocoin that is being staked
-                libzerocoin::CoinSpend spend = TxInToZerocoinSpend(pblock->vtx[1].vin[0]);
-                CBigNum bnSerial = spend.getCoinSerialNumber();
-                CKey key;
-                if (!pwallet->GetZerocoinKey(bnSerial, key)) {
-                    LogPrintf("%s: failed to find zPIV with serial %s, unable to sign block\n", __func__, bnSerial.GetHex());
-                    continue;
-                }
-
-                //Sign block with the zPIV key
-                if (!SignBlockWithKey(*pblock, key)) {
-                    LogPrintf("BitcoinMiner(): Signing new block with zPIV key failed \n");
-                    continue;
-                }
-            } else if (!SignBlock(*pblock, *pwallet)) {
+            if (!SignBlock(*pblock, *pwallet)) {
                 LogPrintf("BitcoinMiner(): Signing new block with UTXO key failed \n");
                 continue;
             }

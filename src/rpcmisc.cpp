@@ -125,9 +125,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     UniValue zpivObj(UniValue::VOBJ);
     for (auto denom : libzerocoin::zerocoinDenomList) {
         zpivObj.push_back(Pair(to_string(denom), ValueFromAmount(chainActive.Tip()->mapZerocoinSupply.at(denom) * (denom*COIN))));
-    }
-    zpivObj.push_back(Pair("total", ValueFromAmount(chainActive.Tip()->GetZerocoinSupply())));
-    obj.push_back(Pair("zPIVsupply", zpivObj));
+    }    
 
 #ifdef ENABLE_WALLET
     if (pwalletMain) {

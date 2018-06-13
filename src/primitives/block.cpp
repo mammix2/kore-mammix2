@@ -15,10 +15,7 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    if(nVersion < 4)
-        return HashQuark(BEGIN(nVersion), END(nNonce));
-
-    return Hash(BEGIN(nVersion), END(nAccumulatorCheckpoint));
+    return HashQuark(BEGIN(nVersion), END(nNonce));
 }
 
 uint256 CBlock::BuildMerkleTree(bool* fMutated) const
@@ -139,9 +136,4 @@ std::string CBlock::ToString() const
 void CBlock::print() const
 {
     LogPrintf("%s", ToString());
-}
-
-bool CBlock::IsZerocoinStake() const
-{
-    return IsProofOfStake() && vtx[1].IsZerocoinSpend();
 }
