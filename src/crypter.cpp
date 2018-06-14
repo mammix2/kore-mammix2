@@ -206,7 +206,7 @@ bool CCryptoKeyStore::Lock()
     {
         LOCK(cs_KeyStore);
         vMasterKey.clear();
-        pwalletMain->zwalletMain->Lock();
+        //pwalletMain->zwalletMain->Lock();
     }
 
     NotifyStatusChanged(this);
@@ -261,8 +261,8 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             if (!GetDeterministicSeed(hashSeed, nSeed)) {
                 return error("Failed to read zPIV seed from DB. Wallet is probably corrupt.");
             }
-            pwalletMain->zwalletMain->SetMasterSeed(nSeed, false);
-        } else {
+            //pwalletMain->zwalletMain->SetMasterSeed(nSeed, false);
+        } /* else {
             // First time this wallet has been unlocked with dzPIV
             // Borrow random generator from the key class so that we don't have to worry about randomness
             CKey key;
@@ -271,7 +271,7 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             LogPrintf("%s: first run of zpiv wallet detected, new seed generated. Seedhash=%s\n", __func__, Hash(seed.begin(), seed.end()).GetHex());
             pwalletMain->zwalletMain->SetMasterSeed(seed, true);
             pwalletMain->zwalletMain->GenerateMintPool();
-        }
+        } */
     }
 
     NotifyStatusChanged(this);

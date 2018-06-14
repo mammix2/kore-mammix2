@@ -655,6 +655,7 @@ void CMasternodeBroadcast::Relay()
     RelayInv(inv);
 }
 
+/*
 bool CMasternodeBroadcast::Sign(CKey& keyCollateralAddress)
 {
     std::string errorMessage;
@@ -674,7 +675,32 @@ bool CMasternodeBroadcast::Sign(CKey& keyCollateralAddress)
 
     return true;
 }
+*/
 
+
+bool CMasternodeBroadcast::Sign(CKey& keyCollateralAddress)
+{
+    std::string errorMessage;
+
+    std::string vchPubKey(pubKeyCollateralAddress.begin(), pubKeyCollateralAddress.end());
+    std::string vchPubKey2(pubKeyMasternode.begin(), pubKeyMasternode.end());
+
+    sigTime = GetAdjustedTime();
+
+    std::string strMessage = addr.ToString() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion);
+
+    if (!obfuScationSigner.SignMessage(strMessage, errorMessage, sig, keyCollateralAddress)) {
+        LogPrintf("CMasternodeBroadcast::Sign() - Error: %s\n", errorMessage);
+        return false;
+    }
+
+    if (!obfuScationSigner.VerifyMessage(pubKeyCollateralAddress, sig, strMessage, errorMessage)) {
+        LogPrintf("CMasternodeBroadcast::Sign() - Error: %s\n", errorMessage);
+        return false;
+    }
+
+    return true;
+}
 
 bool CMasternodeBroadcast::VerifySignature()
 {

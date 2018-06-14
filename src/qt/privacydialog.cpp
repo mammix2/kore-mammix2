@@ -14,7 +14,6 @@
 #include "sendcoinsentry.h"
 #include "walletmodel.h"
 #include "coincontrol.h"
-#include "zpivcontroldialog.h"
 #include "spork.h"
 #include "askpassphrasedialog.h"
 
@@ -196,6 +195,7 @@ void PrivacyDialog::on_pushButtonMintzPIV_clicked()
 
     CWalletTx wtx;
     vector<CDeterministicMint> vMints;
+#ifdef ZEROCOIN    
     string strError = pwalletMain->MintZerocoin(nAmount, wtx, vMints, CoinControlDialog::coinControl);
 
     // Return if something went wrong during minting
@@ -203,6 +203,7 @@ void PrivacyDialog::on_pushButtonMintzPIV_clicked()
         ui->TEMintStatus->setPlainText(QString::fromStdString(strError));
         return;
     }
+#endif
 
     double fDuration = (double)(GetTimeMillis() - nTime)/1000.0;
 
@@ -240,18 +241,20 @@ void PrivacyDialog::on_pushButtonMintReset_clicked()
     ui->TEMintStatus->setPlainText(tr("Starting ResetMintZerocoin: rescanning complete blockchain, this will need up to 30 minutes depending on your hardware. \nPlease be patient..."));
     ui->TEMintStatus->repaint ();
 
+#ifdef ZEROCOIN
     int64_t nTime = GetTimeMillis();
     string strResetMintResult = pwalletMain->ResetMintZerocoin();
     double fDuration = (double)(GetTimeMillis() - nTime)/1000.0;
     ui->TEMintStatus->setPlainText(QString::fromStdString(strResetMintResult) + tr("Duration: ") + QString::number(fDuration) + tr(" sec.\n"));
     ui->TEMintStatus->repaint ();
     ui->TEMintStatus->verticalScrollBar()->setValue(ui->TEMintStatus->verticalScrollBar()->maximum()); // Automatically scroll to end of text
-
+#endif
     return;
 }
 
 void PrivacyDialog::on_pushButtonSpentReset_clicked()
 {
+#ifdef ZEROCOIN    
     ui->TEMintStatus->setPlainText(tr("Starting ResetSpentZerocoin: "));
     ui->TEMintStatus->repaint ();
     int64_t nTime = GetTimeMillis();
@@ -260,7 +263,7 @@ void PrivacyDialog::on_pushButtonSpentReset_clicked()
     ui->TEMintStatus->setPlainText(QString::fromStdString(strResetSpentResult) + tr("Duration: ") + QString::number(fDuration) + tr(" sec.\n"));
     ui->TEMintStatus->repaint ();
     ui->TEMintStatus->verticalScrollBar()->setValue(ui->TEMintStatus->verticalScrollBar()->maximum()); // Automatically scroll to end of text
-
+#endif
     return;
 }
 
@@ -294,12 +297,14 @@ void PrivacyDialog::on_pushButtonSpendzPIV_clicked()
 
 void PrivacyDialog::on_pushButtonZPivControl_clicked()
 {
+#ifdef ZEROCOIN    
     if (!walletModel || !walletModel->getOptionsModel())
         return;
 
     ZPivControlDialog* zPivControl = new ZPivControlDialog(this);
     zPivControl->setModel(walletModel);
     zPivControl->exec();
+#endif    
 }
 
 void PrivacyDialog::setZPivControlLabels(int64_t nAmount, int nQuantity)
@@ -313,6 +318,7 @@ static inline int64_t roundint64(double d)
     return (int64_t)(d > 0 ? d + 0.5 : d - 0.5);
 }
 
+#ifdef ZEROCOIN
 void PrivacyDialog::sendzPIV()
 {
     QSettings settings;
@@ -532,6 +538,7 @@ void PrivacyDialog::sendzPIV()
     ui->TEMintStatus->repaint();
     ui->TEMintStatus->verticalScrollBar()->setValue(ui->TEMintStatus->verticalScrollBar()->maximum()); // Automatically scroll to end of text
 }
+#endif
 
 void PrivacyDialog::on_payTo_textChanged(const QString& address)
 {
@@ -599,6 +606,7 @@ void PrivacyDialog::setBalance(const CAmount& balance, const CAmount& unconfirme
                                const CAmount& zerocoinBalance, const CAmount& unconfirmedZerocoinBalance, const CAmount& immatureZerocoinBalance,
                                const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
 {
+#ifdef ZEROCOIN    
     currentBalance = balance;
     currentUnconfirmedBalance = unconfirmedBalance;
     currentImmatureBalance = immatureBalance;
@@ -745,6 +753,7 @@ void PrivacyDialog::setBalance(const CAmount& balance, const CAmount& unconfirme
                 break;
         }
     }
+#endif
 }
 
 void PrivacyDialog::updateDisplayUnit()
@@ -775,6 +784,7 @@ void PrivacyDialog::keyPressEvent(QKeyEvent* event)
 
 void PrivacyDialog::updateAutomintStatus()
 {
+#ifdef ZEROCOIN    
     QString strAutomintStatus = tr("AutoMint Status:");
 
     if (pwalletMain->isZeromintEnabled ()) {
@@ -786,6 +796,7 @@ void PrivacyDialog::updateAutomintStatus()
 
     strAutomintStatus += tr(" Configured target percentage: <b>") + QString::number(pwalletMain->getZeromintPercentage()) + "%</b>";
     ui->label_AutoMintStatus->setText(strAutomintStatus);
+#endif    
 }
 
 void PrivacyDialog::updateSPORK16Status()

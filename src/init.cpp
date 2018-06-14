@@ -73,7 +73,7 @@ using namespace std;
 
 #ifdef ENABLE_WALLET
 CWallet* pwalletMain = NULL;
-CzPIVWallet* zwalletMain = NULL;
+//CzPIVWallet* zwalletMain = NULL;
 int nWalletBackups = 10;
 #endif
 volatile bool fFeeEstimatesInitialized = false;
@@ -133,7 +133,6 @@ CClientUIInterface uiInterface;
 // fRequestShutdown getting set, and then does the normal Qt
 // shutdown thing.
 //
-
 volatile bool fRequestShutdown = false;
 
 void StartShutdown()
@@ -240,8 +239,8 @@ void PrepareShutdown()
         pcoinsdbview = NULL;
         delete pblocktree;
         pblocktree = NULL;
-        delete zerocoinDB;
-        zerocoinDB = NULL;
+        //delete zerocoinDB;
+        //zerocoinDB = NULL;
         delete pSporkDB;
         pSporkDB = NULL;
     }
@@ -288,8 +287,8 @@ void Shutdown()
 #ifdef ENABLE_WALLET
     delete pwalletMain;
     pwalletMain = NULL;
-    delete zwalletMain;
-    zwalletMain = NULL;
+    //delete zwalletMain;
+    //zwalletMain = NULL;
 #endif
     LogPrintf("%s: done\n", __func__);
 }
@@ -1349,11 +1348,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 delete pcoinsdbview;
                 delete pcoinscatcher;
                 delete pblocktree;
-                delete zerocoinDB;
+                //delete zerocoinDB;
                 delete pSporkDB;
 
                 //PIVX specific: zerocoin and spork DB's
-                zerocoinDB = new CZerocoinDB(0, false, fReindex);
+                //zerocoinDB = new CZerocoinDB(0, false, fReindex);
                 pSporkDB = new CSporkDB(0, false, false);
 
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
@@ -1397,6 +1396,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 invalid_out::LoadOutpoints();
                 invalid_out::LoadSerials();
 
+#ifdef ACCUMULATORS
                 // PIVX: recalculate Accumulator Checkpoints that failed to database properly
                 if (!listAccCheckpointsNoDB.empty()) {
                     uiInterface.InitMessage(_("Calculating missing accumulators..."));
@@ -1406,6 +1406,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                     if (!ReindexAccumulators(listAccCheckpointsNoDB, strError))
                         return InitError(strError);
                 }
+
+#endif //ACCUMULATORS                
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
 
@@ -1468,7 +1470,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {
         pwalletMain = NULL;
-        zwalletMain = NULL;
+        //zwalletMain = NULL;
         LogPrintf("Wallet disabled!\n");
     } else {
         // needed to restore wallet transaction meta data after -zapwallettxes
@@ -1542,8 +1544,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
         LogPrintf("%s", strErrors.str());
         LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
-        zwalletMain = new CzPIVWallet(pwalletMain->strWalletFile);
-        pwalletMain->setZWallet(zwalletMain);
+        //zwalletMain = new CzPIVWallet(pwalletMain->strWalletFile);
+        //pwalletMain->setZWallet(zwalletMain);
 
         RegisterValidationInterface(pwalletMain);
 
@@ -1590,15 +1592,15 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         fVerifyingBlocks = false;
 
         //Inititalize zPIVWallet
-        uiInterface.InitMessage(_("Syncing zPIV wallet..."));
+        //uiInterface.InitMessage(_("Syncing zPIV wallet..."));
 
-        bool fEnableZPivBackups = GetBoolArg("-backupzpiv", true);
-        pwalletMain->setZPivAutoBackups(fEnableZPivBackups);
+        //bool fEnableZPivBackups = GetBoolArg("-backupzpiv", true);
+        //pwalletMain->setZPivAutoBackups(fEnableZPivBackups);
 
         //Load zerocoin mint hashes to memory
-        pwalletMain->zpivTracker->Init();
-        zwalletMain->LoadMintPoolFromDB();
-        zwalletMain->SyncWithChain();
+        //pwalletMain->zpivTracker->Init();
+        //zwalletMain->LoadMintPoolFromDB();
+        //zwalletMain->SyncWithChain();
     }  // (!fDisableWallet)
 #else  // ENABLE_WALLET
     LogPrintf("No wallet compiled in!\n");

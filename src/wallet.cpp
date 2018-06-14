@@ -771,10 +771,12 @@ isminetype CWallet::IsMine(const CTxIn& txin) const
     return ISMINE_NO;
 }
 
+#ifdef ZEROCOIN
 bool CWallet::IsMyZerocoinSpend(const CBigNum& bnSerial) const
 {
     return zpivTracker->HasSerial(bnSerial);
 }
+#endif
 
 CAmount CWallet::GetDebit(const CTxIn& txin, const isminefilter& filter) const
 {
@@ -1429,9 +1431,11 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
 {
     int ret = 0;
     int64_t nNow = GetTime();
+#ifdef ZEROCOIN    
     bool fCheckZPIV = GetBoolArg("-zapwallettxes", false);
     if (fCheckZPIV)
         zpivTracker->Init();
+#endif        
 
     CBlockIndex* pindex = pindexStart;
     {
@@ -1439,7 +1443,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
 
         // no need to read and scan block, if block was created before
         // our wallet birthday (as adjusted for block time variability)
-        while (pindex && nTimeFirstKey && (pindex->GetBlockTime() < (nTimeFirstKey - 7200)) && pindex->nHeight <= Params().Zerocoin_StartHeight())
+        while (pindex && nTimeFirstKey && (pindex->GetBlockTime() < (nTimeFirstKey - 7200)))
             pindex = chainActive.Next(pindex);
 
         ShowProgress(_("Rescanning..."), 0); // show rescan progress in GUI as dialog or on splashscreen, if -rescan on startup
@@ -1455,52 +1459,6 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
             BOOST_FOREACH (CTransaction& tx, block.vtx) {
                 if (AddToWalletIfInvolvingMe(tx, &block, fUpdate))
                     ret++;
-            }
-
-            //If this is a zapwallettx, need to readd zpiv
-            if (fCheckZPIV && pindex->nHeight >= Params().Zerocoin_StartHeight()) {
-                list<CZerocoinMint> listMints;
-                BlockToZerocoinMintList(block, listMints, true);
-
-                for (auto& m : listMints) {
-                    if (IsMyMint(m.GetValue())) {
-                        LogPrint("zero", "%s: found mint\n", __func__);
-                        pwalletMain->UpdateMint(m.GetValue(), pindex->nHeight, m.GetTxHash(), m.GetDenomination());
-
-                        // Add the transaction to the wallet
-                        for (auto& tx : block.vtx) {
-                            uint256 txid = tx.GetHash();
-                            if (setAddedToWallet.count(txid) || mapWallet.count(txid))
-                                continue;
-                            if (txid == m.GetTxHash()) {
-                                CWalletTx wtx(pwalletMain, tx);
-                                wtx.nTimeReceived = block.GetBlockTime();
-                                wtx.SetMerkleBranch(block);
-                                pwalletMain->AddToWallet(wtx);
-                                setAddedToWallet.insert(txid);
-                            }
-                        }
-
-                        //Check if the mint was ever spent
-                        int nHeightSpend = 0;
-                        uint256 txidSpend;
-                        CTransaction txSpend;
-                        if (IsSerialInBlockchain(GetSerialHash(m.GetSerialNumber()), nHeightSpend, txidSpend, txSpend)) {
-                            if (setAddedToWallet.count(txidSpend) || mapWallet.count(txidSpend))
-                                continue;
-
-                            CWalletTx wtx(pwalletMain, txSpend);
-                            CBlockIndex* pindexSpend = chainActive[nHeightSpend];
-                            CBlock blockSpend;
-                            if (ReadBlockFromDisk(blockSpend, pindexSpend))
-                                wtx.SetMerkleBranch(blockSpend);
-
-                            wtx.nTimeReceived = pindexSpend->nTime;
-                            pwalletMain->AddToWallet(wtx);
-                            setAddedToWallet.emplace(txidSpend);
-                        }
-                    }
-                }
             }
 
             pindex = chainActive.Next(pindex);
@@ -1630,6 +1588,7 @@ CAmount CWallet::GetBalance() const
     return nTotal;
 }
 
+#ifdef ZEROCOIN
 std::map<libzerocoin::CoinDenomination, int> mapMintMaturity;
 int nLastMaturityCheck = 0;
 CAmount CWallet::GetZerocoinBalance(bool fMatureOnly) const
@@ -1661,6 +1620,7 @@ CAmount CWallet::GetUnconfirmedZerocoinBalance() const
 {
     return zpivTracker->GetUnconfirmedBalance();
 }
+#endif
 
 CAmount CWallet::GetUnlockedCoins() const
 {
@@ -1698,6 +1658,7 @@ CAmount CWallet::GetLockedCoins() const
     return nTotal;
 }
 
+#ifdef ZEROCOIN
 // Get a Map pairing the Denominations with the amount of Zerocoin for each Denomination
 std::map<libzerocoin::CoinDenomination, CAmount> CWallet::GetMyZerocoinDistribution() const
 {
@@ -1712,6 +1673,7 @@ std::map<libzerocoin::CoinDenomination, CAmount> CWallet::GetMyZerocoinDistribut
     }
     return spread;
 }
+#endif
 
 
 CAmount CWallet::GetAnonymizableBalance() const
@@ -2112,37 +2074,13 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
         }
     }
 
-    //zPIV
-    if (GetBoolArg("-zpivstake", true) && chainActive.Height() > Params().Zerocoin_Block_V2_Start() && !IsSporkActive(SPORK_16_ZEROCOIN_MAINTENANCE_MODE)) {
-        //Add zPIV
-        set<CMintMeta> setMints = zpivTracker->ListMints(true, true, true);
-
-        for (auto meta : setMints) {
-            if (meta.hashStake == 0) {
-                CZerocoinMint mint;
-                if (GetMint(meta.hashSerial, mint)) {
-                    uint256 hashStake = mint.GetSerialNumber().getuint256();
-                    hashStake = Hash(hashStake.begin(), hashStake.end());
-                    meta.hashStake = hashStake;
-                    zpivTracker->UpdateState(meta);
-                }
-            }
-            if (meta.nVersion < CZerocoinMint::STAKABLE_VERSION)
-                continue;
-            if (meta.nHeight < chainActive.Height() - Params().Zerocoin_RequiredStakeDepth()) {
-                std::unique_ptr<CZPivStake> input(new CZPivStake(meta.denom, meta.hashStake));
-                listInputs.emplace_back(std::move(input));
-            }
-        }
-    }
-
     return true;
 }
 
 bool CWallet::MintableCoins()
 {
     CAmount nBalance = GetBalance();
-    CAmount nZpivBalance = GetZerocoinBalance(false);
+    //CAmount nZpivBalance = GetZerocoinBalance(false);
 
     // Regular PIV
     if (nBalance > 0) {
@@ -2156,26 +2094,16 @@ bool CWallet::MintableCoins()
 
         for (const COutput& out : vCoins) {
             int64_t nTxTime = out.tx->GetTxTime();
+#ifdef ZEROCOIN            
             if (out.tx->IsZerocoinSpend()) {
                 if (!out.tx->IsInMainChain())
                     continue;
                 nTxTime = mapBlockIndex.at(out.tx->hashBlock)->GetBlockTime();
             }
+#endif            
 
             if (GetAdjustedTime() - nTxTime > nStakeMinAge)
                 return true;
-        }
-    }
-
-    // zPIV
-    if (nZpivBalance > 0) {
-        set<CMintMeta> setMints = zpivTracker->ListMints(true, true, true);
-        for (auto mint : setMints) {
-            if (mint.nVersion < CZerocoinMint::STAKABLE_VERSION)
-                continue;
-            if (mint.nHeight > chainActive.Height() - Params().Zerocoin_RequiredStakeDepth())
-                continue;
-           return true;
         }
     }
 
@@ -3035,13 +2963,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             }
             txNew.vin.emplace_back(in);
 
-            //Mark mints as spent
-            if (stakeInput->IsZPIV()) {
-                CZPivStake* z = (CZPivStake*)stakeInput.get();
-                if (!z->MarkSpent(this, txNew.GetHash()))
-                    return error("%s: failed to mark mint as used\n", __func__);
-            }
-
             fKernelFound = true;
             break;
         }
@@ -3059,28 +2980,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             if (!SignSignature(*this, *wtx, txNew, nIn++))
                 return error("CreateCoinStake : failed to sign coinstake");
         }
-    } else {
-        //Update the mint database with tx hash and height
-        for (const CTxOut& out : txNew.vout) {
-            if (!out.IsZerocoinMint())
-                continue;
-
-            libzerocoin::PublicCoin pubcoin(Params().Zerocoin_Params(false));
-            CValidationState state;
-            if (!TxOutToPublicCoin(out, pubcoin, state))
-                return error("%s: extracting pubcoin from txout failed", __func__);
-
-            uint256 hashPubcoin = GetPubCoinHash(pubcoin.getValue());
-            if (!zpivTracker->HasPubcoinHash(hashPubcoin))
-                return error("%s: could not find pubcoinhash %s in tracker", __func__, hashPubcoin.GetHex());
-
-            CMintMeta meta = zpivTracker->GetMetaFromPubcoin(hashPubcoin);
-            meta.txid = txNew.GetHash();
-            meta.nHeight = chainActive.Height() + 1;
-            if (!zpivTracker->UpdateState(meta))
-                return error("%s: failed to update metadata in tracker", __func__);
-        }
-    }
+    } 
 
     // Successfully generated coinstake
     nLastStakeSetUpdate = 0; //this will trigger stake set to repopulate next round
@@ -3967,6 +3867,7 @@ bool CWallet::GetDestData(const CTxDestination& dest, const std::string& key, st
     return false;
 }
 
+#ifdef ZEROCOIN
 // CWallet::AutoZeromint() gets called with each new incoming block
 void CWallet::AutoZeromint()
 {
@@ -4071,6 +3972,7 @@ void CWallet::AutoZeromint()
         LogPrintf("CWallet::AutoZeromint(): Nothing minted because either not enough funds available or the requested denomination size (%d) is not yet reached.\n", nPreferredDenom);
     }
 }
+#endif
 
 void CWallet::AutoCombineDust()
 {
@@ -4436,6 +4338,7 @@ CScript GetLargestContributor(set<pair<const CWalletTx*, unsigned int> >& setCoi
     return scriptLargest;
 }
 
+#ifdef ZEROCOIN 
 bool CWallet::GetZerocoinKey(const CBigNum& bnSerial, CKey& key)
 {
     CWalletDB walletdb(strWalletFile);
@@ -5049,15 +4952,6 @@ void CWallet::ReconsiderZerocoins(std::list<CZerocoinMint>& listMintsRestored, s
     }
 }
 
-string CWallet::GetUniqueWalletBackupName(bool fzpivAuto) const
-{
-    posix_time::ptime timeLocal = posix_time::second_clock::local_time();
-    stringstream ssDateTime;
-
-
-    ssDateTime << gregorian::to_iso_extended_string(timeLocal.date()) << "-" << timeLocal.time_of_day();
-    return strprintf("wallet%s.dat%s", fzpivAuto ? "-autozpivbackup" : "", DateTimeStrFormat(".%Y-%m-%d-%H-%M", GetTime()));
-}
 
 void CWallet::ZPivBackupWallet()
 {
@@ -5266,6 +5160,7 @@ bool CWallet::GetMintFromStakeHash(const uint256& hashStake, CZerocoinMint& mint
     return GetMint(meta.hashSerial, mint);
 }
 
+
 bool CWallet::GetMint(const uint256& hashSerial, CZerocoinMint& mint)
 {
     if (!zpivTracker->HasSerialHash(hashSerial))
@@ -5334,4 +5229,15 @@ bool CWallet::DatabaseMint(CDeterministicMint& dMint)
     CWalletDB walletdb(strWalletFile);
     zpivTracker->Add(dMint, true);
     return true;
+}
+#endif
+
+string CWallet::GetUniqueWalletBackupName() const
+{
+    posix_time::ptime timeLocal = posix_time::second_clock::local_time();
+    stringstream ssDateTime;
+
+
+    ssDateTime << gregorian::to_iso_extended_string(timeLocal.date()) << "-" << timeLocal.time_of_day();
+    return strprintf("wallet%s.dat%s", DateTimeStrFormat(".%Y-%m-%d-%H-%M", GetTime()));
 }

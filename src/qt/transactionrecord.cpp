@@ -41,6 +41,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
     std::map<std::string, std::string> mapValue = wtx.mapValue;
     bool fZSpendFromMe = false;
 
+#ifdef ZEROCOIN
     if (wtx.IsZerocoinSpend()) {
         // a zerocoin spend that was created by this wallet
         libzerocoin::CoinSpend zcspend = TxInToZerocoinSpend(wtx.vin[0]);
@@ -303,7 +304,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
             parts.last().involvesWatchAddress = involvesWatchAddress;
         }
     }
-
+#endif
     return parts;
 }
 

@@ -352,27 +352,19 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
     const CTxIn& txin = tx.vin[0];
 
     //Construct the stakeinput object
-    if (tx.IsZerocoinSpend()) {
-        libzerocoin::CoinSpend spend = TxInToZerocoinSpend(txin);
-        if (spend.getSpendType() != libzerocoin::SpendType::STAKE)
-            return error("%s: spend is using the wrong SpendType (%d)", __func__, (int)spend.getSpendType());
+    // First try finding the previous transaction in database
+    uint256 hashBlock;
+    CTransaction txPrev;
+    if (!GetTransaction(txin.prevout.hash, txPrev, hashBlock, true))
+        return error("CheckProofOfStake() : INFO: read txPrev failed");
 
-        stake = std::unique_ptr<CStakeInput>(new CZPivStake(spend));
-    } else {
-        // First try finding the previous transaction in database
-        uint256 hashBlock;
-        CTransaction txPrev;
-        if (!GetTransaction(txin.prevout.hash, txPrev, hashBlock, true))
-            return error("CheckProofOfStake() : INFO: read txPrev failed");
+    //verify signature and script
+    if (!VerifyScript(txin.scriptSig, txPrev.vout[txin.prevout.n].scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&tx, 0)))
+        return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
 
-        //verify signature and script
-        if (!VerifyScript(txin.scriptSig, txPrev.vout[txin.prevout.n].scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&tx, 0)))
-            return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
-
-        CPivStake* pivInput = new CPivStake();
-        pivInput->SetInput(txPrev, txin.prevout.n);
-        stake = std::unique_ptr<CStakeInput>(pivInput);
-    }
+    CPivStake* pivInput = new CPivStake();
+    pivInput->SetInput(txPrev, txin.prevout.n);
+    stake = std::unique_ptr<CStakeInput>(pivInput);
 
     CBlockIndex* pindex = stake->GetIndexFrom();
     if (!pindex)

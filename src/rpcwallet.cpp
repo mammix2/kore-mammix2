@@ -2520,6 +2520,7 @@ UniValue multisend(const UniValue& params, bool fHelp)
     return printMultiSend();
 }
 
+#ifdef ZEROCOIN
 UniValue getzerocoinbalance(const UniValue& params, bool fHelp)
 {
 
@@ -2547,6 +2548,7 @@ UniValue getzerocoinbalance(const UniValue& params, bool fHelp)
         return ret;
 
 }
+
 
 UniValue listmintedzerocoins(const UniValue& params, bool fHelp)
 {
@@ -3372,11 +3374,12 @@ UniValue generatemintlist(const UniValue& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
+    UniValue arrRet(UniValue::VARR);
+/*
     int nCount = params[0].get_int();
     int nRange = params[1].get_int();
     CzPIVWallet* zwallet = pwalletMain->zwalletMain;
-
-    UniValue arrRet(UniValue::VARR);
+    
     for (int i = nCount; i < nCount + nRange; i++) {
         libzerocoin::CoinDenomination denom = libzerocoin::CoinDenomination::ZQ_ONE;
         libzerocoin::PrivateCoin coin(Params().Zerocoin_Params(false), denom, false);
@@ -3389,9 +3392,11 @@ UniValue generatemintlist(const UniValue& params, bool fHelp)
         obj.push_back(Pair("serial", coin.getSerialNumber().GetHex()));
         arrRet.push_back(obj);
     }
+    */
 
     return arrRet;
 }
+
 
 UniValue dzpivstate(const UniValue& params, bool fHelp) {
     if (fHelp || params.size() != 0)
@@ -3493,3 +3498,4 @@ UniValue searchdzpiv(const UniValue& params, bool fHelp)
     //todo: better response
     return "done";
 }
+#endif

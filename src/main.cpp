@@ -2703,7 +2703,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         pindex->RaiseValidity(BLOCK_VALID_SCRIPTS);
         setDirtyBlockIndex.insert(pindex);
     }
-
+#ifdef ZEROCOIN
     //Record zPIV serials
     set<uint256> setAddedTx;
     for (pair<CoinSpend, uint256> pSpend : vSpends) {
@@ -2740,6 +2740,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!zerocoinDB->WriteCoinMint(pMint.first, pMint.second))
             return state.Abort(("Failed to record new mint to database"));
     }
+#endif    
 
     if (fTxIndex)
         if (!pblocktree->WriteTxIndex(vPos))
@@ -2836,10 +2837,6 @@ void FlushStateToDisk()
 void static UpdateTip(CBlockIndex* pindexNew)
 {
     chainActive.SetTip(pindexNew);
-
-    // If turned on AutoZeromint will automatically convert PIV to zPIV
-    if (pwalletMain->isZeromintEnabled ())
-        pwalletMain->AutoZeromint ();
 
     // New best block
     nTimeBestReceived = GetTime();

@@ -431,7 +431,8 @@ static const CRPCCommand vRPCCommands[] =
         {"wallet", "walletlock", &walletlock, true, false, true},
         {"wallet", "walletpassphrasechange", &walletpassphrasechange, true, false, true},
         {"wallet", "walletpassphrase", &walletpassphrase, true, false, true},
-
+#endif // ENABLE_WALLET
+#ifdef ZEROCOIN
         {"zerocoin", "getzerocoinbalance", &getzerocoinbalance, false, false, true},
         {"zerocoin", "listmintedzerocoins", &listmintedzerocoins, false, false, true},
         {"zerocoin", "listspentzerocoins", &listspentzerocoins, false, false, true},
@@ -451,7 +452,7 @@ static const CRPCCommand vRPCCommands[] =
         {"zerocoin", "searchdzpiv", &searchdzpiv, false, false, true},
         {"zerocoin", "dzpivstate", &dzpivstate, false, false, true}
 
-#endif // ENABLE_WALLET
+#endif // ZEROCOIN
 };
 
 CRPCTable::CRPCTable()
