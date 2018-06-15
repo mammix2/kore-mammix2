@@ -6,9 +6,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "main.h"
-
+#ifdef ZEROCOIN
 #include "accumulators.h"
 #include "accumulatormap.h"
+#endif
 #include "addrman.h"
 #include "alert.h"
 #include "blocksignature.h"
@@ -33,9 +34,10 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "validationinterface.h"
-
+#ifdef ZEROCOIN
 #include "primitives/zerocoin.h"
 #include "libzerocoin/Denominations.h"
+#endif
 #include "invalid.h"
 
 #include <sstream>
@@ -48,7 +50,9 @@
 
 using namespace boost;
 using namespace std;
+#ifdef ZEROCOIN
 using namespace libzerocoin;
+#endif
 
 #if defined(NDEBUG)
 #error "PIVX cannot be compiled without assertions."
@@ -535,7 +539,6 @@ CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& loc
 
 CCoinsViewCache* pcoinsTip = NULL;
 CBlockTreeDB* pblocktree = NULL;
-CZerocoinDB* zerocoinDB = NULL;
 CSporkDB* pSporkDB = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -924,7 +927,7 @@ bool MoneyRange(CAmount nValueOut)
     return nValueOut >= 0 && nValueOut <= Params().MaxMoneyOut();
 }
 
-
+#ifdef ZEROCOIN
 void FindMints(vector<CMintMeta> vMintsToFind, vector<CMintMeta>& vMintsToUpdate, vector<CMintMeta>& vMissingMints)
 {
     // see which mints are in our public zerocoin database. The mint should be here if it exists, unless
@@ -998,7 +1001,7 @@ bool GetZerocoinMint(const CBigNum& bnPubcoin, uint256& txHash)
 
 bool IsPubcoinInBlockchain(const uint256& hashPubcoin, uint256& txid)
 {
-    txid = 0;
+    txid = 0; 
     return zerocoinDB->ReadCoinMint(hashPubcoin, txid);
 }
 
@@ -1010,13 +1013,14 @@ bool IsSerialKnown(const CBigNum& bnSerial)
 
 bool IsSerialInBlockchain(const CBigNum& bnSerial, int& nHeightTx)
 {
-    uint256 txHash = 0;
+    uint256 txHash = 0;  
     // if not in zerocoinDB then its not in the blockchain
     if (!zerocoinDB->ReadCoinSpend(bnSerial, txHash))
-        return false;
+        return false;   
 
     return IsTransactionInChain(txHash, nHeightTx);
 }
+#endif
 
 bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend)
 {
@@ -1027,9 +1031,11 @@ bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& tx
 bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend, CTransaction& tx)
 {
     txidSpend = 0;
+#ifdef ZEROCOIN    
     // if not in zerocoinDB then its not in the blockchain
     if (!zerocoinDB->ReadCoinSpend(hashSerial, txidSpend))
         return false;
+#endif        
 
     return IsTransactionInChain(txidSpend, nHeightTx, tx);
 }
@@ -1038,7 +1044,10 @@ bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& tx
 
 bool RemoveSerialFromDB(const CBigNum& bnSerial)
 {
+#ifdef ZEROCOIN    
     return zerocoinDB->EraseCoinSpend(bnSerial);
+#endif    
+    return true;
 }
 
 bool BlockToPubcoinList(const CBlock& block, list<PublicCoin>& listPubcoins, bool fFilterInvalid)

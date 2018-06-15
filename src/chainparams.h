@@ -13,8 +13,9 @@
 #include "primitives/block.h"
 #include "protocol.h"
 #include "uint256.h"
-
+#ifdef ZEROCOIN
 #include "libzerocoin/Params.h"
+#endif
 #include <vector>
 
 typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];

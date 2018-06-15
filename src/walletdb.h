@@ -11,10 +11,12 @@
 #include "db.h"
 #include "key.h"
 #include "keystore.h"
+#ifdef ZEROCOIN
 #include "primitives/zerocoin.h"
 #include "libzerocoin/Accumulator.h"
 #include "libzerocoin/Denominations.h"
 #include "zpivtracker.h"
+#endif
 
 #include <list>
 #include <stdint.h>
@@ -31,8 +33,10 @@ class CScript;
 class CWallet;
 class CWalletTx;
 class CDeterministicMint;
+#ifdef ZEROCOIN
 class CZerocoinMint;
 class CZerocoinSpend;
+#endif
 class uint160;
 class uint256;
 
@@ -134,7 +138,6 @@ public:
     /// This writes directly to the database, and will not update the CWallet's cached accounting entries!
     /// Use wallet.AddAccountingEntry instead, to write *and* update its caches.
     bool WriteAccountingEntry_Backend(const CAccountingEntry& acentry);
-
     bool ReadAccount(const std::string& strAccount, CAccount& account);
     bool WriteAccount(const std::string& strAccount, const CAccount& account);
 
@@ -153,6 +156,7 @@ public:
     static bool Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys);
     static bool Recover(CDBEnv& dbenv, std::string filename);
 
+#ifdef ZEROCOIN
     bool WriteDeterministicMint(const CDeterministicMint& dMint);
     bool ReadDeterministicMint(const uint256& hashPubcoin, CDeterministicMint& dMint);
     bool EraseDeterministicMint(const uint256& hashPubcoin);
@@ -185,7 +189,7 @@ public:
     bool ReadZPIVCount(uint32_t& nCount);
     std::map<uint256, std::vector<pair<uint256, uint32_t> > > MapMintPool();
     bool WriteMintPoolPair(const uint256& hashMasterSeed, const uint256& hashPubcoin, const uint32_t& nCount);
-
+#endif
 
 private:
     CWalletDB(const CWalletDB&);

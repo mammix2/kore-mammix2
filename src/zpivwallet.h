@@ -6,10 +6,12 @@
 #define PIVX_ZPIVWALLET_H
 
 #include <map>
-#include "libzerocoin/Coin.h"
 #include "mintpool.h"
 #include "uint256.h"
+#ifdef ZEROCOIN
+#include "libzerocoin/Coin.h"
 #include "primitives/zerocoin.h"
+#endif
 
 class CDeterministicMint;
 

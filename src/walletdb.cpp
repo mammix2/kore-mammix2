@@ -1132,6 +1132,7 @@ bool CWalletDB::EraseDestData(const std::string& address, const std::string& key
     return Erase(std::make_pair(std::string("destdata"), std::make_pair(address, key)));
 }
 
+#ifdef ZEROCOIN
 bool CWalletDB::WriteZerocoinSpendSerialEntry(const CZerocoinSpend& zerocoinSpend)
 {
     return Write(make_pair(string("zcserial"), zerocoinSpend.GetSerial()), zerocoinSpend, true);
@@ -1604,3 +1605,4 @@ std::list<CDeterministicMint> CWalletDB::ListArchivedDeterministicMints()
     pcursor->close();
     return listMints;
 }
+#endif

@@ -5,7 +5,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#ifdef ZEROCOIN
 #include "libzerocoin/Params.h"
+#endif
 #include "chainparams.h"
 #include "random.h"
 #include "util.h"

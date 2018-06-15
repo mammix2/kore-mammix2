@@ -11,7 +11,10 @@
 
 #include "init.h"
 
+#ifdef ZEROCOIN
 #include "accumulators.h"
+#include "accumulatorcheckpoints.h"
+#endif
 #include "activemasternode.h"
 #include "addrman.h"
 #include "amount.h"
@@ -39,13 +42,11 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "validationinterface.h"
-#include "accumulatorcheckpoints.h"
 
 #ifdef ENABLE_WALLET
 #include "db.h"
 #include "wallet.h"
 #include "walletdb.h"
-#include "accumulators.h"
 
 #endif
 
@@ -1289,8 +1290,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // ********************************************************* Step 7: load block chain
 
+#ifdef ZEROCOIN
     //PIVX: Load Accumulator Checkpoints according to network (main/test/regtest)
     assert(AccumulatorCheckpoints::LoadCheckpoints(Params().NetworkIDString()));
+#endif    
 
     fReindex = GetBoolArg("-reindex", false);
 

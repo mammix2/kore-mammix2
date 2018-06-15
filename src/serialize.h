@@ -18,8 +18,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+#ifdef ZEROCOIN
 #include "libzerocoin/Denominations.h"
 #include "libzerocoin/SpendType.h"
+#endif
 
 class CScript;
 
@@ -285,6 +287,8 @@ inline void Unserialize(Stream& s, bool& a, int, int = 0)
     READDATA(s, f);
     a = f;
 }
+
+#ifdef ZEROCOIN
 // Serializatin for libzerocoin::CoinDenomination
 inline unsigned int GetSerializeSize(libzerocoin::CoinDenomination a, int, int = 0) { return sizeof(libzerocoin::CoinDenomination); }
 template <typename Stream>
@@ -318,7 +322,7 @@ inline void Unserialize(Stream& s, libzerocoin::SpendType & a, int, int = 0)
     READDATA(s, f);
     a = static_cast<libzerocoin::SpendType>(f);
 }
-
+#endif
 
 /**
  * Compact Size

@@ -20,7 +20,9 @@
 #include "pow.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
+#ifdef ZEROCOIN
 #include "primitives/zerocoin.h"
+#endif
 #include "script/script.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
@@ -39,13 +41,14 @@
 #include <utility>
 #include <vector>
 
-#include "libzerocoin/CoinSpend.h"
 
 #include <boost/unordered_map.hpp>
 
 class CBlockIndex;
 class CBlockTreeDB;
+#ifdef ZEROCOIN
 class CZerocoinDB;
+#endif
 class CSporkDB;
 class CBloomFilter;
 class CInv;
@@ -353,6 +356,7 @@ void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCach
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
 
+#ifdef ZEROCOIN
 bool BlockToPubcoinList(const CBlock& block, list<libzerocoin::PublicCoin>& listPubcoins, bool fFilterInvalid);
 bool BlockToMintValueVector(const CBlock& block, const libzerocoin::CoinDenomination denom, std::vector<CBigNum>& vValues);
 std::list<libzerocoin::CoinDenomination> ZerocoinSpendListFromBlock(const CBlock& block, bool fFilterInvalid);
@@ -364,12 +368,15 @@ bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& tx
 bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend, CTransaction& tx);
 bool IsPubcoinInBlockchain(const uint256& hashPubcoin, uint256& txid);
 bool RemoveSerialFromDB(const CBigNum& bnSerial);
+#endif
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx, CTransaction& tx);
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx);
 bool IsBlockHashInChain(const uint256& hashBlock);
 bool ValidOutPoint(const COutPoint out, int nHeight);
+#ifndef ZEROCOIN
 void RecalculateZPIVSpent();
 void RecalculateZPIVMinted();
+#endif
 bool RecalculatePIVSupply(int nHeightStart);
 bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError);
 
@@ -639,8 +646,10 @@ extern CCoinsViewCache* pcoinsTip;
 /** Global variable that points to the active block tree (protected by cs_main) */
 extern CBlockTreeDB* pblocktree;
 
+#ifdef ZEROCOIN
 /** Global variable that points to the zerocoin database (protected by cs_main) */
 extern CZerocoinDB* zerocoinDB;
+#endif
 
 /** Global variable that points to the spork database (protected by cs_main) */
 extern CSporkDB* pSporkDB;

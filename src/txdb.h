@@ -9,7 +9,9 @@
 
 #include "leveldbwrapper.h"
 #include "main.h"
+#ifdef ZEROCOIN
 #include "primitives/zerocoin.h"
+#endif
 
 #include <map>
 #include <string>
@@ -69,6 +71,7 @@ public:
     bool LoadBlockIndexGuts();
 };
 
+#ifdef ZEROCOIN
 class CZerocoinDB : public CLevelDBWrapper
 {
 public:
@@ -92,5 +95,6 @@ public:
     bool ReadAccumulatorValue(const uint32_t& nChecksum, CBigNum& bnValue);
     bool EraseAccumulatorValue(const uint32_t& nChecksum);
 };
+#endif
 
 #endif // BITCOIN_TXDB_H

@@ -1,12 +1,13 @@
 // Copyright (c) 2018 The PIVX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
+#ifdef ZEROCOIN 
 #include <libzerocoin/Coin.h>
+using namespace libzerocoin;
+#endif
 #include <tinyformat.h>
 #include "deterministicmint.h"
 
-using namespace libzerocoin;
 
 CDeterministicMint::CDeterministicMint()
 {
@@ -34,7 +35,9 @@ void CDeterministicMint::SetNull()
     hashPubcoin = 0;
     txid = 0;
     nHeight = 0;
+#ifdef ZEROCOIN     
     denom = CoinDenomination::ZQ_ERROR;
+#endif    
     isUsed = false;
 }
 

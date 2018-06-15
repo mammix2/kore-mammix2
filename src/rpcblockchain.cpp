@@ -14,7 +14,9 @@
 #include "txdb.h"
 #include "util.h"
 #include "utilmoneystr.h"
+#ifdef ZEROCOIN
 #include "accumulatormap.h"
+#endif
 
 #include <stdint.h>
 #include <univalue.h>
@@ -889,6 +891,7 @@ UniValue reconsiderblock(const UniValue& params, bool fHelp)
     return NullUniValue;
 }
 
+#ifdef ZEROCOIN
 UniValue findserial(const UniValue& params, bool fHelp)
 {
     if(fHelp || params.size() != 1)
@@ -923,3 +926,4 @@ UniValue findserial(const UniValue& params, bool fHelp)
 
     return ret;
 }
+#endif

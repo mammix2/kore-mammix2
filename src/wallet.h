@@ -17,14 +17,15 @@
 #include "main.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
-#include "primitives/zerocoin.h"
 #include "ui_interface.h"
 #include "util.h"
 #include "validationinterface.h"
 #include "wallet_ismine.h"
 #include "walletdb.h"
+#ifdef ZEROCOIN
 #include "zpivwallet.h"
 #include "zpivtracker.h"
+#endif
 
 #include <algorithm>
 #include <map>
@@ -89,6 +90,7 @@ enum AvailableCoinsType {
     STAKABLE_COINS = 6                          // UTXO's that are valid for staking
 };
 
+#ifdef ZEROCOIN
 // Possible states for zPIV send
 enum ZerocoinSpendStatus {
     ZPIV_SPEND_OKAY = 0,                            // No error
@@ -109,6 +111,7 @@ enum ZerocoinSpendStatus {
     ZPIV_TX_TOO_LARGE = 15,                          // The transaction is larger than the max tx size
     ZPIV_SPEND_V1_SEC_LEVEL                         // Spend is V1 and security level is not set to 100
 };
+#endif
 
 struct CompactTallyItem {
     CBitcoinAddress address;
@@ -239,8 +242,9 @@ public:
      *      strWalletFile (immutable after instantiation)
      */
     mutable CCriticalSection cs_wallet;
-
+#ifdef ZEROCOIN
     CzPIVWallet* zwalletMain;
+#endif    
 
     bool fFileBacked;
     bool fWalletUnlockAnonymizeOnly;
@@ -477,12 +481,16 @@ public:
     void ReacceptWalletTransactions();
     void ResendWalletTransactions();
     CAmount GetBalance() const;
+#ifdef ZEROCOIN    
     CAmount GetZerocoinBalance(bool fMatureOnly) const;
     CAmount GetUnconfirmedZerocoinBalance() const;
+#endif    
     CAmount GetImmatureZerocoinBalance() const;
     CAmount GetLockedCoins() const;
     CAmount GetUnlockedCoins() const;
+#ifdef ZEROCOIN    
     std::map<libzerocoin::CoinDenomination, CAmount> GetMyZerocoinDistribution() const;
+#endif    
     CAmount GetUnconfirmedBalance() const;
     CAmount GetImmatureBalance() const;
     CAmount GetAnonymizableBalance() const;
@@ -514,7 +522,9 @@ public:
     bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime);
     bool MultiSend();
     void AutoCombineDust();
+#ifdef ZEROCOIN    
     void AutoZeromint();
+#endif    
 
     static CFeeRate minTxFee;
     static CAmount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool);
@@ -552,8 +562,10 @@ public:
     {
         return ::IsMine(*this, txout.scriptPubKey);
     }
+#ifdef ZEROCOIN    
     bool IsMyZerocoinSpend(const CBigNum& bnSerial) const;
     bool IsMyMint(const CBigNum& bnValue) const;
+#endif    
     CAmount GetCredit(const CTxOut& txout, const isminefilter& filter) const
     {
         if (!MoneyRange(txout.nValue))

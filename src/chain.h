@@ -12,7 +12,9 @@
 #include "tinyformat.h"
 #include "uint256.h"
 #include "util.h"
+#ifdef ZEROCOIN
 #include "libzerocoin/Denominations.h"
+#endif
 
 #include <vector>
 
@@ -176,10 +178,12 @@ public:
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
-    
+
+#ifdef ZEROCOIN    
     //! zerocoin specific fields
     std::map<libzerocoin::CoinDenomination, int64_t> mapZerocoinSupply;
     std::vector<libzerocoin::CoinDenomination> vMintDenominationsInBlock;
+#endif    
     
     void SetNull()
     {
@@ -209,11 +213,13 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+#ifdef ZEROCOIN        
         // Start supply of each denomination with 0s
         for (auto& denom : libzerocoin::zerocoinDenomList) {
             mapZerocoinSupply.insert(make_pair(denom, 0));
         }
         vMintDenominationsInBlock.clear();
+#endif        
     }
 
     CBlockIndex()
@@ -283,10 +289,12 @@ public:
         return block;
     }
 
+#ifdef ZEROCOIN
     bool MintedDenomination(libzerocoin::CoinDenomination denom) const
     {
         return std::find(vMintDenominationsInBlock.begin(), vMintDenominationsInBlock.end(), denom) != vMintDenominationsInBlock.end();
     }
+#endif
 
     uint256 GetBlockHash() const
     {
@@ -462,10 +470,12 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+#ifdef zerocoin        
         if(this->nVersion > 3) {           
             READWRITE(mapZerocoinSupply);
             READWRITE(vMintDenominationsInBlock);
         }
+#endif        
 
     }
 

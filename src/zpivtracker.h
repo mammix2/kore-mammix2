@@ -4,8 +4,9 @@
 
 #ifndef PIVX_ZPIVTRACKER_H
 #define PIVX_ZPIVTRACKER_H
-
+#ifdef ZEROCOIN
 #include "primitives/zerocoin.h"
+#endif
 #include <list>
 
 class CDeterministicMint;

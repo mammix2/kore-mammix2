@@ -253,16 +253,15 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             return false;
         vMasterKey = vMasterKeyIn;
         fDecryptionThoroughlyChecked = true;
-
+#ifdef ZEROCOIN  
         uint256 hashSeed;
         if (CWalletDB(pwalletMain->strWalletFile).ReadCurrentSeedHash(hashSeed)) {
-
-            uint256 nSeed;
+            uint256 nSeed;          
             if (!GetDeterministicSeed(hashSeed, nSeed)) {
                 return error("Failed to read zPIV seed from DB. Wallet is probably corrupt.");
             }
-            //pwalletMain->zwalletMain->SetMasterSeed(nSeed, false);
-        } /* else {
+            pwalletMain->zwalletMain->SetMasterSeed(nSeed, false);
+        }  else {
             // First time this wallet has been unlocked with dzPIV
             // Borrow random generator from the key class so that we don't have to worry about randomness
             CKey key;
@@ -271,7 +270,8 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
             LogPrintf("%s: first run of zpiv wallet detected, new seed generated. Seedhash=%s\n", __func__, Hash(seed.begin(), seed.end()).GetHex());
             pwalletMain->zwalletMain->SetMasterSeed(seed, true);
             pwalletMain->zwalletMain->GenerateMintPool();
-        } */
+        }
+#endif        
     }
 
     NotifyStatusChanged(this);
@@ -374,6 +374,7 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn)
     return true;
 }
 
+#ifdef ZEROCOIN
 bool CCryptoKeyStore::AddDeterministicSeed(const uint256& seed)
 {
     CWalletDB db(pwalletMain->strWalletFile);
@@ -397,14 +398,14 @@ bool CCryptoKeyStore::AddDeterministicSeed(const uint256& seed)
             strErr = "encrypt seed";
         }
         strErr = "save since wallet is locked";
-    } else { //wallet not encrypted
+    } 
+    else { //wallet not encrypted
         if (db.WriteZPIVSeed(hashSeed, ToByteVector(seed))) {
             return true;
         }
         strErr = "save zpivseed to wallet";
     }
                 //the use case for this is no password set seed, mint dzPIV,
-
     return error("s%: Failed to %s\n", __func__, strErr);
 }
 
@@ -451,3 +452,4 @@ bool CCryptoKeyStore::GetDeterministicSeed(const uint256& hashSeed, uint256& see
 
 //    return error("Failed to decrypt deterministic seed %s", IsLocked() ? "Wallet is locked!" : "");
 }
+#endif

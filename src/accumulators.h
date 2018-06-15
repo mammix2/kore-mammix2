@@ -4,11 +4,12 @@
 
 #ifndef PIVX_ACCUMULATORS_H
 #define PIVX_ACCUMULATORS_H
-
+#ifdef ZEROCOIN
 #include "libzerocoin/Accumulator.h"
 #include "libzerocoin/Coin.h"
 #include "libzerocoin/Denominations.h"
 #include "primitives/zerocoin.h"
+#endif
 #include "accumulatormap.h"
 #include "chain.h"
 #include "uint256.h"
