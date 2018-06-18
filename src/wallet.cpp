@@ -7,7 +7,6 @@
 
 #include "wallet.h"
 
-#include "accumulators.h"
 #include "base58.h"
 #include "checkpoints.h"
 #include "coincontrol.h"
@@ -25,10 +24,13 @@
 #include "util.h"
 #include "utilmoneystr.h"
 
+#ifdef ZEROCOIN
+#include "accumulators.h"
 #include "denomination_functions.h"
 #include "libzerocoin/Denominations.h"
 #include "zpivwallet.h"
 #include "primitives/deterministicmint.h"
+#endif
 #include <assert.h>
 
 #include <boost/algorithm/string/replace.hpp>

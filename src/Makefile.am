@@ -5,7 +5,7 @@
 DIST_SUBDIRS = secp256k1 univalue
 TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel \
 	-lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
-LIBS+= -lssl -lcrypto -lcurl
+LIBS+= -lssl -lcrypto -lcurl -lboost_date_time
 
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
@@ -113,11 +113,9 @@ BITCOIN_CORE_H = \
   compat/sanity.h \
   compressor.h \
   primitives/block.h \
-  primitives/deterministicmint.h \
   primitives/transaction.h \
   core_io.h \
   crypter.h \
-  denomination_functions.h \
   obfuscation.h \
   obfuscation-relay.h \
   db.h \
@@ -145,7 +143,6 @@ BITCOIN_CORE_H = \
   masternodeconfig.h \
   merkleblock.h \
   miner.h \
-  mintpool.h \
   mruset.h \
   netbase.h \
   net.h \
@@ -256,7 +253,6 @@ libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
   activemasternode.cpp \
   bip38.cpp \
-  denomination_functions.cpp \
   obfuscation.cpp \
   obfuscation-relay.cpp \
   db.cpp \
@@ -268,9 +264,7 @@ libbitcoin_wallet_a_SOURCES = \
   masternode-sync.cpp \
   masternodeconfig.cpp \
   masternodeman.cpp \
-  mintpool.cpp \
   rpcdump.cpp \
-  primitives/deterministicmint.cpp \
   rpcwallet.cpp \
   kernel.cpp \
   wallet.cpp \
@@ -327,7 +321,6 @@ libbitcoin_common_a_SOURCES = \
   coins.cpp \
   compressor.cpp \
   primitives/block.cpp \
-  primitives/deterministicmint.cpp \
   primitives/transaction.cpp \
   core_read.cpp \
   core_write.cpp \

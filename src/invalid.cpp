@@ -8,7 +8,9 @@
 
 namespace invalid_out
 {
+#ifdef ZEROCOIN    
     std::set<CBigNum> setInvalidSerials;
+#endif    
     std::set<COutPoint> setInvalidOutPoints;
 
     UniValue read_json(const std::string& jsondata)
@@ -52,6 +54,7 @@ namespace invalid_out
         return true;
     }
 
+#ifdef ZEROCOIN
     bool LoadSerials()
     {
         UniValue v = read_json(LoadInvalidSerials());
@@ -76,15 +79,17 @@ namespace invalid_out
 
         return true;
     }
+#endif    
 
     bool ContainsOutPoint(const COutPoint& out)
     {
         return static_cast<bool>(setInvalidOutPoints.count(out));
     }
-
+#ifdef ZEROCOIN
     bool ContainsSerial(const CBigNum& bnSerial)
     {
         return static_cast<bool>(setInvalidSerials.count(bnSerial));
     }
+#endif    
 }
 

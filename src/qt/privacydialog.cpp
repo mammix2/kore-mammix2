@@ -9,7 +9,6 @@
 #include "addresstablemodel.h"
 #include "bitcoinunits.h"
 #include "coincontroldialog.h"
-#include "libzerocoin/Denominations.h"
 #include "optionsmodel.h"
 #include "sendcoinsentry.h"
 #include "walletmodel.h"
@@ -21,8 +20,11 @@
 #include <QSettings>
 #include <utilmoneystr.h>
 #include <QtWidgets>
+#ifdef ZEROCOIN
+#include "libzerocoin/Denominations.h"
 #include <primitives/deterministicmint.h>
 #include <accumulators.h>
+#endif
 
 PrivacyDialog::PrivacyDialog(QWidget* parent) : QDialog(parent),
                                                           ui(new Ui::PrivacyDialog),
@@ -123,10 +125,16 @@ void PrivacyDialog::setModel(WalletModel* walletModel)
     if (walletModel && walletModel->getOptionsModel()) {
         // Keep up to date with wallet
         setBalance(walletModel->getBalance(), walletModel->getUnconfirmedBalance(), walletModel->getImmatureBalance(),
+#ifdef ZEROCOIN        
                    walletModel->getZerocoinBalance(), walletModel->getUnconfirmedZerocoinBalance(), walletModel->getImmatureZerocoinBalance(),
+#endif                   
                    walletModel->getWatchBalance(), walletModel->getWatchUnconfirmedBalance(), walletModel->getWatchImmatureBalance());
 
-        connect(walletModel, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this,
+        connect(walletModel, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, 
+#ifdef ZEROCOIN        
+        CAmount, CAmount, CAmount, 
+#endif        
+        CAmount, CAmount, CAmount)), this,
                                SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
         connect(walletModel->getOptionsModel(), SIGNAL(zeromintEnableChanged(bool)), this, SLOT(updateAutomintStatus()));
         connect(walletModel->getOptionsModel(), SIGNAL(zeromintPercentageChanged(int)), this, SLOT(updateAutomintStatus()));
@@ -152,7 +160,7 @@ void PrivacyDialog::on_addressBookButton_clicked()
         ui->zPIVpayAmount->setFocus();
     }
 }
-
+#ifdef ZEROCOIN  
 void PrivacyDialog::on_pushButtonMintzPIV_clicked()
 {
     if (!walletModel || !walletModel->getOptionsModel())
@@ -195,7 +203,7 @@ void PrivacyDialog::on_pushButtonMintzPIV_clicked()
 
     CWalletTx wtx;
     vector<CDeterministicMint> vMints;
-#ifdef ZEROCOIN    
+  
     string strError = pwalletMain->MintZerocoin(nAmount, wtx, vMints, CoinControlDialog::coinControl);
 
     // Return if something went wrong during minting
@@ -203,7 +211,6 @@ void PrivacyDialog::on_pushButtonMintzPIV_clicked()
         ui->TEMintStatus->setPlainText(QString::fromStdString(strError));
         return;
     }
-#endif
 
     double fDuration = (double)(GetTimeMillis() - nTime)/1000.0;
 
@@ -235,25 +242,26 @@ void PrivacyDialog::on_pushButtonMintzPIV_clicked()
 
     return;
 }
+#endif
 
 void PrivacyDialog::on_pushButtonMintReset_clicked()
 {
+#ifdef ZEROCOIN
     ui->TEMintStatus->setPlainText(tr("Starting ResetMintZerocoin: rescanning complete blockchain, this will need up to 30 minutes depending on your hardware. \nPlease be patient..."));
     ui->TEMintStatus->repaint ();
 
-#ifdef ZEROCOIN
     int64_t nTime = GetTimeMillis();
     string strResetMintResult = pwalletMain->ResetMintZerocoin();
     double fDuration = (double)(GetTimeMillis() - nTime)/1000.0;
     ui->TEMintStatus->setPlainText(QString::fromStdString(strResetMintResult) + tr("Duration: ") + QString::number(fDuration) + tr(" sec.\n"));
     ui->TEMintStatus->repaint ();
     ui->TEMintStatus->verticalScrollBar()->setValue(ui->TEMintStatus->verticalScrollBar()->maximum()); // Automatically scroll to end of text
-#endif
+#endif    
     return;
 }
 
 void PrivacyDialog::on_pushButtonSpentReset_clicked()
-{
+{   
 #ifdef ZEROCOIN    
     ui->TEMintStatus->setPlainText(tr("Starting ResetSpentZerocoin: "));
     ui->TEMintStatus->repaint ();
@@ -263,10 +271,11 @@ void PrivacyDialog::on_pushButtonSpentReset_clicked()
     ui->TEMintStatus->setPlainText(QString::fromStdString(strResetSpentResult) + tr("Duration: ") + QString::number(fDuration) + tr(" sec.\n"));
     ui->TEMintStatus->repaint ();
     ui->TEMintStatus->verticalScrollBar()->setValue(ui->TEMintStatus->verticalScrollBar()->maximum()); // Automatically scroll to end of text
-#endif
+#endif    
     return;
 }
 
+#ifdef ZEROCOIN
 void PrivacyDialog::on_pushButtonSpendzPIV_clicked()
 {
 
@@ -297,14 +306,12 @@ void PrivacyDialog::on_pushButtonSpendzPIV_clicked()
 
 void PrivacyDialog::on_pushButtonZPivControl_clicked()
 {
-#ifdef ZEROCOIN    
     if (!walletModel || !walletModel->getOptionsModel())
         return;
 
     ZPivControlDialog* zPivControl = new ZPivControlDialog(this);
     zPivControl->setModel(walletModel);
     zPivControl->exec();
-#endif    
 }
 
 void PrivacyDialog::setZPivControlLabels(int64_t nAmount, int nQuantity)
@@ -312,6 +319,7 @@ void PrivacyDialog::setZPivControlLabels(int64_t nAmount, int nQuantity)
     ui->labelzPivSelected_int->setText(QString::number(nAmount));
     ui->labelQuantitySelected_int->setText(QString::number(nQuantity));
 }
+#endif
 
 static inline int64_t roundint64(double d)
 {
@@ -603,7 +611,9 @@ bool PrivacyDialog::updateLabel(const QString& address)
 }
 
 void PrivacyDialog::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance,
+#ifdef ZEROCOIN
                                const CAmount& zerocoinBalance, const CAmount& unconfirmedZerocoinBalance, const CAmount& immatureZerocoinBalance,
+#endif                               
                                const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
 {
 #ifdef ZEROCOIN    
@@ -762,7 +772,9 @@ void PrivacyDialog::updateDisplayUnit()
         nDisplayUnit = walletModel->getOptionsModel()->getDisplayUnit();
         if (currentBalance != -1)
             setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance,
+#ifdef ZEROCOIN            
                        currentZerocoinBalance, currentUnconfirmedZerocoinBalance, currentImmatureZerocoinBalance,
+#endif                       
                        currentWatchOnlyBalance, currentWatchUnconfBalance, currentWatchImmatureBalance);
     }
 }

@@ -137,9 +137,11 @@ public:
     CAmount getUnconfirmedBalance() const;
     CAmount getImmatureBalance() const;
     CAmount getLockedBalance() const;
+#ifdef ZEROCOIN    
     CAmount getZerocoinBalance() const;
     CAmount getUnconfirmedZerocoinBalance() const;
     CAmount getImmatureZerocoinBalance() const;
+#endif    
     bool haveWatchOnly() const;
     CAmount getWatchBalance() const;
     CAmount getWatchUnconfirmedBalance() const;
@@ -259,7 +261,9 @@ private:
 signals:
     // Signal that balance in wallet changed
     void balanceChanged(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, 
+#ifdef ZEROCOIN    
                         const CAmount& zerocoinBalance, const CAmount& unconfirmedZerocoinBalance, const CAmount& immatureZerocoinBalance, 
+#endif                        
                         const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 
     // Encryption status of wallet changed

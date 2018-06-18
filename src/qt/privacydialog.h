@@ -46,11 +46,15 @@ public:
 
     void setModel(WalletModel* model);
     void showOutOfSyncWarning(bool fShow);
+#ifdef ZEROCOIN
     void setZPivControlLabels(int64_t nAmount, int nQuantity);
+#endif    
 
 public slots:
     void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, 
+#ifdef ZEROCOIN
                     const CAmount& zerocoinBalance, const CAmount& unconfirmedZerocoinBalance, const CAmount& immatureZerocoinBalance,
+#endif                    
                     const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
 protected:
     virtual void keyPressEvent(QKeyEvent* event);
@@ -76,7 +80,9 @@ private:
 
     int nDisplayUnit;
     bool updateLabel(const QString& address);
+#ifdef ZEROCOIN    
     void sendzPIV();
+#endif    
 
 private slots:
     void on_payTo_textChanged(const QString& address);
@@ -96,11 +102,13 @@ private slots:
 //    void coinControlClipboardLowOutput();
 //    void coinControlClipboardChange();
 
+#ifdef ZEROCOIN
     void on_pushButtonMintzPIV_clicked();
-    void on_pushButtonMintReset_clicked();
-    void on_pushButtonSpentReset_clicked();
     void on_pushButtonSpendzPIV_clicked();
     void on_pushButtonZPivControl_clicked();
+#endif    
+    void on_pushButtonMintReset_clicked();
+    void on_pushButtonSpentReset_clicked();
     void on_pasteButton_clicked();
     void updateDisplayUnit();
     void updateAutomintStatus();

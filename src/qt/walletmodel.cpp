@@ -88,6 +88,7 @@ CAmount WalletModel::getLockedBalance() const
     return wallet->GetLockedCoins();
 }
 
+#ifdef ZEROCOIN
 CAmount WalletModel::getZerocoinBalance() const
 {
     return wallet->GetZerocoinBalance(false);
@@ -102,7 +103,7 @@ CAmount WalletModel::getImmatureZerocoinBalance() const
 {
     return wallet->GetImmatureZerocoinBalance();
 }
-
+#endif
 
 bool WalletModel::haveWatchOnly() const
 {
@@ -162,7 +163,9 @@ void WalletModel::emitBalanceChanged()
 {
     // Force update of UI elements even when no values have changed
     emit balanceChanged(cachedBalance, cachedUnconfirmedBalance, cachedImmatureBalance, 
+#ifdef ZEROCOIN    
                         cachedZerocoinBalance, cachedUnconfirmedZerocoinBalance, cachedImmatureZerocoinBalance,
+#endif                        
                         cachedWatchOnlyBalance, cachedWatchUnconfBalance, cachedWatchImmatureBalance);
 }
 
@@ -174,9 +177,11 @@ void WalletModel::checkBalanceChanged()
     CAmount newBalance = getBalance();
     CAmount newUnconfirmedBalance = getUnconfirmedBalance();
     CAmount newImmatureBalance = getImmatureBalance();
+#ifdef ZEROCOIN    
     CAmount newZerocoinBalance = getZerocoinBalance();
     CAmount newUnconfirmedZerocoinBalance = getUnconfirmedZerocoinBalance();
     CAmount newImmatureZerocoinBalance = getImmatureZerocoinBalance();
+#endif    
     CAmount newWatchOnlyBalance = 0;
     CAmount newWatchUnconfBalance = 0;
     CAmount newWatchImmatureBalance = 0;
@@ -187,21 +192,27 @@ void WalletModel::checkBalanceChanged()
     }
 
     if (cachedBalance != newBalance || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance ||
+#ifdef ZEROCOIN    
         cachedZerocoinBalance != newZerocoinBalance || cachedUnconfirmedZerocoinBalance != newUnconfirmedZerocoinBalance || cachedImmatureZerocoinBalance != newImmatureZerocoinBalance ||
+#endif        
         cachedWatchOnlyBalance != newWatchOnlyBalance || cachedWatchUnconfBalance != newWatchUnconfBalance || cachedWatchImmatureBalance != newWatchImmatureBalance ||
         cachedTxLocks != nCompleteTXLocks ) {
         cachedBalance = newBalance;
         cachedUnconfirmedBalance = newUnconfirmedBalance;
         cachedImmatureBalance = newImmatureBalance;
+#ifdef ZEROCOIN        
         cachedZerocoinBalance = newZerocoinBalance;
         cachedUnconfirmedZerocoinBalance = newUnconfirmedZerocoinBalance;
         cachedImmatureZerocoinBalance = newImmatureZerocoinBalance;
+#endif        
         cachedTxLocks = nCompleteTXLocks;
         cachedWatchOnlyBalance = newWatchOnlyBalance;
         cachedWatchUnconfBalance = newWatchUnconfBalance;
         cachedWatchImmatureBalance = newWatchImmatureBalance;
         emit balanceChanged(newBalance, newUnconfirmedBalance, newImmatureBalance, 
+#ifdef ZEROCOIN        
                             newZerocoinBalance, newUnconfirmedZerocoinBalance, newImmatureZerocoinBalance,
+#endif                            
                             newWatchOnlyBalance, newWatchUnconfBalance, newWatchImmatureBalance);
     }
 }

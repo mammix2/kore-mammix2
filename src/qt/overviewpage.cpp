@@ -125,9 +125,11 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
                                               currentBalance(-1),
                                               currentUnconfirmedBalance(-1),
                                               currentImmatureBalance(-1),
+#ifdef ZEROCOIN                                              
                                               currentZerocoinBalance(-1),
                                               currentUnconfirmedZerocoinBalance(-1),
                                               currentimmatureZerocoinBalance(-1),
+#endif                                              
                                               currentWatchOnlyBalance(-1),
                                               currentWatchUnconfBalance(-1),
                                               currentWatchImmatureBalance(-1),
@@ -189,15 +191,19 @@ void OverviewPage::getPercentage(CAmount nUnlockedBalance, CAmount nZerocoinBala
 }
 
 void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, 
+#ifdef ZEROCOIN
                               const CAmount& zerocoinBalance, const CAmount& unconfirmedZerocoinBalance, const CAmount& immatureZerocoinBalance,
+#endif
                               const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
 {
     currentBalance = balance;
     currentUnconfirmedBalance = unconfirmedBalance;
     currentImmatureBalance = immatureBalance;
+#ifdef ZEROCOIN
     currentZerocoinBalance = zerocoinBalance;
     currentUnconfirmedZerocoinBalance = unconfirmedZerocoinBalance;
     currentimmatureZerocoinBalance = immatureZerocoinBalance;
+#endif    
     currentWatchOnlyBalance = watchOnlyBalance;
     currentWatchUnconfBalance = watchUnconfBalance;
     currentWatchImmatureBalance = watchImmatureBalance;
@@ -213,8 +219,14 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     CAmount pivAvailableBalance = balance - immatureBalance - nLockedBalance;
     CAmount nTotalWatchBalance = watchOnlyBalance + watchUnconfBalance + watchImmatureBalance;    
     CAmount nUnlockedBalance = nTotalBalance - nLockedBalance;
+#ifdef ZEROCOIN
     // zPIV Balance
     CAmount matureZerocoinBalance = zerocoinBalance - unconfirmedZerocoinBalance - immatureZerocoinBalance;
+#endif   
+#ifndef ZEROCOIN
+    CAmount zerocoinBalance = 0; 
+    CAmount matureZerocoinBalance = 0;
+#endif    
     // Percentages
     QString szPercentage = "";
     QString sPercentage = "";
@@ -237,11 +249,13 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelWatchLocked->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nWatchOnlyLockedBalance, false, BitcoinUnits::separatorAlways));
     ui->labelWatchTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nTotalWatchBalance, false, BitcoinUnits::separatorAlways));
 
+#ifdef ZEROCOIN
     // zPIV labels
     ui->labelzBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, zerocoinBalance, false, BitcoinUnits::separatorAlways));
     ui->labelzBalanceUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, unconfirmedZerocoinBalance, false, BitcoinUnits::separatorAlways));
     ui->labelzBalanceMature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, matureZerocoinBalance, false, BitcoinUnits::separatorAlways));
     ui->labelzBalanceImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, immatureZerocoinBalance, false, BitcoinUnits::separatorAlways));
+#endif    
 
     // Combined labels
     ui->labelBalancez->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, availableTotalBalance, false, BitcoinUnits::separatorAlways));
@@ -290,6 +304,7 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature); // for symmetry reasons also show immature label when the watch-only one is shown
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelWatchImmature->setVisible(showImmature && showWatchOnly); // show watch-only immature balance
+#ifdef ZEROCOIN
     bool showzPIVAvailable = settingShowAllBalances || zerocoinBalance != matureZerocoinBalance;
     bool showzPIVUnconfirmed = settingShowAllBalances || unconfirmedZerocoinBalance != 0;
     bool showzPIVImmature = settingShowAllBalances || immatureZerocoinBalance != 0;
@@ -299,6 +314,7 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelzBalanceUnconfirmedText->setVisible(showzPIVUnconfirmed);
     ui->labelzBalanceImmature->setVisible(showzPIVImmature);
     ui->labelzBalanceImmatureText->setVisible(showzPIVImmature);
+#endif    
     bool showPercentages = ! (zerocoinBalance == 0 && nTotalBalance == 0);
     ui->labelPIVPercent->setVisible(showPercentages);
     ui->labelzPIVPercent->setVisible(showPercentages);
@@ -360,10 +376,16 @@ void OverviewPage::setWalletModel(WalletModel* model)
 
         // Keep up to date with wallet
         setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(),
+#ifdef ZEROCOIN        
                    model->getZerocoinBalance(), model->getUnconfirmedZerocoinBalance(), model->getImmatureZerocoinBalance(), 
+#endif                   
                    model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
         connect(model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this, 
-                         SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
+                         SLOT(setBalance(CAmount, CAmount, CAmount, 
+#ifdef ZEROCOIN
+                         CAmount, CAmount, CAmount, 
+#endif
+                         CAmount, CAmount, CAmount)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
         connect(model->getOptionsModel(), SIGNAL(hideZeroBalancesChanged(bool)), this, SLOT(updateDisplayUnit()));
@@ -381,7 +403,10 @@ void OverviewPage::updateDisplayUnit()
     if (walletModel && walletModel->getOptionsModel()) {
         nDisplayUnit = walletModel->getOptionsModel()->getDisplayUnit();
         if (currentBalance != -1)
-            setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance, currentZerocoinBalance, currentUnconfirmedZerocoinBalance, currentimmatureZerocoinBalance,
+            setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance, 
+#ifdef ZEROCOIN            
+            currentZerocoinBalance, currentUnconfirmedZerocoinBalance, currentimmatureZerocoinBalance,
+#endif            
                 currentWatchOnlyBalance, currentWatchUnconfBalance, currentWatchImmatureBalance);
 
         // Update txdelegate->unit with the current unit

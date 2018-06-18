@@ -1020,7 +1020,6 @@ bool IsSerialInBlockchain(const CBigNum& bnSerial, int& nHeightTx)
 
     return IsTransactionInChain(txHash, nHeightTx);
 }
-#endif
 
 bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend)
 {
@@ -1031,22 +1030,17 @@ bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& tx
 bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend, CTransaction& tx)
 {
     txidSpend = 0;
-#ifdef ZEROCOIN    
     // if not in zerocoinDB then its not in the blockchain
     if (!zerocoinDB->ReadCoinSpend(hashSerial, txidSpend))
         return false;
-#endif        
 
     return IsTransactionInChain(txidSpend, nHeightTx, tx);
 }
 
 
-
 bool RemoveSerialFromDB(const CBigNum& bnSerial)
 {
-#ifdef ZEROCOIN    
-    return zerocoinDB->EraseCoinSpend(bnSerial);
-#endif    
+    return zerocoinDB->EraseCoinSpend(bnSerial); 
     return true;
 }
 
@@ -1059,6 +1053,7 @@ bool BlockToMintValueVector(const CBlock& block, const CoinDenomination denom, v
 {    
     return true;
 }
+#endif
 
 bool CheckTransaction(const CTransaction& tx, CValidationState& state)
 {
@@ -2583,9 +2578,11 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     int nInputs = 0;
     unsigned int nSigOps = 0;
     CDiskTxPos pos(pindex->GetBlockPos(), GetSizeOfCompactSize(block.vtx.size()));
-    std::vector<std::pair<uint256, CDiskTxPos> > vPos;
+    std::vector<std::pair<uint256, CDiskTxPos> > vPos;    
+#ifdef ZEROCOIN    
     std::vector<pair<CoinSpend, uint256> > vSpends;
     vector<pair<PublicCoin, uint256> > vMints;
+#endif    
     vPos.reserve(block.vtx.size());
     CBlockUndo blockundo;
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
@@ -2606,7 +2603,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (block.nTime > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) && !IsInitialBlockDownload() && tx.ContainsZerocoins()) {
             return state.DoS(100, error("ConnectBlock() : zerocoin transactions are currently in maintenance mode"));
         }
-
+#ifdef ZEROCOIN
         if (tx.IsZerocoinSpend()) {
             int nHeightTx = 0;
             uint256 txid = tx.GetHash();
@@ -2618,7 +2615,9 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
                                                 tx.GetHash().GetHex(), nHeightTx, pindex->nHeight),
                                      REJECT_INVALID, "bad-txns-inputs-missingorspent");
             }            
-        } else if (!tx.IsCoinBase()) {
+        } else 
+#endif        
+        if (!tx.IsCoinBase()) {
             if (!view.HaveInputs(tx))
                 return state.DoS(100, error("ConnectBlock() : inputs missing/spent"),
                     REJECT_INVALID, "bad-txns-inputs-missingorspent");
@@ -3692,7 +3691,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     }
 
     // Check transactions
-    vector<CBigNum> vBlockSerials;
+    //vector<CBigNum> vBlockSerials;
     for (const CTransaction& tx : block.vtx) {
         if (!CheckTransaction(tx, state))
             return error("CheckBlock() : CheckTransaction failed");        

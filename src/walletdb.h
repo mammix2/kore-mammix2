@@ -32,8 +32,9 @@ class CMasterKey;
 class CScript;
 class CWallet;
 class CWalletTx;
-class CDeterministicMint;
+
 #ifdef ZEROCOIN
+class CDeterministicMint;
 class CZerocoinMint;
 class CZerocoinSpend;
 #endif

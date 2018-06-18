@@ -160,7 +160,9 @@ void SendCoinsDialog::setModel(WalletModel* model)
         }
 
         setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(),
+#ifdef ZEROCOIN        
                    model->getZerocoinBalance (), model->getUnconfirmedZerocoinBalance (), model->getImmatureZerocoinBalance (),
+#endif                   
                    model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
         connect(model, SIGNAL(balanceChanged(CAmount, CAmount,  CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this, 
                          SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
@@ -544,14 +546,18 @@ bool SendCoinsDialog::handlePaymentRequest(const SendCoinsRecipient& rv)
 }
 
 void SendCoinsDialog::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, 
+#ifdef ZEROCOIN
                                  const CAmount& zerocoinBalance, const CAmount& unconfirmedZerocoinBalance, const CAmount& immatureZerocoinBalance,
+#endif                                 
                                  const CAmount& watchBalance, const CAmount& watchUnconfirmedBalance, const CAmount& watchImmatureBalance)
 {
     Q_UNUSED(unconfirmedBalance);
     Q_UNUSED(immatureBalance);
+#ifdef ZEROCOIN    
     Q_UNUSED(zerocoinBalance);
     Q_UNUSED(unconfirmedZerocoinBalance);
     Q_UNUSED(immatureZerocoinBalance);
+#endif    
     Q_UNUSED(watchBalance);
     Q_UNUSED(watchUnconfirmedBalance);
     Q_UNUSED(watchImmatureBalance);
@@ -569,7 +575,9 @@ void SendCoinsDialog::updateDisplayUnit()
     if (!lockMain) return;
 
     setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(), 
+#ifdef ZEROCOIN    
                model->getZerocoinBalance (), model->getUnconfirmedZerocoinBalance (), model->getImmatureZerocoinBalance (),
+#endif               
                model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
     coinControlUpdateLabels();
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());

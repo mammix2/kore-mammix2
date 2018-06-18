@@ -26,7 +26,8 @@ namespace invalid_out
     bool ContainsOutPoint(const COutPoint& out);
 #ifdef ZEROCOIN        
     bool ContainsSerial(const CBigNum& bnSerial);
-#endif    
-    bool LoadOutpoints();
     bool LoadSerials();
+#endif
+    bool LoadOutpoints();
+   
 }

@@ -19,10 +19,11 @@
 #include "walletdb.h"
 
 #include <stdint.h>
-
+#ifdef ZEROCOIN
 #include "libzerocoin/Coin.h"
-#include "spork.h"
 #include "primitives/deterministicmint.h"
+#endif
+#include "spork.h"
 #include <boost/assign/list_of.hpp>
 #include <boost/thread/thread.hpp>
 

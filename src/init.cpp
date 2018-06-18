@@ -1397,9 +1397,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
                 // Populate list of invalid/fraudulent outpoints that are banned from the chain
                 invalid_out::LoadOutpoints();
+#ifdef ACCUMULATORS
                 invalid_out::LoadSerials();
 
-#ifdef ACCUMULATORS
                 // PIVX: recalculate Accumulator Checkpoints that failed to database properly
                 if (!listAccCheckpointsNoDB.empty()) {
                     uiInterface.InitMessage(_("Calculating missing accumulators..."));
