@@ -103,7 +103,7 @@ public:
 
     CBaseChainParams::Network NetworkID() const { return networkID; }
 
-#ifdef false
+#ifdef ZEROCOIN
     /** Zerocoin **/
     std::string Zerocoin_Modulus() const { return zerocoinModulus; }
     libzerocoin::ZerocoinParams* Zerocoin_Params(bool useModulusV1) const;
@@ -174,6 +174,7 @@ protected:
     int64_t nRejectOldSporkKey;
     std::string strObfuscationPoolDummyAddress;
     int64_t nStartMasternodePayments;
+#ifdef ZEROCOIN    
     std::string zerocoinModulus;
     int nMaxZerocoinSpendsPerTransaction;
     CAmount nMinZerocoinMintFee;
@@ -182,10 +183,12 @@ protected:
     int nRequiredAccumulation;
     int nDefaultSecurityLevel;
     int nZerocoinHeaderVersion;
-    int64_t nBudget_Fee_Confirmations;
     int nZerocoinStartHeight;
     int nZerocoinStartTime;
     int nZerocoinRequiredStakeDepth;
+#endif
+    int64_t nBudget_Fee_Confirmations;
+
 
     int nBlockEnforceSerialRange;
     int nBlockRecalculateAccumulators;
