@@ -186,6 +186,7 @@ protected:
     int nZerocoinStartHeight;
     int nZerocoinStartTime;
     int nZerocoinRequiredStakeDepth;
+    int nBlockZerocoinV2;    
 #endif
     int64_t nBudget_Fee_Confirmations;
 
@@ -195,7 +196,6 @@ protected:
     int nBlockFirstFraudulent;
     int nBlockLastGoodCheckpoint;
     int nBlockEnforceInvalidUTXO;
-    int nBlockZerocoinV2;
 };
 
 /**

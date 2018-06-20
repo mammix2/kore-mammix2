@@ -53,9 +53,11 @@ std::string CTxIn::ToString() const
     str += "CTxIn(";
     str += prevout.ToString();
     if (prevout.IsNull())
+#ifdef ZEROCOIN    
         if(scriptSig.IsZerocoinSpend())
             str += strprintf(", zerocoinspend %s...", HexStr(scriptSig).substr(0, 25));
         else
+#endif        
             str += strprintf(", coinbase %s", HexStr(scriptSig));
     else
         str += strprintf(", scriptSig=%s", scriptSig.ToString().substr(0,24));
@@ -90,8 +92,8 @@ std::string CTxOut::ToString() const
     return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString().substr(0,30));
 }
 
-CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
-CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}
+CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nTime(0), nLockTime(0) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}
 
 uint256 CMutableTransaction::GetHash() const
 {
@@ -118,14 +120,15 @@ void CTransaction::UpdateHash() const
     *const_cast<uint256*>(&hash) = SerializeHash(*this);
 }
 
-CTransaction::CTransaction() : hash(), nVersion(CTransaction::CURRENT_VERSION), vin(), vout(), nLockTime(0) { }
+CTransaction::CTransaction() : hash(), nVersion(CTransaction::CURRENT_VERSION), nTime(0), vin(), vout(), nLockTime(0) { }
 
-CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {
+CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {
     UpdateHash();
 }
 
 CTransaction& CTransaction::operator=(const CTransaction &tx) {
     *const_cast<int*>(&nVersion) = tx.nVersion;
+    *const_cast<unsigned int*>(&nTime) = tx.nTime;
     *const_cast<std::vector<CTxIn>*>(&vin) = tx.vin;
     *const_cast<std::vector<CTxOut>*>(&vout) = tx.vout;
     *const_cast<unsigned int*>(&nLockTime) = tx.nLockTime;
@@ -139,8 +142,14 @@ bool CTransaction::IsCoinStake() const
         return false;
 
     // ppcoin: the coin stake transaction is marked with the first output empty
+#ifdef ZEROCOIN    
     bool fAllowNull = vin[0].scriptSig.IsZerocoinSpend();
-    if (vin[0].prevout.IsNull() && !fAllowNull)
+#endif    
+    if (vin[0].prevout.IsNull() 
+#ifdef ZEROCOIN  
+    && !fAllowNull
+#endif    
+    )
         return false;
 
     return (vin.size() > 0 && vout.size() >= 2 && vout[0].IsEmpty());
@@ -163,6 +172,7 @@ CAmount CTransaction::GetValueOut() const
     return nValueOut;
 }
 
+#ifdef ZEROCOIN
 CAmount CTransaction::GetZerocoinMinted() const
 {
     for (const CTxOut txOut : vout) {
@@ -174,6 +184,7 @@ CAmount CTransaction::GetZerocoinMinted() const
 
     return  CAmount(0);
 }
+#endif
 
 bool CTransaction::UsesUTXO(const COutPoint out)
 {
@@ -194,6 +205,7 @@ std::list<COutPoint> CTransaction::GetOutPoints() const
     return listOutPoints;
 }
 
+#ifdef ZEROCOIN
 CAmount CTransaction::GetZerocoinSpent() const
 {
     if(!IsZerocoinSpend())
@@ -219,6 +231,7 @@ int CTransaction::GetZerocoinMintCount() const
     }
     return nCount;
 }
+#endif
 
 double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSize) const
 {
@@ -249,9 +262,10 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const
 std::string CTransaction::ToString() const
 {
     std::string str;
-    str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
+    str += strprintf("CTransaction(hash=%s, ver=%d,  nTime=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
         GetHash().ToString().substr(0,10),
         nVersion,
+        nTime,
         vin.size(),
         vout.size(),
         nLockTime);

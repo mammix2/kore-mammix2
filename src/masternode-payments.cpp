@@ -311,7 +311,11 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     }
 
     CAmount blockValue = GetBlockValue(pindexPrev->nHeight);
-    CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0, fZPIVStake);
+    CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0
+#ifdef ZEROCOIN    
+    , fZPIVStake
+#endif
+    );
 
     if (hasPayment) {
         if (fProofOfStake) {
@@ -544,7 +548,11 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
         nMasternode_Drift_Count = mnodeman.size() + Params().MasternodeCountDrift();
     }
 
-    CAmount requiredMasternodePayment = GetMasternodePayment(nBlockHeight, nReward, nMasternode_Drift_Count, txNew.IsZerocoinSpend());
+    CAmount requiredMasternodePayment = GetMasternodePayment(nBlockHeight, nReward, nMasternode_Drift_Count
+#ifdef ZEROCOIN    
+    , txNew.IsZerocoinSpend()
+#endif
+    );
 
     //require at least 6 signatures
     BOOST_FOREACH (CMasternodePayee& payee, vecPayments)

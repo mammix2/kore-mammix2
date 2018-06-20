@@ -191,7 +191,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, nHeight)){
                 continue;
             }
-            if(GetAdjustedTime() > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) && tx.ContainsZerocoins()){
+            if(GetAdjustedTime() > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) 
+#ifdef ZEROCOIN            
+            && tx.ContainsZerocoins()
+#endif            
+            ){
                 continue;
             }
 
@@ -201,6 +205,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             bool fMissingInputs = false;
             uint256 txid = tx.GetHash();
             for (const CTxIn& txin : tx.vin) {
+#ifdef ZEROCOIN                
                 //zerocoinspend has special vin
                 if (tx.IsZerocoinSpend()) {
                     nTotalIn = tx.GetZerocoinSpent();
@@ -227,6 +232,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
                     continue;
                 }
+#endif                
 
                 // Read prev transaction
                 if (!view.HaveCoins(txin.prevout.hash)) {
@@ -329,7 +335,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             double dPriorityDelta = 0;
             CAmount nFeeDelta = 0;
             mempool.ApplyDeltas(hash, dPriorityDelta, nFeeDelta);
-            if (!tx.IsZerocoinSpend() && fSortedByFee && (dPriorityDelta <= 0) && (nFeeDelta <= 0) && (feeRate < ::minRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
+            if (
+#ifdef ZEROCOIN                
+                !tx.IsZerocoinSpend() && 
+#endif                
+                fSortedByFee && (dPriorityDelta <= 0) && (nFeeDelta <= 0) && (feeRate < ::minRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
                 continue;
 
             // Prioritise by fee once past the priority size or we run out of high-priority

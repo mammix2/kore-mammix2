@@ -135,7 +135,7 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-	block.nBirthdayA     = nBirthdayA;
+	    block.nBirthdayA     = nBirthdayA;
         block.nBirthdayB     = nBirthdayB; 
         return block;
     }
@@ -166,6 +166,12 @@ public:
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
     std::string ToString() const;
     void print() const;
+
+    uint256 BlockMerkleRoot(bool* mutated = NULL) const;
+
+private:
+    uint256 ComputeMerkleRoot(const std::vector<uint256>& leaves, bool* mutated) const;
+    void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) const;
 };
 
 

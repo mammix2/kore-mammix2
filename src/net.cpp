@@ -41,7 +41,7 @@
 
 namespace fs = boost::filesystem;
 extern "C" {
-    int tor_main(int argc, char *argv[]);
+int tor_main(int argc, char* argv[]);
 }
 
 // Dump addresses to peers.dat every 15 minutes (900s)
@@ -75,7 +75,7 @@ struct ListenSocket {
 
     ListenSocket(SOCKET socket, bool whitelisted) : socket(socket), whitelisted(whitelisted) {}
 };
-}
+} // namespace
 
 //
 // Global state variables
@@ -362,8 +362,8 @@ CNode* FindNode(const CSubNet& subNet)
 {
     LOCK(cs_vNodes);
     for (CNode* pnode : vNodes)
-    if (subNet.Match((CNetAddr)pnode->addr))
-        return (pnode);
+        if (subNet.Match((CNetAddr)pnode->addr))
+            return (pnode);
     return NULL;
 }
 
@@ -514,12 +514,11 @@ bool CNode::IsBanned(CNetAddr ip)
     bool fResult = false;
     {
         LOCK(cs_setBanned);
-        for (banmap_t::iterator it = setBanned.begin(); it != setBanned.end(); it++)
-        {
+        for (banmap_t::iterator it = setBanned.begin(); it != setBanned.end(); it++) {
             CSubNet subNet = (*it).first;
             CBanEntry banEntry = (*it).second;
 
-            if(subNet.Match(ip) && GetTime() < banEntry.nBanUntil)
+            if (subNet.Match(ip) && GetTime() < banEntry.nBanUntil)
                 fResult = true;
         }
     }
@@ -541,51 +540,49 @@ bool CNode::IsBanned(CSubNet subnet)
     return fResult;
 }
 
-void CNode::Ban(const CNetAddr& addr, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
+void CNode::Ban(const CNetAddr& addr, const BanReason& banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
 {
     CSubNet subNet(addr);
     Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch);
 }
 
-void CNode::Ban(const CSubNet& subNet, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
+void CNode::Ban(const CSubNet& subNet, const BanReason& banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
 {
     CBanEntry banEntry(GetTime());
     banEntry.banReason = banReason;
-    if (bantimeoffset <= 0)
-    {
-        bantimeoffset = GetArg("-bantime", 60*60*24); // Default 24-hour ban
+    if (bantimeoffset <= 0) {
+        bantimeoffset = GetArg("-bantime", 60 * 60 * 24); // Default 24-hour ban
         sinceUnixEpoch = false;
     }
-    banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime() )+bantimeoffset;
+    banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime()) + bantimeoffset;
 
     {
         LOCK(cs_setBanned);
         if (setBanned[subNet].nBanUntil < banEntry.nBanUntil) {
             setBanned[subNet] = banEntry;
             setBannedIsDirty = true;
-        }
-        else
+        } else
             return;
     }
     uiInterface.BannedListChanged();
     {
         LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes) {
+        BOOST_FOREACH (CNode* pnode, vNodes) {
             if (subNet.Match((CNetAddr)pnode->addr))
                 pnode->fDisconnect = true;
         }
     }
-    if(banReason == BanReasonManuallyAdded)
+    if (banReason == BanReasonManuallyAdded)
         DumpBanlist(); //store banlist to disk immediately if user requested ban
 }
 
-bool CNode::Unban(const CNetAddr &addr)
+bool CNode::Unban(const CNetAddr& addr)
 {
     CSubNet subNet(addr);
     return Unban(subNet);
 }
 
-bool CNode::Unban(const CSubNet &subNet)
+bool CNode::Unban(const CSubNet& subNet)
 {
     {
         LOCK(cs_setBanned);
@@ -598,13 +595,13 @@ bool CNode::Unban(const CSubNet &subNet)
     return true;
 }
 
-void CNode::GetBanned(banmap_t &banMap)
+void CNode::GetBanned(banmap_t& banMap)
 {
     LOCK(cs_setBanned);
     banMap = setBanned; //create a thread safe copy
 }
 
-void CNode::SetBanned(const banmap_t &banMap)
+void CNode::SetBanned(const banmap_t& banMap)
 {
     LOCK(cs_setBanned);
     setBanned = banMap;
@@ -619,23 +616,20 @@ void CNode::SweepBanned()
     {
         LOCK(cs_setBanned);
         banmap_t::iterator it = setBanned.begin();
-        while(it != setBanned.end())
-        {
+        while (it != setBanned.end()) {
             CSubNet subNet = (*it).first;
             CBanEntry banEntry = (*it).second;
-            if(now > banEntry.nBanUntil)
-            {
+            if (now > banEntry.nBanUntil) {
                 setBanned.erase(it++);
                 setBannedIsDirty = true;
                 notifyUI = true;
                 LogPrint("net", "%s: Removed banned node ip/subnet from banlist.dat: %s\n", __func__, subNet.ToString());
-            }
-            else
+            } else
                 ++it;
         }
     }
     // update UI
-    if(notifyUI) {
+    if (notifyUI) {
         uiInterface.BannedListChanged();
     }
 }
@@ -901,7 +895,7 @@ void ThreadSocketHandler()
             LOCK(cs_vNodes);
             vNodesSize = vNodes.size();
         }
-        if(vNodesSize != nPrevNodeCount) {
+        if (vNodesSize != nPrevNodeCount) {
             nPrevNodeCount = vNodesSize;
             uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount);
         }
@@ -1230,8 +1224,9 @@ void MapPort(bool)
 }
 #endif
 
-static char * convert_arg(const std::string &arg) {
-    char *r = new char[arg.size() + 1];
+static char* convert_arg(const std::string& arg)
+{
+    char* r = new char[arg.size() + 1];
     std::strcpy(r, arg.c_str());
     return r;
 }
@@ -1259,13 +1254,13 @@ void TorThread()
     */
 #ifdef WIN32
     if (stat("obfs4proxy.exe", &sb) == 0 && sb.st_mode & S_IXUSR) {
-      clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
+        clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
     }
 #else
     if ((stat("obfs4proxy", &sb) == 0 && sb.st_mode & S_IXUSR) || !std::system("which obfs4proxy")) {
-      LogPrintf("Attention Attention, please list your bridges !");
-      LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
-      clientTransportPlugin = "obfs4 exec /usr/bin/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
+        LogPrintf("Attention Attention, please list your bridges !");
+        LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
+        clientTransportPlugin = "obfs4 exec /usr/bin/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
     }
 #endif
 
@@ -1284,8 +1279,8 @@ void TorThread()
     tor_args.push_back((tor_directory / "geoip").string());
     tor_args.push_back("--GeoIPv6File");
     tor_args.push_back((tor_directory / "geoip6").string());
-//    tor_args.push_back("--HiddenServiceDir");
-//    tor_args.push_back((tor_directory / "onion").string());
+    //    tor_args.push_back("--HiddenServiceDir");
+    //    tor_args.push_back((tor_directory / "onion").string());
     tor_args.push_back("-f");
     tor_args.push_back((tor_directory / "torrc").string());
     tor_args.push_back("--DataDirectory");
@@ -1293,21 +1288,21 @@ void TorThread()
     tor_args.push_back("--ignore-missing-torrc");
 
     if (clientTransportPlugin) {
-      LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
-      tor_args.push_back("--ClientTransportPlugin");
-      tor_args.push_back(*clientTransportPlugin);
-      tor_args.push_back("--UseBridges");
-      tor_args.push_back("1");
+        LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
+        tor_args.push_back("--ClientTransportPlugin");
+        tor_args.push_back(*clientTransportPlugin);
+        tor_args.push_back("--UseBridges");
+        tor_args.push_back("1");
     }
 
 
     // set up args in memory and call tor_main()
-    std::vector<char *> argv;
+    std::vector<char*> argv;
     std::transform(tor_args.begin(), tor_args.end(), std::back_inserter(argv), convert_arg);
     tor_main(argv.size(), &argv[0]);
 }
 
-static boost::thread *tor_thread = nullptr;
+static boost::thread* tor_thread = nullptr;
 
 extern const char tor_git_revision[] = "";
 
@@ -1319,13 +1314,18 @@ void StartTor()
 
 void InterruptTor()
 {
-    tor_thread->interrupt();
+    if (tor_thread != nullptr) {
+        tor_thread->interrupt();
+    }
 }
 
 void StopTor()
 {
-    tor_thread->join();
-    delete tor_thread;
+    if (tor_thread != nullptr) {
+        tor_thread->join();
+        delete tor_thread;
+        tor_thread = nullptr;
+    }
 }
 
 
@@ -1825,9 +1825,9 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (!bandb.Read(banmap))
         LogPrintf("Invalid or missing banlist.dat; recreating\n");
 
-    CNode::SetBanned(banmap); //thread save setter
+    CNode::SetBanned(banmap);        //thread save setter
     CNode::SetBannedSetDirty(false); //no need to write down just read or nonexistent data
-    CNode::SweepBanned(); //sweap out unused entries
+    CNode::SweepBanned();            //sweap out unused entries
 
     // Initialize random numbers. Even when rand() is only usable for trivial use-cases most nodes should have a different
     // seed after all the file-IO done at this point. Should be good enough even when nodes are started via scripts.
@@ -1993,8 +1993,8 @@ void RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
 void RelayInv(CInv& inv)
 {
     LOCK(cs_vNodes);
-    BOOST_FOREACH (CNode* pnode, vNodes){
-    		if((pnode->nServices==NODE_BLOOM_WITHOUT_MN) && inv.IsMasterNodeType())continue;
+    BOOST_FOREACH (CNode* pnode, vNodes) {
+        if ((pnode->nServices == NODE_BLOOM_WITHOUT_MN) && inv.IsMasterNodeType()) continue;
         if (pnode->nVersion >= ActiveProtocol())
             pnode->PushInventory(inv);
     }
@@ -2280,7 +2280,7 @@ void CNode::EndMessage() UNLOCK_FUNCTION(cs_vSend)
         Fuzz(GetArg("-fuzzmessagestest", 10));
 
     if (ssSend.size() == 0) {
-	    LEAVE_CRITICAL_SECTION(cs_vSend);
+        LEAVE_CRITICAL_SECTION(cs_vSend);
         return;
     }
 
@@ -2333,7 +2333,7 @@ bool CBanDB::Write(const banmap_t& banSet)
 
     // open temp output file, and associate with CAutoFile
     boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
-    FILE *file = fopen(pathTmp.string().c_str(), "wb");
+    FILE* file = fopen(pathTmp.string().c_str(), "wb");
     CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull())
         return error("%s: Failed to open file %s", __func__, pathTmp.string());
@@ -2341,8 +2341,7 @@ bool CBanDB::Write(const banmap_t& banSet)
     // Write and commit header, data
     try {
         fileout << ssBanlist;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         return error("%s: Serialize or I/O error - %s", __func__, e.what());
     }
     FileCommit(fileout.Get());
@@ -2358,7 +2357,7 @@ bool CBanDB::Write(const banmap_t& banSet)
 bool CBanDB::Read(banmap_t& banSet)
 {
     // open input file, and associate with CAutoFile
-    FILE *file = fopen(pathBanlist.string().c_str(), "rb");
+    FILE* file = fopen(pathBanlist.string().c_str(), "rb");
     CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull())
         return error("%s: Failed to open file %s", __func__, pathBanlist.string());
@@ -2375,10 +2374,9 @@ bool CBanDB::Read(banmap_t& banSet)
 
     // read data and checksum from file
     try {
-        filein.read((char *)&vchData[0], dataSize);
+        filein.read((char*)&vchData[0], dataSize);
         filein >> hashIn;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
     filein.fclose();
@@ -2401,8 +2399,7 @@ bool CBanDB::Read(banmap_t& banSet)
 
         // de-serialize address data into one CAddrMan object
         ssBanlist >> banSet;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
 

@@ -212,6 +212,7 @@ public:
     // and bypass the constness. This is safe, as they update the entire
     // structure, including the hash.
     const int32_t nVersion;
+    const uint32_t nTime;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     const uint32_t nLockTime;
@@ -231,6 +232,7 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(*const_cast<int32_t*>(&this->nVersion));
         nVersion = this->nVersion;
+        READWRITE(*const_cast<uint32_t*>(&nTime));
         READWRITE(*const_cast<std::vector<CTxIn>*>(&vin));
         READWRITE(*const_cast<std::vector<CTxOut>*>(&vout));
         READWRITE(*const_cast<uint32_t*>(&nLockTime));
@@ -257,6 +259,7 @@ public:
     // Compute modified tx size for priority calculation (optionally given tx size)
     unsigned int CalculateModifiedSize(unsigned int nTxSize=0) const;
 
+#ifdef ZEROCOIN
     bool IsZerocoinSpend() const
     {
         return (vin.size() > 0 && vin[0].prevout.hash == 0 && vin[0].scriptSig[0] == OP_ZEROCOINSPEND);
@@ -279,13 +282,14 @@ public:
     CAmount GetZerocoinMinted() const;
     CAmount GetZerocoinSpent() const;
     int GetZerocoinMintCount() const;
+#endif
 
     bool UsesUTXO(const COutPoint out);
     std::list<COutPoint> GetOutPoints() const;
 
     bool IsCoinBase() const
     {
-        return (vin.size() == 1 && vin[0].prevout.IsNull() && !ContainsZerocoins());
+        return (vin.size() == 1 && vin[0].prevout.IsNull());
     }
 
     bool IsCoinStake() const;
