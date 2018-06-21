@@ -162,10 +162,11 @@ enum opcodetype
     OP_NOP8 = 0xb7,
     OP_NOP9 = 0xb8,
     OP_NOP10 = 0xb9,
-
+#ifdef ZEROCOIN
     // zerocoin
     OP_ZEROCOINMINT = 0xc1,
     OP_ZEROCOINSPEND = 0xc2,
+#endif
 
     // template matching params
     OP_SMALLINTEGER = 0xfa,
@@ -592,8 +593,10 @@ public:
 
     bool IsNormalPaymentScript() const;
     bool IsPayToScriptHash() const;
+#ifdef ZEROCOIN
     bool IsZerocoinMint() const;
     bool IsZerocoinSpend() const;
+#endif
 
     /** Called by IsStandardTx and P2SH/BIP62 VerifyScript (which makes it consensus-critical). */
     bool IsPushOnly(const_iterator pc) const;

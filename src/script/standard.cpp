@@ -65,6 +65,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
         return true;
     }
 
+#ifdef ZEROCOIN
     // Zerocoin
     if (scriptPubKey.IsZerocoinMint()){
         typeRet = TX_ZEROCOINMINT;
@@ -73,6 +74,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
         vSolutionsRet.push_back(hashBytes);
         return true;
     }
+#endif
 
     // Provably prunable, data-carrying output
     //
@@ -175,7 +177,9 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
     {
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
+#ifdef ZEROCOIN
     case TX_ZEROCOINMINT:
+#endif
         return -1;
     case TX_PUBKEY:
         return 1;

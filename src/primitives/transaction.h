@@ -70,10 +70,13 @@ public:
     CScript scriptSig;
     uint32_t nSequence;
     CScript prevPubKey;
+    /* Setting nSequence to this value for every input in a transaction
+     * disables nLockTime. */
+    static const uint32_t SEQUENCE_FINAL = 0xffffffff;
 
     CTxIn()
     {
-        nSequence = std::numeric_limits<unsigned int>::max();
+        nSequence = SEQUENCE_FINAL;
     }
 
     explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn=CScript(), uint32_t nSequenceIn=std::numeric_limits<unsigned int>::max());
@@ -170,11 +173,12 @@ public:
         size_t nSize = GetSerializeSize(SER_DISK,0)+148u;
         return (nValue < 3*minRelayTxFee.GetFee(nSize));
     }
-
+#ifdef ZEROCOIN
     bool IsZerocoinMint() const
     {
         return !scriptPubKey.empty() && scriptPubKey.IsZerocoinMint();
     }
+#endif
 
     friend bool operator==(const CTxOut& a, const CTxOut& b)
     {

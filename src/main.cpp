@@ -667,8 +667,10 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
     }
 
     for (const CTxIn& txin : tx.vin) {
+#ifdef ZEROCOIN        
         if (txin.scriptSig.IsZerocoinSpend())
             continue;
+#endif            
         // Biggest 'standard' txin is a 15-of-15 P2SH multisig with compressed
         // keys. (remember the 520 byte limit on redeemScript size) That works
         // out to a (15*(33+1))+3=513 byte redeemScript, 513+1+15*(73+1)+3=1627
@@ -2526,10 +2528,12 @@ bool RecalculatePIVSupply(int nHeightStart)
                 if (tx.IsCoinBase())
                     break;
 
+#ifdef ZEROCOIN
                 if (tx.vin[i].scriptSig.IsZerocoinSpend()) {
                     nValueIn += tx.vin[i].nSequence * COIN;
                     continue;
                 }
+#endif                
 
                 COutPoint prevout = tx.vin[i].prevout;
                 CTransaction txPrev;

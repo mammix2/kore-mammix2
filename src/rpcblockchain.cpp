@@ -749,10 +749,12 @@ UniValue getfeeinfo(const UniValue& params, bool fHelp)
                 continue;
 
             for (unsigned int j = 0; j < tx.vin.size(); j++) {
+#ifdef ZEROCOIN                
                 if (tx.vin[j].scriptSig.IsZerocoinSpend()) {
                     nValueIn += tx.vin[j].nSequence * COIN;
                     continue;
                 }
+#endif                
 
                 COutPoint prevout = tx.vin[j].prevout;
                 CTransaction txPrev;

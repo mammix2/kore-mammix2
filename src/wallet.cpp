@@ -1943,10 +1943,12 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 }
                 if (!found) continue;
 
+#ifdef ZEROCOIN
                 if (nCoinType == STAKABLE_COINS) {
                     if (pcoin->vout[i].IsZerocoinMint())
                         continue;
                 }
+#endif                
 
                 isminetype mine = IsMine(pcoin->vout[i]);
                 if (IsSpent(wtxid, i))
@@ -2993,6 +2995,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (!fKernelFound)
         return false;
 
+#ifdef ZEROCOIN
     // Sign for PIV
     int nIn = 0;
     if (!txNew.vin[0].scriptSig.IsZerocoinSpend()) {
@@ -3002,6 +3005,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 return error("CreateCoinStake : failed to sign coinstake");
         }
     } 
+#endif    
 
     // Successfully generated coinstake
     nLastStakeSetUpdate = 0; //this will trigger stake set to repopulate next round

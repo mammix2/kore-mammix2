@@ -150,10 +150,11 @@ const char* GetOpName(opcodetype opcode)
     case OP_NOP8                   : return "OP_NOP8";
     case OP_NOP9                   : return "OP_NOP9";
     case OP_NOP10                  : return "OP_NOP10";
-
+#ifdef ZEROCOIN
     // zerocoin
     case OP_ZEROCOINMINT           : return "OP_ZEROCOINMINT";
     case OP_ZEROCOINSPEND          : return "OP_ZEROCOINSPEND";
+#endif
 
     case OP_INVALIDOPCODE          : return "OP_INVALIDOPCODE";
 
@@ -248,6 +249,7 @@ bool CScript::IsPayToScriptHash() const
             this->at(22) == OP_EQUAL);
 }
 
+#ifdef ZEROCOIN
 bool CScript::IsZerocoinMint() const
 {
     //fast test for Zerocoin Mint CScripts
@@ -262,6 +264,7 @@ bool CScript::IsZerocoinSpend() const
 
     return (this->at(0) == OP_ZEROCOINSPEND);
 }
+#endif
 
 bool CScript::IsPushOnly(const_iterator pc) const
 {
@@ -304,10 +307,12 @@ std::string CScript::ToString() const
             str += ValueString(vch);
         } else {
             str += GetOpName(opcode);
+#ifdef ZEROCOIN
             if (opcode == OP_ZEROCOINSPEND) {
                 //Zerocoinspend has no further op codes.
                 break;
             }
+#endif
         }
 
     }
