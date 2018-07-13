@@ -162,6 +162,8 @@ public:
     // proof-of-stake specific fields
     uint256 GetBlockTrust() const;
     uint64_t nStakeModifier;             // hash modifier for proof-of-stake
+    uint256 nStakeModifierOld; // Old wat to calculate PoS
+    
     unsigned int nStakeModifierChecksum; // checksum of index; in-memeory only
     COutPoint prevoutStake;
     unsigned int nStakeTime;
@@ -175,6 +177,8 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+    uint32_t nBirthdayA;
+    uint32_t nBirthdayB;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
@@ -197,13 +201,14 @@ public:
         nChainWork = 0;
         nTx = 0;
         nChainTx = 0;
-        nStatus = 0;
+        nStatus = 0;	
         nSequenceId = 0;
 
         nMint = 0;
         nMoneySupply = 0;
         nFlags = 0;
         nStakeModifier = 0;
+        nStakeModifierOld = uint256();
         nStakeModifierChecksum = 0;
         prevoutStake.SetNull();
         nStakeTime = 0;
@@ -213,6 +218,8 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        nBirthdayA	   = 0;
+        nBirthdayB	   = 0;
 #ifdef ZEROCOIN        
         // Start supply of each denomination with 0s
         for (auto& denom : libzerocoin::zerocoinDenomList) {
@@ -236,12 +243,15 @@ public:
         nTime = block.nTime;
         nBits = block.nBits;
         nNonce = block.nNonce;
+        nBirthdayA     = block.nBirthdayA;
+        nBirthdayB     = block.nBirthdayB;
         //Proof of Stake
         bnChainTrust = uint256();
         nMint = 0;
         nMoneySupply = 0;
         nFlags = 0;
         nStakeModifier = 0;
+	nStakeModifierOld = uint256();
         nStakeModifierChecksum = 0;
         hashProofOfStake = uint256();
 
@@ -253,8 +263,7 @@ public:
             prevoutStake.SetNull();
             nStakeTime = 0;
         }
-    }
-    
+    }    
 
     CDiskBlockPos GetBlockPos() const
     {
@@ -286,6 +295,8 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        block.nBirthdayA     = nBirthdayA;
+        block.nBirthdayB     = nBirthdayB;
         return block;
     }
 
@@ -319,7 +330,7 @@ public:
             *(--pbegin) = pindex->GetBlockTime();
 
         std::sort(pbegin, pend);
-        return pbegin[(pend - pbegin) / 2];
+        return pbegin[(pend - pbegin)/2];
     }
 
     bool IsProofOfWork() const
@@ -375,8 +386,8 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
-            pprev, nHeight,
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
+            pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
             hashMerkleRoot.ToString(),
             GetBlockHash().ToString());
     }
@@ -447,12 +458,11 @@ public:
             READWRITE(VARINT(nDataPos));
         if (nStatus & BLOCK_HAVE_UNDO)
             READWRITE(VARINT(nUndoPos));
-
-
         READWRITE(nMint);
         READWRITE(nMoneySupply);
         READWRITE(nFlags);
         READWRITE(nStakeModifier);
+        READWRITE(nStakeModifierOld);
         if (IsProofOfStake()) {
             READWRITE(prevoutStake);
             READWRITE(nStakeTime);
@@ -470,6 +480,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        READWRITE(nBirthdayA);
+        READWRITE(nBirthdayB);
 #ifdef zerocoin        
         if(this->nVersion > 3) {           
             READWRITE(mapZerocoinSupply);
@@ -488,6 +500,8 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        block.nBirthdayA     = nBirthdayA;
+        block.nBirthdayB     = nBirthdayB;
         return block.GetHash();
     }
 

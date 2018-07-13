@@ -96,6 +96,7 @@ BITCOIN_CORE_H = \
   alert.h \
   allocators.h \
   amount.h \
+  arith_uint256.h \
   base58.h \
   bip38.h \
   bloom.h \
@@ -143,11 +144,13 @@ BITCOIN_CORE_H = \
   masternodeconfig.h \
   merkleblock.h \
   miner.h \
+  momentum.h \
   mruset.h \
   netbase.h \
   net.h \
   netaddress.h \
   noui.h \
+  pos.h \  
   pow.h \
   protocol.h \
   pubkey.h \
@@ -205,6 +208,7 @@ libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
+  arith_uint256.cpp \  
   bloom.cpp \
   blocksignature.cpp \
   chain.cpp \
@@ -218,6 +222,7 @@ libbitcoin_server_a_SOURCES = \
   miner.cpp \
   net.cpp \
   noui.cpp \
+  pos.cpp \
   pow.cpp \
   rest.cpp \
   rpcblockchain.cpp \
@@ -320,6 +325,7 @@ libbitcoin_common_a_SOURCES = \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
+  momentum.cpp \
   primitives/block.cpp \
   primitives/transaction.cpp \
   core_read.cpp \

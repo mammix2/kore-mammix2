@@ -277,7 +277,7 @@ UniValue masternodeconnect(const UniValue& params, bool fHelp)
             "1. \"address\"     (string, required) IP or net address to connect to\n"
 
             "\nExamples:\n" +
-            HelpExampleCli("masternodeconnect", "\"192.168.0.6:51472\"") + HelpExampleRpc("masternodeconnect", "\"192.168.0.6:51472\""));
+            HelpExampleCli("masternodeconnect", "\"192.168.0.6:10743\"") + HelpExampleRpc("masternodeconnect", "\"192.168.0.6:10743\""));
 
     std::string strAddress = params[0].get_str();
 
@@ -383,7 +383,7 @@ UniValue masternodedebug (const UniValue& params, bool fHelp)
         return activeMasternode.GetStatus();
 
     CTxIn vin = CTxIn();
-    CPubKey pubkey = CScript();
+    CPubKey pubkey; // Lico = CScript();
     CKey key;
     if (!activeMasternode.GetMasterNodeVin(vin, pubkey, key))
         throw runtime_error("Missing masternode input, please look at the documentation for instructions on masternode creation\n");

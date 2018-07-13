@@ -25,6 +25,7 @@
 #include "net.h"
 #include "obfuscation.h"
 #include "pow.h"
+#include "pos.h" // Old from Kore, will be deprecated
 #include "spork.h"
 #include "sporkdb.h"
 #include "swifttx.h"
@@ -2595,13 +2596,20 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         return true;
     }
 
+#ifdef LICO
+/* 
+  Assumptions for Kore
+  1) When POW ended - doesn't mean the POS was not active
+*/
+
     if (pindex->nHeight <= Params().LAST_POW_BLOCK() && block.IsProofOfStake())
         return state.DoS(100, error("ConnectBlock() : PoS period not active"),
             REJECT_INVALID, "PoS-early");
+#endif            
 
     if (pindex->nHeight > Params().LAST_POW_BLOCK() && block.IsProofOfWork())
         return state.DoS(100, error("ConnectBlock() : PoW period ended"),
-            REJECT_INVALID, "PoW-ended");
+            REJECT_INVALID, "PoW-ended");            
 
     bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
 
@@ -3480,6 +3488,7 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
         if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
             LogPrintf("AddToBlockIndex() : ComputeNextStakeModifier() failed \n");
         pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
+        pindexNew->nStakeModifierOld = ComputeStakeModifierOld(pindexNew->pprev, pindexNew->IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindexNew->GetBlockHash());
         pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
         if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
             LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, boost::lexical_cast<std::string>(nStakeModifier));
@@ -3775,6 +3784,7 @@ bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev)
 
     unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, &block);
 
+#ifdef LICO
     if (block.IsProofOfWork() && (pindexPrev->nHeight + 1 <= 68589)) {
         double n1 = ConvertBitsToDouble(block.nBits);
         double n2 = ConvertBitsToDouble(nBitsRequired);
@@ -3784,6 +3794,7 @@ bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev)
 
         return true;
     }
+#endif    
 
     if (block.nBits != nBitsRequired)
         return error("%s : incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);
@@ -3953,6 +3964,7 @@ bool AcceptBlockHeader(const CBlock& block, CValidationState& state, CBlockIndex
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, CDiskBlockPos* dbp, bool fAlreadyCheckedBlock)
 {
+    if(fDebug) LogPrintf("AcceptBlock --> \n");
     AssertLockHeld(cs_main);
 
     CBlockIndex*& pindex = *ppindex;
@@ -3980,14 +3992,20 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
         }
     }
 
-    if (block.GetHash() != Params().HashGenesisBlock() && !CheckWork(block, pindexPrev))
+#ifdef LICO
+    if (block.GetHash() != Params().HashGenesisBlock()) && !CheckWork(block, pindexPrev))
         return false;
+#endif        
 
     if (block.IsProofOfStake()) {
         uint256 hashProofOfStake = 0;
         unique_ptr<CStakeInput> stake;
 
+#ifdef LICO_FORK
         if (!CheckProofOfStake(block, hashProofOfStake, stake))
+            return state.DoS(100, error("%s: proof of stake check failed", __func__));
+#endif
+        if (!CheckProofOfStake_Old( mapBlockIndex[block.hashPrevBlock], block.vtx[1], block.nBits, hashProofOfStake, stake))
             return state.DoS(100, error("%s: proof of stake check failed", __func__));
 
         if (!stake)
@@ -4034,6 +4052,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
         return state.Abort(std::string("System error: ") + e.what());
     }
 
+    if(fDebug) LogPrintf("AcceptBlock <-- \n");
     return true;
 }
 
@@ -4104,9 +4123,9 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
     int64_t nStartTime = GetTimeMillis();
     bool checked = CheckBlock(*pblock, state);
 
+#ifdef ZEROCOIN
     int nMints = 0;
-    int nSpends = 0;
-#ifdef ZEROCOIN    
+    int nSpends = 0;    
     for (const CTransaction tx : pblock->vtx) {
         if (tx.ContainsZerocoins()) {
             for (const CTxIn in : tx.vin) {
@@ -4119,10 +4138,9 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
             }
         }
     }
-#endif    
     if (nMints || nSpends)
         LogPrintf("%s : block contains %d zPIV mints and %d zPIV spends\n", __func__, nMints, nSpends);
-
+#endif    
     if (!CheckBlockSignature(*pblock))
         return error("ProcessNewBlock() : bad proof-of-stake block signature");
 
@@ -4151,7 +4169,7 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
         }
         CheckBlockIndex ();
         if (!ret)
-            return error ("%s : AcceptBlock FAILED", __func__);
+            return error ("%s : AcceptBlock FAILED block", __func__);
     }
 
     if (!ActivateBestChain(state, pblock, checked))

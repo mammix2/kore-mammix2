@@ -20,7 +20,7 @@ extern bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &ha
 
 std::string COutPoint::ToString() const
 {
-    return strprintf("COutPoint(%s, %u)", hash.ToString()/*.substr(0,10)*/, n);
+    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
 }
 
 std::string COutPoint::ToStringShort() const
@@ -60,8 +60,8 @@ std::string CTxIn::ToString() const
 #endif        
             str += strprintf(", coinbase %s", HexStr(scriptSig));
     else
-        str += strprintf(", scriptSig=%s", scriptSig.ToString().substr(0,24));
-    if (nSequence != std::numeric_limits<unsigned int>::max())
+        str += strprintf(", scriptSig=%s", HexStr(scriptSig).substr(0, 24));
+    if (nSequence != SEQUENCE_FINAL)
         str += strprintf(", nSequence=%u", nSequence);
     str += ")";
     return str;
@@ -89,7 +89,8 @@ uint256 CTxOut::GetHash() const
 
 std::string CTxOut::ToString() const
 {
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString().substr(0,30));
+	if (IsEmpty()) return "CTxOut(empty)";
+    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey));
 }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nTime(0), nLockTime(0) {}

@@ -439,11 +439,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             mempool.clear();
             return NULL;
         }
-
-//        if (pblock->IsZerocoinStake()) {
-//            CWalletTx wtx(pwalletMain, pblock->vtx[1]);
-//            pwalletMain->AddToWallet(wtx);
-//        }
+#ifdef ZEROCOIN	
+        if (pblock->IsZerocoinStake()) {
+            CWalletTx wtx(pwalletMain, pblock->vtx[1]);
+            pwalletMain->AddToWallet(wtx);
+        }
+#endif
     }
 
     return pblocktemplate.release();
@@ -474,16 +475,6 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
 //
 double dHashesPerSec = 0.0;
 int64_t nHPSTimerStart = 0;
-
-CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfStake)
-{
-    CPubKey pubkey;
-    if (!reservekey.GetReservedKey(pubkey))
-        return NULL;
-
-    CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
-    return CreateNewBlock(scriptPubKey, pwallet, fProofOfStake);
-}
 
 bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
@@ -731,5 +722,16 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
     for (int i = 0; i < nThreads; i++)
         minerThreads->create_thread(boost::bind(&ThreadBitcoinMiner, pwallet));
 }
+
+CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfStake)
+{
+    CPubKey pubkey;
+    if (!reservekey.GetReservedKey(pubkey))
+        return NULL;
+
+    CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
+    return CreateNewBlock(scriptPubKey, pwallet, fProofOfStake);
+}
+
 
 #endif // ENABLE_WALLET

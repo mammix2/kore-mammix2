@@ -24,7 +24,7 @@
             ]
         },
         {
-            "name": "(gdb) Launch Daemon",
+            "name": "(gdb) Daemon - Single",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/src/pivxd",
@@ -41,6 +41,44 @@
                     "ignoreFailures": true
                 }
             ]
-        }
+        },
+        {
+            "name": "(gdb) Daemon Multi",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pivxd",
+            "args": ["-debug"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },        
+        {
+            "name": "(gdb) Launch Tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/test/test_pivx",
+            "args": ["--log_level=all", "--run_test=script_tests", "--log_sink=stdout"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }        
     ]
 }

@@ -110,8 +110,6 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
             1440        // * estimated number of transactions per day after checkpoint
         };
 
-
-
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
     boost::assign::map_list_of(0, uint256("0x001"));
 static const Checkpoints::CCheckpointData dataTestnet = {
@@ -147,21 +145,23 @@ public:
         pchMessageStart[3] = 0x4a;
         vAlertPubKey = ParseHex("042b0fb78026380244cc458a914dae461899b121f53bc42105d134158b9773e3fdadca67ca3015dc9c4ef9b9df91f2ef05b890a15cd2d2b85930d37376b2196002");
         nDefaultPort = 10743;
-        bnProofOfWorkLimit = ~uint256(0) >> 20; // PIVX starting difficulty is 1 / 2^12
-        nSubsidyHalvingInterval = 210000;
-        nMaxReorganizationDepth = 100;
-        nEnforceBlockUpgradeMajority = 750;
-        nRejectBlockOutdatedMajority = 950;
-        nToCheckBlockUpgradeMajority = 1000;
+        //consensus.powLimit = uint256S("1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        bnProofOfWorkLimit = ~uint256(0) >> 3;
+        nSubsidyHalvingInterval = 4000;
+        nMaxReorganizationDepth = 25;        
+        nEnforceBlockUpgradeMajority = 750; // consensus.nMajorityEnforceBlockUpgrade = 750;        
+        nRejectBlockOutdatedMajority = 950; // consensus.nMajorityRejectBlockOutdated = 950;        
+        nToCheckBlockUpgradeMajority = 1000;// consensus.nMajorityWindow = 1000;
         nMinerThreads = 0;
-        nTargetTimespan = 1 * 60; // PIVX: 1 day
-        nTargetSpacing = 1 * 60;  // PIVX: 1 minute
-        nMaturity = 100;
-        nMasternodeCountDrift = 20;
-        nMaxMoneyOut = 21000000 * COIN;
+        nTargetTimespan = 1 * 60;
+        nTargetSpacing = 1 * 60;
+        // static const int COINBASE_MATURITY = 25;
+        nMaturity = 25;
+        nMasternodeCountDrift = 20;          // ONLY PIVX
+        nMaxMoneyOut = 12000000 * COIN;
 
         /** Height or Time Based Activations **/
-        nLastPOWBlock = 259200;
+        nLastPOWBlock = 1000;
         nModifierUpdateBlock = 615800;
 #ifdef ZEROCOIN        
         nZerocoinStartHeight = 863787;
@@ -177,26 +177,27 @@ public:
 
         nEnforceNewSporkKey = 1525158000; //!> Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
-    
         //        CreateGenesisBlock(nTime,      nNonce, nBirthdayA,  nBirthdayB,  nBits,  nVersion,  genesisReward)
-	    genesis = CreateGenesisBlock(1508884606, 22      , 12624920,   58284520,   0x201fffff, 1, 250 * COIN);
+	    genesis = CreateGenesisBlock(1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
         hashGenesisBlock = genesis.GetHash();
         LogPrintf("%s", hashGenesisBlock.ToString());
         genesis.print();
-        // TODO Lico removed assertions
         assert(hashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
         assert(genesis.hashMerkleRoot == uint256("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
-
         // Primary DNS Seeder 
-        vSeeds.push_back(CDNSSeedData("korednsseed.pw", "dnsseed.kore.life"));
+        vSeeds.push_back(CDNSSeedData("kore-dnsseed-1", "dnsseed.kore.life"));
+        vSeeds.push_back(CDNSSeedData("kore-dnsseed-2", "dnsseed2.kore.life"));
+        vSeeds.push_back(CDNSSeedData("kore-dnsseed-3", "dnsseed3.kore.life"));
+        vSeeds.push_back(CDNSSeedData("kore-dnsseed-4", "dnsseed4.kore.life"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 30);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 13);
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 212);
-        base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x02)(0x2D)(0x25)(0x33).convert_to_container<std::vector<unsigned char> >();
-        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x02)(0x21)(0x31)(0x2B).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,45);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,85);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128);
+        base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
+        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
+        // Lico - Verify if it is necessary
         // 	BIP44 coin type is from https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x77).convert_to_container<std::vector<unsigned char> >();
+        //base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x77).convert_to_container<std::vector<unsigned char> >();
 
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
 
@@ -210,10 +211,10 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
-        strSporkKey = "0499A7AF4806FC6DE640D23BC5936C29B77ADF2174B4F45492727F897AE63CF8D27B2F05040606E0D14B547916379FA10716E344E745F880EDC037307186AA25B7";
+        strSporkKey = "0427E31B51989DB4DFEAB8C3901FB1862A621E6B0D4CF556E5C9AAD7283A46C915EC4508FB4F248534C3A03FC0475ED3785086B9C217E0F42ED4C8BF80ED2296C8";
         strSporkKeyOld = "04B433E6598390C992F4F022F20D3B4CBBE691652EE7C48243B81701CBDB7CC7D7BF0EE09E154E6FCBF2043D65AF4E9E97B89B5DBAF830D83B9B7F469A6C45A717";
-        strObfuscationPoolDummyAddress = "D87q2gC9j6nNrnzCsg4aY6bHMLsT9nUhEw";
-        nStartMasternodePayments = 1403728576; //Wed, 25 Jun 2014 20:36:16 GMT
+        strObfuscationPoolDummyAddress = "KWFvN4Gb55dzG95cq3k5jXFmNVkJLftyjZ";
+        nStartMasternodePayments = 1508884606; //Genesis time
 
 #ifdef ZEROCOIN
         /** Zerocoin */
@@ -257,7 +258,7 @@ public:
         pchMessageStart[2] = 0x65;
         pchMessageStart[3] = 0xba;
         vAlertPubKey = ParseHex("000010e83b2703ccf322f7dbd62dd5855ac7c10bd055814ce121ba32607d573b8810c02c0582aed05b4deb9c4b77b26d92428c61256cd42774babea0a073b2ed0c9");
-        nDefaultPort = 51474;
+        nDefaultPort = 11742;
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
@@ -339,25 +340,24 @@ public:
     {
         networkID = CBaseChainParams::REGTEST;
         strNetworkID = "regtest";
-        strNetworkID = "regtest";
-        pchMessageStart[0] = 0xa1;
-        pchMessageStart[1] = 0xcf;
-        pchMessageStart[2] = 0x7e;
-        pchMessageStart[3] = 0xac;
-        nSubsidyHalvingInterval = 150;
-        nEnforceBlockUpgradeMajority = 750;
-        nRejectBlockOutdatedMajority = 950;
-        nToCheckBlockUpgradeMajority = 1000;
+        pchMessageStart[0] = 0xcf;
+        pchMessageStart[1] = 0x05;
+        pchMessageStart[2] = 0x6a;
+        pchMessageStart[3] = 0xe1;
+        nSubsidyHalvingInterval = 150;       // consensus.nSubsidyHalvingInterval
+        nEnforceBlockUpgradeMajority = 750;  // consensus.nMajorityEnforceBlockUpgrade
+        nRejectBlockOutdatedMajority = 950;  // consensus.nMajorityRejectBlockOutdated
+        nToCheckBlockUpgradeMajority = 1000; // consensus.nMajorityWindow
         nMinerThreads = 1;
-        nTargetTimespan = 24 * 60 * 60; // PIVX: 1 day
-        nTargetSpacing = 1 * 60;        // PIVX: 1 minutes
-        bnProofOfWorkLimit = ~uint256(0) >> 1;
-        genesis.nTime = 1454124731;
+        nTargetTimespan = 60 * 60; // consensus.nTargetTimespan one hour
+        nTargetSpacing = 1 * 60;   // consensus.nTargetSpacing 1 minutes
+        // consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        bnProofOfWorkLimit = ~uint256(0) >> 8;
+        genesis.nTime = 1453993470;
         genesis.nBits = 0x207fffff;
         genesis.nNonce = 12345;
-
         hashGenesisBlock = genesis.GetHash();
-        nDefaultPort = 51476;
+        nDefaultPort = 18444;
         // TODO Lico removed assertion
         //assert(hashGenesisBlock == uint256("0x4f023a2120d9127b21bbad01724fdb79b519f593f2a85b60d3d79160ec5f29df"));
 

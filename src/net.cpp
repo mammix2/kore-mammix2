@@ -1115,6 +1115,40 @@ void ThreadSocketHandler()
     }
 }
 
+/* Tor implementation ---------------------------------*/
+
+// hidden service seeds
+/* just for testing we can add this nodes to kore.conf
+addnode=jsfoupaz7kwoibq2.onion
+addnode=4aynkbwmoje6p27p.onion
+addnode=hxgchjn2dom3teev.onion
+addnode=hzvrfa5xa2qulysi.onion 
+addnode=hggmh3vhkjebz4j5.onion
+addnode=gameldrtkm4u4ds2.onion
+addnode=k75pshpf226ra65s.onion
+addnode=zdwnbnrwty33uuev.onion
+addnode=l4meqo3zi74h7edw.onion
+addnode=k6a5ebhrkfxbwqvl.onion
+addnode=5j6hwetvycvjzdur.onion
+addnode=hvjjqjjajii2ycix.onion
+addnode=bqr7zsfgpztd4m4q.onion
+*/
+
+extern bool fTestNet;
+static const char *strMainNetOnionSeed[][1] = {
+    {"ci5bvyjhizibhstq.onion"}, 
+    {"iqjl3czk3vjlulka.onion"}, 
+    {"6ucjnzdee5esbshd.onion"}, 
+    {"p2ow4tts3qidjvua.onion"},
+    {"iqjl3czk3vjlulka.onion"},
+    {"6ucjnzdee5esbshd.onion"},
+    {"p2ow4tts3qidjvua.onion"},
+    {NULL} // last element => couldn't use size ?
+};
+
+static const char *strTestNetOnionSeed[][1] = {
+    {NULL} // last element => couldn't use size ?
+};
 
 #ifdef USE_UPNP
 void ThreadMapPort()
@@ -1252,6 +1286,7 @@ void TorThread()
     bridge obfs4 34.207.17.234:9443 5376E7D45629B310C551CC692B8A708E67F946DE cert=RdeLCwFKDvWVx/8cB1gujdfrp7DG+j116DhlNG6rNkSruaJUibvMq5FpTU/iQ+rwTmK7bQ iat-mode=0
 
     */
+   /*
 #ifdef WIN32
     if (stat("obfs4proxy.exe", &sb) == 0 && sb.st_mode & S_IXUSR) {
         clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
@@ -1263,6 +1298,7 @@ void TorThread()
         clientTransportPlugin = "obfs4 exec /usr/bin/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
     }
 #endif
+*/
 
     // set up command line arguments for tor
     std::vector<std::string> tor_args;
@@ -1329,6 +1365,37 @@ void StopTor()
 }
 
 
+void ThreadOnionSeed()
+{
+
+    // Make this thread recognisable as the tor thread
+    RenameThread("onionseed");
+
+    static const char *(*strOnionSeed)[1] = fTestNet ? strTestNetOnionSeed : strMainNetOnionSeed;
+
+    int found = 0;
+
+    LogPrintf("Loading addresses from .onion seeds\n");
+
+    for (unsigned int seed_idx = 0; strOnionSeed[seed_idx][0] != NULL; seed_idx++) {
+        CNetAddr parsed;
+        if (
+            !parsed.SetSpecial(
+                strOnionSeed[seed_idx][0]
+            )
+        ) {
+            throw runtime_error("ThreadOnionSeed() : invalid .onion seed");
+        }
+        int nOneDay = 24*3600;
+        CAddress addr = CAddress(CService(parsed, Params().GetDefaultPort()));
+        addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
+        found++;
+        addrman.Add(addr, parsed);
+    }
+
+    LogPrintf("%d addresses found from .onion seeds\n", found);
+}
+
 void ThreadDNSAddressSeed()
 {
     // goal: only query DNS seeds if address need is acute
@@ -1354,7 +1421,9 @@ void ThreadDNSAddressSeed()
         } else {
             vector<CNetAddr> vIPs;
             vector<CAddress> vAdd;
+            LogPrintf("LookupHost : %s\n", seed.host.c_str());
             if (LookupHost(seed.host.c_str(), vIPs)) {
+                LogPrintf("Found Host : %s\n", seed.host.c_str());
                 BOOST_FOREACH (CNetAddr& ip, vIPs) {
                     int nOneDay = 24 * 3600;
                     CAddress addr = CAddress(CService(ip, Params().GetDefaultPort()));
@@ -1855,7 +1924,9 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (!GetBoolArg("-dnsseed", true))
         LogPrintf("DNS seeding disabled\n");
     else
-        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed));
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "onionseed", &ThreadOnionSeed));
+	    // Lico waiting for dnsseed
+        //threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed));
 
     // Map ports with UPnP
     MapPort(GetBoolArg("-upnp", DEFAULT_UPNP));

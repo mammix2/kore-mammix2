@@ -14,6 +14,7 @@
 #include "pubkey.h"
 #include "script/script.h"
 #include "uint256.h"
+#include "util.h" //needed for LogPrintf
 
 using namespace std;
 
@@ -65,7 +66,7 @@ static inline void popstack(vector<valtype>& stack)
     stack.pop_back();
 }
 
-bool static IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
+bool IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
     if (vchPubKey.size() < 33) {
         //  Non-canonical public key: too short
         return false;
@@ -97,7 +98,7 @@ bool static IsCompressedOrUncompressedPubKey(const valtype &vchPubKey) {
  *
  * This function is consensus-critical since BIP66.
  */
-bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
+bool IsValidSignatureEncoding(const std::vector<unsigned char> &sig, bool haveHashType) {
     // Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S] [sighash]
     // * total-length: 1-byte length descriptor of everything that follows,
     //   excluding the sighash byte.
@@ -118,7 +119,7 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     if (sig[0] != 0x30) return false;
 
     // Make sure the length covers the entire signature.
-    if (sig[1] != sig.size() - 3) return false;
+    if (sig[1] != sig.size() - (haveHashType ? 3 : 2)) return false;
 
     // Extract the length of the R element.
     unsigned int lenR = sig[3];
@@ -131,7 +132,7 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
 
     // Verify that the length of the signature matches the sum of the length
     // of the elements.
-    if ((size_t)(lenR + lenS + 7) != sig.size()) return false;
+    if ((size_t)(lenR + lenS + (haveHashType ? 7 : 6)) != sig.size()) return false;
  
     // Check whether the R element is an integer.
     if (sig[2] != 0x02) return false;
@@ -162,8 +163,8 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     return true;
 }
 
-bool static IsLowDERSignature(const valtype &vchSig, ScriptError* serror) {
-    if (!IsValidSignatureEncoding(vchSig)) {
+bool IsLowDERSignature(const valtype &vchSig, ScriptError* serror, bool haveHashType) {
+    if (!IsValidSignatureEncoding(vchSig, haveHashType)) {
         return set_error(serror, SCRIPT_ERR_SIG_DER);
     }
     unsigned int nLenR = vchSig[3];
@@ -189,7 +190,7 @@ bool static IsDefinedHashtypeSignature(const valtype &vchSig) {
     return true;
 }
 
-bool static CheckSignatureEncoding(const valtype &vchSig, unsigned int flags, ScriptError* serror) {
+bool CheckSignatureEncoding(const valtype &vchSig, unsigned int flags, ScriptError* serror) {
     // Empty signature. Not strictly DER encoded, but allowed to provide a
     // compact way to provide an invalid signature for use with CHECK(MULTI)SIG
     if (vchSig.size() == 0) {
@@ -238,6 +239,7 @@ bool static CheckMinimalPush(const valtype& data, opcodetype opcode) {
 
 bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
 {
+    LogPrintf(" EvalScript --> \n");
     static const CScriptNum bnZero(0);
     static const CScriptNum bnOne(1);
     static const CScriptNum bnFalse(0);
@@ -272,9 +274,9 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                 return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
             if (vchPushValue.size() > MAX_SCRIPT_ELEMENT_SIZE)
                 return set_error(serror, SCRIPT_ERR_PUSH_SIZE);
-
+            LogPrintf(" opcode: %x \n", opcode);
             // Note how OP_RESERVED does not count towards the opcode limit.
-            if (opcode > OP_16 && ++nOpCount > 201)
+            if (opcode > OP_16 && ++nOpCount > MAX_OPS_PER_SCRIPT)
                 return set_error(serror, SCRIPT_ERR_OP_COUNT);
 
             if (opcode == OP_CAT ||
@@ -336,9 +338,88 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                 // Control
                 //
                 case OP_NOP:
-                break;
+                    break;
 
-                case OP_NOP1: case OP_NOP2: case OP_NOP3: case OP_NOP4: case OP_NOP5:
+                case OP_CHECKLOCKTIMEVERIFY:
+                {
+                    if (!(flags & SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)) {
+                        // not enabled; treat as a NOP2
+                        if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS) {
+                            return set_error(serror, SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS);
+                        }
+                        break;
+                    }
+
+                    if (stack.size() < 1)
+                        return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+
+                    // Note that elsewhere numeric opcodes are limited to
+                    // operands in the range -2**31+1 to 2**31-1, however it is
+                    // legal for opcodes to produce results exceeding that
+                    // range. This limitation is implemented by CScriptNum's
+                    // default 4-byte limit.
+                    //
+                    // If we kept to that limit we'd have a year 2038 problem,
+                    // even though the nLockTime field in transactions
+                    // themselves is uint32 which only becomes meaningless
+                    // after the year 2106.
+                    //
+                    // Thus as a special case we tell CScriptNum to accept up
+                    // to 5-byte bignums, which are good until 2**39-1, well
+                    // beyond the 2**32-1 limit of the nLockTime field itself.
+                    const CScriptNum nLockTime(stacktop(-1), fRequireMinimal, 5);
+
+                    // In the rare event that the argument may be < 0 due to
+                    // some arithmetic being done first, you can always use
+                    // 0 MAX CHECKLOCKTIMEVERIFY.
+                    if (nLockTime < 0)
+                        return set_error(serror, SCRIPT_ERR_NEGATIVE_LOCKTIME);
+
+                    // Actually compare the specified lock time with the transaction.
+                    if (!checker.CheckLockTime(nLockTime))
+                        return set_error(serror, SCRIPT_ERR_UNSATISFIED_LOCKTIME);
+
+                    break;
+                }
+
+                case OP_CHECKSEQUENCEVERIFY:
+                {
+                    if (!(flags & SCRIPT_VERIFY_CHECKSEQUENCEVERIFY)) {
+                        // not enabled; treat as a NOP3
+                        if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS) {
+                            return set_error(serror, SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS);
+                        }
+                        break;
+                    }
+
+                    if (stack.size() < 1)
+                        return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+
+                    // nSequence, like nLockTime, is a 32-bit unsigned integer
+                    // field. See the comment in CHECKLOCKTIMEVERIFY regarding
+                    // 5-byte numeric operands.
+                    const CScriptNum nSequence(stacktop(-1), fRequireMinimal, 5);
+
+                    // In the rare event that the argument may be < 0 due to
+                    // some arithmetic being done first, you can always use
+                    // 0 MAX CHECKSEQUENCEVERIFY.
+                    if (nSequence < 0)
+                        return set_error(serror, SCRIPT_ERR_NEGATIVE_LOCKTIME);
+
+                    // To provide for future soft-fork extensibility, if the
+                    // operand has the disabled lock-time flag set,
+                    // CHECKSEQUENCEVERIFY behaves as a NOP.
+                    if ((nSequence & CTxIn::SEQUENCE_LOCKTIME_DISABLE_FLAG) != 0)
+                        break;
+
+                    // Compare the specified sequence number with the input.
+                    if (!checker.CheckSequence(nSequence))
+                        return set_error(serror, SCRIPT_ERR_UNSATISFIED_LOCKTIME);
+
+                    break;
+                }
+
+                case OP_NOP1: case OP_NOP4: case OP_NOP5:
                 case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
                 {
                     if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
@@ -786,6 +867,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                 case OP_CHECKSIG:
                 case OP_CHECKSIGVERIFY:
                 {
+                    LogPrintf(" OP_CHECKSIG -->\n");
                     // (sig pubkey -- bool)
                     if (stack.size() < 2)
                         return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
@@ -793,20 +875,25 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     valtype& vchSig    = stacktop(-2);
                     valtype& vchPubKey = stacktop(-1);
 
+                    LogPrintf(" Subset of script starting at the most recent codeseparator \n");
                     // Subset of script starting at the most recent codeseparator
                     CScript scriptCode(pbegincodehash, pend);
 
                     // Drop the signature, since there's no way for a signature to sign itself
+                    LogPrintf("Drop the signature, since there's no way for a signature to sign itself \n");
                     scriptCode.FindAndDelete(CScript(vchSig));
 
+                    LogPrintf("CheckSignatureEncoding \n");
                     if (!CheckSignatureEncoding(vchSig, flags, serror) || !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
                         //serror is set
                         return false;
                     }
+                    LogPrintf("checker.CheckSig \n");
                     bool fSuccess = checker.CheckSig(vchSig, vchPubKey, scriptCode);
 
                     popstack(stack);
                     popstack(stack);
+                    LogPrintf("stack.push_back \n");
                     stack.push_back(fSuccess ? vchTrue : vchFalse);
                     if (opcode == OP_CHECKSIGVERIFY)
                     {
@@ -815,6 +902,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         else
                             return set_error(serror, SCRIPT_ERR_CHECKSIGVERIFY);
                     }
+                    LogPrintf(" OP_CHECKSIG <--\n");
                 }
                 break;
 
@@ -828,10 +916,10 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
 
                     int nKeysCount = CScriptNum(stacktop(-i), fRequireMinimal).getint();
-                    if (nKeysCount < 0 || nKeysCount > 20)
+                    if (nKeysCount < 0 || nKeysCount > MAX_PUBKEYS_PER_MULTISIG)
                         return set_error(serror, SCRIPT_ERR_PUBKEY_COUNT);
                     nOpCount += nKeysCount;
-                    if (nOpCount > 201)
+                    if (nOpCount > MAX_OPS_PER_SCRIPT)
                         return set_error(serror, SCRIPT_ERR_OP_COUNT);
                     int ikey = ++i;
                     i += nKeysCount;
@@ -932,6 +1020,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
     if (!vfExec.empty())
         return set_error(serror, SCRIPT_ERR_UNBALANCED_CONDITIONAL);
 
+    LogPrintf(" EvalScript <-- \n");
     return set_success(serror);
 }
 
@@ -960,6 +1049,7 @@ public:
     /** Serialize the passed scriptCode, skipping OP_CODESEPARATORs */
     template<typename S>
     void SerializeScriptCode(S &s, int nType, int nVersion) const {
+        LogPrintf(" SerializeScriptCode --> \n");
         CScript::const_iterator it = scriptCode.begin();
         CScript::const_iterator itBegin = it;
         opcodetype opcode;
@@ -968,67 +1058,95 @@ public:
             if (opcode == OP_CODESEPARATOR)
                 nCodeSeparators++;
         }
+        LogPrintf("SerializeScriptCode nCodeSeparators: %u --> \n", nCodeSeparators);
         ::WriteCompactSize(s, scriptCode.size() - nCodeSeparators);
         it = itBegin;
         while (scriptCode.GetOp(it, opcode)) {
             if (opcode == OP_CODESEPARATOR) {
+                LogPrintf("SerializeScriptCode opcode == OP_CODESEPARATOR \n");
                 s.write((char*)&itBegin[0], it-itBegin-1);
                 itBegin = it;
             }
         }
-        if (itBegin != scriptCode.end())
+        if (itBegin != scriptCode.end()) {
+            LogPrintf("SerializeScriptCode itBegin != scriptCode.end() \n");
             s.write((char*)&itBegin[0], it-itBegin);
+        }
+        LogPrintf(" SerializeScriptCode <-- \n");
     }
 
     /** Serialize an input of txTo */
     template<typename S>
     void SerializeInput(S &s, unsigned int nInput, int nType, int nVersion) const {
+         LogPrintf("SerializeInput %d --> \n",nInput);
         // In case of SIGHASH_ANYONECANPAY, only the input being signed is serialized
         if (fAnyoneCanPay)
             nInput = nIn;
         // Serialize the prevout
+        LogPrintf("SerializeInput Serialize the prevout \n");
         ::Serialize(s, txTo.vin[nInput].prevout, nType, nVersion);
         // Serialize the script
+        LogPrintf("SerializeInput Serialize the script \n");
         if (nInput != nIn)
             // Blank out other inputs' signatures
             ::Serialize(s, CScript(), nType, nVersion);
         else
             SerializeScriptCode(s, nType, nVersion);
         // Serialize the nSequence
+        LogPrintf("SerializeInput Serialize the nSequence \n");
         if (nInput != nIn && (fHashSingle || fHashNone))
             // let the others update at will
             ::Serialize(s, (int)0, nType, nVersion);
         else
             ::Serialize(s, txTo.vin[nInput].nSequence, nType, nVersion);
+        LogPrintf("SerializeInput <-- \n");
     }
 
     /** Serialize an output of txTo */
     template<typename S>
     void SerializeOutput(S &s, unsigned int nOutput, int nType, int nVersion) const {
-        if (fHashSingle && nOutput != nIn)
+        LogPrintf(" SerializeOutput --> \n");
+        LogPrintf(" fHashSingle:%d  nOutput:%u  nIn: %u \n",fHashSingle, nOutput, nIn);
+        if (fHashSingle && nOutput != nIn) {
+            LogPrintf(" Do not lock-in \n");    
             // Do not lock-in the txout payee at other indices as txin
             ::Serialize(s, CTxOut(), nType, nVersion);
-        else
+        }
+        else {
+            LogPrintf(" txTo.vout \n");
             ::Serialize(s, txTo.vout[nOutput], nType, nVersion);
+        }
+        LogPrintf(" SerializeOutput <-- \n");            
     }
 
     /** Serialize txTo */
     template<typename S>
     void Serialize(S &s, int nType, int nVersion) const {
+        LogPrintf("CTransactionSignatureSerializer::Serialize --> \n");
         // Serialize nVersion
+        LogPrintf("::Serialize Serialize nVersion \n");
         ::Serialize(s, txTo.nVersion, nType, nVersion);
+        // Serialize nTime
+        LogPrintf("::Serialize Serialize nTime \n");
+        ::Serialize(s, txTo.nTime, nType, nVersion);
+       
         // Serialize vin
         unsigned int nInputs = fAnyoneCanPay ? 1 : txTo.vin.size();
         ::WriteCompactSize(s, nInputs);
+        LogPrintf("::Serialize Serialize vin: %d \n", nInputs);
         for (unsigned int nInput = 0; nInput < nInputs; nInput++)
              SerializeInput(s, nInput, nType, nVersion);
-        // Serialize vout
+        // Serialize vout                
         unsigned int nOutputs = fHashNone ? 0 : (fHashSingle ? nIn+1 : txTo.vout.size());
+        LogPrintf("   vout nOutputs: %u\n", nOutputs);
         ::WriteCompactSize(s, nOutputs);
+        LogPrintf("::Serialize Serialize vout \n");
         for (unsigned int nOutput = 0; nOutput < nOutputs; nOutput++)
              SerializeOutput(s, nOutput, nType, nVersion);
         // Serialize nLockTime
+        LogPrintf("::Serialize Serialize nLockTime \n");
         ::Serialize(s, txTo.nLockTime, nType, nVersion);
+        LogPrintf("CTransactionSignatureSerializer::Serialize <-- \n");
     }
 };
 
@@ -1036,6 +1154,7 @@ public:
 
 uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
+    LogPrintf(" SignatureHash --> \n");
     if (nIn >= txTo.vin.size()) {
         //  nIn out of range
         return 1;
@@ -1050,11 +1169,15 @@ uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsig
     }
 
     // Wrapper to serialize only the necessary parts of the transaction being signed
+    LogPrintf(" CTransactionSignatureSerializer \n");
     CTransactionSignatureSerializer txTmp(txTo, scriptCode, nIn, nHashType);
 
     // Serialize and hash
+    LogPrintf(" CHashWriter \n");
     CHashWriter ss(SER_GETHASH, 0);
     ss << txTmp << nHashType;
+
+    LogPrintf(" SignatureHash <-- \n");
     return ss.GetHash();
 }
 
@@ -1065,6 +1188,7 @@ bool TransactionSignatureChecker::VerifySignature(const std::vector<unsigned cha
 
 bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn, const vector<unsigned char>& vchPubKey, const CScript& scriptCode) const
 {
+    LogPrintf("CheckSig --> \n");
     CPubKey pubkey(vchPubKey);
     if (!pubkey.IsValid())
         return false;
@@ -1076,9 +1200,94 @@ bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn
     int nHashType = vchSig.back();
     vchSig.pop_back();
 
+    LogPrintf("SignatureHash \n");
     uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType);
 
+    LogPrintf("VerifySignature \n");
     if (!VerifySignature(vchSig, pubkey, sighash))
+        return false;
+
+    LogPrintf("CheckSig <-- \n");
+    return true;
+}
+
+bool TransactionSignatureChecker::CheckLockTime(const CScriptNum& nLockTime) const
+{
+    // There are two kinds of nLockTime: lock-by-blockheight
+    // and lock-by-blocktime, distinguished by whether
+    // nLockTime < LOCKTIME_THRESHOLD.
+    //
+    // We want to compare apples to apples, so fail the script
+    // unless the type of nLockTime being tested is the same as
+    // the nLockTime in the transaction.
+    if (!(
+        (txTo->nLockTime <  LOCKTIME_THRESHOLD && nLockTime <  LOCKTIME_THRESHOLD) ||
+        (txTo->nLockTime >= LOCKTIME_THRESHOLD && nLockTime >= LOCKTIME_THRESHOLD)
+    ))
+        return false;
+
+    // Now that we know we're comparing apples-to-apples, the
+    // comparison is a simple numeric one.
+    if (nLockTime > (int64_t)txTo->nLockTime)
+        return false;
+
+    // Finally the nLockTime feature can be disabled and thus
+    // CHECKLOCKTIMEVERIFY bypassed if every txin has been
+    // finalized by setting nSequence to maxint. The
+    // transaction would be allowed into the blockchain, making
+    // the opcode ineffective.
+    //
+    // Testing if this vin is not final is sufficient to
+    // prevent this condition. Alternatively we could test all
+    // inputs, but testing just this input minimizes the data
+    // required to prove correct CHECKLOCKTIMEVERIFY execution.
+    if (CTxIn::SEQUENCE_FINAL == txTo->vin[nIn].nSequence)
+        return false;
+
+    return true;
+}
+
+bool TransactionSignatureChecker::CheckSequence(const CScriptNum& nSequence) const
+{
+    // Relative lock times are supported by comparing the passed
+    // in operand to the sequence number of the input.
+    const int64_t txToSequence = (int64_t)txTo->vin[nIn].nSequence;
+
+    // Fail if the transaction's version number is not set high
+    // enough to trigger BIP 68 rules.
+    if (static_cast<uint32_t>(txTo->nVersion) < 2)
+        return false;
+
+    // Sequence numbers with their most significant bit set are not
+    // consensus constrained. Testing that the transaction's sequence
+    // number do not have this bit set prevents using this property
+    // to get around a CHECKSEQUENCEVERIFY check.
+    if (txToSequence & CTxIn::SEQUENCE_LOCKTIME_DISABLE_FLAG)
+        return false;
+
+    // Mask off any bits that do not have consensus-enforced meaning
+    // before doing the integer comparisons
+    const uint32_t nLockTimeMask = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG | CTxIn::SEQUENCE_LOCKTIME_MASK;
+    const int64_t txToSequenceMasked = txToSequence & nLockTimeMask;
+    const CScriptNum nSequenceMasked = nSequence & nLockTimeMask;
+
+    // There are two kinds of nSequence: lock-by-blockheight
+    // and lock-by-blocktime, distinguished by whether
+    // nSequenceMasked < CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG.
+    //
+    // We want to compare apples to apples, so fail the script
+    // unless the type of nSequenceMasked being tested is the same as
+    // the nSequenceMasked in the transaction.
+    if (!(
+        (txToSequenceMasked <  CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked <  CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG) ||
+        (txToSequenceMasked >= CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG && nSequenceMasked >= CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG)
+    )) {
+        return false;
+    }
+
+    // Now that we know we're comparing apples-to-apples, the
+    // comparison is a simple numeric one.
+    if (nSequenceMasked > txToSequenceMasked)
         return false;
 
     return true;
@@ -1086,6 +1295,7 @@ bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn
 
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
 {
+    LogPrintf(" VerifyScript --> \n");
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
 
     if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {
@@ -1093,46 +1303,66 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigne
     }
 
     vector<vector<unsigned char> > stack, stackCopy;
+    LogPrintf(" EvalScript 1 \n");
     if (!EvalScript(stack, scriptSig, flags, checker, serror))
         // serror is set
         return false;
     if (flags & SCRIPT_VERIFY_P2SH)
         stackCopy = stack;
+    LogPrintf(" EvalScript 2 \n");
     if (!EvalScript(stack, scriptPubKey, flags, checker, serror))
         // serror is set
         return false;
+    LogPrintf(" empty \n");
     if (stack.empty())
         return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
-
+    LogPrintf(" CastToBool \n");
     if (CastToBool(stack.back()) == false)
         return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
 
+    LogPrintf(" IsPayToScriptHash ? \n");
     // Additional validation for spend-to-script-hash transactions:
     if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash())
     {
+        LogPrintf(" IsPayToScriptHash ? YES \n");
         // scriptSig must be literals-only or validation fails
         if (!scriptSig.IsPushOnly())
             return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
 
-        // stackCopy cannot be empty here, because if it was the
+        // Restore stack.
+        swap(stack, stackCopy);
+
+        // stack cannot be empty here, because if it was the
         // P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
         // an empty stack and the EvalScript above would return false.
-        assert(!stackCopy.empty());
+        assert(!stack.empty());
 
-        const valtype& pubKeySerialized = stackCopy.back();
+        const valtype& pubKeySerialized = stack.back();
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
-        popstack(stackCopy);
+        popstack(stack);
 
-        if (!EvalScript(stackCopy, pubKey2, flags, checker, serror))
+        if (!EvalScript(stack, pubKey2, flags, checker, serror))
             // serror is set
             return false;
-        if (stackCopy.empty())
+        if (stack.empty())
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
-        if (!CastToBool(stackCopy.back()))
+        if (!CastToBool(stack.back()))
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
-        else
-            return set_success(serror);
     }
 
+    LogPrintf(" SCRIPT_VERIFY_CLEANSTACK \n");
+    // The CLEANSTACK check is only performed after potential P2SH evaluation,
+    // as the non-P2SH evaluation of a P2SH script will obviously not result in
+    // a clean stack (the P2SH inputs remain).
+    if ((flags & SCRIPT_VERIFY_CLEANSTACK) != 0) {
+        // Disallow CLEANSTACK without P2SH, as otherwise a switch CLEANSTACK->P2SH+CLEANSTACK
+        // would be possible, which is not a softfork (and P2SH should be one).
+        assert((flags & SCRIPT_VERIFY_P2SH) != 0);
+        if (stack.size() != 1) {
+            return set_error(serror, SCRIPT_ERR_CLEANSTACK);
+        }
+    }
+
+    LogPrintf(" VerifyScript <-- \n");
     return set_success(serror);
 }

@@ -8,6 +8,7 @@
 #include "wallet.h"
 
 #include "base58.h"
+#include "chainparams.h"
 #include "checkpoints.h"
 #include "coincontrol.h"
 #include "kernel.h"
@@ -173,8 +174,8 @@ bool CWallet::AddCScript(const CScript& redeemScript)
     if (!CCryptoKeyStore::AddCScript(redeemScript))
         return false;
     if (!fFileBacked)
-        return true;
-    return CWalletDB(strWalletFile).WriteCScript(Hash160(redeemScript), redeemScript);
+        return true; 
+    return CWalletDB(strWalletFile).WriteCScript(Hash160(redeemScript.begin(),redeemScript.end()), redeemScript);
 }
 
 bool CWallet::LoadCScript(const CScript& redeemScript)
@@ -4026,7 +4027,7 @@ void CWallet::AutoCombineDust()
             if (!out.fSpendable)
                 continue;
             //no coins should get this far if they dont have proper maturity, this is double checking
-            if (out.tx->IsCoinStake() && out.tx->GetDepthInMainChain() < COINBASE_MATURITY + 1)
+            if (out.tx->IsCoinStake() && out.tx->GetDepthInMainChain() < Params().COINBASE_MATURITY() + 1)
                 continue;
 
             COutPoint outpt(out.tx->GetHash(), out.i);
