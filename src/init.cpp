@@ -210,10 +210,10 @@ void PrepareShutdown()
     DumpMasternodes();
     DumpBudgets();
     DumpMasternodePayments();
-    UnregisterNodeSignals(GetNodeSignals());
-
     StopTorControl();
     //StopTor();
+    UnregisterNodeSignals(GetNodeSignals());
+
     if (fFeeEstimatesInitialized) {
         boost::filesystem::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
         CAutoFile est_fileout(fopen(est_path.string().c_str(), "wb"), SER_DISK, CLIENT_VERSION);
@@ -283,8 +283,8 @@ void Shutdown()
     if (!fRestartRequested) {
         PrepareShutdown();
     }
-    // Shutdown part 2: Stop TOR thread and delete wallet instance
-    StopTorControl();
+    // Shutdown part 2: delete wallet instance
+    //StopTorControl();
 #ifdef ENABLE_WALLET
     delete pwalletMain;
     pwalletMain = NULL;

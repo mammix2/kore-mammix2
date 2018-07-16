@@ -47,17 +47,16 @@ bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits,
 {
     // Weight
     int64_t nValueIn = txPrev->vout[prevout.n].nValue;
-    if (nValueIn == 0) {
-        if(fDebug) LogPrintf("CheckStakeKernelHash nValueIn == 0 \n");
+    if (nValueIn == 0)
         return false;
-    }
 
     // Base target
     arith_uint256 bnTarget = arith_uint256().SetCompact(nBits);
 
-    LogPrintf("CheckStakeKernelHash: pindexPrev->nStakeModifierOld:%u txPrev->nTime:%u \n", pindexPrev->nStakeModifierOld.GetHex(), txPrev->nTime);
-    LogPrintf("CheckStakeKernelHash: prevout.hash: %s prevout.n:%u nTimeTx:%u \n", prevout.hash.GetHex(), prevout.n, nTimeTx);
-
+    if(fDebug) {
+      LogPrintf("CheckStakeKernelHash: pindexPrev->nStakeModifier:%u txPrev->nTime:%u \n", pindexPrev->nStakeModifier, txPrev->nTime);
+      LogPrintf("CheckStakeKernelHash: prevout.hash: %s prevout.n:%u nTimeTx:%u \n", prevout.hash.GetHex(), prevout.n, nTimeTx);
+    }
 
     // Calculate hash
     CHashWriter ss(SER_GETHASH, 0);
@@ -83,7 +82,6 @@ bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits,
 bool CheckProofOfStake_Old(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits,
                            uint256& hashProofOfStake, std::unique_ptr<CStakeInput>& stake)
 {
-    if(fDebug) LogPrintf("CheckProofOfStake_Old --> \n");
     if (!tx.IsCoinStake())
         return error("CheckProofOfStake() : called on non-coinstake %s \n", tx.GetHash().ToString());
 
@@ -94,26 +92,19 @@ bool CheckProofOfStake_Old(CBlockIndex* pindexPrev, const CTransaction& tx, unsi
     CTransaction prevtx;
     uint256 hashBlock;
 
-    if(fDebug) LogPrintf(" 1. GetTransaction  \n");
     if (!GetTransaction(txin.prevout.hash, prevtx, hashBlock, true))
        return error("CheckProofOfStake() : INFO: read txPrev failed");
 
     // Verify signature
-    if(fDebug) LogPrintf(" 2. VerifySignature  \n");
     if (!VerifySignature(prevtx, tx, 0, SCRIPT_VERIFY_NONE, 0)) {
-        if(fDebug) LogPrintf("VerifySignature ERROR !!! \n");
        return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
     }
 
     //Construct the stakeinput object
     CPivStake* pivInput = new CPivStake();
-    if(fDebug) LogPrintf("before SetInput  \n");
     pivInput->SetInput(prevtx, txin.prevout.n);
-    if(fDebug) LogPrintf("after SetInput  \n");
     stake = std::unique_ptr<CStakeInput>(pivInput);
-    if(fDebug) LogPrintf("after cast  \n");
 
-    if(fDebug) LogPrintf("find hashBlock  \n");
     CBlockIndex* pIndex = NULL;
     BlockMap::iterator iter = mapBlockIndex.find(hashBlock);
     if (iter != mapBlockIndex.end()) 
@@ -121,9 +112,8 @@ bool CheckProofOfStake_Old(CBlockIndex* pindexPrev, const CTransaction& tx, unsi
 
     // Read block header
     CBlock block;
-    if(fDebug) LogPrintf(" 3. ReadBlockFromDisk  \n");
     if (!ReadBlockFromDisk(block, pIndex))
-       return fDebug? error("CheckProofOfStake(): *** ReadBlockFromDisk failed at %d, hash=%s \n", pindexPrev->nHeight, pindexPrev->GetBlockHash().ToString()) : false;
+       return error("CheckProofOfStake(): *** ReadBlockFromDisk failed at %d, hash=%s \n", pindexPrev->nHeight, pindexPrev->GetBlockHash().ToString());
 
     // Min age requirement
     if (pindexPrev->nHeight - pIndex->nHeight < STAKE_MIN_CONFIRMATIONS)
@@ -136,15 +126,12 @@ bool CheckProofOfStake_Old(CBlockIndex* pindexPrev, const CTransaction& tx, unsi
                               txin.prevout, tx.nTime, hashProofOfStake))
        return error("%s: CheckStakeKernelHash failed \n", __func__);
 
-    if(fDebug) LogPrintf("CheckProofOfStake_Old <-- \n");
     return true;
 }
 
 bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType)
 {
-    if(fDebug) LogPrintf(" VerifySignature --> \n");
     assert(nIn < txTo.vin.size());
-     if(fDebug) LogPrintf(" after assert\n");
     const CTxIn& txin = txTo.vin[nIn];
     if (txin.prevout.n >= txFrom.vout.size())
         return false;
@@ -153,6 +140,5 @@ bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsig
     if (txin.prevout.hash != txFrom.GetHash())
         return false;
 
-    if(fDebug) LogPrintf(" VerifySignature <-- \n");
     return VerifyScript(txin.scriptSig, txout.scriptPubKey, flags, TransactionSignatureChecker(&txTo, nIn),  NULL);
 }
