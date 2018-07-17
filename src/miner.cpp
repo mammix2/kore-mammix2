@@ -530,6 +530,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
     unsigned int nExtraNonce = 0;
 
     while (fGenerateBitcoins || fProofOfStake) {
+        boost::this_thread::interruption_point();
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
             if ((GetTime() - nMintableLastCheck > 5 * 60)) // 5 minute check time
@@ -554,6 +555,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                     }
                 }
                 MilliSleep(5000);
+                boost::this_thread::interruption_point();
                 if (!fGenerateBitcoins && !fProofOfStake)
                     continue;
             }
@@ -573,8 +575,10 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         //
         unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
         CBlockIndex* pindexPrev = chainActive.Tip();
-        if (!pindexPrev)
+        if (!pindexPrev) {
+            MilliSleep(500);
             continue;
+        }
 
         unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet, fProofOfStake));
         if (!pblocktemplate.get())
@@ -588,6 +592,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             LogPrintf("CPUMiner : proof-of-stake block found %s \n", pblock->GetHash().ToString().c_str());
             if (!SignBlock(*pblock, *pwallet)) {
                 LogPrintf("BitcoinMiner(): Signing new block with UTXO key failed \n");
+                MilliSleep(500);
                 continue;
             }
 
@@ -595,7 +600,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             ProcessBlockFound(pblock, *pwallet, reservekey);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
-
+            MilliSleep(500);
             continue;
         }
 

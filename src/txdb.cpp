@@ -150,11 +150,11 @@ bool CCoinsViewDB::GetStats(CCoinsStats& stats) const
                 ss << (coins.fCoinBase ? 'c' : 'n');
                 ss << VARINT(coins.nHeight);
                 stats.nTransactions++;
-                for (unsigned int i = 0; i < coins.vout.size(); i++) {
-                    const CTxOut& out = coins.vout[i];
+                for (unsigned int i=0; i<coins.vout.size(); i++) {
+                    const CTxOut &out = coins.vout[i];
                     if (!out.IsNull()) {
                         stats.nTransactionOutputs++;
-                        ss << VARINT(i + 1);
+                        ss << VARINT(i+1);
                         ss << out;
                         nTotalAmount += out.nValue;
                     }
@@ -212,6 +212,7 @@ bool CBlockTreeDB::ReadInt(const std::string& name, int& nValue)
 
 bool CBlockTreeDB::LoadBlockIndexGuts()
 {
+    LogPrintf("LoadBlockIndexGuts --> \n");
     boost::scoped_ptr<leveldb::Iterator> pcursor(NewIterator());
 
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -261,7 +262,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 pindexNew->nStakeTime = diskindex.nStakeTime;
                 pindexNew->hashProofOfStake = diskindex.hashProofOfStake;
 
-                if (pindexNew->nHeight <= Params().LAST_POW_BLOCK()) {
+                if (!pindexNew->IsProofOfStake() && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
                     if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits))
                         return error("LoadBlockIndex() : CheckProofOfWork failed: %s", pindexNew->ToString());
                 }
@@ -274,10 +275,12 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 break; // if shutdown requested or finished loading block index
             }
         } catch (std::exception& e) {
+            LogPrintf("LoadBlockIndexGuts Error !!!");
             return error("%s : Deserialize or I/O error - %s", __func__, e.what());
         }
     }
 
+    LogPrintf("LoadBlockIndexGuts <-- \n");
     return true;
 }
 
