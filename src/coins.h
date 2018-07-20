@@ -154,7 +154,8 @@ public:
                 a.fCoinStake == b.fCoinStake &&
                 a.nHeight == b.nHeight &&
                 a.nVersion == b.nVersion &&
-                a.nTime == b.nTime &&
+                // Lico this is not necessary ???
+                //a.nTime == b.nTime &&
                 a.vout == b.vout;
     }
 

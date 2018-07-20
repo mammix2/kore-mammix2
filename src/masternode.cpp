@@ -655,29 +655,6 @@ void CMasternodeBroadcast::Relay()
     RelayInv(inv);
 }
 
-/*
-bool CMasternodeBroadcast::Sign(CKey& keyCollateralAddress)
-{
-    std::string errorMessage;
-    sigTime = GetAdjustedTime();
-
-    std::string strMessage;
-    if(chainActive.Height() < Params().Zerocoin_Block_V2_Start())
-    	strMessage = GetOldStrMessage();
-    else
-    	strMessage = GetNewStrMessage();
-
-    if (!obfuScationSigner.SignMessage(strMessage, errorMessage, sig, keyCollateralAddress))
-    	return error("CMasternodeBroadcast::Sign() - Error: %s", errorMessage);
-
-    if (!obfuScationSigner.VerifyMessage(pubKeyCollateralAddress, sig, strMessage, errorMessage))
-    	return error("CMasternodeBroadcast::Sign() - Error: %s", errorMessage);
-
-    return true;
-}
-*/
-
-
 bool CMasternodeBroadcast::Sign(CKey& keyCollateralAddress)
 {
     std::string errorMessage;

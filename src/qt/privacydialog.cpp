@@ -813,6 +813,7 @@ void PrivacyDialog::updateAutomintStatus()
 
 void PrivacyDialog::updateSPORK16Status()
 {
+#ifdef ZEROCOIN    
     // Update/enable labels, buttons and tooltips depending on the current SPORK_16 status
     if(GetAdjustedTime() > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE)) {
         // Mint zPIV
@@ -832,4 +833,5 @@ void PrivacyDialog::updateSPORK16Status()
         ui->pushButtonSpendzPIV->setEnabled(true);
         ui->pushButtonSpendzPIV->setToolTip(tr("Spend Zerocoin. Without 'Pay To:' address creates payments to yourself."));
     }
+#endif    
 }
