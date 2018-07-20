@@ -220,7 +220,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
     pcursor->Seek(ssKeySet.str());
 
     // Load mapBlockIndex
-    uint256 nPreviousCheckpoint;
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         try {
