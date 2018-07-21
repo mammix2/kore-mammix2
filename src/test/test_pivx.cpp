@@ -32,7 +32,7 @@ struct TestingSetup {
 
     TestingSetup() {
         SetupEnvironment();
-        fPrintToDebugLog = false; // don't want to write to debug.log file
+        fPrintToDebugLog = true; // don't want to write to debug.log file
         fCheckBlockIndex = true;
         SelectParams(CBaseChainParams::UNITTEST);
         noui_connect();
@@ -72,7 +72,8 @@ struct TestingSetup {
 #ifdef ENABLE_WALLET
         bitdb.Flush(true);
 #endif
-        boost::filesystem::remove_all(pathTemp);
+        // Lico, Temporary. we want to see the results !!!
+        //boost::filesystem::remove_all(pathTemp);
     }
 };
 

@@ -304,7 +304,7 @@ public:
         // Kore BIP32 prvkeys
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
         // Kore BIP44
-        base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x01).convert_to_container<std::vector<unsigned char> >();
+        // base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x01).convert_to_container<std::vector<unsigned char> >();
 
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
 
@@ -370,11 +370,23 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = true;
         fTestnetToBeDeprecatedFieldRPC = false;
+
+    	base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,105);
+	    base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,190);
+	    base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,233);
+    	// Kore BIP32 pubkeys
+    	base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();
+	    // Kore BIP32 prvkeys
+    	base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();
+    	// Kore BIP44
+    	// base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x01).convert_to_container<std::vector<unsigned char> >();
+
     }
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
         return dataRegtest;
     }
+
 };
 static CRegTestParams regTestParams;
 
@@ -396,7 +408,7 @@ public:
         fDefaultConsistencyChecks = true;
         fAllowMinDifficultyBlocks = false;
         fMineBlocksOnDemand = true;
-    }
+        }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
