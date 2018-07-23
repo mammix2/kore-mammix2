@@ -45,7 +45,7 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBirt
     
     txNew.nTime = nTime;
     txNew.nVersion = 1;
-    // TODO - check which one to use
+
     txNew.vin[0].scriptSig = CScript() << 0 << OP_0;
     //txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
 
@@ -257,15 +257,18 @@ public:
         pchMessageStart[1] = 0x76;
         pchMessageStart[2] = 0x65;
         pchMessageStart[3] = 0xba;
+        //consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        bnProofOfWorkLimit = ~uint256(0) >> 32;
         vAlertPubKey = ParseHex("000010e83b2703ccf322f7dbd62dd5855ac7c10bd055814ce121ba32607d573b8810c02c0582aed05b4deb9c4b77b26d92428c61256cd42774babea0a073b2ed0c9");
-        nDefaultPort = 11742;
+        nDefaultPort = 11743;
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 day
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
-        nLastPOWBlock = 200;
+        fSkipProofOfWorkCheck = true;
+        nLastPOWBlock = 20;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = 51197; //approx Mon, 17 Apr 2017 04:00:00 GMT
@@ -284,13 +287,11 @@ public:
         nEnforceNewSporkKey = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
 
-        //! Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nTime = 1454124731;
-        genesis.nNonce = 2402015;
+        genesis = CreateGenesisBlock(1532194144, 414098458, 0, 0, 0x1d00ffff, 1, 49 * COIN);
 
         hashGenesisBlock = genesis.GetHash();
-        // TODO Lico removed assertion
-        // assert(hashGenesisBlock == uint256("0x0000041e482b9b9691d98eefb48473405c0b8ec31b76df3797c74a78680ef818"));
+        printf("hashGenesisBlock: %s \n",hashGenesisBlock.ToString().c_str());
+        assert(hashGenesisBlock == uint256("0xade2822996f514017d58f6ba5c82fee36ca1737b70f427538ddd5d3d39874d29"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
