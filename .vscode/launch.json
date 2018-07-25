@@ -86,7 +86,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/src/test/test_pivx",
-            "args": ["--log_level=all", "--run_test=script_tests", "--log_sink=stdout", "-t key_tests"],
+            "args": ["--log_level=all", "--run_test=script_tests", "--log_sink=stdout", "-t sighash_tests/sighash_from_data"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

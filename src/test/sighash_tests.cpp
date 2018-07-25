@@ -164,6 +164,7 @@ BOOST_AUTO_TEST_CASE(sighash_test)
 // Goal: check that SignatureHash generates correct hash
 BOOST_AUTO_TEST_CASE(sighash_from_data)
 {
+    LogPrintf("sighash_from_data --> \n");
     UniValue tests = read_json(std::string(json_tests::sighash, json_tests::sighash + sizeof(json_tests::sighash)));
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
@@ -191,11 +192,15 @@ BOOST_AUTO_TEST_CASE(sighash_from_data)
           sigHashHex = test[4].get_str();
 
           uint256 sh;
+          LogPrintf(" Parsing Hex  \n");
           CDataStream stream(ParseHex(raw_tx), SER_NETWORK, PROTOCOL_VERSION);
+          LogPrintf(" Extracting Transaction  \n");
           stream >> tx;
 
           CValidationState state;
+          LogPrintf(" 1. CheckTransation  \n");
           BOOST_CHECK_MESSAGE(CheckTransaction(tx, state), strTest);
+          LogPrintf(" 2. IsValid?  \n");
           BOOST_CHECK(state.IsValid());
 
           std::vector<unsigned char> raw = ParseHex(raw_script);
@@ -208,5 +213,6 @@ BOOST_AUTO_TEST_CASE(sighash_from_data)
         sh = SignatureHash(scriptCode, tx, nIn, nHashType);
         BOOST_CHECK_MESSAGE(sh.GetHex() == sigHashHex, strTest);
     }
+    LogPrintf("sighash_from_data <-- \n");
 }
 BOOST_AUTO_TEST_SUITE_END()
