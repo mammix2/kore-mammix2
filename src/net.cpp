@@ -1315,8 +1315,13 @@ void TorThread()
     tor_args.push_back((tor_directory / "geoip").string());
     tor_args.push_back("--GeoIPv6File");
     tor_args.push_back((tor_directory / "geoip6").string());
-    //    tor_args.push_back("--HiddenServiceDir");
-    //    tor_args.push_back((tor_directory / "onion").string());
+    tor_args.push_back("--HiddenServiceDir");    
+    tor_args.push_back((tor_directory / "onion").string());
+    tor_args.push_back("--HiddenServicePort");
+    if (fTestNet)
+        tor_args.push_back("26550");
+    else
+        tor_args.push_back("17570");
     tor_args.push_back("-f");
     tor_args.push_back((tor_directory / "torrc").string());
     tor_args.push_back("--DataDirectory");

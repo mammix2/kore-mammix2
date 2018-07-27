@@ -19,6 +19,7 @@
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
 {
+    LogPrintf("GetNextWorkRequired --> \n");
     /* current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;
     const CBlockIndex* BlockReading = pindexLast;
@@ -31,6 +32,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     uint256 PastDifficultyAveragePrev;
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
+        LogPrintf("returning ProofOfWorkLimit \n");
+        LogPrintf("GetNextWorkRequired <-- \n");
         return Params().ProofOfWorkLimit().GetCompact();
     }
 
@@ -58,6 +61,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         if (bnNew <= 0 || bnNew > bnTargetLimit)
             bnNew = bnTargetLimit;
 
+        LogPrintf("returning 1. GetCompact \n");
+        LogPrintf("GetNextWorkRequired <-- \n");
         return bnNew.GetCompact();
     }
 
@@ -106,6 +111,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         bnNew = Params().ProofOfWorkLimit();
     }
 
+    LogPrintf("returning 2. GetCompact \n");    
+    LogPrintf("GetNextWorkRequired <-- \n");
     return bnNew.GetCompact();
 }
 

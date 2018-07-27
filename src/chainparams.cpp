@@ -37,7 +37,7 @@ struct SeedSpec6 {
 *     CTxOut(nValue=50.00000000, scriptPubKey=0xA9037BAC7050C479B121CF)
 *   vMerkleTree: e0028e
 */
-static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBirthdayA, uint32_t nBirthdayB, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+static CBlock CreateGenesisBlock(const CScript &genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBirthdayA, uint32_t nBirthdayB, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     CMutableTransaction txNew;
     txNew.vin.resize(1);
@@ -50,7 +50,6 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBirt
     //txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
 
     txNew.vout[0].nValue = genesisReward;
-    CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
 
     CBlock genesis;
@@ -177,8 +176,9 @@ public:
 
         nEnforceNewSporkKey = 1525158000; //!> Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
+        CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         //        CreateGenesisBlock(nTime,      nNonce, nBirthdayA,  nBirthdayB,  nBits,  nVersion,  genesisReward)
-	    genesis = CreateGenesisBlock(1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
+	    genesis = CreateGenesisBlock(genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
         hashGenesisBlock = genesis.GetHash();
         LogPrintf("%s", hashGenesisBlock.ToString());
         genesis.print();
@@ -257,8 +257,6 @@ public:
         pchMessageStart[1] = 0x76;
         pchMessageStart[2] = 0x65;
         pchMessageStart[3] = 0xba;
-        //consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        bnProofOfWorkLimit = ~uint256(0) >> 32;
         vAlertPubKey = ParseHex("000010e83b2703ccf322f7dbd62dd5855ac7c10bd055814ce121ba32607d573b8810c02c0582aed05b4deb9c4b77b26d92428c61256cd42774babea0a073b2ed0c9");
         nDefaultPort = 11743;
         nEnforceBlockUpgradeMajority = 51;
@@ -268,11 +266,11 @@ public:
         nTargetTimespan = 1 * 60; // PIVX: 1 day
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
         fSkipProofOfWorkCheck = true;
-        nLastPOWBlock = 200;
+        bnProofOfWorkLimit = ~uint256(0) >> 1; // this make easier to find a block !        
+        nLastPOWBlock = 50;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = 51197; //approx Mon, 17 Apr 2017 04:00:00 GMT
-        nMaxMoneyOut = 43199500 * COIN;
 #ifdef ZEROCOIN        
         nZerocoinStartHeight = 201576;
         nZerocoinStartTime = 1501776000;
@@ -287,17 +285,19 @@ public:
         nEnforceNewSporkKey = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
 
-        genesis = CreateGenesisBlock(1532194144, 414098458, 0, 0, 0x1d00ffff, 1, 49 * COIN);
+        // sending rewards to this public key
+        CScript genesisOutputScript = CScript() << ParseHex("03d0e405547202fb57438bef3fdd9e39cbbefca74f56017d17e53cfde58bec1baf") << OP_CHECKSIG;
+        genesis = CreateGenesisBlock(genesisOutputScript, 1532194144, 414098458, 0, 0, 0x1d00ffff, 1, 100000 * COIN);
 
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("0xade2822996f514017d58f6ba5c82fee36ca1737b70f427538ddd5d3d39874d29"));
+        assert(hashGenesisBlock == uint256("3ac1b4e2f2601436e21ffc1f81ddfaa633ee238e31646ecfd6e1072d82371ac9"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
         vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "pivx-testnet.seed.fuzzbawls.pw"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,105);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,45);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,190);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,233);
         // Kore BIP32 pubkeys
@@ -351,9 +351,8 @@ public:
         nToCheckBlockUpgradeMajority = 1000; // consensus.nMajorityWindow
         nMinerThreads = 1;
         nTargetTimespan = 60 * 60; // consensus.nTargetTimespan one hour
-        nTargetSpacing = 1 * 60;   // consensus.nTargetSpacing 1 minutes
-        // consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        bnProofOfWorkLimit = ~uint256(0) >> 8;
+        nTargetSpacing = 1 * 60;   // consensus.nTargetSpacing 1 minutes        
+        bnProofOfWorkLimit = ~uint256(0) >> 1; // this make easier to find a block !        
         genesis.nTime = 1453993470;
         genesis.nBits = 0x207fffff;
         genesis.nNonce = 12345;
@@ -409,6 +408,7 @@ public:
         fDefaultConsistencyChecks = true;
         fAllowMinDifficultyBlocks = false;
         fMineBlocksOnDemand = true;
+        fSkipProofOfWorkCheck = true;
         }
 
     const Checkpoints::CCheckpointData& Checkpoints() const

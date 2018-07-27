@@ -120,7 +120,9 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    txNew.vout[0].SetEmpty();
     pblock->vtx.push_back(txNew);
+
     pblocktemplate->vTxFees.push_back(-1);   // updated at end
     pblocktemplate->vTxSigOps.push_back(-1); // updated at end
 
@@ -417,12 +419,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         nLastBlockSize = nBlockSize;
         LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-        // Compute final coinbase transaction.
-        pblock->vtx[0].vin[0].scriptSig = CScript() << nHeight << OP_0;
+        // Compute final coinbase transaction.        
         if (!fProofOfStake) {
             pblock->vtx[0] = txNew;
             pblocktemplate->vTxFees[0] = -nFees;
         }
+        pblock->vtx[0].vin[0].scriptSig = CScript() << nHeight << OP_0;
 
         // Fill in header
         pblock->hashPrevBlock = pindexPrev->GetBlockHash();
@@ -612,12 +614,15 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         //
         int64_t nStart = GetTime();
         uint256 hashTarget = uint256().SetCompact(pblock->nBits);
+        LogPrintf("target: %s\n", hashTarget.GetHex());
         while (true) {
             unsigned int nHashesDone = 0;
 
             uint256 hash;
+            
+            LogPrintf("nbits : %08x \n", pblock->nBits);            
             while (true) {
-                hash = pblock->GetHash();
+                hash = pblock->GetHash();                                
                 if (hash <= hashTarget) {
                     // Found a solution
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
@@ -632,9 +637,10 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                         throw boost::thread_interrupted();
 
                     break;
-                }
-                pblock->nNonce += 1;
+                }                
+                pblock->nNonce += 1;                
                 nHashesDone += 1;
+                LogPrintf("Looking for a solution with nounce: %d hashesDone : %d \n", pblock->nNonce, nHashesDone);
                 if ((pblock->nNonce & 0xFF) == 0)
                     break;
             }
@@ -693,7 +699,7 @@ void static ThreadBitcoinMiner(void* parg)
         BitcoinMiner(pwallet, false);
         boost::this_thread::interruption_point();
     } catch (std::exception& e) {
-        LogPrintf("ThreadBitcoinMiner() exception");
+        LogPrintf("ThreadBitcoinMiner( %c) exception", e.what());
     } catch (...) {
         LogPrintf("ThreadBitcoinMiner() exception");
     }
@@ -703,6 +709,7 @@ void static ThreadBitcoinMiner(void* parg)
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
 {
+    LogPrintf("GenerateBitcoins with %d threads\n", nThreads);
     static boost::thread_group* minerThreads = NULL;
     fGenerateBitcoins = fGenerate;
 
