@@ -290,7 +290,7 @@ public:
         genesis = CreateGenesisBlock(genesisOutputScript, 1532194144, 414098458, 0, 0, 0x1d00ffff, 1, 100000 * COIN);
 
         hashGenesisBlock = genesis.GetHash();
-        printf("hashGenesisBlock: %s \n",hashGenesisBlock.ToString().c_str());
+        printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
         assert(hashGenesisBlock == uint256("3ac1b4e2f2601436e21ffc1f81ddfaa633ee238e31646ecfd6e1072d82371ac9"));
 
         vFixedSeeds.clear();
