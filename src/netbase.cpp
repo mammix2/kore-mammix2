@@ -304,6 +304,7 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
         CloseSocket(hSocket);
         return error("Hostname too long");
     }
+/*
     // Accepted authentication methods
     std::vector<uint8_t> vSocks5Init;
     vSocks5Init.push_back(0x05);
@@ -315,8 +316,15 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
         vSocks5Init.push_back(0x01); // # METHODS
         vSocks5Init.push_back(0x00); // X'00' NO AUTHENTICATION REQUIRED
     }
-    ssize_t ret = send(hSocket, (const char*)begin_ptr(vSocks5Init), vSocks5Init.size(), MSG_NOSIGNAL);
-    if (ret != (ssize_t)vSocks5Init.size()) {
+*/
+    char pszSocks5Init[] = "\5\1\0";
+    ssize_t nSize = sizeof(pszSocks5Init) - 1;
+    ssize_t ret = send(hSocket, pszSocks5Init, nSize, MSG_NOSIGNAL);
+
+    //ssize_t ret = send(hSocket, (const char*)begin_ptr(vSocks5Init), vSocks5Init.size(), MSG_NOSIGNAL);
+    //if (ret != (ssize_t)vSocks5Init.size()) 
+    if (ret != nSize)
+    {
         CloseSocket(hSocket);
         return error("Error sending to proxy");
     }
@@ -344,7 +352,7 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
             CloseSocket(hSocket);
             return error("Error sending authentication to proxy");
         }
-        LogPrint("proxy", "SOCKS5 sending proxy authentication %s:%s\n", auth->username, auth->password);
+        LogPrint("proxy", "SOCKS5 sending proxy authentication %s:%s to %s\n", auth->username, auth->password, strDest);
         char pchRetA[2];
         if (!InterruptibleRecv(pchRetA, 2, SOCKS5_RECV_TIMEOUT, hSocket)) {
             CloseSocket(hSocket);
@@ -385,6 +393,7 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
     }
     if (pchRet2[1] != 0x00) {
         CloseSocket(hSocket);
+        LogPrint("proxy", "SOCKS5 Error from host: %s pch: %d \n", strDest, pchRet2[1]);
         switch (pchRet2[1]) {
         case 0x01:
             return error("Proxy error: general failure");
