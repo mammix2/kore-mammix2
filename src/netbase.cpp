@@ -304,7 +304,6 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
         CloseSocket(hSocket);
         return error("Hostname too long");
     }
-/*
     // Accepted authentication methods
     std::vector<uint8_t> vSocks5Init;
     vSocks5Init.push_back(0x05);
@@ -316,15 +315,8 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
         vSocks5Init.push_back(0x01); // # METHODS
         vSocks5Init.push_back(0x00); // X'00' NO AUTHENTICATION REQUIRED
     }
-*/
-    char pszSocks5Init[] = "\5\1\0";
-    ssize_t nSize = sizeof(pszSocks5Init) - 1;
-    ssize_t ret = send(hSocket, pszSocks5Init, nSize, MSG_NOSIGNAL);
-
-    //ssize_t ret = send(hSocket, (const char*)begin_ptr(vSocks5Init), vSocks5Init.size(), MSG_NOSIGNAL);
-    //if (ret != (ssize_t)vSocks5Init.size()) 
-    if (ret != nSize)
-    {
+    ssize_t ret = send(hSocket, (const char*)vSocks5Init.data(), vSocks5Init.size(), MSG_NOSIGNAL);
+    if (ret != (ssize_t)vSocks5Init.size()) {
         CloseSocket(hSocket);
         return error("Error sending to proxy");
     }
@@ -340,14 +332,14 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
     if (pchRet1[1] == 0x02 && auth) {
         // Perform username/password authentication (as described in RFC1929)
         std::vector<uint8_t> vAuth;
-        vAuth.push_back(0x01);
+        vAuth.push_back(0x01); // Current (and only) version of user/pass subnegotiation
         if (auth->username.size() > 255 || auth->password.size() > 255)
             return error("Proxy username or password too long");
         vAuth.push_back(auth->username.size());
         vAuth.insert(vAuth.end(), auth->username.begin(), auth->username.end());
         vAuth.push_back(auth->password.size());
         vAuth.insert(vAuth.end(), auth->password.begin(), auth->password.end());
-        ret = send(hSocket, (const char*)begin_ptr(vAuth), vAuth.size(), MSG_NOSIGNAL);
+        ret = send(hSocket, (const char*)vAuth.data(), vAuth.size(), MSG_NOSIGNAL);
         if (ret != (ssize_t)vAuth.size()) {
             CloseSocket(hSocket);
             return error("Error sending authentication to proxy");
@@ -377,7 +369,7 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
     vSocks5.insert(vSocks5.end(), strDest.begin(), strDest.end());
     vSocks5.push_back((port >> 8) & 0xFF);
     vSocks5.push_back((port >> 0) & 0xFF);
-    ret = send(hSocket, (const char*)begin_ptr(vSocks5), vSocks5.size(), MSG_NOSIGNAL);
+    ret = send(hSocket, (const char*)vSocks5.data(), vSocks5.size(), MSG_NOSIGNAL);
     if (ret != (ssize_t)vSocks5.size()) {
         CloseSocket(hSocket);
         return error("Error sending to proxy");
@@ -415,7 +407,7 @@ bool static Socks5(string strDest, int port, const ProxyCredentials *auth, SOCKE
             return error("Proxy error: unknown");
         }
     }
-    if (pchRet2[2] != 0x00) {
+    if (pchRet2[2] != 0x00) { // Reserved field must be 0
         CloseSocket(hSocket);
         return error("Error: malformed proxy response");
     }
@@ -596,8 +588,8 @@ static bool ConnectThroughProxy(const proxyType &proxy, const std::string strDes
     // do socks negotiation
     if (proxy.randomize_credentials) {
         ProxyCredentials random_auth;
-        random_auth.username = strprintf("%i", insecure_rand());
-        random_auth.password = strprintf("%i", insecure_rand());
+        static std::atomic_int counter(0);
+        random_auth.username = random_auth.password = strprintf("%i", counter++);
         if (!Socks5(strDest, (unsigned short)port, &random_auth, hSocket))
             return false;
     } else {
