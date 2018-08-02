@@ -335,6 +335,6 @@ extern UniValue getstakingstatus(const UniValue& params, bool fHelp);
 bool StartRPC();
 void InterruptRPC();
 void StopRPC();
-std::string JSONRPCExecBatch(const UniValue& vReq);
+std::string JSONRPCExecBatch(JSONRequest & jreq, const UniValue& vReq);
 
 #endif // BITCOIN_RPCSERVER_H

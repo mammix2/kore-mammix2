@@ -1318,10 +1318,7 @@ void TorThread()
     tor_args.push_back("--HiddenServiceDir");    
     tor_args.push_back((tor_directory / "onion").string());
     tor_args.push_back("--HiddenServicePort");
-    if (fTestNet)
-        tor_args.push_back(std::to_string(Params(CBaseChainParams::TESTNET).GetDefaultPort()));
-    else
-        tor_args.push_back(std::to_string(Params(CBaseChainParams::MAIN).GetDefaultPort()));
+    tor_args.push_back(std::to_string(Params().GetDefaultPort()));    
     tor_args.push_back("-f");
     tor_args.push_back((tor_directory / "torrc").string());
     tor_args.push_back("--DataDirectory");
