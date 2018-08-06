@@ -5,13 +5,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifdef ZEROCOIN
-#include "libzerocoin/Params.h"
-#endif
 #include "chainparams.h"
 #include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "arith_uint256.h"
 
 #include <assert.h>
 
@@ -67,6 +65,39 @@ static CBlock CreateGenesisBlock(const CScript &genesisOutputScript, uint32_t nT
     return genesis;
 }
 
+void  CChainParams::MineNewGenesisBlock()
+{
+    fPrintToConsole = true;
+    LogPrintStr("Searching for genesis block...\n");
+
+    arith_uint256 hashTarget = UintToArith256(bnProofOfWorkLimit);//.GetCompact();
+    //arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
+    while(true) {
+        arith_uint256 thash = UintToArith256(genesis.CalculateBestBirthdayHash());
+		LogPrintf("teHash %s\n", thash.ToString().c_str());
+		LogPrintf("Hash Target %s\n", hashTarget.ToString().c_str());  
+      if (thash <= hashTarget)
+            break;
+        if ((genesis.nNonce & 0xFFF) == 0)
+            LogPrintf("nonce %08X: hash = %s (target = %s)\n", genesis.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
+
+        ++genesis.nNonce;
+        if (genesis.nNonce == 0) {
+            LogPrintf("NONCE WRAPPED, incrementing time\n");
+            ++genesis.nTime;
+        }
+    }
+    LogPrintf("genesis.nTime = %u \n",  genesis.nTime);
+    LogPrintf("genesis.nNonce = %u \n",  genesis.nNonce);
+    LogPrintf("genesis.nBirthdayA: %d\n", genesis.nBirthdayA);
+    LogPrintf("genesis.nBirthdayB: %d\n", genesis.nBirthdayB);
+    LogPrintf("genesis.nBits = %u \n",  genesis.nBits);
+    LogPrintf("genesis.GetHash = %s\n",  genesis.GetHash().ToString().c_str());
+    LogPrintf("genesis.hashMerkleRoot = %s\n",  genesis.hashMerkleRoot.ToString().c_str());
+
+    exit(1);
+}
+
 /**
  * Main network
  */
@@ -95,6 +126,7 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 // + Contains no strange transactions
 static Checkpoints::MapCheckpoints mapCheckpoints =
             boost::assign::map_list_of
+            (0, uint256S("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"))
             (5, uint256S("0x00eaaa465402e6bcf745c00c38c0033a26e4dea19448d9109e4555943d677a31"))
             (1000, uint256S("0x2073f0a245cedde8344c2d0b48243a58908ffa50b02e2378189f2bb80037abd9")) // ,last PoW block, begin of PoS
             (40000, uint256S("0x572b31cc34f842aecbbc89083f7e40fff6a07e73e6002be75cb95468f4e3b4ca"))
@@ -110,12 +142,13 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
         };
 
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
-    boost::assign::map_list_of(0, uint256("0x001"));
+    boost::assign::map_list_of
+    (0, uint256("0x000ce3b76d9435adbc2713c62239cea20fe6bf0f69ed4d4f5c95ef07018a0450"));
 static const Checkpoints::CCheckpointData dataTestnet = {
     &mapCheckpointsTestnet,
-    1740710,
+    1533588169,
     0,
-    250};
+    1};
 
 static Checkpoints::MapCheckpoints mapCheckpointsRegtest =
     boost::assign::map_list_of(0, uint256("0x001"));
@@ -183,6 +216,7 @@ public:
         LogPrintf("%s", hashGenesisBlock.ToString());
         genesis.print();
         assert(hashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
+        //MineNewGenesisBlock();
         assert(genesis.hashMerkleRoot == uint256("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
         // Primary DNS Seeder 
         vSeeds.push_back(CDNSSeedData("kore-dnsseed-1", "dnsseed.kore.life"));
@@ -265,9 +299,11 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 day
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
-        fSkipProofOfWorkCheck = true;
-        bnProofOfWorkLimit = ~uint256(0) >> 1; // this make easier to find a block !        
-        nLastPOWBlock = 50;
+        //fSkipProofOfWorkCheck = true;
+        //bnProofOfWorkLimit = ~uint256(0) >> 1; // this make easier to find a block !        
+        fSkipProofOfWorkCheck = false;
+        bnProofOfWorkLimit = ~uint256(0) >> 10; // this make easier to find a block !
+        nLastPOWBlock = 1000;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = 51197; //approx Mon, 17 Apr 2017 04:00:00 GMT
@@ -286,18 +322,21 @@ public:
         nRejectOldSporkKey = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
 
         // sending rewards to this public key
-        CScript genesisOutputScript = CScript() << ParseHex("03d0e405547202fb57438bef3fdd9e39cbbefca74f56017d17e53cfde58bec1baf") << OP_CHECKSIG;
-        genesis = CreateGenesisBlock(genesisOutputScript, 1532194144, 414098458, 0, 0, 0x1d00ffff, 1, 100000 * COIN);
-
+        CScript genesisOutputScript = CScript() << ParseHex("03356d7ada23b329d926d5747d59845cf1a04e41a1dfea0aae1523768a50b434d7") << OP_CHECKSIG;
+        genesis = CreateGenesisBlock(genesisOutputScript, 1533588169, 414098531 , 36605183, 66338060, 0x1d00ffff, 1, 49 * COIN);
+        // Activate only when creating a new genesis block
+        //MineNewGenesisBlock();
+        printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
+        assert(genesis.hashMerkleRoot == uint256("0x084490589f830f2a88a2c21cdb348a149d25b58a2029c07f3788efc0ba04a08a"));
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("3ac1b4e2f2601436e21ffc1f81ddfaa633ee238e31646ecfd6e1072d82371ac9"));
+        assert(hashGenesisBlock == uint256("0x000ce3b76d9435adbc2713c62239cea20fe6bf0f69ed4d4f5c95ef07018a0450"));        
 
         vFixedSeeds.clear();
         vSeeds.clear();
         vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "pivx-testnet.seed.fuzzbawls.pw"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,45);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,105);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,190);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,233);
         // Kore BIP32 pubkeys

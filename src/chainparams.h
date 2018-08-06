@@ -174,7 +174,7 @@ protected:
     int64_t nRejectOldSporkKey;
     std::string strObfuscationPoolDummyAddress;
     int64_t nStartMasternodePayments;
-    void MineNewGenesisBlock();
+    void  MineNewGenesisBlock();
 #ifdef ZEROCOIN    
     std::string zerocoinModulus;
     int nMaxZerocoinSpendsPerTransaction;

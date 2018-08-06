@@ -67,7 +67,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/src/pivxd",
-            "args": ["-debug", "-testnet"],
+            "args": ["-debug", "-testnet","-par=1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
