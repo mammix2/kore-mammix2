@@ -301,8 +301,9 @@ public:
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
         //fSkipProofOfWorkCheck = true;
         //bnProofOfWorkLimit = ~uint256(0) >> 1; // this make easier to find a block !        
-        fSkipProofOfWorkCheck = false;
-        bnProofOfWorkLimit = ~uint256(0) >> 10; // this make easier to find a block !
+        
+        //fSkipProofOfWorkCheck = false;
+        //bnProofOfWorkLimit = ~uint256(0) >> 3; // let's try to make the same as mainnet
         nLastPOWBlock = 1000;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
@@ -323,14 +324,14 @@ public:
 
         // sending rewards to this public key
         CScript genesisOutputScript = CScript() << ParseHex("03356d7ada23b329d926d5747d59845cf1a04e41a1dfea0aae1523768a50b434d7") << OP_CHECKSIG;
-        genesis = CreateGenesisBlock(genesisOutputScript, 1533588169, 414098531 , 36605183, 66338060, 0x1d00ffff, 1, 49 * COIN);
+        genesis = CreateGenesisBlock(genesisOutputScript, 1533588169, 414098535 , 0, 0, 0x201fffff, 1, 49 * COIN);
         // Activate only when creating a new genesis block
         //MineNewGenesisBlock();
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
         assert(genesis.hashMerkleRoot == uint256("0x084490589f830f2a88a2c21cdb348a149d25b58a2029c07f3788efc0ba04a08a"));
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("0x000ce3b76d9435adbc2713c62239cea20fe6bf0f69ed4d4f5c95ef07018a0450"));        
+        assert(hashGenesisBlock == uint256("0x17b59a06377f2cf5b998eda41e828792f0008a55838dcca193828ec43d03ebc3"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

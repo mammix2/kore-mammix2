@@ -73,6 +73,8 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.1/gdb/data-directory",
+            "additionalSOLibSearchPath": "${workspaceFolder}/depends/x86_64-pc-linux-gnu/lib;/usr/lib/x86_64-linux-gnu",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
