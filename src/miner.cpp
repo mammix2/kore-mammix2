@@ -120,6 +120,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    // Lico added nTime
+    txNew.nTime = GetAdjustedTime();
     // Lico added to pass the mining test
     //txNew.vout[0].SetEmpty();
     pblock->vtx.push_back(txNew);
@@ -438,6 +440,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 
+	    LogPrintf("Block to be validated %s", pblock->ToString());
         CValidationState state;
         if (!TestBlockValidity(state, *pblock, pindexPrev, false, false)) {
             LogPrintf("CreateNewBlock() : TestBlockValidity failed\n");
@@ -625,7 +628,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             
             LogPrintf("nbits : %08x \n", pblock->nBits);            
             while (true) {
-                hash = pblock->GetHash();                                
+                hash = pblock->CalculateBestBirthdayHash();                                
                 if (hash <= hashTarget) {
                     // Found a solution
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);

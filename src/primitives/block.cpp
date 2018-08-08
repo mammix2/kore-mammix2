@@ -63,6 +63,7 @@ uint256 CBlockHeader::CalculateBestBirthdayHash() {
  		return GetHash();
 }
 
+#ifdef LICO
 uint256 CBlock::BlockMerkleRoot(bool* mutated) const
 {
     std::vector<uint256> leaves;
@@ -204,6 +205,7 @@ void CBlock::MerkleComputation(const std::vector<uint256>& leaves, uint256* proo
     if (pmutated) *pmutated = mutated;
     if (proot) *proot = h;
 }
+#endif
 
 uint256 CBlock::BuildMerkleTree(bool* fMutated) const
 {
@@ -302,6 +304,7 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMer
 std::string CBlock::ToString() const
 {
     std::stringstream s;
+    s << "CBlock ============================>>>>\n";    
     s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
         GetHash().ToString(),
         nVersion,
@@ -309,14 +312,28 @@ std::string CBlock::ToString() const
         hashMerkleRoot.ToString(),
         nTime, nBits, nNonce,
         vtx.size());
+
+    s << strprintf("    hash=%s \n", GetHash().ToString());
+    s << strprintf("    ver=%d \n", nVersion);
+    s << strprintf("    hashPrevBlock=%s, \n", hashPrevBlock.ToString());
+    s << strprintf("    hashMerkleRoot=%s, \n", hashMerkleRoot.ToString());
+    s << strprintf("    nTime=%u, \n", nTime);
+    s << strprintf("    nBits=%x, \n", nBits);
+    s << strprintf("    nNonce=%u, \n", nNonce);
+    s << strprintf("    nBirthdayA=%u, \n", nBirthdayA);
+    s << strprintf("    nBirthdayB=%u, \n", nBirthdayB);
+
+    s << strprintf("    Vtx : size %u \n",vtx.size());
     for (unsigned int i = 0; i < vtx.size(); i++)
     {
-        s << "  " << vtx[i].ToString() << "\n";
+        s << "    " << vtx[i].ToString() << "\n";
     }
     s << "  vMerkleTree: ";
+    s << strprintf("    vMerkleTree : size %u \n",vMerkleTree.size());
     for (unsigned int i = 0; i < vMerkleTree.size(); i++)
-        s << " " << vMerkleTree[i].ToString();
-    s << "\n";
+        s << "    " << vMerkleTree[i].ToString();
+
+    s << "CBlock <<<<============================\n";
     return s.str();
 }
 

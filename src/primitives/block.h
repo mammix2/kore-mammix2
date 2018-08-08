@@ -172,11 +172,15 @@ public:
     std::string ToString() const;
     void print() const;
 
+#ifdef LICO
     uint256 BlockMerkleRoot(bool* mutated = NULL) const;
+#endif    
 
 private:
+#ifdef LICO
     uint256 ComputeMerkleRoot(const std::vector<uint256>& leaves, bool* mutated) const;
     void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) const;
+#endif    
 };
 
 

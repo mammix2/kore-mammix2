@@ -35,7 +35,7 @@ struct SeedSpec6 {
 *     CTxOut(nValue=50.00000000, scriptPubKey=0xA9037BAC7050C479B121CF)
 *   vMerkleTree: e0028e
 */
-static CBlock CreateGenesisBlock(const CScript &genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBirthdayA, uint32_t nBirthdayB, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript &genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBirthdayA, uint32_t nBirthdayB, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     CMutableTransaction txNew;
     txNew.vin.resize(1);
@@ -44,9 +44,9 @@ static CBlock CreateGenesisBlock(const CScript &genesisOutputScript, uint32_t nT
     txNew.nTime = nTime;
     txNew.nVersion = 1;
 
-    txNew.vin[0].scriptSig = CScript() << 0 << OP_0;
-    //txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-
+    if ( pszTimestamp != NULL )
+      txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+    else txNew.vin[0].scriptSig = CScript() << 0 << OP_0;
     txNew.vout[0].nValue = genesisReward;
     txNew.vout[0].scriptPubKey = genesisOutputScript;
 
@@ -59,41 +59,102 @@ static CBlock CreateGenesisBlock(const CScript &genesisOutputScript, uint32_t nT
     genesis.nVersion = nVersion;
     genesis.vtx.push_back(txNew);
     genesis.hashPrevBlock.SetNull();
-    //genesis.hashMerkleRoot = genesis.BuildMerkleTree();
-    genesis.hashMerkleRoot = genesis.BlockMerkleRoot();
+    genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+    //genesis.hashMerkleRoot = genesis.BlockMerkleRoot();
     
     return genesis;
 }
 
-void  CChainParams::MineNewGenesisBlock()
+/*
+void CChainParams::MineNewGenesisBlock()
+{
+    printf("Mining genesis block...\n");
+
+    // deliberately empty for loop finds nonce value.
+    for (genesis.nNonce = 0; genesis.GetHash() > bnProofOfWorkLimit; genesis.nNonce++) 
+    {
+        printf("Trying with this nNonce = %u \n", genesis.nNonce);
+    }
+    printf("genesis.nTime = %u \n", genesis.nTime);
+    printf("genesis.nNonce = %u \n", genesis.nNonce);
+    printf("genesis.nBirthdayA: %d\n", genesis.nBirthdayA);
+    printf("genesis.nBirthdayB: %d\n", genesis.nBirthdayB);
+    printf("genesis.nBits = %x \n", genesis.nBits);
+    printf("genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str());
+    printf("genesis.hashMerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
+
+    exit(1);
+}
+*/
+
+
+/*
+
+This is how PTS mine genesis block
+// This will figure out a valid hash and Nonce if you're
+            // creating a different genesis block:
+            uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+            uint256 thash;
+            block.nNonce = 0;
+    
+            while(true)
+            {
+                int collisions=0;
+                thash = block.CalculateBestBirthdayHash(collisions);
+                if (thash <= hashTarget)
+                    break;
+                printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(),
+                    hashTarget.ToString().c_str());
+                ++block.nNonce;
+                if (block.nNonce == 0)
+                {
+                    printf("NONCE WRAPPED, incrementing time\n");
+                    ++block.nTime;
+                }
+            }
+            printf("block.nTime = %u \n", block.nTime);
+            printf("block.nNonce = %u \n", block.nNonce);
+            printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
+            printf("block.nBits = %u \n", block.nBits);
+            printf("block.nBirthdayA = %u \n", block.nBirthdayA);
+            printf("block.nBirthdayB = %u \n", block.nBirthdayB);
+
+*/
+
+void CChainParams::MineNewGenesisBlock()
 {
     fPrintToConsole = true;
-    LogPrintStr("Searching for genesis block...\n");
+    printf("Mining genesis block...\n");
 
-    arith_uint256 hashTarget = UintToArith256(bnProofOfWorkLimit);//.GetCompact();
-    //arith_uint256 hashTarget = arith_uint256().SetCompact(genesis.nBits);
-    while(true) {
-        arith_uint256 thash = UintToArith256(genesis.CalculateBestBirthdayHash());
-		LogPrintf("teHash %s\n", thash.ToString().c_str());
-		LogPrintf("Hash Target %s\n", hashTarget.ToString().c_str());  
-      if (thash <= hashTarget)
+    uint256 hashTarget;
+    uint256 thash;
+    genesis.nNonce = 0;
+    hashTarget.SetCompact(genesis.nBits);
+
+    while (true) {
+        thash = genesis.CalculateBestBirthdayHash();
+        printf("genesis.nNonce = %u \n", genesis.nNonce);
+        printf("teHash      %s\n", thash.ToString().c_str());
+        printf("Hash Target %s\n", hashTarget.ToString().c_str());
+        printf("genesis.nBirthdayA: %d\n", genesis.nBirthdayA);
+        printf("genesis.nBirthdayB: %d\n", genesis.nBirthdayB);
+        if (thash <= hashTarget)
             break;
-        if ((genesis.nNonce & 0xFFF) == 0)
-            LogPrintf("nonce %08X: hash = %s (target = %s)\n", genesis.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
-
         ++genesis.nNonce;
         if (genesis.nNonce == 0) {
-            LogPrintf("NONCE WRAPPED, incrementing time\n");
+            printf("NONCE WRAPPED, incrementing time\n");
             ++genesis.nTime;
         }
     }
-    LogPrintf("genesis.nTime = %u \n",  genesis.nTime);
-    LogPrintf("genesis.nNonce = %u \n",  genesis.nNonce);
-    LogPrintf("genesis.nBirthdayA: %d\n", genesis.nBirthdayA);
-    LogPrintf("genesis.nBirthdayB: %d\n", genesis.nBirthdayB);
-    LogPrintf("genesis.nBits = %u \n",  genesis.nBits);
-    LogPrintf("genesis.GetHash = %s\n",  genesis.GetHash().ToString().c_str());
-    LogPrintf("genesis.hashMerkleRoot = %s\n",  genesis.hashMerkleRoot.ToString().c_str());
+
+    printf("Here is the genesis block \n");
+    printf("genesis.nTime  = %u \n", genesis.nTime);
+    printf("genesis.nNonce = %u \n", genesis.nNonce);
+    printf("genesis.nBirthdayA: %d\n", genesis.nBirthdayA);
+    printf("genesis.nBirthdayB: %d\n", genesis.nBirthdayB);
+    printf("genesis.nBits          = %x \n", genesis.nBits);
+    printf("genesis.GetHash        = %s\n", genesis.GetHash().ToString().c_str());
+    printf("genesis.hashMerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
 
     exit(1);
 }
@@ -211,7 +272,7 @@ public:
         nRejectOldSporkKey = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         //        CreateGenesisBlock(nTime,      nNonce, nBirthdayA,  nBirthdayB,  nBits,  nVersion,  genesisReward)
-	    genesis = CreateGenesisBlock(genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
+	    genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
         hashGenesisBlock = genesis.GetHash();
         LogPrintf("%s", hashGenesisBlock.ToString());
         genesis.print();
@@ -290,8 +351,8 @@ public:
         pchMessageStart[0] = 0x45;
         pchMessageStart[1] = 0x76;
         pchMessageStart[2] = 0x65;
-        pchMessageStart[3] = 0xba;
-        vAlertPubKey = ParseHex("000010e83b2703ccf322f7dbd62dd5855ac7c10bd055814ce121ba32607d573b8810c02c0582aed05b4deb9c4b77b26d92428c61256cd42774babea0a073b2ed0c9");
+        pchMessageStart[3] = 0xba;        
+        vAlertPubKey = ParseHex("0469a7d953bb8c51875585c3fc20111962b741ec31fa1bbe9e85f0a26a0a425d42e51cd3535b062bf727b41d6733f3ab867774c57fdfadd601436202a412227a4e");
         nDefaultPort = 11743;
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
@@ -300,10 +361,8 @@ public:
         nTargetTimespan = 1 * 60; // PIVX: 1 day
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
         //fSkipProofOfWorkCheck = true;
-        //bnProofOfWorkLimit = ~uint256(0) >> 1; // this make easier to find a block !        
+        bnProofOfWorkLimit = ~uint256(0) >> 5; // this make easier to find a block !
         
-        //fSkipProofOfWorkCheck = false;
-        //bnProofOfWorkLimit = ~uint256(0) >> 3; // let's try to make the same as mainnet
         nLastPOWBlock = 1000;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
@@ -322,16 +381,18 @@ public:
         nEnforceNewSporkKey = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
 
-        // sending rewards to this public key
-        CScript genesisOutputScript = CScript() << ParseHex("03356d7ada23b329d926d5747d59845cf1a04e41a1dfea0aae1523768a50b434d7") << OP_CHECKSIG;
-        genesis = CreateGenesisBlock(genesisOutputScript, 1533588169, 414098535 , 0, 0, 0x201fffff, 1, 49 * COIN);
-        // Activate only when creating a new genesis block
-        //MineNewGenesisBlock();
+        // sending rewards to this public key            
+        CScript genesisOutputScript = CScript() << ParseHex("0469a7d953bb8c51875585c3fc20111962b741ec31fa1bbe9e85f0a26a0a425d42e51cd3535b062bf727b41d6733f3ab867774c57fdfadd601436202a412227a4e") << OP_CHECKSIG;
+        const char* pszTimestamp = "LaTimes 08/08/2018 - The Mendocino Complex is California's biggest fire ever";
+        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1533741425, 6 , 0, 0, 0x1d00ffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
-        assert(genesis.hashMerkleRoot == uint256("0x084490589f830f2a88a2c21cdb348a149d25b58a2029c07f3788efc0ba04a08a"));
+        assert(genesis.hashMerkleRoot == uint256("0xde87e18ad987c065d675af02c1f3f97a2b732bf312dcebac8f40f1d580e5f332"));
+        // Activate only when creating a new genesis block
+        if (true)
+            MineNewGenesisBlock();
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("0x17b59a06377f2cf5b998eda41e828792f0008a55838dcca193828ec43d03ebc3"));
+        assert(hashGenesisBlock == uint256("0x01c108fcaea2c54578d83f342012c5a6b166a0c7dc55cd709b2b03f45eb041bf"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

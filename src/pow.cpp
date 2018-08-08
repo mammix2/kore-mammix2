@@ -13,6 +13,7 @@
 #include "primitives/block.h"
 #include "uint256.h"
 #include "util.h"
+#include "arith_uint256.h"
 
 #include <math.h>
 
@@ -116,6 +117,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     return bnNew.GetCompact();
 }
 
+
 bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 {
     bool fNegative;
@@ -128,18 +130,50 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
 
     // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > Params().ProofOfWorkLimit())
-        return error("CheckProofOfWork() : nBits below minimum work");
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > Params().ProofOfWorkLimit()) {
+        if (fDebug) LogPrintf("CheckProofOfWork() : nBits below minimum work");
+        return false;
+    }
+        
 
     // Check proof of work matches claimed amount
+    if (fDebug) {
+      LogPrintf("CheckProofOfWork \n");
+      LogPrintf("hash    : %s \n",hash.ToString().c_str());
+      LogPrintf("bnTarget: %s \n",bnTarget.ToString().c_str());
+    }
+    if (hash > bnTarget) {
+        if (fDebug) LogPrintf("CheckProofOfWork() : hash doesn't match nBits");
+        return false;
+    }
+        
+    return true;
+}
+
+#ifdef LICO
+bool CheckProofOfWork(uint256 hash, unsigned int nBits)
+{
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256( Params().ProofOfWorkLimit() ))
+        return false;
+
     LogPrintf("CheckProofOfWork \n");
+    LogPrintf("nBits    : %x \n", nBits);
     LogPrintf("hash    : %s \n",hash.ToString().c_str());
     LogPrintf("bnTarget: %s \n",bnTarget.ToString().c_str());
-    if (hash > bnTarget)
-        return error("CheckProofOfWork() : hash doesn't match nBits");
+    // Check proof of work matches claimed amount
+    if (UintToArith256(hash) > bnTarget)
+        return false;
 
     return true;
 }
+#endif
 
 uint256 GetBlockProof(const CBlockIndex& block)
 {
