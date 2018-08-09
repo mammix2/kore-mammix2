@@ -126,13 +126,19 @@ void CChainParams::MineNewGenesisBlock()
     fPrintToConsole = true;
     printf("Mining genesis block...\n");
 
-    uint256 hashTarget;
-    uint256 thash;
+
+    arith_uint256 thash;
     genesis.nNonce = 0;
-    hashTarget.SetCompact(genesis.nBits);
+    //uint256 thash;
+    //uint256 hashTarget;
+    //hashTarget.SetCompact(genesis.nBits);
+    // this is the problem ?? getuint256()
+    //uint256 hashTarget = uint256().SetCompact(genesis.nBits).getuint256();
+    arith_uint256 hashTarget = UintToArith256(bnProofOfWorkLimit);
 
     while (true) {
-        thash = genesis.CalculateBestBirthdayHash();
+        //thash = genesis.CalculateBestBirthdayHash();
+        thash = UintToArith256(genesis.CalculateBestBirthdayHash());
         printf("genesis.nNonce = %u \n", genesis.nNonce);
         printf("teHash      %s\n", thash.ToString().c_str());
         printf("Hash Target %s\n", hashTarget.ToString().c_str());
@@ -360,8 +366,8 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 day
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
-        //fSkipProofOfWorkCheck = true;
-        bnProofOfWorkLimit = ~uint256(0) >> 5; // this make easier to find a block !
+        fSkipProofOfWorkCheck = true;
+        bnProofOfWorkLimit = ~uint256(0) >> 3;
         
         nLastPOWBlock = 1000;
         nMaturity = 15;
@@ -384,15 +390,15 @@ public:
         // sending rewards to this public key            
         CScript genesisOutputScript = CScript() << ParseHex("0469a7d953bb8c51875585c3fc20111962b741ec31fa1bbe9e85f0a26a0a425d42e51cd3535b062bf727b41d6733f3ab867774c57fdfadd601436202a412227a4e") << OP_CHECKSIG;
         const char* pszTimestamp = "LaTimes 08/08/2018 - The Mendocino Complex is California's biggest fire ever";
-        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1533741425, 6 , 0, 0, 0x1d00ffff, 1, 49 * COIN);
+        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1533741425, 2 , 0, 0, 0x2d00ffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
         assert(genesis.hashMerkleRoot == uint256("0xde87e18ad987c065d675af02c1f3f97a2b732bf312dcebac8f40f1d580e5f332"));
         // Activate only when creating a new genesis block
-        if (true)
+        if (false)
             MineNewGenesisBlock();
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("0x01c108fcaea2c54578d83f342012c5a6b166a0c7dc55cd709b2b03f45eb041bf"));
+        assert(hashGenesisBlock == uint256("0x1f27adade2436b6de84e37f332c99a91a9aa284d8bcbc3c0875bbaa3e3f34a68"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -465,7 +471,7 @@ public:
         vFixedSeeds.clear(); //! Testnet mode doesn't have any fixed seeds.
         vSeeds.clear();      //! Testnet mode doesn't have any DNS seeds.
 
-        fMiningRequiresPeers = false;
+        fMiningRequiresPeers = true;
         fAllowMinDifficultyBlocks = true;
         fDefaultConsistencyChecks = true;
         fRequireStandard = false;
