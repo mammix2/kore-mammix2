@@ -366,7 +366,7 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 day
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
-        fSkipProofOfWorkCheck = true;
+        fSkipProofOfWorkCheck = false;
         bnProofOfWorkLimit = ~uint256(0) >> 3;
         
         nLastPOWBlock = 1000;
@@ -388,17 +388,17 @@ public:
         nRejectOldSporkKey = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
 
         // sending rewards to this public key            
-        CScript genesisOutputScript = CScript() << ParseHex("0469a7d953bb8c51875585c3fc20111962b741ec31fa1bbe9e85f0a26a0a425d42e51cd3535b062bf727b41d6733f3ab867774c57fdfadd601436202a412227a4e") << OP_CHECKSIG;
-        const char* pszTimestamp = "LaTimes 08/08/2018 - The Mendocino Complex is California's biggest fire ever";
-        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1533841307, 8 , 35738801, 62929190, 0x201fffff, 1, 49 * COIN);
+        CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
+        const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
+        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
-        assert(genesis.hashMerkleRoot == uint256("0x036222e9beab80fc02bb2f5d3058f5575a88717b7aab04ab4d129a758e43485d"));
+        assert(genesis.hashMerkleRoot == uint256("0x73bf9a836ff7c2fc79445a622ce5154bfde2811c57c397d6a3909bc97390174a"));
         // Activate only when creating a new genesis block
         if (false)
             MineNewGenesisBlock();
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("0x0d6d2421a0cc2b75b60e2159357ceebf15f86bfca3aab731a30178654169ca35"));
+        assert(hashGenesisBlock == uint256("0x0ba6c4977e9da831f14ff9180b37e30a96e78cb3581029907eb24c55cf079fc5"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
