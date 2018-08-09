@@ -390,9 +390,9 @@ public:
         // sending rewards to this public key            
         CScript genesisOutputScript = CScript() << ParseHex("0469a7d953bb8c51875585c3fc20111962b741ec31fa1bbe9e85f0a26a0a425d42e51cd3535b062bf727b41d6733f3ab867774c57fdfadd601436202a412227a4e") << OP_CHECKSIG;
         const char* pszTimestamp = "LaTimes 08/08/2018 - The Mendocino Complex is California's biggest fire ever";
-        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1533741425, 2 , 0, 0, 0x2d00ffff, 1, 49 * COIN);
+        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1533841307, 8 , 35738801, 62929190, 0x201fffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
-        assert(genesis.hashMerkleRoot == uint256("0xde87e18ad987c065d675af02c1f3f97a2b732bf312dcebac8f40f1d580e5f332"));
+        assert(genesis.hashMerkleRoot == uint256("0x036222e9beab80fc02bb2f5d3058f5575a88717b7aab04ab4d129a758e43485d"));
         // Activate only when creating a new genesis block
         if (false)
             MineNewGenesisBlock();
