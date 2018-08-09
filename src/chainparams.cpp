@@ -398,7 +398,7 @@ public:
             MineNewGenesisBlock();
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("0x1f27adade2436b6de84e37f332c99a91a9aa284d8bcbc3c0875bbaa3e3f34a68"));
+        assert(hashGenesisBlock == uint256("0x0d6d2421a0cc2b75b60e2159357ceebf15f86bfca3aab731a30178654169ca35"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
