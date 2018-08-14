@@ -1780,7 +1780,7 @@ double ConvertBitsToDouble(unsigned int nBits)
 int64_t GetBlockValue(int nHeight)
 {
     if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        if (nHeight < 200 && nHeight > 0)
+        if (nHeight > 0 && nHeight < 200)
             return 250000 * COIN;
     }
     return 5 * COIN;
@@ -3617,7 +3617,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
-    if (!CheckBlockHeader(block, state, block.IsProofOfWork()))
+    if (!CheckBlockHeader(block, state, block.IsProofOfWork() && fCheckPOW))
         return state.DoS(100, error("CheckBlock() : CheckBlockHeader failed"),
             REJECT_INVALID, "bad-header", true);
 

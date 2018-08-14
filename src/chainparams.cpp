@@ -370,7 +370,7 @@ public:
         bnProofOfWorkLimit = ~uint256(0) >> 3;
         
         nLastPOWBlock = 1000;
-        nMaturity = 15;
+        nMaturity = 10;
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = 51197; //approx Mon, 17 Apr 2017 04:00:00 GMT
 #ifdef ZEROCOIN        

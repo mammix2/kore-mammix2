@@ -121,7 +121,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     // Create coinbase tx
     CMutableTransaction txNew;
     txNew.vin.resize(1);
-    txNew.vin[0].prevout.SetNull();
+    txNew.vin[0].prevout.SetNull();    
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
     // Lico added nTime
@@ -381,9 +381,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         if (!fProofOfStake) {
             //Masternode and general budget payments
+            LogPrintf("CreateNewBlock(): Masternode and general budget payments");
             FillBlockPayee(txNew, nFees, fProofOfStake, false);
 
             //Make payee
+            LogPrintf("CreateNewBlock(): Make payee");
             if (txNew.vout.size() > 1) {
                 pblock->payee = txNew.vout[1].scriptPubKey;
             }
@@ -396,6 +398,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         // Compute final coinbase transaction.
         pblock->vtx[0].vin[0].scriptSig = CScript() << nHeight << OP_0;
         if (!fProofOfStake) {
+            txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
             pblock->vtx[0] = txNew;
             pblocktemplate->vTxFees[0] = -nFees;
         }
@@ -416,6 +419,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             mempool.clear();
             return NULL;
         }
+        if (fDebug) LogPrintf("CreateNewBlock() : Block is VALID !!! \n");
     }
 
     return pblocktemplate.release();
@@ -819,7 +823,12 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             
             LogPrintf("nbits : %08x \n", pblock->nBits);            
             while (true) {
-                hash = pblock->CalculateBestBirthdayHash();                                
+                hash = pblock->CalculateBestBirthdayHash();
+                LogPrintf("pblock.nBirthdayA: %d\n", pblock->nBirthdayA);
+                LogPrintf("pblock.nBirthdayB: %d\n", pblock->nBirthdayB);
+                LogPrintf("hash      %s\n", hash.ToString().c_str());
+                LogPrintf("hashTarget %s\n", hashTarget.ToString().c_str());
+
                 if (hash <= hashTarget) {
                     // Found a solution
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);

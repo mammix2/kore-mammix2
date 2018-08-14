@@ -38,29 +38,30 @@ uint256 CBlockHeader::GetVerifiedHash() const
    
      return r;
 }
- 
-uint256 CBlockHeader::CalculateBestBirthdayHash() {
- 				
-	uint256 midHash = GetMidHash();		
-	std::vector< std::pair<uint32_t,uint32_t> > results =bts::momentum_search( midHash );
-	uint32_t candidateBirthdayA=0;
-	uint32_t candidateBirthdayB=0;
-	uint256 smallestHashSoFar = uint256S("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdddd");
-	for (unsigned i=0; i < results.size(); i++) {
-	nBirthdayA = results[i].first;
-	nBirthdayB = results[i].second;
-	uint256 fullHash = Hash(BEGIN(nVersion), END(nBirthdayB));
-		if(fullHash<smallestHashSoFar){
-	
-				smallestHashSoFar=fullHash;
-				candidateBirthdayA=results[i].first;
-				candidateBirthdayB=results[i].second;
-			}
-			nBirthdayA = candidateBirthdayA;
- 			nBirthdayB = candidateBirthdayB;
- 		}
- 		
- 		return GetHash();
+
+uint256 CBlockHeader::CalculateBestBirthdayHash()
+{
+    printf("CalculateBestBirthdayHash -->");
+    uint256 midHash = GetMidHash();
+    std::vector<std::pair<uint32_t, uint32_t> > results = bts::momentum_search(midHash);
+    uint32_t candidateBirthdayA = 0;
+    uint32_t candidateBirthdayB = 0;
+    uint256 smallestHashSoFar = uint256S("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdddd");
+    for (unsigned i = 0; i < results.size(); i++) {
+        nBirthdayA = results[i].first;
+        nBirthdayB = results[i].second;
+        uint256 fullHash = Hash(BEGIN(nVersion), END(nBirthdayB));
+        if (fullHash < smallestHashSoFar) {
+            smallestHashSoFar = fullHash;
+            candidateBirthdayA = results[i].first;
+            candidateBirthdayB = results[i].second;
+        }
+        nBirthdayA = candidateBirthdayA;
+        nBirthdayB = candidateBirthdayB;
+    }
+
+    printf("CalculateBestBirthdayHash <--");
+    return GetHash();
 }
 
 #ifdef LICO
@@ -305,14 +306,6 @@ std::string CBlock::ToString() const
 {
     std::stringstream s;
     s << "CBlock ============================>>>>\n";    
-    s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
-        GetHash().ToString(),
-        nVersion,
-        hashPrevBlock.ToString(),
-        hashMerkleRoot.ToString(),
-        nTime, nBits, nNonce,
-        vtx.size());
-
     s << strprintf("    hash=%s \n", GetHash().ToString());
     s << strprintf("    ver=%d \n", nVersion);
     s << strprintf("    hashPrevBlock=%s, \n", hashPrevBlock.ToString());
@@ -322,6 +315,7 @@ std::string CBlock::ToString() const
     s << strprintf("    nNonce=%u, \n", nNonce);
     s << strprintf("    nBirthdayA=%u, \n", nBirthdayA);
     s << strprintf("    nBirthdayB=%u, \n", nBirthdayB);
+	s << strprintf("    vchBlockSig=%s, \n", HexStr(vchBlockSig.begin(), vchBlockSig.end()));    
 
     s << strprintf("    Vtx : size %u \n",vtx.size());
     for (unsigned int i = 0; i < vtx.size(); i++)

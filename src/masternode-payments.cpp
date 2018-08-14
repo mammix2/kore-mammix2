@@ -311,11 +311,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     }
 
     CAmount blockValue = GetBlockValue(pindexPrev->nHeight);
-    CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0
-#ifdef ZEROCOIN    
-    , fZPIVStake
-#endif
-    );
+    CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0);
 
     if (hasPayment) {
         if (fProofOfStake) {
@@ -329,11 +325,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             txNew.vout[i].scriptPubKey = payee;
             txNew.vout[i].nValue = masternodePayment;
 
-#ifdef ZEROCOIN
-            //subtract mn payment from the stake reward
-            if (!txNew.vout[1].IsZerocoinMint())
-                txNew.vout[i - 1].nValue -= masternodePayment;
-#endif                
+            txNew.vout[i - 1].nValue -= masternodePayment;
         } else {
             txNew.vout.resize(2);
             txNew.vout[1].scriptPubKey = payee;
@@ -346,6 +338,12 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
         CBitcoinAddress address2(address1);
 
         LogPrint("masternode","Masternode payment of %s to %s\n", FormatMoney(masternodePayment).c_str(), address2.ToString().c_str());
+    } else {
+        // Lico
+        // no masternode active, however when mining
+        // need to have a value like the old code.
+        txNew.vout[0].nValue = blockValue;
+        LogPrint("masternode","No MasterNode to pay, but blockValue is %d\n", blockValue);
     }
 }
 
