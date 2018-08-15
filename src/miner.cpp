@@ -851,6 +851,9 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 }                
                 pblock->nNonce += 1;                
                 nHashesDone += 1;
+                // allowing to be quickier for testnet
+                if (Params().NetworkID() == CBaseChainParams::TESTNET && (pblock->nNonce & 0xF) == 0)
+                  break;
                 if ((pblock->nNonce & 0xFF) == 0)
                     break;
             }
