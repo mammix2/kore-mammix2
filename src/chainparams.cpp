@@ -364,7 +364,7 @@ public:
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
         nMinerThreads = 0;
-        nTargetTimespan = 1 * 60; // PIVX: 1 day
+        nTargetTimespan = 1 * 60; // PIVX: 1 minute
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
         fSkipProofOfWorkCheck = false;
         bnProofOfWorkLimit = ~uint256(0) >> 3;
