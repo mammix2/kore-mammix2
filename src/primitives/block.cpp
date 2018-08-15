@@ -41,7 +41,6 @@ uint256 CBlockHeader::GetVerifiedHash() const
 
 uint256 CBlockHeader::CalculateBestBirthdayHash()
 {
-    printf("CalculateBestBirthdayHash -->");
     uint256 midHash = GetMidHash();
     std::vector<std::pair<uint32_t, uint32_t> > results = bts::momentum_search(midHash);
     uint32_t candidateBirthdayA = 0;
@@ -60,7 +59,6 @@ uint256 CBlockHeader::CalculateBestBirthdayHash()
         nBirthdayB = candidateBirthdayB;
     }
 
-    printf("CalculateBestBirthdayHash <--");
     return GetHash();
 }
 
