@@ -3603,6 +3603,7 @@ bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigne
 
 bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool fCheckPOW)
 {
+    LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader() : proof of work failed"),
@@ -3617,6 +3618,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
+    LogPrintf("CheckBlock fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
     if (!CheckBlockHeader(block, state, block.IsProofOfWork() && fCheckPOW))
         return state.DoS(100, error("CheckBlock() : CheckBlockHeader failed"),
             REJECT_INVALID, "bad-header", true);
@@ -4170,6 +4172,7 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
 
 bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* const pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
 {
+    LogPrintf("TestBlockValidity fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
     AssertLockHeld(cs_main);
     assert(pindexPrev == chainActive.Tip());
 
