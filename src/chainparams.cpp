@@ -254,7 +254,8 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60;
         nTargetSpacing = 1 * 60;
-        // static const int COINBASE_MATURITY = 25;
+        nPastBlocksMin = 24; 
+        nPastBlocksMax = 24;
         nMaturity = 25;
         nMasternodeCountDrift = 20;          // ONLY PIVX
         nMaxMoneyOut = 12000000 * COIN;
@@ -366,11 +367,13 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 minute
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
+        nPastBlocksMin = 100; // it will make to do POW untill block 100
+        nPastBlocksMax = 100;
         fSkipProofOfWorkCheck = false;
         bnProofOfWorkLimit = ~uint256(0) >> 3;
         
         nLastPOWBlock = 1000;
-        nMaturity = 10;
+        nMaturity = 1; // will mature in the next block.
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = 51197; //approx Mon, 17 Apr 2017 04:00:00 GMT
 #ifdef ZEROCOIN        
