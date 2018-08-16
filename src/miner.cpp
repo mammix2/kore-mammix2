@@ -736,7 +736,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         boost::this_thread::interruption_point();
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
-            if ((GetTime() - nMintableLastCheck > 5 * 60)) // 5 minute check time
+            if ((GetTime() - nMintableLastCheck > Params().ClientMintibleCoinsInterval()))
             {
                 nMintableLastCheck = GetTime();
                 fMintableCoins = pwallet->MintableCoins();
@@ -815,30 +815,25 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         //
         int64_t nStart = GetTime();
         uint256 hashTarget = uint256().SetCompact(pblock->nBits);
+        LogPrintf("target: %s\n", hashTarget.GetHex());
         while (true) {
             unsigned int nHashesDone = 0;
 
             uint256 hash;
-            if (fDebug) {
-                LogPrintf("Searching for POW target: %s\n", hashTarget.GetHex());
-                LogPrintf("nbits : %08x \n", pblock->nBits);
-            }
+            
+            LogPrintf("nbits : %08x \n", pblock->nBits);            
             while (true) {
-                if (fDebug) LogPrintf("Looking for POW with nounce: %d hashesDone : %d \n", pblock->nNonce, nHashesDone);
-
                 hash = pblock->CalculateBestBirthdayHash();
-                if (fDebug) {
-                    LogPrintf("hash       %s\n", hash.ToString().c_str());
-                    LogPrintf("hashTarget %s\n", hashTarget.ToString().c_str());
-                }
+                LogPrintf("pblock.nBirthdayA: %d\n", pblock->nBirthdayA);
+                LogPrintf("pblock.nBirthdayB: %d\n", pblock->nBirthdayB);
+                LogPrintf("hash      %s\n", hash.ToString().c_str());
+                LogPrintf("hashTarget %s\n", hashTarget.ToString().c_str());
 
                 if (hash <= hashTarget) {
                     // Found a solution
                     SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                    if (fDebug) {
-                        LogPrintf("BitcoinMiner:\n");
-                        LogPrintf("Found POW found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
-                    }
+                    LogPrintf("BitcoinMiner:\n");
+                    LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
                     ProcessBlockFound(pblock, *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
@@ -851,9 +846,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 }                
                 pblock->nNonce += 1;                
                 nHashesDone += 1;
-                // allowing to be quickier for testnet
-                if (Params().NetworkID() == CBaseChainParams::TESTNET && (pblock->nNonce & 0xF) == 0)
-                  break;
+                LogPrintf("Looking for a solution with nounce: %d hashesDone : %d \n", pblock->nNonce, nHashesDone);
                 if ((pblock->nNonce & 0xFF) == 0)
                     break;
             }

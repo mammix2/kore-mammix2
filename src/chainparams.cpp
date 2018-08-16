@@ -256,6 +256,8 @@ public:
         nTargetSpacing = 1 * 60;
         nPastBlocksMin = 24; 
         nPastBlocksMax = 24;
+        nClientMintibleCoinsInterval =  5 * 60;
+        nClientMintibleCoinsInterval =  1 * 60;
         nMaturity = 25;
         nMasternodeCountDrift = 20;          // ONLY PIVX
         nMaxMoneyOut = 12000000 * COIN;
@@ -369,6 +371,8 @@ public:
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
         nPastBlocksMin = 100; // it will make to do POW untill block 100
         nPastBlocksMax = 100;
+        nClientMintibleCoinsInterval =  10; // every 10 seconds
+        nClientMintibleCoinsInterval =  2; // additional 2 seconds
         fSkipProofOfWorkCheck = false;
         bnProofOfWorkLimit = ~uint256(0) >> 3;
         

@@ -77,6 +77,9 @@ public:
     int64_t TargetSpacing() const { return nTargetSpacing; }
     int64_t PastBlocksMin() const { return nPastBlocksMin; }
     int64_t PastBlocksMax() const { return nPastBlocksMax; }
+    int64_t ClientMintibleCoinsInterval() const { return nClientMintibleCoinsInterval; }
+    int64_t EnsureMintibleCoinsInterval() const { return nEnsureMintibleCoinsInterval; }
+    
     int64_t Interval() const { return nTargetTimespan / nTargetSpacing; }
     int COINBASE_MATURITY() const { return nMaturity; }
     CAmount MaxMoneyOut() const { return nMaxMoneyOut; }
@@ -151,6 +154,8 @@ protected:
     int64_t nTargetSpacing;
     int64_t nPastBlocksMin; // used when calculating the NextWorkRequired 
     int64_t nPastBlocksMax;
+    int64_t nClientMintibleCoinsInterval; // PoS mining
+    int64_t nEnsureMintibleCoinsInterval;
     int nLastPOWBlock;
     int nMasternodeCountDrift;
     int nMaturity;
