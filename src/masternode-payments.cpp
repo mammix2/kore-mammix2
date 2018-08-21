@@ -342,8 +342,10 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
         // Lico
         // no masternode active, however when mining
         // need to have a value like the old code.
-        txNew.vout[0].nValue = blockValue;
-        LogPrint("masternode","No MasterNode to pay, but blockValue is %d\n", blockValue);
+        if (!fProofOfStake) {
+            txNew.vout[0].nValue = blockValue;
+            LogPrint("masternode", "No MasterNode to pay, but blockValue is %d\n", blockValue);
+        }
     }
 }
 

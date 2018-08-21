@@ -148,6 +148,7 @@ public:
     // ppcoin: two types of block: proof-of-work or proof-of-stake
     bool IsProofOfStake() const
     {
+        // more than 1 transaction and the second transaction vtx[1] needs to be the stake.
         return (vtx.size() > 1 && vtx[1].IsCoinStake());
     }
 

@@ -143,16 +143,13 @@ bool CTransaction::IsCoinStake() const
         return false;
 
     // ppcoin: the coin stake transaction is marked with the first output empty
-#ifdef ZEROCOIN    
-    bool fAllowNull = vin[0].scriptSig.IsZerocoinSpend();
-#endif    
-    if (vin[0].prevout.IsNull() 
-#ifdef ZEROCOIN  
-    && !fAllowNull
-#endif    
-    )
+    if (vin[0].prevout.IsNull())
         return false;
-
+    //if (fDebug) {
+    //    LogPrintf("IsCoinStake: vin.size() > 0 ? %s \n", vin.size() > 0 ? "true" : "false");
+    //    LogPrintf("IsCoinStake: vout.size() >= 2 ? %s \n", vout.size() >= 2 ? "true" : "false");
+    //    LogPrintf("IsCoinStake: vout[0].IsEmpty() ? %s \n", vout[0].IsEmpty() ? "true" : "false");
+    // }
     return (vin.size() > 0 && vout.size() >= 2 && vout[0].IsEmpty());
 }
 

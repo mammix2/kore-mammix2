@@ -2117,15 +2117,7 @@ bool CWallet::MintableCoins()
         AvailableCoins(vCoins, true);
 
         for (const COutput& out : vCoins) {
-            int64_t nTxTime = out.tx->GetTxTime();
-#ifdef ZEROCOIN            
-            if (out.tx->IsZerocoinSpend()) {
-                if (!out.tx->IsInMainChain())
-                    continue;
-                nTxTime = mapBlockIndex.at(out.tx->hashBlock)->GetBlockTime();
-            }
-#endif            
-
+            int64_t nTxTime = out.tx->GetTxTime();           
             if (GetAdjustedTime() - nTxTime > nStakeMinAge)
                 return true;
         }
@@ -2873,7 +2865,7 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
 }
 
 // ppcoin: create coin stake transaction
-bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime)
+bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, bool fProofOfStake)
 {
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
@@ -2958,23 +2950,44 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             }
             txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
 
-            CAmount nMinFee = 0;
-            if (!stakeInput->IsZPIV()) {
-                // Set output amount
-                if (txNew.vout.size() == 3) {
-                    txNew.vout[1].nValue = ((nCredit - nMinFee) / 2 / CENT) * CENT;
-                    txNew.vout[2].nValue = nCredit - nMinFee - txNew.vout[1].nValue;
-                } else
-                    txNew.vout[1].nValue = nCredit - nMinFee;
+            CAmount devsubsidy = 0;
+            {
+                // 10% for development Fund
+                LogPrintf(" Reward: %d Credit: %d \n", nReward, nCredit);
+                devsubsidy = (nCredit - nReward) * 0.1;
+                nReward -= devsubsidy;
+
+                if (nReward <= 0)
+                    return false;
+
+                nCredit = nReward;
             }
+
+            // Set output amount
+            if (txNew.vout.size() == 3) {
+                txNew.vout[1].nValue = (nCredit / 2 / CENT) * CENT;
+                txNew.vout[2].nValue = nCredit - txNew.vout[1].nValue;
+                txNew.vout.resize(4);
+                txNew.vout[3].nValue = devsubsidy;
+                txNew.vout[3].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
+            } else {
+                txNew.vout[1].nValue = nCredit;
+                txNew.vout.resize(3);
+                txNew.vout[2].nValue = devsubsidy;
+                txNew.vout[2].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
+            }
+            if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
 
             // Limit size
             unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
             if (nBytes >= DEFAULT_BLOCK_MAX_SIZE / 5)
                 return error("CreateCoinStake : exceeded coinstake size limit");
 
+            LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());
             //Masternode payment
-            FillBlockPayee(txNew, nMinFee, true, stakeInput->IsZPIV());
+            FillBlockPayee(txNew, 0, fProofOfStake, stakeInput->IsZPIV());
+            LogPrintf("CreateCoinStake : after FillBlockPayee txNew: %s\n", txNew.ToString());
+
 
             uint256 hashTxOut = txNew.GetHash();
             CTxIn in;
@@ -2995,18 +3008,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     }
     if (!fKernelFound)
         return false;
-
-#ifdef ZEROCOIN
-    // Sign for PIV
-    int nIn = 0;
-    if (!txNew.vin[0].scriptSig.IsZerocoinSpend()) {
-        for (CTxIn txIn : txNew.vin) {
-            const CWalletTx *wtx = GetWalletTx(txIn.prevout.hash);
-            if (!SignSignature(*this, *wtx, txNew, nIn++))
-                return error("CreateCoinStake : failed to sign coinstake");
-        }
-    } 
-#endif    
 
     // Successfully generated coinstake
     nLastStakeSetUpdate = 0; //this will trigger stake set to repopulate next round
