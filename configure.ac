@@ -200,7 +200,7 @@ if test "x$enable_debug" = xyes; then
     CPPFLAGS="$CPPFLAGS -DDEBUG -DDEBUG_LOCKORDER"
     if test "x$GCC" = xyes; then
         CFLAGS="$CFLAGS -g3 -O0"
-        LIBS="-lboost_date_time $LIBS"
+        LIBS="-lboost_date_time-mt $LIBS"
     fi
 
     if test "x$GXX" = xyes; then
