@@ -60,6 +60,7 @@
         "typeinfo": "cpp",
         "utility": "cpp",
         "string_view": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "*.moc": "cpp"
     }
 }
