@@ -2977,17 +2977,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 txNew.vout[2].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
             }
             if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
-
-            // Limit size
-            unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
-            if (nBytes >= DEFAULT_BLOCK_MAX_SIZE / 5)
-                return error("CreateCoinStake : exceeded coinstake size limit");
-
+         
             LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());
             //Masternode payment
             FillBlockPayee(txNew, 0, fProofOfStake, stakeInput->IsZPIV());
             LogPrintf("CreateCoinStake : after FillBlockPayee txNew: %s\n", txNew.ToString());
-
 
             uint256 hashTxOut = txNew.GetHash();
             CTxIn in;
@@ -2999,6 +2993,13 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 continue;
             }
             txNew.vin.emplace_back(in);
+            LogPrintf("CreateCoinStake : emplace_back: %s\n", txNew.ToString());              
+
+            // Limit size
+            unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
+            if (nBytes >= MAX_STANDARD_TX_SIZE)
+                return error("CreateCoinStake : exceeded coinstake size limit");
+
 
             fKernelFound = true;
             break;
