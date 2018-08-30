@@ -405,7 +405,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         }
         pblock->vtx[0].vin[0].scriptSig = CScript() << nHeight << OP_0;
         LogPrintf("pblock->vtx[0].vin[0] %s \n", pblock->vtx[0].vin[0].ToString());
-        LogPrintf("pblock: %s \n", pblock->ToString());
 
         // Fill in header
         pblock->hashPrevBlock = pindexPrev->GetBlockHash();
@@ -702,7 +701,7 @@ void static ThreadBitcoinMiner(void* parg)
     boost::this_thread::interruption_point();
     CWallet* pwallet = (CWallet*)parg;
     try {
-        BitcoinMiner(pwallet, true);
+        BitcoinMiner(pwallet, false);
         boost::this_thread::interruption_point();
     } catch (std::exception& e) {
         LogPrintf("ThreadBitcoinMiner( %c) exception", e.what());

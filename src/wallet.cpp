@@ -2993,7 +2993,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 continue;
             }
             txNew.vin.emplace_back(in);
-            LogPrintf("CreateCoinStake : emplace_back: %s\n", txNew.ToString());              
+            LogPrintf("CreateCoinStake : emplace_back: %s\n", txNew.ToString());
+
+            int nIn = 0; 
+            BOOST_FOREACH (CTxIn v, txNew.vin) {
+                if (!SignSignature(*this, v.prevPubKey, txNew, nIn, SIGHASH_ALL))
+                    return error("CreateCoinStake : failed to sign coinstake");
+                nIn++;
+            }
 
             // Limit size
             unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
