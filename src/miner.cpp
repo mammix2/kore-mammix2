@@ -479,7 +479,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     // Inform about the new block
     GetMainSignals().BlockFound(pblock->GetHash());
 
-    // Process this block the same as if we had received it from another node
+    // Process this block the same as if we had receiveMinerd it from another node
     CValidationState state;
     if (!ProcessNewBlock(state, NULL, pblock)) {
         return error("PIVXMiner : ProcessNewBlock, block not accepted");
@@ -701,7 +701,7 @@ void static ThreadBitcoinMiner(void* parg)
     boost::this_thread::interruption_point();
     CWallet* pwallet = (CWallet*)parg;
     try {
-        BitcoinMiner(pwallet, false);
+        BitcoinMiner(pwallet, true);
         boost::this_thread::interruption_point();
     } catch (std::exception& e) {
         LogPrintf("ThreadBitcoinMiner( %c) exception", e.what());
