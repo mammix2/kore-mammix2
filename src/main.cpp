@@ -3972,12 +3972,12 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
         uint256 hashProofOfStake = 0;
         unique_ptr<CStakeInput> stake;
 
-#ifdef LICO_FORK
+//#ifdef LICO_FORK
         if (!CheckProofOfStake(block, hashProofOfStake, stake))
             return state.DoS(100, error("%s: proof of stake check failed", __func__));
-#endif
-        if (!CheckProofOfStake_Old( mapBlockIndex[block.hashPrevBlock], block.vtx[1], block.nBits, hashProofOfStake, stake))
-            return state.DoS(100, error("%s: proof of stake check failed", __func__));
+//#endif
+//        if (!CheckProofOfStake_Old( mapBlockIndex[block.hashPrevBlock], block.vtx[1], block.nBits, hashProofOfStake, stake))
+//            return state.DoS(100, error("%s: proof of stake check failed", __func__));
 
         if (!stake)
             return error("%s: null stake ptr", __func__);

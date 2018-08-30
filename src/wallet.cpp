@@ -2994,14 +2994,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             }
             txNew.vin.emplace_back(in);
             LogPrintf("CreateCoinStake : emplace_back: %s\n", txNew.ToString());
-
-            int nIn = 0; 
-            BOOST_FOREACH (CTxIn v, txNew.vin) {
-                if (!SignSignature(*this, v.prevPubKey, txNew, nIn, SIGHASH_ALL))
-                    return error("CreateCoinStake : failed to sign coinstake");
-                nIn++;
-            }
-
+            
             // Limit size
             unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
             if (nBytes >= MAX_STANDARD_TX_SIZE)
@@ -3016,6 +3009,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     }
     if (!fKernelFound)
         return false;
+
+    // Sign for PIV
+    int nIn = 0;
+    for (CTxIn txIn : txNew.vin) {
+        const CWalletTx* wtx = GetWalletTx(txIn.prevout.hash);
+        if (!SignSignature(*this, *wtx, txNew, nIn++))
+            return error("CreateCoinStake : failed to sign coinstake");
+    }
 
     // Successfully generated coinstake
     nLastStakeSetUpdate = 0; //this will trigger stake set to repopulate next round
