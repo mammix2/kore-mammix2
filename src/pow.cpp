@@ -17,6 +17,64 @@
 
 #include <math.h>
 
+static arith_uint256 GetTargetLimit_Kore(int64_t nTime, bool fProofOfStake)
+{
+    uint256 nLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
+
+    return UintToArith256(nLimit);
+}
+
+
+unsigned int CalculateNextWorkRequired_Kore(const CBlockIndex* pindexLast, int64_t nFirstBlockTime)
+{
+    int64_t nActualSpacing = pindexLast->GetBlockTime() - nFirstBlockTime;
+    int64_t nTargetSpacing = Params().TargetSpacing();
+            
+    // Limit adjustment step    
+    
+    if (nActualSpacing < 0)
+        nActualSpacing = nTargetSpacing;
+  
+    // Retarget
+    const arith_uint256 bnPowLimit = GetTargetLimit_Kore(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
+    arith_uint256 bnNew, bnOld;
+    bnNew.SetCompact(pindexLast->nBits);
+    bnOld = bnNew;
+    bnNew *= ((Params().DifficultyAdjustmentInterval() - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+    bnNew /= ((Params().DifficultyAdjustmentInterval() + 1) * nTargetSpacing);
+
+    if (bnNew <= 0 || bnNew > bnPowLimit)
+        bnNew = bnPowLimit;
+
+    if (fDebug){
+        LogPrintf("RETARGET\n");
+        LogPrintf("params.nTargetSpacing = %d    nActualSpacing = %d\n", Params().TargetSpacing(), nActualSpacing);
+        LogPrintf("Before: %08x  %s\n", pindexLast->nBits, bnOld.ToString());
+        LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.ToString());
+    }
+
+    return bnNew.GetCompact();
+}
+
+
+unsigned int GetNextWorkRequired_Kore(const CBlockIndex* pindexLast, const CBlockHeader *pblock, bool fProofOfStake)
+{
+    unsigned int nTargetLimit = UintToArith256(Params().ProofOfWorkLimit()).GetCompact();
+
+    // Genesis block
+    if (pindexLast == NULL)
+        return nTargetLimit;
+
+    const CBlockIndex* pindexPrev = GetLastBlockIndex_Kore(pindexLast, fProofOfStake);
+    if (pindexPrev->pprev == NULL)
+        return nTargetLimit; // first block
+    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex_Kore(pindexPrev->pprev, fProofOfStake);
+    if (pindexPrevPrev->pprev == NULL)
+        return nTargetLimit; // second block
+
+    return CalculateNextWorkRequired_Kore(pindexPrev, pindexPrevPrev->GetBlockTime());
+}
+
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
 {

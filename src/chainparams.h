@@ -51,6 +51,7 @@ public:
     const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
     int GetDefaultPort() const { return nDefaultPort; }
     const uint256& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
+    const uint256& ProofOfStakeLimit() const { return bnProofOfStakeLimit; }
     int SubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     /** Used to check majorities for block version upgrade */
     int EnforceBlockUpgradeMajority() const { return nEnforceBlockUpgradeMajority; }
@@ -75,6 +76,7 @@ public:
     bool RequireStandard() const { return fRequireStandard; }
     int64_t TargetTimespan() const { return nTargetTimespan; }
     int64_t TargetSpacing() const { return nTargetSpacing; }
+    int64_t DifficultyAdjustmentInterval() const { return nTargetTimespan / nTargetSpacing; }
     int64_t PastBlocksMin() const { return nPastBlocksMin; }
     int64_t PastBlocksMax() const { return nPastBlocksMax; }
     int64_t ClientMintibleCoinsInterval() const { return nClientMintibleCoinsInterval; }
@@ -145,6 +147,7 @@ protected:
     std::vector<unsigned char> vAlertPubKey;
     int nDefaultPort;
     uint256 bnProofOfWorkLimit;
+    uint256 bnProofOfStakeLimit;
     int nMaxReorganizationDepth;
     int nSubsidyHalvingInterval;
     int nEnforceBlockUpgradeMajority;

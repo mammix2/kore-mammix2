@@ -246,6 +246,8 @@ public:
         nDefaultPort = 10743;
         //consensus.powLimit = uint256S("1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         bnProofOfWorkLimit = ~uint256(0) >> 3;
+        //consensus.posLimit = uint256S("0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+	    bnProofOfStakeLimit = ~uint256(0) >> 16;
         nSubsidyHalvingInterval = 4000;
         nMaxReorganizationDepth = 25;        
         nEnforceBlockUpgradeMajority = 750; // consensus.nMajorityEnforceBlockUpgrade = 750;        
@@ -375,6 +377,9 @@ public:
         nClientMintibleCoinsInterval =  2; // additional 2 seconds
         fSkipProofOfWorkCheck = false;
         bnProofOfWorkLimit = ~uint256(0) >> 3;
+        //consensus.posLimit = uint256S("0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+	    bnProofOfStakeLimit = ~uint256(0) >> 4;
+
         
         nLastPOWBlock = 1000;
         nMaturity = 1; // will mature in the next block.
