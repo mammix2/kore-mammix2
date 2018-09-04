@@ -89,7 +89,7 @@ public:
     }
 };
 
-void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev)
+void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev, bool fProofOfStake)
 {
     int64_t nOldTime = pblock->nTime;
     int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
@@ -99,7 +99,7 @@ void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev)
 
     // Updating time can change work required on testnet:
     if (Params().AllowMinDifficultyBlocks())
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock);
+        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
 }
 
 std::pair<int, std::pair<uint256, uint256> > pCheckpointCache;
@@ -138,7 +138,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         boost::this_thread::interruption_point();
         pblock->nTime = GetAdjustedTime();
         CBlockIndex* pindexPrev = chainActive.Tip();
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock);
+        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
         CMutableTransaction txCoinStake;
         int64_t nSearchTime = pblock->nTime; // search to current time
         bool fStakeFound = false;
@@ -409,8 +409,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         // Fill in header
         pblock->hashPrevBlock = pindexPrev->GetBlockHash();
         if (!fProofOfStake)
-            UpdateTime(pblock, pindexPrev);
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock);
+            UpdateTime(pblock, pindexPrev, fProofOfStake);
+        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
         pblock->nNonce = 0;
 
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
@@ -687,7 +687,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 break;
 
             // Update nTime every few seconds
-            UpdateTime(pblock, pindexPrev);
+            UpdateTime(pblock, pindexPrev, fProofOfStake);
             if (Params().AllowMinDifficultyBlocks()) {
                 // Changing pblock->nTime can change work required on testnet:
                 hashTarget.SetCompact(pblock->nBits);

@@ -3753,7 +3753,7 @@ bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev)
     if (pindexPrev == NULL)
         return error("%s : null pindexPrev for block %s", __func__, block.GetHash().ToString().c_str());
 
-    unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, &block);
+    unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, &block, block.IsProofOfStake());
 
 #ifdef LICO
     if (block.IsProofOfWork() && (pindexPrev->nHeight + 1 <= 68589)) {

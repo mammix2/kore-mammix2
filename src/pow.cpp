@@ -76,8 +76,13 @@ unsigned int GetNextWorkRequired_Kore(const CBlockIndex* pindexLast, const CBloc
 }
 
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
+
+    // Lico  
+    // if FORK_condition  
+    //return GetNextWorkRequired_Kore(pindexLast, pblock, fProofOfStake);
+
     /* current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;
     const CBlockIndex* BlockReading = pindexLast;

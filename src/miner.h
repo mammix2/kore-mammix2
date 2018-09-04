@@ -25,7 +25,7 @@ CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet,
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 /** Check mined block */
-void UpdateTime(CBlockHeader* block, const CBlockIndex* pindexPrev);
+void UpdateTime(CBlockHeader* block, const CBlockIndex* pindexPrev, bool fProofOfStake);
 
 void BitcoinMiner(CWallet* pwallet, bool fProofOfStake);
 
