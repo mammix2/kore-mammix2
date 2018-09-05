@@ -57,7 +57,7 @@ unsigned int CalculateNextWorkRequired_Kore(const CBlockIndex* pindexLast, int64
 }
 
 
-unsigned int GetNextWorkRequired_Kore(const CBlockIndex* pindexLast, const CBlockHeader *pblock, bool fProofOfStake)
+unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBlockHeader *pblock, bool fProofOfStake)
 {
     unsigned int nTargetLimit = UintToArith256(Params().ProofOfWorkLimit()).GetCompact();
 
@@ -81,7 +81,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
     // Lico  
     // if FORK_condition  
-    //return GetNextWorkRequired_Kore(pindexLast, pblock, fProofOfStake);
+    //return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
 
     /* current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;

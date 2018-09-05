@@ -12,7 +12,7 @@
 // of transaction confirmation. To meet kernel protocol, the txout
 // must hash with a future stake modifier to generate the proof.
 
-uint256 ComputeStakeModifierOld(const CBlockIndex* pindexPrev, const uint256& kernel)
+uint256 ComputeStakeModifier_Legacy(const CBlockIndex* pindexPrev, const uint256& kernel)
 {
     if (!pindexPrev)
         return uint256(); // genesis block's modifier is 0
@@ -79,7 +79,7 @@ bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits,
   to the method in the kernel.cpp
 */
 // Check kernel hash target and coinstake signature
-bool CheckProofOfStake_Old(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits,
+bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits,
                            uint256& hashProofOfStake, std::unique_ptr<CStakeInput>& stake)
 {
     if (!tx.IsCoinStake())

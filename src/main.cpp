@@ -3457,7 +3457,7 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
         if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
             LogPrintf("AddToBlockIndex() : ComputeNextStakeModifier() failed \n");
         pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
-        pindexNew->nStakeModifierOld = ComputeStakeModifierOld(pindexNew->pprev, pindexNew->IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindexNew->GetBlockHash());
+        pindexNew->nStakeModifierOld = ComputeStakeModifier_Legacy(pindexNew->pprev, pindexNew->IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindexNew->GetBlockHash());
         pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
         if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
             LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, boost::lexical_cast<std::string>(nStakeModifier));
@@ -3976,7 +3976,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
         if (!CheckProofOfStake(block, hashProofOfStake, stake))
             return state.DoS(100, error("%s: proof of stake check failed", __func__));
 //#endif
-//        if (!CheckProofOfStake_Old( mapBlockIndex[block.hashPrevBlock], block.vtx[1], block.nBits, hashProofOfStake, stake))
+//        if (!CheckProofOfStake_Legacy( mapBlockIndex[block.hashPrevBlock], block.vtx[1], block.nBits, hashProofOfStake, stake))
 //            return state.DoS(100, error("%s: proof of stake check failed", __func__));
 
         if (!stake)
