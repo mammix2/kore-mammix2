@@ -371,8 +371,8 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 minute
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
-        nPastBlocksMin = 100; // it will make to do POW untill block 100
-        nPastBlocksMax = 100;
+        nPastBlocksMin = 64;
+        nPastBlocksMax = 64;
         nClientMintibleCoinsInterval =  10; // every 10 seconds
         nClientMintibleCoinsInterval =  2; // additional 2 seconds
         fSkipProofOfWorkCheck = false;

@@ -17,7 +17,7 @@
 
 #include <math.h>
 
-static arith_uint256 GetTargetLimit_Kore(int64_t nTime, bool fProofOfStake)
+static arith_uint256 GetTargetLimit_Legacy(int64_t nTime, bool fProofOfStake)
 {
     uint256 nLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
 
@@ -25,7 +25,7 @@ static arith_uint256 GetTargetLimit_Kore(int64_t nTime, bool fProofOfStake)
 }
 
 
-unsigned int CalculateNextWorkRequired_Kore(const CBlockIndex* pindexLast, int64_t nFirstBlockTime)
+unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int64_t nFirstBlockTime)
 {
     int64_t nActualSpacing = pindexLast->GetBlockTime() - nFirstBlockTime;
     int64_t nTargetSpacing = Params().TargetSpacing();
@@ -36,7 +36,7 @@ unsigned int CalculateNextWorkRequired_Kore(const CBlockIndex* pindexLast, int64
         nActualSpacing = nTargetSpacing;
   
     // Retarget
-    const arith_uint256 bnPowLimit = GetTargetLimit_Kore(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
+    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
     arith_uint256 bnNew, bnOld;
     bnNew.SetCompact(pindexLast->nBits);
     bnOld = bnNew;
@@ -65,14 +65,14 @@ unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBl
     if (pindexLast == NULL)
         return nTargetLimit;
 
-    const CBlockIndex* pindexPrev = GetLastBlockIndex_Kore(pindexLast, fProofOfStake);
+    const CBlockIndex* pindexPrev = GetLastBlockIndex_Legacy(pindexLast, fProofOfStake);
     if (pindexPrev->pprev == NULL)
         return nTargetLimit; // first block
-    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex_Kore(pindexPrev->pprev, fProofOfStake);
+    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex_Legacy(pindexPrev->pprev, fProofOfStake);
     if (pindexPrevPrev->pprev == NULL)
         return nTargetLimit; // second block
 
-    return CalculateNextWorkRequired_Kore(pindexPrev, pindexPrevPrev->GetBlockTime());
+    return CalculateNextWorkRequired_Legacy(pindexPrev, pindexPrevPrev->GetBlockTime());
 }
 
 
