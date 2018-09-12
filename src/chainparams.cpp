@@ -371,8 +371,8 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 minute
         nTargetSpacing = 1 * 60;  // PIVX: 1 minute
-        nPastBlocksMin = 64;
-        nPastBlocksMax = 64;
+        nPastBlocksMin = 24;
+        nPastBlocksMax = 24;
         nClientMintibleCoinsInterval =  10; // every 10 seconds
         nClientMintibleCoinsInterval =  2; // additional 2 seconds
         fSkipProofOfWorkCheck = false;
