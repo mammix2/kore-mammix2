@@ -256,6 +256,7 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60;
         nTargetSpacing = 1 * 60;
+        nStakeTargetSpacing = 60; // stake every 1 hour
         nPastBlocksMin = 24; 
         nPastBlocksMax = 24;
         nStakeMinAge = 60*60; // it will stake after 1 hour
@@ -372,6 +373,7 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 minute
         nTargetSpacing = 1 * 30;  // PIVX: 30 seconds
+        nStakeTargetSpacing = 10; // stake every 10 minutes
         nPastBlocksMin = 24;
         nPastBlocksMax = 24;
         nStakeMinAge = 10*60; // it will stake after 10 minutes

@@ -76,6 +76,7 @@ public:
     bool RequireStandard() const { return fRequireStandard; }
     int64_t TargetTimespan() const { return nTargetTimespan; }
     int64_t TargetSpacing() const { return nTargetSpacing; }
+    int64_t StakeTargetSpacing() const {return nStakeTargetSpacing;}
     int64_t DifficultyAdjustmentInterval() const { return nTargetTimespan / nTargetSpacing; }
     int64_t PastBlocksMin() const { return nPastBlocksMin; }
     int64_t PastBlocksMax() const { return nPastBlocksMax; }
@@ -156,6 +157,7 @@ protected:
     int nToCheckBlockUpgradeMajority;
     int64_t nTargetTimespan;
     int64_t nTargetSpacing;
+    int64_t nStakeTargetSpacing;
     int64_t nPastBlocksMin; // used when calculating the NextWorkRequired 
     int64_t nPastBlocksMax;
     unsigned int nStakeMinAge;
