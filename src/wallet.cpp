@@ -2082,7 +2082,7 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
 #endif            
 
             //check for min age
-            if (GetAdjustedTime() - nTxTime < nStakeMinAge)
+            if (GetAdjustedTime() - nTxTime < Params().StakeMinAge())
                 continue;
 
             //check that it is matured
@@ -2118,7 +2118,7 @@ bool CWallet::MintableCoins()
 
         for (const COutput& out : vCoins) {
             int64_t nTxTime = out.tx->GetTxTime();           
-            if (GetAdjustedTime() - nTxTime > nStakeMinAge)
+            if (GetAdjustedTime() - nTxTime > Params().StakeMinAge())
                 return true;
         }
     }
