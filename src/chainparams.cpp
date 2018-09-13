@@ -213,9 +213,9 @@ static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
     (0, uint256("0x000ce3b76d9435adbc2713c62239cea20fe6bf0f69ed4d4f5c95ef07018a0450"));
 static const Checkpoints::CCheckpointData dataTestnet = {
     &mapCheckpointsTestnet,
-    1533588169,
+    1533841307,
     0,
-    1};
+    250};
 
 static Checkpoints::MapCheckpoints mapCheckpointsRegtest =
     boost::assign::map_list_of(0, uint256("0x001"));
@@ -258,6 +258,7 @@ public:
         nTargetSpacing = 1 * 60;
         nPastBlocksMin = 24; 
         nPastBlocksMax = 24;
+        nStakeMinAge = 60*60; // it will stake after 1 hour
         nClientMintibleCoinsInterval =  5 * 60;
         nClientMintibleCoinsInterval =  1 * 60;
         nMaturity = 25;
@@ -370,9 +371,10 @@ public:
         nToCheckBlockUpgradeMajority = 100;
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // PIVX: 1 minute
-        nTargetSpacing = 1 * 60;  // PIVX: 1 minute
+        nTargetSpacing = 1 * 30;  // PIVX: 30 seconds
         nPastBlocksMin = 24;
         nPastBlocksMax = 24;
+        nStakeMinAge = 10*60; // it will stake after 10 minutes
         nClientMintibleCoinsInterval =  10; // every 10 seconds
         nClientMintibleCoinsInterval =  2; // additional 2 seconds
         fSkipProofOfWorkCheck = false;
@@ -381,7 +383,7 @@ public:
 	    bnProofOfStakeLimit = ~uint256(0) >> 4;
 
         
-        nLastPOWBlock = 1000;
+        nLastPOWBlock = 30;
         nMaturity = 1; // will mature in the next block.
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = 51197; //approx Mon, 17 Apr 2017 04:00:00 GMT
