@@ -374,8 +374,8 @@ public:
         nTargetTimespan = 1 * 60; // PIVX: 1 minute
         nTargetSpacing = 1 * 30;  // PIVX: 30 seconds
         nStakeTargetSpacing = 10; // stake every 10 minutes
-        nPastBlocksMin = 64; // we need at least 64 blocks, in order to the stake be calculated correctly (GetKernelStakeModifier)
-        nPastBlocksMax = 88;
+        nPastBlocksMin = 24;
+        nPastBlocksMax = 24;
         nStakeMinAge = 10*60; // it will stake after 10 minutes
         nClientMintibleCoinsInterval =  10; // every 10 seconds
         nClientMintibleCoinsInterval =  2; // additional 2 seconds
