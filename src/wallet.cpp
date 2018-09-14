@@ -2940,32 +2940,23 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Calculate reward
             CAmount nReward;
             nReward = GetBlockValue(chainActive.Height() + 1);
-            nCredit += nReward;
+            //nCredit += nReward;
 
             // Create the output transaction(s)
             vector<CTxOut> vout;
-            if (!stakeInput->CreateTxOuts(this, vout, nCredit)) {
+            if (!stakeInput->CreateTxOuts(this, vout, nCredit + nReward)) {
                 LogPrintf("%s : failed to get scriptPubKey\n", __func__);
                 continue;
             }
             txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
 
-            CAmount devsubsidy = 0;
-            {
-                // 10% for development Fund
-                LogPrintf(" Reward: %d Credit: %d \n", nReward, nCredit);
-                devsubsidy = (nCredit - nReward) * 0.1;
-                nReward -= devsubsidy;
-
-                if (nReward <= 0)
-                    return false;
-
-                nCredit = nReward;
-            }
-
+            LogPrintf(" Reward: %d Credit: %d \n", nReward, nCredit);
+            // TODO check with Mammix, can we do like this?
+            CAmount devsubsidy = nCredit * 0.1;
+            nCredit += nReward - devsubsidy;
             // Set output amount
             if (txNew.vout.size() == 3) {
-                txNew.vout[1].nValue = (nCredit / 2 / CENT) * CENT;
+                txNew.vout[1].nValue = nCredit / 2;
                 txNew.vout[2].nValue = nCredit - txNew.vout[1].nValue;
                 txNew.vout.resize(4);
                 txNew.vout[3].nValue = devsubsidy;
