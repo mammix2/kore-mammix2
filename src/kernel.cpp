@@ -65,7 +65,8 @@ static int64_t GetStakeModifierSelectionIntervalSection(int nSection)
 static int64_t GetStakeModifierSelectionInterval(int nHeight)
 {
     int64_t nSelectionInterval = 0;
-    for (int nSection = 0; nSection < min(64, nHeight); nSection++) {
+    int block = nHeight < 64 ? 5 : nHeight;
+    for (int nSection = 0; nSection < min(64, block); nSection++) {
         nSelectionInterval += GetStakeModifierSelectionIntervalSection(nSection);
     }
     return nSelectionInterval;

@@ -157,7 +157,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         if (fDebug) { 
             LogPrintf("CreateNewBlock found a stake? %s \n", fStakeFound ? "true" : "false");
             LogPrintf("CreateNewBlock block is pos? %s \n", pblock->IsProofOfStake() ? "true" : "false");
-            LogPrintf("Block PoS so far %s \n", pblock->ToString());
         }
 
         if (!fStakeFound)
@@ -385,11 +384,9 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         if (!fProofOfStake) {
             //Masternode and general budget payments
-            LogPrintf("CreateNewBlock(): Masternode and general budget payments");
             FillBlockPayee(txNew, nFees, fProofOfStake, false);
 
             //Make payee
-            LogPrintf("CreateNewBlock(): Make payee");
             if (txNew.vout.size() > 1) {
                 pblock->payee = txNew.vout[1].scriptPubKey;
             }
@@ -397,14 +394,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
-        LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
         // Compute final coinbase transaction.
         if (!fProofOfStake) {
             pblock->vtx[0] = txNew;
             pblocktemplate->vTxFees[0] = -nFees;
         }
         pblock->vtx[0].vin[0].scriptSig = CScript() << nHeight << OP_0;
-        LogPrintf("pblock->vtx[0].vin[0] %s \n", pblock->vtx[0].vin[0].ToString());
 
         // Fill in header
         pblock->hashPrevBlock = pindexPrev->GetBlockHash();
@@ -415,10 +410,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 
-	    LogPrintf("Block to be validated %s", pblock->ToString());
         CValidationState state;
         if (!TestBlockValidity(state, *pblock, pindexPrev, false, false)) {
-            LogPrintf("CreateNewBlock() : TestBlockValidity failed\n");
             mempool.clear();
             return NULL;
         }
