@@ -2940,11 +2940,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Calculate reward
             CAmount nReward;
             nReward = GetBlockValue(chainActive.Height() + 1);
-            //nCredit += nReward;
+            nCredit += nReward;
 
             // Create the output transaction(s)
             vector<CTxOut> vout;
-            if (!stakeInput->CreateTxOuts(this, vout, nCredit + nReward)) {
+            if (!stakeInput->CreateTxOuts(this, vout, nCredit)) {
                 LogPrintf("%s : failed to get scriptPubKey\n", __func__);
                 continue;
             }
@@ -2952,21 +2952,34 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
             LogPrintf(" Reward: %d Credit: %d \n", nReward, nCredit);
             // TODO check with Mammix, can we do like this?
-            CAmount devsubsidy = nCredit * 0.1;
-            nCredit += nReward - devsubsidy;
+            CAmount devsubsidy = (nCredit - nReward)* 0.1;
+
+            if ( devsubsidy > nReward ) {
+              // we will allow this to happen only for testnet, because the first 200 blocks
+              // has a big reward value. This should not happen for main net !!!
+              devsubsidy = 0;
+              if (Params().NetworkID() == CBaseChainParams::MAIN)
+                return false;
+            } 
+            nCredit = nReward - devsubsidy; 
+            
+            // depending how much is the amount it is necessary to break it into two.
             // Set output amount
             if (txNew.vout.size() == 3) {
                 txNew.vout[1].nValue = nCredit / 2;
                 txNew.vout[2].nValue = nCredit - txNew.vout[1].nValue;
-                txNew.vout.resize(4);
-                txNew.vout[3].nValue = devsubsidy;
-                txNew.vout[3].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
             } else {
                 txNew.vout[1].nValue = nCredit;
-                txNew.vout.resize(3);
-                txNew.vout[2].nValue = devsubsidy;
-                txNew.vout[2].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
             }
+            // letś add the dev fund if possible
+            if (devsubsidy > 0) {
+                // here it is necessary to check if the amount was diviced by 2 or not
+                int pos = txNew.vout.size();
+                txNew.vout.resize(pos+1);
+                txNew.vout[pos].nValue = devsubsidy;
+                txNew.vout[pos].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
+            }
+
             if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
          
             LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());

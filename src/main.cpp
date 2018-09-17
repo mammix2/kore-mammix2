@@ -1779,7 +1779,7 @@ double ConvertBitsToDouble(unsigned int nBits)
 int64_t GetBlockValue(int nHeight)
 {
     if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        if (nHeight > 0 && nHeight < 50)
+        if (nHeight > 0 && nHeight < 200)
             return 250000 * COIN;
     }
     return 5 * COIN;
