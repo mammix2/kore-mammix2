@@ -81,6 +81,7 @@ public:
     int64_t PastBlocksMin() const { return nPastBlocksMin; }
     int64_t PastBlocksMax() const { return nPastBlocksMax; }
     unsigned int StakeMinAge() const {return nStakeMinAge;}
+    unsigned int GetModifier() const {return nModifier;}
     int64_t ClientMintibleCoinsInterval() const { return nClientMintibleCoinsInterval; }
     int64_t EnsureMintibleCoinsInterval() const { return nEnsureMintibleCoinsInterval; }
     
@@ -161,6 +162,7 @@ protected:
     int64_t nPastBlocksMin; // used when calculating the NextWorkRequired 
     int64_t nPastBlocksMax;
     unsigned int nStakeMinAge;
+    unsigned int nModifier;
     int64_t nClientMintibleCoinsInterval; // PoS mining
     int64_t nEnsureMintibleCoinsInterval;
     int nLastPOWBlock;

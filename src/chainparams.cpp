@@ -10,6 +10,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "arith_uint256.h"
+#include "kernel.h"
 
 #include <assert.h>
 
@@ -260,6 +261,7 @@ public:
         nPastBlocksMin = 24; 
         nPastBlocksMax = 24;
         nStakeMinAge = 60*60; // it will stake after 1 hour
+        nModifier = MODIFIER_INTERVAL_TESTNET;
         nClientMintibleCoinsInterval =  5 * 60;
         nClientMintibleCoinsInterval =  1 * 60;
         nMaturity = 25;
@@ -374,9 +376,10 @@ public:
         nTargetTimespan = 1 * 60; // PIVX: 1 minute
         nTargetSpacing = 1 * 30;  // PIVX: 30 seconds
         nStakeTargetSpacing = 10; // stake every 10 minutes
-        nPastBlocksMin = 24;
-        nPastBlocksMax = 24;
-        nStakeMinAge = 10*60; // it will stake after 10 minutes
+        nPastBlocksMin = 64;
+        nPastBlocksMax = 64;
+        nStakeMinAge = 30*60; // it will stake after 30 minutes
+        nModifier = MODIFIER_INTERVAL_TESTNET;
         nClientMintibleCoinsInterval =  10; // every 10 seconds
         nClientMintibleCoinsInterval =  2; // additional 2 seconds
         fSkipProofOfWorkCheck = false;
