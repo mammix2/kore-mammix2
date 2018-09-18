@@ -511,16 +511,9 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 fMintableCoins = pwallet->MintableCoins();
             }
 
-            /* Lico Kore can Process POW and POS, so we don need this 
-            if (chainActive.Tip()->nHeight < Params().LAST_POW_BLOCK()) {
-                MilliSleep(5000);
-                continue;
-            }
-            */
-
             while (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins || 
-                  (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) /* || 
-                  !masternodeSync.IsSynced() */ )
+                  (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) || 
+                  !masternodeSync.IsSynced() )
             {
                 if (fDebug) {
                     LogPrintf("BitcoinMiner vNodes Empty  ? %s \n", vNodes.empty() ? "true" : "false");
