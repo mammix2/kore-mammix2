@@ -69,21 +69,23 @@ bool CMasternodeConfig::read(std::string& strErr)
         }
 
         if (Params().NetworkID() == CBaseChainParams::MAIN) {
-            if (port != 10743) {
-                strErr = _("Invalid port detected in masternode.conf") + "\n" +
-                         strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
-                         _("(must be 10743 for mainnet)");
+            if (port != Params().GetDefaultPort()) {
+                strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber,line, Params().GetDefaultPort());
                 streamConfig.close();
                 return false;
             }
-        } else if (CService(ip).GetPort() == 10743) {
-            strErr = _("Invalid port detected in masternode.conf") + "\n" +
-                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
-                     _("(10743 could be used only on mainnet)");
+        } else if (Params().NetworkID() == CBaseChainParams::TESTNET) {
+            if (port != Params().GetDefaultPort()) {
+                strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber,line, Params().GetDefaultPort());
+                streamConfig.close();
+                return false;
+            }
+        }
+        else if (CService(ip).GetPort() == Params().GetDefaultPort()) {
+            strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber,line, Params().GetDefaultPort());
             streamConfig.close();
             return false;
         }
-
 
         add(alias, ip, privKey, txHash, outputIndex);
     }
