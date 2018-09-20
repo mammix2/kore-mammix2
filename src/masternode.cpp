@@ -586,7 +586,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
 
     CValidationState state;
     CMutableTransaction tx = CMutableTransaction();
-    CTxOut vout = CTxOut(499.99 * COIN, obfuScationPool.collateralPubKey);
+    CTxOut vout = CTxOut( (MASTERNODE_MIN_COINS - 0.01) * COIN, obfuScationPool.collateralPubKey);
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
 
@@ -617,7 +617,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     }
 
     // verify that sig time is legit in past
-    // should be at least not earlier than block when 1000 PIV tx got MASTERNODE_MIN_CONFIRMATIONS
+    // should be at least not earlier than block when 500 PIV tx got MASTERNODE_MIN_CONFIRMATIONS
     uint256 hashBlock = 0;
     CTransaction tx2;
     GetTransaction(vin.prevout.hash, tx2, hashBlock, true);
