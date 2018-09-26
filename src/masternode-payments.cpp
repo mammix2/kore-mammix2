@@ -269,7 +269,7 @@ bool IsBlockPayeeValid(const CBlock& block, int nBlockHeight)
 }
 
 
-void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake, bool fZPIVStake)
+void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake, bool fZPIVStake, bool stakeSplitted)
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (!pindexPrev) return;
@@ -277,7 +277,7 @@ void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStak
     if (IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(pindexPrev->nHeight + 1)) {
         budget.FillBlockPayee(txNew, nFees, fProofOfStake);
     } else {
-        masternodePayments.FillBlockPayee(txNew, nFees, fProofOfStake, fZPIVStake);
+        masternodePayments.FillBlockPayee(txNew, nFees, fProofOfStake, fZPIVStake, stakeSplitted);
     }
 }
 
@@ -290,7 +290,7 @@ std::string GetRequiredPaymentsString(int nBlockHeight)
     }
 }
 
-void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake, bool fZPIVStake)
+void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake, bool fZPIVStake, bool stakeSplitted)
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (!pindexPrev) return;
@@ -323,9 +323,17 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             unsigned int i = txNew.vout.size();
             txNew.vout.resize(i + 1);
             txNew.vout[i].scriptPubKey = payee;
-            txNew.vout[i].nValue = masternodePayment;
-
-            txNew.vout[i - 1].nValue -= masternodePayment;
+            txNew.vout[i].nValue = masternodePayment;            
+            if (stakeSplitted)
+              {
+                CAmount total = txNew.vout[i - 1].nValue * 2;
+                total -= masternodePayment;
+                txNew.vout[i - 1].nValue = total/2;
+                txNew.vout[i - 2].nValue = total/2;
+              }
+              else {
+                txNew.vout[i - 1].nValue -= masternodePayment;
+              }            
         } else {
             txNew.vout.resize(2);
             txNew.vout[1].scriptPubKey = payee;

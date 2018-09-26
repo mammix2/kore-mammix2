@@ -2864,6 +2864,11 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, strFailReason, coinControl, coin_type, useIX, nFeePay);
 }
 
+bool CWallet::SplitStake(CAmount & stake) const
+{
+    return stake / 2 > (CAmount)(nStakeSplitThreshold * COIN);
+}
+
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, bool fProofOfStake)
 {
@@ -2944,7 +2949,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
             // Create the output transaction(s)
             vector<CTxOut> vout;
-            if (!stakeInput->CreateTxOuts(this, vout, nCredit)) {
+            bool stakeSplitted = SplitStake(nCredit);
+            if (!stakeInput->CreateTxOuts(this, vout, stakeSplitted)) {
                 LogPrintf("%s : failed to get scriptPubKey\n", __func__);
                 continue;
             }
@@ -2965,7 +2971,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             
             // depending how much is the amount it is necessary to break it into two.
             // Set output amount
-            if (txNew.vout.size() == 3) {
+            if (stakeSplitted) {
                 txNew.vout[1].nValue = nCredit / 2;
                 txNew.vout[2].nValue = nCredit - txNew.vout[1].nValue;
             } else {
@@ -2984,7 +2990,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
          
             LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());
             //Masternode payment
-            FillBlockPayee(txNew, 0, fProofOfStake, stakeInput->IsZPIV());
+            FillBlockPayee(txNew, 0, fProofOfStake, stakeInput->IsZPIV(), stakeSplitted);
             LogPrintf("CreateCoinStake : after FillBlockPayee txNew: %s\n", txNew.ToString());
 
             uint256 hashTxOut = txNew.GetHash();

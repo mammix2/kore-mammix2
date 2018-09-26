@@ -32,7 +32,7 @@ CAmount CPivStake::GetValue()
     return txFrom.vout[nPosition].nValue;
 }
 
-bool CPivStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, CAmount nTotal)
+bool CPivStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake)
 {
     vector<valtype> vSolutions;
     txnouttype whichType;
@@ -60,7 +60,7 @@ bool CPivStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, CAmount nTo
     vout.emplace_back(CTxOut(0, scriptPubKey));
 
     // Calculate if we need to split the output
-    if (nTotal / 2 > (CAmount)(pwallet->nStakeSplitThreshold * COIN))
+    if (splitStake)
         vout.emplace_back(CTxOut(0, scriptPubKey));
 
     return true;
