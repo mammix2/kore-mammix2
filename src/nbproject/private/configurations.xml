@@ -19,7 +19,7 @@
         <in>strnlen.cpp</in>
       </df>
       <df name="config">
-        <in>pivx-config.h</in>
+        <in>bitcoin-config.h</in>
       </df>
       <df name="crypto">
         <df name=".deps">
@@ -414,15 +414,15 @@
         <in>paymentserver.h</in>
         <in>peertablemodel.cpp</in>
         <in>peertablemodel.h</in>
-        <in>pivx.cpp</in>
-        <in>pivx.moc</in>
-        <in>pivxstrings.cpp</in>
+        <in>kore.cpp</in>
+        <in>kore.moc</in>
+        <in>korestrings.cpp</in>
         <in>platformstyle.cpp</in>
         <in>platformstyle.h</in>
         <in>privacydialog.cpp</in>
         <in>privacydialog.h</in>
-        <in>qrc_pivx.cpp</in>
-        <in>qrc_pivx_locale.cpp</in>
+        <in>qrc_kore.cpp</in>
+        <in>qrc_kore_locale.cpp</in>
         <in>qvalidatedlineedit.cpp</in>
         <in>qvalidatedlineedit.h</in>
         <in>qvaluecombobox.cpp</in>
@@ -614,7 +614,7 @@
         <in>sighash_tests.cpp</in>
         <in>sigopcount_tests.cpp</in>
         <in>skiplist_tests.cpp</in>
-        <in>test_pivx.cpp</in>
+        <in>test_kore.cpp</in>
         <in>test_zerocoin.cpp</in>
         <in>timedata_tests.cpp</in>
         <in>torcontrol_tests.cpp</in>
@@ -786,9 +786,9 @@
       <in>obfuscation-relay.h</in>
       <in>obfuscation.cpp</in>
       <in>obfuscation.h</in>
-      <in>pivx-cli.cpp</in>
-      <in>pivx-tx.cpp</in>
-      <in>pivxd.cpp</in>
+      <in>kore-cli.cpp</in>
+      <in>kore-tx.cpp</in>
+      <in>kored.cpp</in>
       <in>pos.cpp</in>
       <in>pos.h</in>
       <in>pow.cpp</in>

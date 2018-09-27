@@ -55,7 +55,7 @@
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
           <buildCommand>${MAKE} -j4</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
-          <executablePath>test/test_pivx</executablePath>
+          <executablePath>test/test_kore</executablePath>
           <cTool>
             <incDir>
               <pElem>secp256k1</pElem>

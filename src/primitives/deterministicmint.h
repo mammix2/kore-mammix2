@@ -1,9 +1,9 @@
-// Copyright (c) 2018 The PIVX developers
+// Copyright (c) 2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PIVX_DETERMINISTICMINT_H
-#define PIVX_DETERMINISTICMINT_H
+#ifndef KORE_DETERMINISTICMINT_H
+#define KORE_DETERMINISTICMINT_H
 #ifdef ZEROCOIN 
 #include <libzerocoin/Denominations.h>
 #endif
@@ -73,4 +73,4 @@ public:
     };
 };
 
-#endif //PIVX_DETERMINISTICMINT_H
+#endif //KORE_DETERMINISTICMINT_H
