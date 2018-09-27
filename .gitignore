@@ -97,6 +97,9 @@ qrc_*.cpp
 
 # Qt creator
 *.pro.user
+EXPRESSKORE.creator.user
+EXPRESSKORE.pro
+EXPRESSKORE.pro.user
 
 # Mac specific
 .DS_Store
