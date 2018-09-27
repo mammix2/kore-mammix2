@@ -176,7 +176,7 @@
         <translation>Bekræft, og tegnebogen krypteres.</translation>
     </message>
     <message>
-        <source>KORE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your PIVs from being stolen by malware infecting your computer.</source>
+        <source>KORE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your KOREs from being stolen by malware infecting your computer.</source>
         <translation>KORE vil lukke ned for at færdiggøre kryptograferingsprocesserne. Husk at kryptering alene ikke sikrer mod tyveri af mønterne fra malware eller virus på computeren.</translation>
     </message>
     <message>
@@ -184,8 +184,8 @@
         <translation>Er du sikker på, at du vil kryptere din tegnebog?</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PIV&lt;/b&gt;!</source>
-        <translation>Advarsel! Hvis du krypterer din tegnebog og mister dit password vil du &lt;b&gt;MISTE ALLE DINE PIV&lt;/b&gt;. Passworded kan ikke genskabes.</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR KORE&lt;/b&gt;!</source>
+        <translation>Advarsel! Hvis du krypterer din tegnebog og mister dit password vil du &lt;b&gt;MISTE ALLE DINE KORE&lt;/b&gt;. Passworded kan ikke genskabes.</translation>
     </message>
     <message>
         <source>Wallet encrypted</source>
@@ -433,8 +433,8 @@
         <translation>Vis transaktionshistorik</translation>
     </message>
     <message>
-        <source>Privacy Actions for zPIV</source>
-        <translation>Beskyttelse af personlige oplysninger for zPIV</translation>
+        <source>Privacy Actions for zKORE</source>
+        <translation>Beskyttelse af personlige oplysninger for zKORE</translation>
     </message>
     <message>
         <source>E&amp;xit</source>
@@ -1681,8 +1681,8 @@ Vær tålmodig efter at du har klikket på import.</translation>
         <translation>Adresse / Beløb:</translation>
     </message>
     <message>
-        <source>Add destinations to send PIV to</source>
-        <translation>Tilføj destinationer for at sende PIV til</translation>
+        <source>Add destinations to send KORE to</source>
+        <translation>Tilføj destinationer for at sende KORE til</translation>
     </message>
     <message>
         <source>Add &amp;Destination</source>
@@ -1780,32 +1780,32 @@ Vær tålmodig efter at du har klikket på import.</translation>
         <translation>Vælg tilsløringsniveau</translation>
     </message>
     <message>
-        <source>Use 2 separate masternodes to mix funds up to 10000 PIV</source>
-        <translation>Brug 2 separate masternoder for at tilsløre beløb op til 10000 PIV</translation>
+        <source>Use 2 separate masternodes to mix funds up to 10000 KORE</source>
+        <translation>Brug 2 separate masternoder for at tilsløre beløb op til 10000 KORE</translation>
     </message>
     <message>
-        <source>Use 8 separate masternodes to mix funds up to 10000 PIV</source>
-        <translation>Brug 8 separate masternoder for at tilsløre op til 10000 PIV</translation>
+        <source>Use 8 separate masternodes to mix funds up to 10000 KORE</source>
+        <translation>Brug 8 separate masternoder for at tilsløre op til 10000 KORE</translation>
     </message>
     <message>
         <source>Use 16 separate masternodes</source>
         <translation>Brug 16 separate masternoder</translation>
     </message>
     <message>
-        <source>This option is the quickest and will cost about ~0.025 PIV to anonymize 10000 PIV</source>
-        <translation>Dette valg er det hurtigste og vil koste i omegnen af 0.025 PIV for at anonymiser 10000 PIV</translation>
+        <source>This option is the quickest and will cost about ~0.025 KORE to anonymize 10000 KORE</source>
+        <translation>Dette valg er det hurtigste og vil koste i omegnen af 0.025 KORE for at anonymiser 10000 KORE</translation>
     </message>
     <message>
-        <source>This option is moderately fast and will cost about 0.05 PIV to anonymize 10000 PIV</source>
-        <translation>Dette valg er relativt hurtigt og vil koste i omegnen af 0.05 PIV for at anonymiser 10000 PIV</translation>
+        <source>This option is moderately fast and will cost about 0.05 KORE to anonymize 10000 KORE</source>
+        <translation>Dette valg er relativt hurtigt og vil koste i omegnen af 0.05 KORE for at anonymiser 10000 KORE</translation>
     </message>
     <message>
         <source>This is the slowest and most secure option. Using maximum anonymity will cost</source>
         <translation>Denne mulighed er den langsomste og det mest sikre valg. Valg af maksimal tilsløring vil koste</translation>
     </message>
     <message>
-        <source>0.1 PIV per 10000 PIV you anonymize.</source>
-        <translation>0.1 pr 10000 PIV for at tilsløre.</translation>
+        <source>0.1 KORE per 10000 KORE you anonymize.</source>
+        <translation>0.1 pr 10000 KORE for at tilsløre.</translation>
     </message>
     <message>
         <source>Obfuscation Configuration</source>
@@ -1948,28 +1948,28 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>MAP port ved hjælp af UPnP</translation>
     </message>
     <message>
-        <source>Enable automatic minting of PIV units to zPIV</source>
-        <translation>Aktivér automatisk mintning af PIV-enheder til zPIV</translation>
+        <source>Enable automatic minting of KORE units to zKORE</source>
+        <translation>Aktivér automatisk mintning af KORE-enheder til zKORE</translation>
     </message>
     <message>
-        <source>Enable zPIV Automint</source>
-        <translation>Aktivér zPIV Automint</translation>
+        <source>Enable zKORE Automint</source>
+        <translation>Aktivér zKORE Automint</translation>
     </message>
     <message>
-        <source>Percentage of incoming PIV which get automatically converted to zPIV via Zerocoin Protocol (min: 10%)</source>
-        <translation>Procentdelen af indkommende PIV, som automatisk konverteres til zPIV via Zerocoin Protocol (min: 10%)</translation>
+        <source>Percentage of incoming KORE which get automatically converted to zKORE via Zerocoin Protocol (min: 10%)</source>
+        <translation>Procentdelen af indkommende KORE, som automatisk konverteres til zKORE via Zerocoin Protocol (min: 10%)</translation>
     </message>
     <message>
-        <source>Percentage of autominted zPIV</source>
-        <translation>Procentdel af automatiseret zPIV</translation>
+        <source>Percentage of autominted zKORE</source>
+        <translation>Procentdel af automatiseret zKORE</translation>
     </message>
     <message>
-        <source>Wait with automatic conversion to Zerocoin until enough PIV for this denomination is available</source>
-        <translation>Vent med automatisk konvertering til Zerocoin, indtil nok PIV til denne betegnelse er tilgængelig</translation>
+        <source>Wait with automatic conversion to Zerocoin until enough KORE for this denomination is available</source>
+        <translation>Vent med automatisk konvertering til Zerocoin, indtil nok KORE til denne betegnelse er tilgængelig</translation>
     </message>
     <message>
-        <source>Preferred Automint zPIV Denomination</source>
-        <translation>Foretrukket Automint zPIV Denomination</translation>
+        <source>Preferred Automint zKORE Denomination</source>
+        <translation>Foretrukket Automint zKORE Denomination</translation>
     </message>
     <message>
         <source>Stake split threshold:</source>
@@ -2131,8 +2131,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Samlet saldo, inklusive alle utilgængelige mønter.</translation>
     </message>
     <message>
-        <source>PIV Balance</source>
-        <translation>PIV Balance</translation>
+        <source>KORE Balance</source>
+        <translation>KORE Balance</translation>
     </message>
     <message>
         <source>Pending:</source>
@@ -2159,8 +2159,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Din nuværende KORE-saldo, ubekræftede og umodne transaktioner inkluderet</translation>
     </message>
     <message>
-        <source>zPIV Balance</source>
-        <translation>zPIV-saldo</translation>
+        <source>zKORE Balance</source>
+        <translation>zKORE-saldo</translation>
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the KORE network after a connection is established, but this process has not completed yet.</source>
@@ -2207,8 +2207,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Brugbare:</translation>
     </message>
     <message>
-        <source>Locked PIV or Masternode collaterals. These are excluded from zPIV minting.</source>
-        <translation>Låste PIV eller Masternode collaterals. Disse er udelukket fra zPIV-mintning.</translation>
+        <source>Locked KORE or Masternode collaterals. These are excluded from zKORE minting.</source>
+        <translation>Låste KORE eller Masternode collaterals. Disse er udelukket fra zKORE-mintning.</translation>
     </message>
     <message>
         <source>Locked:</source>
@@ -2219,8 +2219,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Ubekræftet:</translation>
     </message>
     <message>
-        <source>Your current zPIV balance, unconfirmed and immature zPIV included.</source>
-        <translation>Din nuværende zPIV-saldo, ubekræftede og umodne zPIV inkluderet.</translation>
+        <source>Your current zKORE balance, unconfirmed and immature zKORE included.</source>
+        <translation>Din nuværende zKORE-saldo, ubekræftede og umodne zKORE inkluderet.</translation>
     </message>
     <message>
         <source>Recent transactions</source>
@@ -2231,10 +2231,10 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Ude af synk</translation>
     </message>
     <message>
-        <source>Current percentage of zPIV.
+        <source>Current percentage of zKORE.
 If AutoMint is enabled this percentage will settle around the configured AutoMint percentage (default = 10%).
 </source>
-        <translation>Nuværende procentdel af zPIV
+        <translation>Nuværende procentdel af zKORE
 Hvis AutoMint er aktiveret, vil denne procentdel sætte sig omkring den konfigurerede AutoMint-procent (default = 10%)</translation>
     </message>
     <message>
@@ -2377,8 +2377,8 @@ For at aktivere AutoMint-ændring 'enablezeromint = 0' til 'enablezeromint = 1' 
         <translation>0</translation>
     </message>
     <message>
-        <source>zPIV</source>
-        <translation>zPIV</translation>
+        <source>zKORE</source>
+        <translation>zKORE</translation>
     </message>
     <message>
         <source>Available for minting are coins which are confirmed and not locked or Masternode collaterals.</source>
@@ -2389,8 +2389,8 @@ For at aktivere AutoMint-ændring 'enablezeromint = 0' til 'enablezeromint = 1' 
         <translation>Til rådighed til Minting:</translation>
     </message>
     <message>
-        <source>0.000 000 00 PIV</source>
-        <translation>0.000 000 00 PIV</translation>
+        <source>0.000 000 00 KORE</source>
+        <translation>0.000 000 00 KORE</translation>
     </message>
     <message>
         <source>Reset Zerocoin Wallet DB. Deletes transactions that did not make it into the blockchain.</source>
@@ -2441,24 +2441,24 @@ For at aktivere AutoMint-ændring 'enablezeromint = 0' til 'enablezeromint = 1' 
         <translation>Tilbring Zerocoin</translation>
     </message>
     <message>
-        <source>Available (mature and spendable) zPIV for spending</source>
-        <translation>Tilgængelig (moden og brugt) zPIV for udgifter</translation>
+        <source>Available (mature and spendable) zKORE for spending</source>
+        <translation>Tilgængelig (moden og brugt) zKORE for udgifter</translation>
     </message>
     <message>
         <source>Available Balance:</source>
         <translation>Disponibel saldo:</translation>
     </message>
     <message>
-        <source>Available (mature and spendable) zPIV for spending
+        <source>Available (mature and spendable) zKORE for spending
 
-zPIV are mature when they have more than 20 confirmations AND more than 2 mints of the same denomination after them were minted</source>
-        <translation>Tilgængelig (moden og brugt) zPIV for spending
+zKORE are mature when they have more than 20 confirmations AND more than 2 mints of the same denomination after them were minted</source>
+        <translation>Tilgængelig (moden og brugt) zKORE for spending
 
-zPIV er modne, når de har mere end 20 bekræftelser OG mere end 2 minutter med samme betegnelse, efter at de blev præsenteret</translation>
+zKORE er modne, når de har mere end 20 bekræftelser OG mere end 2 minutter med samme betegnelse, efter at de blev præsenteret</translation>
     </message>
     <message>
-        <source>0 zPIV</source>
-        <translation>0 zPIV</translation>
+        <source>0 zKORE</source>
+        <translation>0 zKORE</translation>
     </message>
     <message>
         <source>Security Level for Zerocoin Transactions. More is better, but needs more time and resources.</source>
@@ -2529,8 +2529,8 @@ zPIV er modne, når de har mere end 20 bekræftelser OG mere end 2 minutter med 
         <translation>Zerocoin Stats:</translation>
     </message>
     <message>
-        <source>Total Balance including unconfirmed and immature zPIV</source>
-        <translation>Samlet saldo inklusive ubekræftede og umodne zPIV</translation>
+        <source>Total Balance including unconfirmed and immature zKORE</source>
+        <translation>Samlet saldo inklusive ubekræftede og umodne zKORE</translation>
     </message>
     <message>
         <source>Total Zerocoin  Balance:</source>
@@ -2545,24 +2545,24 @@ zPIV er modne, når de har mere end 20 bekræftelser OG mere end 2 minutter med 
         <translation>DENOM. med værdi 1:</translation>
     </message>
     <message>
-        <source>Show the current status of automatic zPIV minting.
+        <source>Show the current status of automatic zKORE minting.
 
 To change the status (restart required):
 - enable: add 'enablezeromint=1' to kore.conf
 - disable: add 'enablezeromint=0' to kore.conf
 
 To change the percentage (no restart required):
-- menu Settings-&gt;Options-&gt;Percentage of autominted zPIV
+- menu Settings-&gt;Options-&gt;Percentage of autominted zKORE
 
 </source>
-        <translation>Vis den aktuelle status for automatisk zPIV minting.øj
+        <translation>Vis den aktuelle status for automatisk zKORE minting.øj
 
 For at ændre status (genstart kræves):.
 - aktiver: tilføj 'enablezeromint = 1' til kore.conf
 - deaktiver: tilføj 'enablezeromint = 0' til kore.conf
 
 For at ændre procentdelen (ingen genstart kræves):.
-- menu Indstillinger-&gt; Indstillinger-&gt; Procentdel af automatiseret zPIV
+- menu Indstillinger-&gt; Indstillinger-&gt; Procentdel af automatiseret zKORE
 </translation>
     </message>
     <message>
@@ -2750,12 +2750,12 @@ For at ændre procentdelen (ingen genstart kræves):.
         <translation>Konfigureret målprocent:&lt;b&gt;</translation>
     </message>
     <message>
-        <source>zPIV is currently disabled due to maintenance.</source>
-        <translation>zPIV er i øjeblikket deaktiveret på grund af vedligeholdelse.</translation>
+        <source>zKORE is currently disabled due to maintenance.</source>
+        <translation>zKORE er i øjeblikket deaktiveret på grund af vedligeholdelse.</translation>
     </message>
     <message>
-        <source>zPIV is currently undergoing maintenance.</source>
-        <translation>zPIV er i øjeblikket under opretholdelse.</translation>
+        <source>zKORE is currently undergoing maintenance.</source>
+        <translation>zKORE er i øjeblikket under opretholdelse.</translation>
     </message>
     <message>
         <source>Denom. with value &lt;b&gt;1&lt;/b&gt;:</source>
@@ -2842,8 +2842,8 @@ For at ændre procentdelen (ingen genstart kræves):.
         <translation>Mynt succesfuldt</translation>
     </message>
     <message>
-        <source> zPIV in </source>
-        <translation> zPIV i</translation>
+        <source> zKORE in </source>
+        <translation> zKORE i</translation>
     </message>
     <message>
         <source> sec. Used denominations:
@@ -3681,8 +3681,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>UTXO størrelse:</translation>
     </message>
     <message>
-        <source>0 PIV</source>
-        <translation>0 PIV</translation>
+        <source>0 KORE</source>
+        <translation>0 KORE</translation>
     </message>
     <message>
         <source>Transaction Fee:</source>
@@ -3737,12 +3737,12 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Mønter vælges automatisk</translation>
     </message>
     <message>
-        <source>If the custom fee is set to 1000 uPIVs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uPIVs in fee,&lt;br /&gt;while "at least" pays 1000 uPIVs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
-        <translation>Hvis den brugerfastsatte gebyrbetaling er sat til 1000 uPIVs og transaktionen kun fylder 250 bytes, så vil "pr. kilobyte" kun udbetale 250 uPIV i gebyr, &lt;br /&gt; mens "mindst" udbetaler 1000 uPIVs. For transaktioner større end en kilobyte betales i begge tilfælde i forhold til antallet af kilobytes </translation>
+        <source>If the custom fee is set to 1000 uKOREs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uKOREs in fee,&lt;br /&gt;while "at least" pays 1000 uKOREs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
+        <translation>Hvis den brugerfastsatte gebyrbetaling er sat til 1000 uKOREs og transaktionen kun fylder 250 bytes, så vil "pr. kilobyte" kun udbetale 250 uKORE i gebyr, &lt;br /&gt; mens "mindst" udbetaler 1000 uKOREs. For transaktioner større end en kilobyte betales i begge tilfælde i forhold til antallet af kilobytes </translation>
     </message>
     <message>
-        <source>If the custom fee is set to 1000 uPIVs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uPIVs in fee,&lt;br /&gt;while "total at least" pays 1000 uPIVs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
-        <translation>Hvis den brugerfastsatte gebyrbetaling er sat til 1000 uPIVs og transaktionen kun fylder 250 bytes, så vil "pr. kilobyte" kun udbetale 250 uPIV i gebyr, &lt;br /&gt; mens "Total-mindst" udbetaler 1000 uPIVs. For transaktioner større end en kilobyte betales i begge tilfælde i forhold til antallet af kilobytes </translation>
+        <source>If the custom fee is set to 1000 uKOREs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uKOREs in fee,&lt;br /&gt;while "total at least" pays 1000 uKOREs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
+        <translation>Hvis den brugerfastsatte gebyrbetaling er sat til 1000 uKOREs og transaktionen kun fylder 250 bytes, så vil "pr. kilobyte" kun udbetale 250 uKORE i gebyr, &lt;br /&gt; mens "Total-mindst" udbetaler 1000 uKOREs. For transaktioner større end en kilobyte betales i begge tilfælde i forhold til antallet af kilobytes </translation>
     </message>
     <message>
         <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks.&lt;br /&gt;But be aware that this can end up in a never confirming transaction once there is more demand for KORE transactions than the network can process.</source>
@@ -3793,8 +3793,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Tilføj &amp;Modtager</translation>
     </message>
     <message>
-        <source>Anonymized PIV</source>
-        <translation>Tilsløret PIV</translation>
+        <source>Anonymized KORE</source>
+        <translation>Tilsløret KORE</translation>
     </message>
     <message>
         <source>Balance:</source>
@@ -4713,8 +4713,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Send mønter</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 PIV.</source>
-        <translation>SwiftTx understøtter ikke afsendelse af så store beløb endnu. Transaktioner er for tiden begrænsede til %1PIV.</translation>
+        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <translation>SwiftTx understøtter ikke afsendelse af så store beløb endnu. Transaktioner er for tiden begrænsede til %1KORE.</translation>
     </message>
 </context>
 <context>
@@ -4755,8 +4755,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>0</translation>
     </message>
     <message>
-        <source>zPIV</source>
-        <translation>zPIV</translation>
+        <source>zKORE</source>
+        <translation>zKORE</translation>
     </message>
     <message>
         <source>Select/Deselect All</source>
@@ -4851,12 +4851,12 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Udfør en kommando når den bedste blok ændres (%s in cmd erstattes med blok hashen)</translation>
     </message>
     <message>
-        <source>Fees (in PIV/Kb) smaller than this are considered zero fee for relaying (default: %s)</source>
-        <translation>Gebyrer (in PIV/kb) lavere end dette betragtes som et nul-gebyr for at videresende (default: %s)</translation>
+        <source>Fees (in KORE/Kb) smaller than this are considered zero fee for relaying (default: %s)</source>
+        <translation>Gebyrer (in KORE/kb) lavere end dette betragtes som et nul-gebyr for at videresende (default: %s)</translation>
     </message>
     <message>
-        <source>Fees (in PIV/Kb) smaller than this are considered zero fee for transaction creation (default: %s)</source>
-        <translation>Gebyrer (in PIV/kb) lavere end dette betragtes som et nul-gebyr for at oprette en transaktion (default: %s)</translation>
+        <source>Fees (in KORE/Kb) smaller than this are considered zero fee for transaction creation (default: %s)</source>
+        <translation>Gebyrer (in KORE/kb) lavere end dette betragtes som et nul-gebyr for at oprette en transaktion (default: %s)</translation>
     </message>
     <message>
         <source>Flush database activity from memory pool to disk log every &lt;n&gt; megabytes (default: %u)</source>
@@ -4963,12 +4963,12 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Det er ikke muligt at allokere tilstrækkeligt med tilsløret designeret indestående for at gennemføre denne transaktion.</translation>
     </message>
     <message>
-        <source>Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal 10000 PIV.</source>
-        <translation>Det er ikke muligt at allokere tilstrækkeligt med tilsløret  ikke-designeret indestående for at gennemføre denne transaktion, der ikke ækvivalerer 10000 PIV.</translation>
+        <source>Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal 10000 KORE.</source>
+        <translation>Det er ikke muligt at allokere tilstrækkeligt med tilsløret  ikke-designeret indestående for at gennemføre denne transaktion, der ikke ækvivalerer 10000 KORE.</translation>
     </message>
     <message>
-        <source>Unable to locate enough funds for this transaction that are not equal 10000 PIV.</source>
-        <translation>Det var ikke muligt at allokere tilstrækkelige midler til denne transaktion som er forskellig fra 10000 PIV.</translation>
+        <source>Unable to locate enough funds for this transaction that are not equal 10000 KORE.</source>
+        <translation>Det var ikke muligt at allokere tilstrækkelige midler til denne transaktion som er forskellig fra 10000 KORE.</translation>
     </message>
     <message>
         <source>Use separate SOCKS5 proxy to reach peers via Tor hidden services (default: %s)</source>
@@ -5279,8 +5279,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Læsning af blokken mislykkedes</translation>
     </message>
     <message>
-        <source>Fee (in PIV/kB) to add to transactions you send (default: %s)</source>
-        <translation>Gebyr (i PIV/kB) som skal tilføjes transaktionen der sendes (default: %s)</translation>
+        <source>Fee (in KORE/kB) to add to transactions you send (default: %s)</source>
+        <translation>Gebyr (i KORE/kB) som skal tilføjes transaktionen der sendes (default: %s)</translation>
     </message>
     <message>
         <source>Finalizing transaction.</source>
@@ -5411,8 +5411,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Procentdel af automatisk mintede Zerocoin (10-100, standard: %u)</translation>
     </message>
     <message>
-        <source>Reindex the PIV and zPIV money supply statistics</source>
-        <translation>Reindex PIV og zPIV pengemængde statistikker</translation>
+        <source>Reindex the KORE and zKORE money supply statistics</source>
+        <translation>Reindex KORE og zKORE pengemængde statistikker</translation>
     </message>
     <message>
         <source>SwiftX options:</source>

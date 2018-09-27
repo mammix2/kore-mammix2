@@ -1,4 +1,4 @@
-.TH PIV.CONF "5" "January 2011" "kore.conf 3.19"
+.TH KORE.CONF "5" "January 2011" "kore.conf 3.19"
 .SH NAME
 kore.conf \- kore configuration file
 .SH SYNOPSIS
@@ -49,16 +49,16 @@ You can use *kore* or *kored(1)* to send commands to *kore*/*kored(1)* running o
 .SH MISCELLANEOUS OPTIONS
 .TP
 \fBgen=\fR[\fI'0'\fR|\fI'1'\fR]
-Enable or disable attempt to generate PIVs.
+Enable or disable attempt to generate KOREs.
 .TP
 \fB4way=\fR[\fI'0'\fR|\fI'1'\fR]
-Enable or disable use SSE instructions to try to generate PIVs faster.
+Enable or disable use SSE instructions to try to generate KOREs faster.
 .TP
 \fBkeypool=\fR\fI'100'\fR
 Pre-generate this many public/private key pairs, so wallet backups will be valid for both prior transactions and several dozen future transactions.
 .TP
 \fBpaytxfee=\fR\fI'0.00'\fR
-Pay an optional transaction fee every time you send PIVs. Transactions with fees are more likely than free transactions to be included in generated blocks, so may be validated sooner.
+Pay an optional transaction fee every time you send KOREs. Transactions with fees are more likely than free transactions to be included in generated blocks, so may be validated sooner.
 .TP
 \fBallowreceivebyip=\fR\fI'1'\fR
 Allow direct connections for the 'pay via IP address' feature.

@@ -240,7 +240,7 @@ bool DisconnectBlocksAndReprocess(int blocks);
 // ***TODO***
 double ConvertBitsToDouble(unsigned int nBits);
 CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue);
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZPIVStake=false);
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZKOREStake=false);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
 
 bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
@@ -374,10 +374,10 @@ bool IsTransactionInChain(const uint256& txId, int& nHeightTx);
 bool IsBlockHashInChain(const uint256& hashBlock);
 bool ValidOutPoint(const COutPoint out, int nHeight);
 #ifndef ZEROCOIN
-void RecalculateZPIVSpent();
-void RecalculateZPIVMinted();
+void RecalculateZKORESpent();
+void RecalculateZKOREMinted();
 #endif
-bool RecalculatePIVSupply(int nHeightStart);
+bool RecalculateKORESupply(int nHeightStart);
 bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError);
 
 

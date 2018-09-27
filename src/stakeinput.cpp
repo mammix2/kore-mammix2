@@ -7,7 +7,7 @@
 #include "stakeinput.h"
 #include "wallet.h"
 
-//!PIV Stake
+//!KORE Stake
 bool CPivStake::SetInput(CTransaction txPrev, unsigned int n)
 {
     this->txFrom = txPrev;
@@ -82,7 +82,7 @@ bool CPivStake::GetModifier(uint64_t& nStakeModifier)
 
 CDataStream CPivStake::GetUniqueness()
 {
-    //The unique identifier for a PIV stake is the outpoint
+    //The unique identifier for a KORE stake is the outpoint
     CDataStream ss(SER_NETWORK, 0);
     ss << nPosition << txFrom.GetHash();
     return ss;

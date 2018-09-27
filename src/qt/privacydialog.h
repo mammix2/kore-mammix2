@@ -81,7 +81,7 @@ private:
     int nDisplayUnit;
     bool updateLabel(const QString& address);
 #ifdef ZEROCOIN    
-    void sendzPIV();
+    void sendzKORE();
 #endif    
 
 private slots:
@@ -103,8 +103,8 @@ private slots:
 //    void coinControlClipboardChange();
 
 #ifdef ZEROCOIN
-    void on_pushButtonMintzPIV_clicked();
-    void on_pushButtonSpendzPIV_clicked();
+    void on_pushButtonMintzKORE_clicked();
+    void on_pushButtonSpendzKORE_clicked();
     void on_pushButtonZPivControl_clicked();
 #endif    
     void on_pushButtonMintReset_clicked();

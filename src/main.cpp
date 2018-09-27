@@ -1252,7 +1252,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
             //Check that txid is not already in the chain
             int nHeightTx = 0;
             if (IsTransactionInChain(tx.GetHash(), nHeightTx))
-                return state.Invalid(error("AcceptToMemoryPool : zPIV spend tx %s already in block %d",
+                return state.Invalid(error("AcceptToMemoryPool : zKORE spend tx %s already in block %d",
                                            tx.GetHash().GetHex(), nHeightTx), REJECT_DUPLICATE, "bad-txns-inputs-spent");
 
         } else 
@@ -1992,7 +1992,7 @@ CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue)
 }
 
 
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZPIVStake)
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZKOREStake)
 {
     int64_t ret = 0;
 
@@ -2435,7 +2435,7 @@ void ThreadScriptCheck()
     scriptcheckqueue.Thread();
 }
 
-bool RecalculatePIVSupply(int nHeightStart)
+bool RecalculateKORESupply(int nHeightStart)
 {
     if (nHeightStart > chainActive.Height())
         return false;
@@ -2706,7 +2706,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         setDirtyBlockIndex.insert(pindex);
     }
 #ifdef ZEROCOIN
-    //Record zPIV serials
+    //Record zKORE serials
     set<uint256> setAddedTx;
     for (pair<CoinSpend, uint256> pSpend : vSpends) {
         //record spend to database
@@ -4069,7 +4069,7 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
         }
     }
     if (nMints || nSpends)
-        LogPrintf("%s : block contains %d zPIV mints and %d zPIV spends\n", __func__, nMints, nSpends);
+        LogPrintf("%s : block contains %d zKORE mints and %d zKORE spends\n", __func__, nMints, nSpends);
 #endif    
     if (!CheckBlockSignature(*pblock))
         return error("ProcessNewBlock() : bad proof-of-stake block signature");

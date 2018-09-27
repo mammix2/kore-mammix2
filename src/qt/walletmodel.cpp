@@ -339,7 +339,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
 
 
         if (recipients[0].useSwiftTX && total > GetSporkValue(SPORK_5_MAX_VALUE) * COIN) {
-            emit message(tr("Send Coins"), tr("SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 PIV.").arg(GetSporkValue(SPORK_5_MAX_VALUE)),
+            emit message(tr("Send Coins"), tr("SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.").arg(GetSporkValue(SPORK_5_MAX_VALUE)),
                 CClientUIInterface::MSG_ERROR);
             return TransactionCreationFailed;
         }
@@ -348,7 +348,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         transaction.setTransactionFee(nFeeRequired);
 
         if (recipients[0].useSwiftTX && newTx->GetValueOut() > GetSporkValue(SPORK_5_MAX_VALUE) * COIN) {
-            emit message(tr("Send Coins"), tr("SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 PIV.").arg(GetSporkValue(SPORK_5_MAX_VALUE)),
+            emit message(tr("Send Coins"), tr("SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.").arg(GetSporkValue(SPORK_5_MAX_VALUE)),
                 CClientUIInterface::MSG_ERROR);
             return TransactionCreationFailed;
         }
@@ -584,9 +584,9 @@ static void NotifyZerocoinChanged(WalletModel* walletmodel, CWallet* wallet, con
                               Q_ARG(int, status));
 }
 
-static void NotifyzPIVReset(WalletModel* walletmodel)
+static void NotifyzKOREReset(WalletModel* walletmodel)
 {
-    qDebug() << "NotifyzPIVReset";
+    qDebug() << "NotifyzKOREReset";
     QMetaObject::invokeMethod(walletmodel, "checkBalanceChanged", Qt::QueuedConnection);
 }
 
@@ -625,7 +625,7 @@ void WalletModel::subscribeToCoreSignals()
     wallet->NotifyMultiSigChanged.connect(boost::bind(NotifyMultiSigChanged, this, _1));
 #ifdef ZEROCOIN    
     wallet->NotifyZerocoinChanged.connect(boost::bind(NotifyZerocoinChanged, this, _1, _2, _3, _4));
-    wallet->NotifyzPIVReset.connect(boost::bind(NotifyzPIVReset, this));
+    wallet->NotifyzKOREReset.connect(boost::bind(NotifyzKOREReset, this));
 #endif    
     wallet->NotifyWalletBacked.connect(boost::bind(NotifyWalletBacked, this, _1, _2));
 }
@@ -641,7 +641,7 @@ void WalletModel::unsubscribeFromCoreSignals()
     wallet->NotifyMultiSigChanged.disconnect(boost::bind(NotifyMultiSigChanged, this, _1));
 #ifdef ZEROCOIN    
     wallet->NotifyZerocoinChanged.disconnect(boost::bind(NotifyZerocoinChanged, this, _1, _2, _3, _4));
-    wallet->NotifyzPIVReset.disconnect(boost::bind(NotifyzPIVReset, this));
+    wallet->NotifyzKOREReset.disconnect(boost::bind(NotifyzKOREReset, this));
 #endif    
     wallet->NotifyWalletBacked.disconnect(boost::bind(NotifyWalletBacked, this, _1, _2));
 }

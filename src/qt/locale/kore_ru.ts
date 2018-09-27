@@ -176,7 +176,7 @@
         <translation>Подтверждение шифрования кошелька</translation>
     </message>
     <message>
-        <source>KORE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your PIVs from being stolen by malware infecting your computer.</source>
+        <source>KORE will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your KOREs from being stolen by malware infecting your computer.</source>
         <translation>KORE сейчас закроется, чтобы завершить процесс шифрования. Помните, что шифрование вашего кошелька не может полностью защитить ваши KORE от кражи с использованием вредоносного ПО.</translation>
     </message>
     <message>
@@ -184,8 +184,8 @@
         <translation>Вы действительно хотите зашифровать свой кошелек?</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR PIV&lt;/b&gt;!</source>
-        <translation>Внимание: если вы зашифруете свой кошелёк и потеряете от него пароль, то вы &lt;b&gt;ПОТЕРЯЕТЕ ВСЕ СВОИ PIV&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR KORE&lt;/b&gt;!</source>
+        <translation>Внимание: если вы зашифруете свой кошелёк и потеряете от него пароль, то вы &lt;b&gt;ПОТЕРЯЕТЕ ВСЕ СВОИ KORE&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Wallet encrypted</source>
@@ -433,7 +433,7 @@
         <translation>Просмотр истории транзакций</translation>
     </message>
     <message>
-        <source>Privacy Actions for zPIV</source>
+        <source>Privacy Actions for zKORE</source>
         <translation>Действия конфиденциальности для зпив</translation>
     </message>
     <message>
@@ -1681,8 +1681,8 @@ Please be patient after clicking import.</source>
         <translation>Адрес/ Сумма:</translation>
     </message>
     <message>
-        <source>Add destinations to send PIV to</source>
-        <translation>Добавить назначение куда отправить PIV</translation>
+        <source>Add destinations to send KORE to</source>
+        <translation>Добавить назначение куда отправить KORE</translation>
     </message>
     <message>
         <source>Add &amp;Destination</source>
@@ -1780,32 +1780,32 @@ Please be patient after clicking import.</source>
         <translation>Выберите уровень конфиденциальности.</translation>
     </message>
     <message>
-        <source>Use 2 separate masternodes to mix funds up to 10000 PIV</source>
-        <translation>Используйте 2 разные мастерноды для смешивания средств до 10000 PIV</translation>
+        <source>Use 2 separate masternodes to mix funds up to 10000 KORE</source>
+        <translation>Используйте 2 разные мастерноды для смешивания средств до 10000 KORE</translation>
     </message>
     <message>
-        <source>Use 8 separate masternodes to mix funds up to 10000 PIV</source>
-        <translation>Используйте 8 разных мастернод для смешивания средств до 10000 PIV</translation>
+        <source>Use 8 separate masternodes to mix funds up to 10000 KORE</source>
+        <translation>Используйте 8 разных мастернод для смешивания средств до 10000 KORE</translation>
     </message>
     <message>
         <source>Use 16 separate masternodes</source>
         <translation>Используйте 16 разных мастернод</translation>
     </message>
     <message>
-        <source>This option is the quickest and will cost about ~0.025 PIV to anonymize 10000 PIV</source>
-        <translation>Этот вариант является самым быстрым и будет стоить порядка ~0.025 PIV для анонимизации 10000 PIV</translation>
+        <source>This option is the quickest and will cost about ~0.025 KORE to anonymize 10000 KORE</source>
+        <translation>Этот вариант является самым быстрым и будет стоить порядка ~0.025 KORE для анонимизации 10000 KORE</translation>
     </message>
     <message>
-        <source>This option is moderately fast and will cost about 0.05 PIV to anonymize 10000 PIV</source>
-        <translation>Это средний по скорости вариант и он будет стоить около 0.05 PIV для анонимизации 10000 PIV</translation>
+        <source>This option is moderately fast and will cost about 0.05 KORE to anonymize 10000 KORE</source>
+        <translation>Это средний по скорости вариант и он будет стоить около 0.05 KORE для анонимизации 10000 KORE</translation>
     </message>
     <message>
         <source>This is the slowest and most secure option. Using maximum anonymity will cost</source>
         <translation>Это самый медленный и безопасный вариант. Максимальная анонимность стоит</translation>
     </message>
     <message>
-        <source>0.1 PIV per 10000 PIV you anonymize.</source>
-        <translation>0.1 PIV за 10000 PIV которые вы собираетесь анонимизировать.</translation>
+        <source>0.1 KORE per 10000 KORE you anonymize.</source>
+        <translation>0.1 KORE за 10000 KORE которые вы собираетесь анонимизировать.</translation>
     </message>
     <message>
         <source>Obfuscation Configuration</source>
@@ -1948,28 +1948,28 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Карта порта, использующего &amp;UPnP</translation>
     </message>
     <message>
-        <source>Enable automatic minting of PIV units to zPIV</source>
-        <translation>Невозможно автоматически отчеканить единицы PIV для zPIV</translation>
+        <source>Enable automatic minting of KORE units to zKORE</source>
+        <translation>Невозможно автоматически отчеканить единицы KORE для zKORE</translation>
     </message>
     <message>
-        <source>Enable zPIV Automint</source>
-        <translation>Невозможно авточеканка  zPIV</translation>
+        <source>Enable zKORE Automint</source>
+        <translation>Невозможно авточеканка  zKORE</translation>
     </message>
     <message>
-        <source>Percentage of incoming PIV which get automatically converted to zPIV via Zerocoin Protocol (min: 10%)</source>
-        <translation>Процент приходящих PIV, которые автоматически конвертируются в zPIV благодаря Zerocoin протоколу (min: 10%)</translation>
+        <source>Percentage of incoming KORE which get automatically converted to zKORE via Zerocoin Protocol (min: 10%)</source>
+        <translation>Процент приходящих KORE, которые автоматически конвертируются в zKORE благодаря Zerocoin протоколу (min: 10%)</translation>
     </message>
     <message>
-        <source>Percentage of autominted zPIV</source>
-        <translation>Процент  авточеканненых zPIV</translation>
+        <source>Percentage of autominted zKORE</source>
+        <translation>Процент  авточеканненых zKORE</translation>
     </message>
     <message>
-        <source>Wait with automatic conversion to Zerocoin until enough PIV for this denomination is available</source>
-        <translation>Подождите с автоматическим преобразованием в Zerocoin, пока не будет достаточно PIV для этой номинации.</translation>
+        <source>Wait with automatic conversion to Zerocoin until enough KORE for this denomination is available</source>
+        <translation>Подождите с автоматическим преобразованием в Zerocoin, пока не будет достаточно KORE для этой номинации.</translation>
     </message>
     <message>
-        <source>Preferred Automint zPIV Denomination</source>
-        <translation>Предпочитаемый номинал авточеканной  монеты  zPIV</translation>
+        <source>Preferred Automint zKORE Denomination</source>
+        <translation>Предпочитаемый номинал авточеканной  монеты  zKORE</translation>
     </message>
     <message>
         <source>Stake split threshold:</source>
@@ -2131,8 +2131,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Общий баланс включая все не доступные монеты</translation>
     </message>
     <message>
-        <source>PIV Balance</source>
-        <translation>Баланс PIV</translation>
+        <source>KORE Balance</source>
+        <translation>Баланс KORE</translation>
     </message>
     <message>
         <source>Pending:</source>
@@ -2159,8 +2159,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Ваш текущий KORE  баланс, включая неподтвержденные и незрелые транзакции</translation>
     </message>
     <message>
-        <source>zPIV Balance</source>
-        <translation>Баланс zPIV</translation>
+        <source>zKORE Balance</source>
+        <translation>Баланс zKORE</translation>
     </message>
     <message>
         <source>The displayed information may be out of date. Your wallet automatically synchronizes with the KORE network after a connection is established, but this process has not completed yet.</source>
@@ -2207,8 +2207,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Расходуемый:</translation>
     </message>
     <message>
-        <source>Locked PIV or Masternode collaterals. These are excluded from zPIV minting.</source>
-        <translation>Заблокированно дополнительное обеспечение PIV или Masternode. Они исключены из чеканки zPIV.</translation>
+        <source>Locked KORE or Masternode collaterals. These are excluded from zKORE minting.</source>
+        <translation>Заблокированно дополнительное обеспечение KORE или Masternode. Они исключены из чеканки zKORE.</translation>
     </message>
     <message>
         <source>Locked:</source>
@@ -2219,8 +2219,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Неподтвержденный:</translation>
     </message>
     <message>
-        <source>Your current zPIV balance, unconfirmed and immature zPIV included.</source>
-        <translation>Ваш текущий zPIV баланс, включая неподтвержденные и незрелые транзакции</translation>
+        <source>Your current zKORE balance, unconfirmed and immature zKORE included.</source>
+        <translation>Ваш текущий zKORE баланс, включая неподтвержденные и незрелые транзакции</translation>
     </message>
     <message>
         <source>Recent transactions</source>
@@ -2231,10 +2231,10 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>несинронизировано</translation>
     </message>
     <message>
-        <source>Current percentage of zPIV.
+        <source>Current percentage of zKORE.
 If AutoMint is enabled this percentage will settle around the configured AutoMint percentage (default = 10%).
 </source>
-        <translation>Текущий процент от zPIV.
+        <translation>Текущий процент от zKORE.
 Если АвтоЧеканка включена, этот процент будет располагаться на настроенном проценте АвтоЧеканка  (по умолчанию = 10%).
 </translation>
     </message>
@@ -2374,8 +2374,8 @@ To enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in kore.conf<
         <translation>0</translation>
     </message>
     <message>
-        <source>zPIV</source>
-        <translation>zPIV</translation>
+        <source>zKORE</source>
+        <translation>zKORE</translation>
     </message>
     <message>
         <source>Available for minting are coins which are confirmed and not locked or Masternode collaterals.</source>
@@ -2386,8 +2386,8 @@ To enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in kore.conf<
         <translation>Доступный для чеканки</translation>
     </message>
     <message>
-        <source>0.000 000 00 PIV</source>
-        <translation>0.000 000 00 PIV</translation>
+        <source>0.000 000 00 KORE</source>
+        <translation>0.000 000 00 KORE</translation>
     </message>
     <message>
         <source>Reset Zerocoin Wallet DB. Deletes transactions that did not make it into the blockchain.</source>
@@ -2438,24 +2438,24 @@ To enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in kore.conf<
         <translation>Потратить Zerocoin</translation>
     </message>
     <message>
-        <source>Available (mature and spendable) zPIV for spending</source>
-        <translation>Доступный (зрелый и расходуемый) zPIV для расходов</translation>
+        <source>Available (mature and spendable) zKORE for spending</source>
+        <translation>Доступный (зрелый и расходуемый) zKORE для расходов</translation>
     </message>
     <message>
         <source>Available Balance:</source>
         <translation>Доступный Баланс :</translation>
     </message>
     <message>
-        <source>Available (mature and spendable) zPIV for spending
+        <source>Available (mature and spendable) zKORE for spending
 
-zPIV are mature when they have more than 20 confirmations AND more than 2 mints of the same denomination after them were minted</source>
-        <translation>Доступный (зрелый и затратный) zPIV для расходов
+zKORE are mature when they have more than 20 confirmations AND more than 2 mints of the same denomination after them were minted</source>
+        <translation>Доступный (зрелый и затратный) zKORE для расходов
 
-zPIV are mature when they have more than 20 confirmations AND more than 2 mints of the same denomination after them were minted</translation>
+zKORE are mature when they have more than 20 confirmations AND more than 2 mints of the same denomination after them were minted</translation>
     </message>
     <message>
-        <source>0 zPIV</source>
-        <translation>0 zPIV</translation>
+        <source>0 zKORE</source>
+        <translation>0 zKORE</translation>
     </message>
     <message>
         <source>Security Level for Zerocoin Transactions. More is better, but needs more time and resources.</source>
@@ -2526,8 +2526,8 @@ zPIV are mature when they have more than 20 confirmations AND more than 2 mints 
         <translation>Zerocoin Stats:</translation>
     </message>
     <message>
-        <source>Total Balance including unconfirmed and immature zPIV</source>
-        <translation>Общий баланс, включая неподтвержденные и незрелые zPIV</translation>
+        <source>Total Balance including unconfirmed and immature zKORE</source>
+        <translation>Общий баланс, включая неподтвержденные и незрелые zKORE</translation>
     </message>
     <message>
         <source>Total Zerocoin  Balance:</source>
@@ -2542,24 +2542,24 @@ zPIV are mature when they have more than 20 confirmations AND more than 2 mints 
         <translation>Номинал со значением 1:</translation>
     </message>
     <message>
-        <source>Show the current status of automatic zPIV minting.
+        <source>Show the current status of automatic zKORE minting.
 
 To change the status (restart required):
 - enable: add 'enablezeromint=1' to kore.conf
 - disable: add 'enablezeromint=0' to kore.conf
 
 To change the percentage (no restart required):
-- menu Settings-&gt;Options-&gt;Percentage of autominted zPIV
+- menu Settings-&gt;Options-&gt;Percentage of autominted zKORE
 
 </source>
-        <translation>Показать текущий статус автоматической чеканки zPIV.
+        <translation>Показать текущий статус автоматической чеканки zKORE.
 
 Чтобы изменить статус (требуется перезагрузка):
 - включить: добавить 'enablezeromint = 1' в kore.conf
 - отключить: добавить 'enablezeromint = 0' в kore.conf
 
 Чтобы изменить процент (не требуется перезагрузка):
-- меню Настройки-&gt; Параметры-&gt; Процент авторизованного zPIV</translation>
+- меню Настройки-&gt; Параметры-&gt; Процент авторизованного zKORE</translation>
     </message>
     <message>
         <source>AutoMint Status</source>
@@ -2746,12 +2746,12 @@ To change the percentage (no restart required):
         <translation> Настроенный целевой процент: &lt;b&gt;</translation>
     </message>
     <message>
-        <source>zPIV is currently disabled due to maintenance.</source>
-        <translation>zPIV в настоящее время отключен от обслуживания.</translation>
+        <source>zKORE is currently disabled due to maintenance.</source>
+        <translation>zKORE в настоящее время отключен от обслуживания.</translation>
     </message>
     <message>
-        <source>zPIV is currently undergoing maintenance.</source>
-        <translation>В настоящее время zPIV проходит техническое обслуживание.</translation>
+        <source>zKORE is currently undergoing maintenance.</source>
+        <translation>В настоящее время zKORE проходит техническое обслуживание.</translation>
     </message>
     <message>
         <source>Denom. with value &lt;b&gt;1&lt;/b&gt;:</source>
@@ -2838,8 +2838,8 @@ To change the percentage (no restart required):
         <translation>Создан успешно</translation>
     </message>
     <message>
-        <source> zPIV in </source>
-        <translation> zPIV в</translation>
+        <source> zKORE in </source>
+        <translation> zKORE в</translation>
     </message>
     <message>
         <source> sec. Used denominations:
@@ -3678,8 +3678,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>UTXO Размер:</translation>
     </message>
     <message>
-        <source>0 PIV</source>
-        <translation>0 PIV</translation>
+        <source>0 KORE</source>
+        <translation>0 KORE</translation>
     </message>
     <message>
         <source>Transaction Fee:</source>
@@ -3734,12 +3734,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Монеты автоматически выбираются</translation>
     </message>
     <message>
-        <source>If the custom fee is set to 1000 uPIVs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uPIVs in fee,&lt;br /&gt;while "at least" pays 1000 uPIVs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
-        <translation>Если пользовательская плата установлена в 1000 uPIVs, а транзакция составляет всего 250 байт, тогда «за килобайт» платит только 250 uPIVs,&lt;br /&gt;а «по крайней мере» платит 1000 uPIV. Для транзакций, превышающих килобайт, оплата за килобайт</translation>
+        <source>If the custom fee is set to 1000 uKOREs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uKOREs in fee,&lt;br /&gt;while "at least" pays 1000 uKOREs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
+        <translation>Если пользовательская плата установлена в 1000 uKOREs, а транзакция составляет всего 250 байт, тогда «за килобайт» платит только 250 uKOREs,&lt;br /&gt;а «по крайней мере» платит 1000 uKORE. Для транзакций, превышающих килобайт, оплата за килобайт</translation>
     </message>
     <message>
-        <source>If the custom fee is set to 1000 uPIVs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uPIVs in fee,&lt;br /&gt;while "total at least" pays 1000 uPIVs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
-        <translation>Если пользовательская плата установлена в 1000 uPIVs, а транзакция составляет всего 250 байт, тогда «за килобайт» платит только 250 uPIVs,&lt;br /&gt;а «по крайней мере» платит 1000 uPIV. Для транзакций, превышающих килобайт, оплата за килобайт</translation>
+        <source>If the custom fee is set to 1000 uKOREs and the transaction is only 250 bytes, then "per kilobyte" only pays 250 uKOREs in fee,&lt;br /&gt;while "total at least" pays 1000 uKOREs. For transactions bigger than a kilobyte both pay by kilobyte.</source>
+        <translation>Если пользовательская плата установлена в 1000 uKOREs, а транзакция составляет всего 250 байт, тогда «за килобайт» платит только 250 uKOREs,&lt;br /&gt;а «по крайней мере» платит 1000 uKORE. Для транзакций, превышающих килобайт, оплата за килобайт</translation>
     </message>
     <message>
         <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks.&lt;br /&gt;But be aware that this can end up in a never confirming transaction once there is more demand for KORE transactions than the network can process.</source>
@@ -3790,8 +3790,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Добавить &amp;Получателя</translation>
     </message>
     <message>
-        <source>Anonymized PIV</source>
-        <translation>Анонимный PIV</translation>
+        <source>Anonymized KORE</source>
+        <translation>Анонимный KORE</translation>
     </message>
     <message>
         <source>Balance:</source>
@@ -4710,8 +4710,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Отправить Монеты</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 PIV.</source>
-        <translation>SwiftX не поддерживает отправку значений, которые еще высоки. В настоящее время транзакции ограничены %1 PIV.</translation>
+        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <translation>SwiftX не поддерживает отправку значений, которые еще высоки. В настоящее время транзакции ограничены %1 KORE.</translation>
     </message>
 </context>
 <context>
@@ -4752,8 +4752,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>0</translation>
     </message>
     <message>
-        <source>zPIV</source>
-        <translation>zPIV</translation>
+        <source>zKORE</source>
+        <translation>zKORE</translation>
     </message>
     <message>
         <source>Select/Deselect All</source>
@@ -4847,12 +4847,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Выполнить команду, когда лучший блок изменяется (%s в cmd заменяется блочным хэшем)</translation>
     </message>
     <message>
-        <source>Fees (in PIV/Kb) smaller than this are considered zero fee for relaying (default: %s)</source>
-        <translation>Тарифы (в PIV / Kb), меньшие, чем это, считаются нулевой комиссией за ретрансляцию (по умолчанию: %s)</translation>
+        <source>Fees (in KORE/Kb) smaller than this are considered zero fee for relaying (default: %s)</source>
+        <translation>Тарифы (в KORE / Kb), меньшие, чем это, считаются нулевой комиссией за ретрансляцию (по умолчанию: %s)</translation>
     </message>
     <message>
-        <source>Fees (in PIV/Kb) smaller than this are considered zero fee for transaction creation (default: %s)</source>
-        <translation>Плата (в PIV / Kb) меньше этого считается нулевой комиссией за создание транзакции (по умолчанию: %s)</translation>
+        <source>Fees (in KORE/Kb) smaller than this are considered zero fee for transaction creation (default: %s)</source>
+        <translation>Плата (в KORE / Kb) меньше этого считается нулевой комиссией за создание транзакции (по умолчанию: %s)</translation>
     </message>
     <message>
         <source>Flush database activity from memory pool to disk log every &lt;n&gt; megabytes (default: %u)</source>
@@ -4959,12 +4959,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Не удалось найти достаточное количество средств, предназначенных для обфускации, для этой транзакции.</translation>
     </message>
     <message>
-        <source>Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal 10000 PIV.</source>
-        <translation>Невозможно найти достаточное количество средств, не предназначенных для обфускации, для этой транзакции, которые не равны 10000 PIV.</translation>
+        <source>Unable to locate enough Obfuscation non-denominated funds for this transaction that are not equal 10000 KORE.</source>
+        <translation>Невозможно найти достаточное количество средств, не предназначенных для обфускации, для этой транзакции, которые не равны 10000 KORE.</translation>
     </message>
     <message>
-        <source>Unable to locate enough funds for this transaction that are not equal 10000 PIV.</source>
-        <translation>Не удалось найти достаточное количество средств для этой транзакции, которые не равны 10000 PIV.</translation>
+        <source>Unable to locate enough funds for this transaction that are not equal 10000 KORE.</source>
+        <translation>Не удалось найти достаточное количество средств для этой транзакции, которые не равны 10000 KORE.</translation>
     </message>
     <message>
         <source>Use separate SOCKS5 proxy to reach peers via Tor hidden services (default: %s)</source>
@@ -5275,8 +5275,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Не удалось прочитать блок</translation>
     </message>
     <message>
-        <source>Fee (in PIV/kB) to add to transactions you send (default: %s)</source>
-        <translation>Плата (в PIV / kB) для добавления к транзакциям, которые вы отправляете (по умолчанию: %s)</translation>
+        <source>Fee (in KORE/kB) to add to transactions you send (default: %s)</source>
+        <translation>Плата (в KORE / kB) для добавления к транзакциям, которые вы отправляете (по умолчанию: %s)</translation>
     </message>
     <message>
         <source>Finalizing transaction.</source>
@@ -5407,8 +5407,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Процент автоматически отчеканенного Zerocoin (1-100, по умолчанию: %u)</translation>
     </message>
     <message>
-        <source>Reindex the PIV and zPIV money supply statistics</source>
-        <translation>Reindex статистика денежной массы PIV и zPIV</translation>
+        <source>Reindex the KORE and zKORE money supply statistics</source>
+        <translation>Reindex статистика денежной массы KORE и zKORE</translation>
     </message>
     <message>
         <source>SwiftX options:</source>
