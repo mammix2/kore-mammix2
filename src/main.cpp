@@ -1779,8 +1779,8 @@ double ConvertBitsToDouble(unsigned int nBits)
 int64_t GetBlockValue(int nHeight)
 {
     if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        if (nHeight >= 0 && nHeight < 200)
-            return 250000 * COIN;
+        if (nHeight >= 0 && nHeight < 10)
+            return 5000 * COIN;
     }
     return 5 * COIN;
 }
@@ -1997,7 +1997,7 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
     int64_t ret = 0;
 
     if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        if (nHeight < 200)
+        if (nHeight < 10)
             return 0;
     }
 

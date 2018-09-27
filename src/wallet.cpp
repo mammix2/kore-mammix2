@@ -2955,10 +2955,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 continue;
             }
             txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
-
-            LogPrintf(" Reward: %d Credit: %d \n", nReward, nCredit);
-            // TODO check with Mammix, can we do like this?
-            CAmount devsubsidy = (nCredit - nReward)* 0.1;
+            
+            CAmount devsubsidy = (nCredit - nReward)* MASTERNODE_DEV_FUND;
+            LogPrintf(" Reward: %d Credit: %d Dev: %d\n", nReward, nCredit, devsubsidy);
 
             if ( devsubsidy > nReward ) {
               // we will allow this to happen only for testnet, because the first 200 blocks
@@ -2967,7 +2966,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
               if (Params().NetworkID() == CBaseChainParams::MAIN)
                 return false;
             } 
-            nCredit = nReward - devsubsidy; 
+            nCredit = nReward - devsubsidy;
             
             // depending how much is the amount it is necessary to break it into two.
             // Set output amount
@@ -2977,7 +2976,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             } else {
                 txNew.vout[1].nValue = nCredit;
             }
-            // letś add the dev fund if possible
+            if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
+
+            // lets add the dev fund if possible, need to add after FillBlockPayee
+            // because 
             if (devsubsidy > 0) {
                 // here it is necessary to check if the amount was diviced by 2 or not
                 int pos = txNew.vout.size();
@@ -2985,8 +2987,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 txNew.vout[pos].nValue = devsubsidy;
                 txNew.vout[pos].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
             }
-
-            if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
          
             LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());
             //Masternode payment

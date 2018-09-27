@@ -311,6 +311,8 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     }
 
     CAmount blockValue = GetBlockValue(pindexPrev->nHeight);
+    // 10% is for development, need to remove that !
+    if (fProofOfStake) blockValue *=  (1-MASTERNODE_DEV_FUND);
     CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0);
 
     if (hasPayment) {
@@ -323,16 +325,17 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             unsigned int i = txNew.vout.size();
             txNew.vout.resize(i + 1);
             txNew.vout[i].scriptPubKey = payee;
-            txNew.vout[i].nValue = masternodePayment;            
+            txNew.vout[i].nValue = masternodePayment;
+            //subtract mn payment from the stake reward
             if (stakeSplitted)
               {
-                CAmount total = txNew.vout[i - 1].nValue * 2;
+                CAmount total = txNew.vout[0].nValue * 2;
                 total -= masternodePayment;
-                txNew.vout[i - 1].nValue = total/2;
-                txNew.vout[i - 2].nValue = total/2;
+                txNew.vout[0].nValue = total/2;
+                txNew.vout[1].nValue = total/2;
               }
               else {
-                txNew.vout[i - 1].nValue -= masternodePayment;
+                txNew.vout[0].nValue -= masternodePayment;
               }            
         } else {
             txNew.vout.resize(2);
