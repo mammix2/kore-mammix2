@@ -61,7 +61,6 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript &genesi
     genesis.vtx.push_back(txNew);
     genesis.hashPrevBlock.SetNull();
     genesis.hashMerkleRoot = genesis.BuildMerkleTree();
-    //genesis.hashMerkleRoot = genesis.BlockMerkleRoot();
     
     return genesis;
 }
@@ -290,12 +289,16 @@ public:
         nRejectOldSporkKey = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         //        CreateGenesisBlock(nTime,      nNonce, nBirthdayA,  nBirthdayB,  nBits,  nVersion,  genesisReward)
-	    genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
+        // genesis for Kore - using momentum
+	    // genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
+        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 3      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
         hashGenesisBlock = genesis.GetHash();
         LogPrintf("%s", hashGenesisBlock.ToString());
         genesis.print();
-        assert(hashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
-        //MineNewGenesisBlock();
+        //assert(hashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
+        assert(hashGenesisBlock == uint256("0x153544fcc00d0b231cade18b7cf5fe0c7b7fc2d0429a79bc6f972778683e9e18"));
+        if (false)
+          MineNewGenesisBlock();
         assert(genesis.hashMerkleRoot == uint256("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
         // Primary DNS Seeder 
         vSeeds.push_back(CDNSSeedData("kore-dnsseed-1", "dnsseed.kore.life"));
@@ -414,15 +417,20 @@ public:
         const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
         // genesis when using momentum
         //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
-        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
+        // genesis for momentum
+        //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
+        // genesis for yescrytR32
+        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 7 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
         assert(genesis.hashMerkleRoot == uint256("0x73bf9a836ff7c2fc79445a622ce5154bfde2811c57c397d6a3909bc97390174a"));
         // Activate only when creating a new genesis block
-        if (true)
+        if (false)
             MineNewGenesisBlock();
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        assert(hashGenesisBlock == uint256("0x0ba6c4977e9da831f14ff9180b37e30a96e78cb3581029907eb24c55cf079fc5"));
+        // for momentum
+        //assert(hashGenesisBlock == uint256("0x0ba6c4977e9da831f14ff9180b37e30a96e78cb3581029907eb24c55cf079fc5"));
+        assert(hashGenesisBlock == uint256("0x0d7edba948672b6444b96155b79c22fc4da6dd1014a5f3a148594c60a12def23"));
 
         vFixedSeeds.clear();
         vSeeds.clear();

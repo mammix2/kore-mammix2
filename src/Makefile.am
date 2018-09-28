@@ -150,7 +150,7 @@ BITCOIN_CORE_H = \
   net.h \
   netaddress.h \
   noui.h \
-  pos.h \  
+  pos.h \
   pow.h \
   protocol.h \
   pubkey.h \
@@ -319,7 +319,7 @@ libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
   allocators.cpp \
-  arith_uint256.cpp \    
+  arith_uint256.cpp \
   amount.cpp \
   base58.cpp \
   bip38.cpp \

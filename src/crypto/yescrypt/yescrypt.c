@@ -102,8 +102,8 @@ static int yescrypt_wavi(const uint8_t *passwd, size_t passwdlen,
 
 void yescrypt_hash(const char *input, char *output)
 {
-    yescrypt_wavi((const uint8_t *) input, 80,
-                     (const uint8_t *) input, 80,
+    yescrypt_wavi((const uint8_t *) input, 88,
+                     (const uint8_t *) input, 88,
                      (uint8_t *) output, 32);
 }
 

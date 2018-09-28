@@ -422,7 +422,7 @@ public:
 
     uint256 GetHash() {
         uint256 result;
-        assert(buf.size() == 80);
+        assert(buf.size() == 88);
         yescrypt_hash((const char*)buf.data(), (char*)&result);
         return result;
     }
