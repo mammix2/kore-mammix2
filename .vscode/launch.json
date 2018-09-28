@@ -35,7 +35,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.1/gdb/data-directory",
+            //"miDebuggerArgs": "--data-directory=/home/kore/gdb-8.1/gdb/data-directory",
             "additionalSOLibSearchPath": "/home/kore/EXPRESSKORE/depends/x86_64-pc-linux-gnu/lib;/usr/lib/x86_64-linux-gnu",
             "setupCommands": [
                 {

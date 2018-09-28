@@ -139,7 +139,10 @@ void CChainParams::MineNewGenesisBlock()
 
     while (true) {
         //thash = genesis.CalculateBestBirthdayHash();
-        thash = UintToArith256(genesis.CalculateBestBirthdayHash());
+
+        // Testing yescript. This is just for testnet
+        //thash = UintToArith256(genesis.CalculateBestBirthdayHash());
+        thash = UintToArith256(genesis.GetHash());
         printf("genesis.nNonce = %u \n", genesis.nNonce);
         printf("teHash      %s\n", thash.ToString().c_str());
         printf("Hash Target %s\n", hashTarget.ToString().c_str());
@@ -409,11 +412,13 @@ public:
         // sending rewards to this public key            
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
+        // genesis when using momentum
+        //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
         assert(genesis.hashMerkleRoot == uint256("0x73bf9a836ff7c2fc79445a622ce5154bfde2811c57c397d6a3909bc97390174a"));
         // Activate only when creating a new genesis block
-        if (false)
+        if (true)
             MineNewGenesisBlock();
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());

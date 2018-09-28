@@ -76,7 +76,7 @@ public:
 
     uint256 GetHash() const;
 	
-    uint256 GetVerifiedHash() const;
+    //uint256 GetVerifiedHash() const;
 
     uint256 CalculateBestBirthdayHash();
 
@@ -172,16 +172,7 @@ public:
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
     std::string ToString() const;
     void print() const;
-
-#ifdef LICO
-    uint256 BlockMerkleRoot(bool* mutated = NULL) const;
-#endif    
-
-private:
-#ifdef LICO
-    uint256 ComputeMerkleRoot(const std::vector<uint256>& leaves, bool* mutated) const;
-    void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) const;
-#endif    
+   
 };
 
 
