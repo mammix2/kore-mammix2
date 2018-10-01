@@ -74,6 +74,40 @@ bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits,
     return true;
 }
 
+bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime)
+{
+    uint256 hashProofOfStake, targetProofOfStake;
+
+    CTransaction prevtx;
+    uint256 hashBlock;
+    if (!GetTransaction(prevout.hash, prevtx, hashBlock, true))
+        return false;
+
+    CBlockIndex* pIndex = NULL;
+    BlockMap::iterator iter = mapBlockIndex.find(hashBlock);
+    if (iter != mapBlockIndex.end()) 
+        pIndex = iter->second;
+
+    // Read block header
+    CBlock block;
+    if (!ReadBlockFromDisk(block, pIndex))
+        return false;
+
+    // Maturity requirement
+    if (pindexPrev->nHeight - pIndex->nHeight < STAKE_MIN_CONFIRMATIONS)
+        return false;
+
+    if (pBlockTime)
+        *pBlockTime = block.GetBlockTime();
+
+    // Min age requirement
+    if (prevtx.nTime + Params().StakeMinAge() > nTime) // Min age requirement
+        return false;
+
+    return CheckStakeKernelHash(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), prevout, nTime, hashProofOfStake);
+}
+
+
 /*
   This method is what kore is using currently which is now being changed 
   to the method in the kernel.cpp

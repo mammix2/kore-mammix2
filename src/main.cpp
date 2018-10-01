@@ -1757,6 +1757,7 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex)
 }
 
 
+
 double ConvertBitsToDouble(unsigned int nBits)
 {
     int nShift = (nBits >> 24) & 0xff;
@@ -1775,6 +1776,14 @@ double ConvertBitsToDouble(unsigned int nBits)
 
     return dDiff;
 }
+
+CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input)
+{
+    CAmount subsidy = input + input * 0.00024;
+
+    return subsidy;
+}
+
 
 int64_t GetBlockValue(int nHeight)
 {

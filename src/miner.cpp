@@ -144,7 +144,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         bool fStakeFound = false;
         if (nSearchTime >= nLastCoinStakeSearchTime) {
             unsigned int nTxNewTime = 0;
-            if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime - nLastCoinStakeSearchTime, txCoinStake, nTxNewTime, fProofOfStake)) {
+            CKey key;
+            if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime - nLastCoinStakeSearchTime, txCoinStake, nTxNewTime, fProofOfStake, key)) {
                 pblock->nTime = nTxNewTime;
                 pblock->vtx[0].vout[0].SetEmpty();
                 if (fDebug) LogPrintf("txCoinStake: %s", txCoinStake.ToString());

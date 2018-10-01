@@ -20,6 +20,8 @@ static const int STAKE_MIN_AGE = 4 * 60 * 60;
 bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, 
                           const COutPoint& prevout, unsigned int nTimeTx, uint256& hashProofOfStake);
 
+bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime);                          
+
 uint256 ComputeStakeModifier_Legacy(const CBlockIndex* pindexPrev, const uint256& kernel);
 bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits,
                            uint256& hashProofOfStake, std::unique_ptr<CStakeInput>& stake);
