@@ -55,7 +55,7 @@ bool fPayAtLeastCustomFee = true;
 int64_t nStartupTime = GetTime(); //!< Client startup time for use with automint
 
 
-bool CWallet::SplitStake(CAmount & stake) const
+bool CWallet::SplitStake(CAmount stake) const
 {
     return stake / 2 > (CAmount)(nStakeSplitThreshold * COIN);
 }
@@ -3066,28 +3066,20 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Calculate reward
             CAmount nReward;
             nReward = GetBlockValue(chainActive.Height() + 1);
-            nCredit += nReward;
 
             // Create the output transaction(s)
             vector<CTxOut> vout;
-            bool stakeSplitted = SplitStake(nCredit);
+            bool stakeSplitted = SplitStake(nCredit+nReward);
             if (!stakeInput->CreateTxOuts(this, vout, stakeSplitted)) {
                 LogPrintf("%s : failed to get scriptPubKey\n", __func__);
                 continue;
             }
             txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
             
-            CAmount devsubsidy = (nCredit - nReward)* MASTERNODE_DEV_FUND;
+            CAmount devsubsidy = nReward * 0.1;
             LogPrintf(" Reward: %d Credit: %d Dev: %d\n", nReward, nCredit, devsubsidy);
 
-            if ( devsubsidy > nReward ) {
-              // we will allow this to happen only for testnet, because the first 200 blocks
-              // has a big reward value. This should not happen for main net !!!
-              devsubsidy = 0;
-              if (Params().NetworkID() == CBaseChainParams::MAIN)
-                return false;
-            } 
-            nCredit = nReward - devsubsidy;
+            nCredit += nReward - devsubsidy;
             
             // depending how much is the amount it is necessary to break it into two.
             // Set output amount

@@ -24,7 +24,6 @@
 #define MASTERNODE_MIN_COINS 500
 #define MASTERNODE_COIN_SCORE 499 
 
-static const float  MASTERNODE_DEV_FUND = 0.1;
 using namespace std;
 
 class CMasternode;
