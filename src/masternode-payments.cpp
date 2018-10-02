@@ -312,7 +312,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
     CAmount blockValue = GetBlockValue(pindexPrev->nHeight);
     // 10% is for development, need to subtract the 10%
-    if (fProofOfStake) blockValue *=  (1-MASTERNODE_DEV_FUND);
+    if (fProofOfStake) blockValue *=  0.9;
     CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0);
     LogPrint("masternode","Block Value of %s Masternode Payment of %s\n", FormatMoney(blockValue).c_str(), FormatMoney(masternodePayment).c_str());
 

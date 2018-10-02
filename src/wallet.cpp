@@ -3076,8 +3076,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             }
             txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
             
+            // 10% dev Fund
             CAmount devsubsidy = nReward * 0.1;
-            LogPrintf(" Reward: %d Credit: %d Dev: %d\n", nReward, nCredit, devsubsidy);
+            LogPrintf(" Reward: %d Credit: %d Dev: %d\n", FormatMoney(nReward), FormatMoney(nCredit), FormatMoney(devsubsidy));
 
             nCredit += nReward - devsubsidy;
             
