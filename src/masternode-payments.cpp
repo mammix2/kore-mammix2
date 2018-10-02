@@ -311,9 +311,10 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     }
 
     CAmount blockValue = GetBlockValue(pindexPrev->nHeight);
-    // 10% is for development, need to remove that !
+    // 10% is for development, need to subtract the 10%
     if (fProofOfStake) blockValue *=  (1-MASTERNODE_DEV_FUND);
     CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0);
+    LogPrint("masternode","Block Value of %s Masternode Payment of %s\n", FormatMoney(blockValue).c_str(), FormatMoney(masternodePayment).c_str());
 
     if (hasPayment) {
         if (fProofOfStake) {
@@ -331,16 +332,18 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
               {
                 CAmount total = txNew.vout[0].nValue * 2;
                 total -= masternodePayment;
-                txNew.vout[0].nValue = total/2;
+                // remember vout[0] must be null for POS
                 txNew.vout[1].nValue = total/2;
+                txNew.vout[2].nValue = total/2;
               }
               else {
-                txNew.vout[0].nValue -= masternodePayment;
-              }            
+                txNew.vout[1].nValue -= masternodePayment;
+              }
         } else {
             txNew.vout.resize(2);
             txNew.vout[1].scriptPubKey = payee;
             txNew.vout[1].nValue = masternodePayment;
+            // here it is pow, so it is ok to use vout[0]
             txNew.vout[0].nValue = blockValue - masternodePayment;
         }
 
