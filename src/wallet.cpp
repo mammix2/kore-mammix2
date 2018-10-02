@@ -54,6 +54,12 @@ bool fSendFreeTransactions = false;
 bool fPayAtLeastCustomFee = true;
 int64_t nStartupTime = GetTime(); //!< Client startup time for use with automint
 
+
+bool CWallet::SplitStake(CAmount & stake) const
+{
+    return stake / 2 > (CAmount)(nStakeSplitThreshold * COIN);
+}
+
 static CAmount GetStakeCombineThreshold_Legacy() { return 980 * COIN; }
 static CAmount GetStakeSplitThreshold_Legacy() { return 2 * GetStakeCombineThreshold_Legacy(); }
 
@@ -2981,17 +2987,12 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, strFailReason, coinControl, coin_type, useIX, nFeePay);
 }
 
-bool CWallet::SplitStake(CAmount & stake) const
-{
-    return stake / 2 > (CAmount)(nStakeSplitThreshold * COIN);
-}
-
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, bool fProofOfStake, CKey& key)
 {
 
     // FORK
-    return CreateCoinStake_Legacy(keystore, nBits,  nSearchInterval, txNew, key);
+    // return CreateCoinStake_Legacy(keystore, nBits,  nSearchInterval, txNew, key);
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
     //int64_t nCombineThreshold = 0;
@@ -3060,7 +3061,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
             // Found a kernel
             LogPrintf("CreateCoinStake : kernel found\n");
-            nCredit += stakeInput->GetValue();
+            nCredit = stakeInput->GetValue();
 
             // Calculate reward
             CAmount nReward;
