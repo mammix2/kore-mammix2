@@ -330,7 +330,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             //subtract mn payment from the stake reward
             if (stakeSplitted)
               {
-                CAmount total = txNew.vout[0].nValue * 2;
+                CAmount total = txNew.vout[1].nValue * 2;
                 total -= masternodePayment;
                 // remember vout[0] must be null for POS
                 txNew.vout[1].nValue = total/2;
