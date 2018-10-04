@@ -188,7 +188,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         CBlockIndex* pindexPrev = chainActive.Tip();
         const int nHeight = pindexPrev->nHeight + 1;
-        pblock->nTime = GetAdjustedTime();
+        if (!fProofOfStake)
+          pblock->nTime = GetAdjustedTime();
         pblock->nVersion =  1;
         CCoinsViewCache view(pcoinsTip);
 
