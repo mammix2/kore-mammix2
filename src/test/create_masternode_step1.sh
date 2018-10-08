@@ -1,5 +1,7 @@
 #!/bin/sh
 
+masternode_coins_amount=500
+
 if [ $# -lt 5 ]
 then
 echo "#############################################################################"
@@ -17,6 +19,11 @@ echo "##   password: user's password for masternode configuration"
 echo "## example:"
 echo "##   create_masternode_step1.sh testnet MasternodeI 443xtqzgm2vxi7fy.onion  kore 12345"
 echo "## "
+echo "## Requirements"
+echo "##   1) have jq installed in the systems"
+echo "##   2) control wallet user/password is kore/kore"
+echo "##   3) you should have $masternode_coins_amount COINS in this wallet"
+echo "##"
 echo "## PLEASE install jq from here https://stedolan.github.io/jq/"
 echo "#############################################################################"
 echo "#############################################################################"
@@ -30,7 +37,6 @@ echo "#################### MASTERNODE CONFIGURATION ############################
 echo "####################                          ############################"
 
 dir=`pwd`
-masternode_coins_amount=500
 network=$1
 masternode_name=$2
 masternode_onion_address=$3
@@ -100,7 +106,7 @@ command="$dir/pivx-cli $cli_args decoderawtransaction $hex_raw_transaction"
 echo "  command: $command"
 nValue=`$command | jq .vout[] | jq select\(.value==$masternode_coins_amount\) | jq .n`
 
-echo "$masternode_name masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue" > $control_wallet
+echo "$masternode_name $masternode_onion_addressmasternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue" > $control_wallet
 
 echo "Please the configurations are in the files" 
 echo "This file will be used for masternode configuration: $masternode_conf_file"
