@@ -521,7 +521,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                     LogPrintf("***************************************************************\n");
                     LogPrintf("***************************************************************\n");
                     LogPrintf("***************************************************************\n");
-                    LogPrintf("BitcoinMiner Checking if it is already time to stake");
+                    LogPrintf("BitcoinMiner Checking if it is already time to stake \n");
                     LogPrintf("BitcoinMiner vNodes Empty                ? %s (should be false)\n", vNodes.empty() ? "true" : "false");
                     LogPrintf("BitcoinMiner Wallet Locked               ? %s (should be false) \n", pwallet->IsLocked() ? "true" : "false");
                     LogPrintf("BitcoinMiner Is there Mintable Coins     ? %s (should be true) \n", fMintableCoins ? "true" : "false");
