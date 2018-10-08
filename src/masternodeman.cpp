@@ -987,6 +987,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         CTxOut vout = CTxOut((MASTERNODE_MIN_COINS - 0.01) * COIN, obfuScationPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
+        tx.nTime = GetAdjustedTime();
 
         bool fAcceptable = false;
         {
@@ -1146,18 +1147,20 @@ void CMasternodeMan::Remove(CTxIn vin)
 
 void CMasternodeMan::UpdateMasternodeList(CMasternodeBroadcast mnb)
 {
-	mapSeenMasternodePing.insert(make_pair(mnb.lastPing.GetHash(), mnb.lastPing));
-	mapSeenMasternodeBroadcast.insert(make_pair(mnb.GetHash(), mnb));
-	masternodeSync.AddedMasternodeList(mnb.GetHash());
+    LOCK(cs);
+    mapSeenMasternodePing.insert(make_pair(mnb.lastPing.GetHash(), mnb.lastPing));
+    mapSeenMasternodeBroadcast.insert(make_pair(mnb.GetHash(), mnb));
 
     LogPrint("masternode","CMasternodeMan::UpdateMasternodeList() -- masternode=%s\n", mnb.vin.prevout.ToString());
 
     CMasternode* pmn = Find(mnb.vin);
     if (pmn == NULL) {
         CMasternode mn(mnb);
-        Add(mn);
-    } else {
-    	pmn->UpdateFromNewBroadcast(mnb);
+        if (Add(mn)) {
+            masternodeSync.AddedMasternodeList(mnb.GetHash());
+        }
+    } else if (pmn->UpdateFromNewBroadcast(mnb)) {
+        masternodeSync.AddedMasternodeList(mnb.GetHash());
     }
 }
 

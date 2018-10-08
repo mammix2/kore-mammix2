@@ -120,7 +120,6 @@ void CBudgetManager::CheckOrphanVotes()
 {
     LOCK(cs);
 
-
     std::string strError = "";
     std::map<uint256, CBudgetVote>::iterator it1 = mapOrphanMasternodeBudgetVotes.begin();
     while (it1 != mapOrphanMasternodeBudgetVotes.end()) {
@@ -558,7 +557,6 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, b
             pfinalizedBudget->GetPayeeAndAmount(pindexPrev->nHeight + 1, payee, nAmount)) {
             nHighestCount = pfinalizedBudget->GetVoteCount();
         }
-
         ++it;
     }
 
@@ -910,12 +908,8 @@ CAmount CBudgetManager::GetTotalBudget(int nHeight)
 {
     if (chainActive.Tip() == NULL) return 0;
 
-    if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        CAmount nSubsidy = 500 * COIN;
-        return ((nSubsidy / 100) * 10) * 146;
-    }
-
     CAmount nSubsidy =  5 * COIN;
+
     // Amount of blocks in a months period of time (using 2 minutes per) = (30*24*30)
 
     return ((nSubsidy / 100) * 10) * 1440 * 30;

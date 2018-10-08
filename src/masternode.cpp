@@ -219,6 +219,7 @@ void CMasternode::Check(bool forceCheck)
         CTxOut vout = CTxOut( (MASTERNODE_MIN_COINS - 0.01) * COIN, obfuScationPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
+        tx.nTime = GetAdjustedTime();
 
         {
             TRY_LOCK(cs_main, lockMain);
@@ -587,6 +588,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     CTxOut vout = CTxOut( (MASTERNODE_MIN_COINS - 0.01) * COIN, obfuScationPool.collateralPubKey);
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
+    tx.nTime = GetAdjustedTime();
 
     {
         TRY_LOCK(cs_main, lockMain);

@@ -501,8 +501,8 @@ public:
         // Proposals must be at least a day old to make it into a budget
         if (Params().NetworkID() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60 * 60 * 24));
 
-        // For testing purposes - 5 minutes
-        return (nTime < GetTime() - (60 * 5));
+        // For testing purposes - 1 minute
+        return (nTime < GetTime() - (60 * 1));
     }
 
     std::string GetName() { return strProposalName; }
