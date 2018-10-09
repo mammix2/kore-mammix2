@@ -3061,7 +3061,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             }
 
             // Found a kernel
-            LogPrintf("CreateCoinStake : kernel found\n");
+            //LogPrintf("CreateCoinStake : kernel found\n");
             nCredit = stakeInput->GetValue();
 
             // Calculate reward
@@ -3079,7 +3079,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             
             // 10% dev Fund
             CAmount devsubsidy = nReward * 0.1;
-            LogPrintf(" Reward: %d Credit: %d Dev: %d\n", FormatMoney(nReward), FormatMoney(nCredit), FormatMoney(devsubsidy));
+            //LogPrintf(" Reward: %d Credit: %d Dev: %d\n", FormatMoney(nReward), FormatMoney(nCredit), FormatMoney(devsubsidy));
 
             nCredit += nReward - devsubsidy;
             
@@ -3091,7 +3091,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             } else {
                 txNew.vout[1].nValue = nCredit;
             }
-            if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
+            //if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
 
             // lets add the dev fund if possible, need to add after FillBlockPayee
             // because 
@@ -3103,10 +3103,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 txNew.vout[pos].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
             }
          
-            LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());
+            //LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());
             //Masternode payment
             FillBlockPayee(txNew, 0, fProofOfStake, stakeInput->IsZPIV(), stakeSplitted);
-            LogPrintf("CreateCoinStake : after FillBlockPayee txNew: %s\n", txNew.ToString());
+            //LogPrintf("CreateCoinStake : after FillBlockPayee txNew: %s\n", txNew.ToString());
 
             uint256 hashTxOut = txNew.GetHash();
             CTxIn in;
@@ -3117,7 +3117,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 continue;
             }
             txNew.vin.emplace_back(in);
-            LogPrintf("CreateCoinStake : emplace_back: %s\n", txNew.ToString());
+            //LogPrintf("CreateCoinStake : emplace_back: %s\n", txNew.ToString());
             
             // Limit size
             unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);

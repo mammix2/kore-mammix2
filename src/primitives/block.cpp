@@ -44,6 +44,11 @@ uint256 CBlockHeader::GetVerifiedHash() const
 }
 #endif
 
+uint256 CBlockHeader::GetHash_Legacy()
+{
+  return CalculateBestBirthdayHash();
+}
+
 uint256 CBlockHeader::CalculateBestBirthdayHash()
 {
     uint256 midHash = GetMidHash();

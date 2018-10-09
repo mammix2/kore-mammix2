@@ -1532,16 +1532,16 @@ bool CBudgetProposal::AddOrUpdateVote(CBudgetVote& vote, std::string& strError)
             LogPrint("mnbudget", "CBudgetProposal::AddOrUpdateVote - %s\n", strError);
             return false;
         }
-        if (vote.nTime - mapVotes[hash].nTime < BUDGET_VOTE_UPDATE_MIN) {
-            strError = strprintf("time between votes is too soon - %s - %lli sec < %lli sec\n", vote.GetHash().ToString(), vote.nTime - mapVotes[hash].nTime,BUDGET_VOTE_UPDATE_MIN);
+        if (vote.nTime - mapVotes[hash].nTime < Params().BudgetVoteUpdate()) {
+            strError = strprintf("time between votes is too soon - %s - %lli sec < %lli sec\n", vote.GetHash().ToString(), vote.nTime - mapVotes[hash].nTime,Params().BudgetVoteUpdate());
             LogPrint("mnbudget", "CBudgetProposal::AddOrUpdateVote - %s\n", strError);
             return false;
         }
         strAction = "Existing vote updated:";
     }
 
-    if (vote.nTime > GetTime() + (60 * 60)) {
-        strError = strprintf("new vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", vote.GetHash().ToString(), vote.nTime, GetTime() + (60 * 60));
+    if (vote.nTime > GetTime() + Params().BudgetVoteUpdate()) {
+        strError = strprintf("new vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", vote.GetHash().ToString(), vote.nTime, GetTime() + Params().BudgetVoteUpdate());
         LogPrint("mnbudget", "CBudgetProposal::AddOrUpdateVote - %s\n", strError);
         return false;
     }
@@ -1800,16 +1800,16 @@ bool CFinalizedBudget::AddOrUpdateVote(CFinalizedBudgetVote& vote, std::string& 
             LogPrint("mnbudget", "CFinalizedBudget::AddOrUpdateVote - %s\n", strError);
             return false;
         }
-        if (vote.nTime - mapVotes[hash].nTime < BUDGET_VOTE_UPDATE_MIN) {
-            strError = strprintf("time between votes is too soon - %s - %lli sec < %lli sec\n", vote.GetHash().ToString(), vote.nTime - mapVotes[hash].nTime,BUDGET_VOTE_UPDATE_MIN);
+        if (vote.nTime - mapVotes[hash].nTime < Params().BudgetVoteUpdate()) {
+            strError = strprintf("time between votes is too soon - %s - %lli sec < %lli sec\n", vote.GetHash().ToString(), vote.nTime - mapVotes[hash].nTime,Params().BudgetVoteUpdate());
             LogPrint("mnbudget", "CFinalizedBudget::AddOrUpdateVote - %s\n", strError);
             return false;
         }
         strAction = "Existing vote updated:";
     }
 
-    if (vote.nTime > GetTime() + (60 * 60)) {
-        strError = strprintf("new vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", vote.GetHash().ToString(), vote.nTime, GetTime() + (60 * 60));
+    if (vote.nTime > GetTime() + Params().BudgetVoteUpdate()) {
+        strError = strprintf("new vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", vote.GetHash().ToString(), vote.nTime, GetTime() + Params().BudgetVoteUpdate());
         LogPrint("mnbudget", "CFinalizedBudget::AddOrUpdateVote - %s\n", strError);
         return false;
     }

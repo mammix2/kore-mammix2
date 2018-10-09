@@ -192,12 +192,6 @@ bool CSporkManager::CheckSignature(CSporkMessage& spork, bool fCheckSigner)
     if (fCheckSigner && !fValidWithNewKey)
         return false;
 
-    // See if window is open that allows for old spork key to sign messages
-    if (!fValidWithNewKey && GetAdjustedTime() < Params().RejectOldSporkKey()) {
-        CPubKey pubkeyold(ParseHex(Params().SporkKeyOld()));
-        return obfuScationSigner.VerifyMessage(pubkeyold, spork.vchSig, strMessage, errorMessage);
-    }
-
     return fValidWithNewKey;
 }
 

@@ -622,7 +622,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             LogPrintf("nbits : %08x \n", pblock->nBits);            
             while (true) {
                 // LICO - For
-                //hash = pblock->CalculateBestBirthdayHash();
+                //hash = pblock->GetHash_Legacy();
                 hash = pblock->GetHash();
                 LogPrintf("pblock.nBirthdayA: %d\n", pblock->nBirthdayA);
                 LogPrintf("pblock.nBirthdayB: %d\n", pblock->nBirthdayB);

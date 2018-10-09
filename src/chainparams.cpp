@@ -137,10 +137,10 @@ void CChainParams::MineNewGenesisBlock()
     arith_uint256 hashTarget = UintToArith256(bnProofOfWorkLimit);
 
     while (true) {
-        //thash = genesis.CalculateBestBirthdayHash();
+        //thash = genesis.GetHash_Legacy();
 
         // Testing yescript. This is just for testnet
-        //thash = UintToArith256(genesis.CalculateBestBirthdayHash());
+        //thash = UintToArith256(genesis.GetHash_Legacy());
         thash = UintToArith256(genesis.GetHash());
         printf("genesis.nNonce = %u \n", genesis.nNonce);
         printf("teHash      %s\n", thash.ToString().c_str());
@@ -328,9 +328,9 @@ public:
 
         nPoolMaxTransactions = 3;
         strSporkKey = "0427E31B51989DB4DFEAB8C3901FB1862A621E6B0D4CF556E5C9AAD7283A46C915EC4508FB4F248534C3A03FC0475ED3785086B9C217E0F42ED4C8BF80ED2296C8";
-        strSporkKeyOld = "04B433E6598390C992F4F022F20D3B4CBBE691652EE7C48243B81701CBDB7CC7D7BF0EE09E154E6FCBF2043D65AF4E9E97B89B5DBAF830D83B9B7F469A6C45A717";
         strObfuscationPoolDummyAddress = "KWFvN4Gb55dzG95cq3k5jXFmNVkJLftyjZ";
         nStartMasternodePayments = 1508884606; //Genesis time
+        nBudgetVoteUpdate = 60*60;     // can only change vote after 1 hour
 
 #ifdef ZEROCOIN
         /** Zerocoin */
@@ -456,12 +456,12 @@ public:
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 2;
-        strSporkKey = "04A8B319388C0F8588D238B9941DC26B26D3F9465266B368A051C5C100F79306A557780101FE2192FE170D7E6DEFDCBEE4C8D533396389C0DAFFDBC842B002243C";
-        strSporkKeyOld = "04348C2F50F90267E64FACC65BFDC9D0EB147D090872FB97ABAE92E9A36E6CA60983E28E741F8E7277B11A7479B626AC115BA31463AC48178A5075C5A9319D4A38";
-        strObfuscationPoolDummyAddress = "y57cqfGRkekRyDRNeJiLtYVEbvhXrNbmox";
+        strSporkKey = "0410a94288986fd6e71dc298dc9ea31b049d1dee6b0d23065e2c1e86d07b782e1e6a84e3b93614136bb3c1a955d628f032c6bb843cdd8270370244ceb1feaff1a2";
+        strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
         nStartMasternodePayments = 1533841307; //genesis block time
         nBudget_Fee_Confirmations = 3; // Number of confirmations for the finalization fee. We have to make this very short
                                        // here because we only have a 8 block finalization window on testnet
+        nBudgetVoteUpdate = 1*60;     // can only change vote after 1 minute
     }
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
