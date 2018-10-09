@@ -1,9 +1,9 @@
-// Copyright (c) 2018 The PIVX developers
+// Copyright (c) 2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PIVX_ACCUMULATORCHECKPOINTS_JSON_H
-#define PIVX_ACCUMULATORCHECKPOINTS_JSON_H
+#ifndef KORE_ACCUMULATORCHECKPOINTS_JSON_H
+#define KORE_ACCUMULATORCHECKPOINTS_JSON_H
 
 #include <string>
 std::string GetMainCheckpoints() {
@@ -475,4 +475,4 @@ std::string GetRegTestCheckpoints() {
     return strRegTestCheckpoints;
 }
 
-#endif //PIVX_ACCUMULATORCHECKPOINTS_JSON_H
+#endif //KORE_ACCUMULATORCHECKPOINTS_JSON_H

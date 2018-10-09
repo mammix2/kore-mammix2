@@ -1,7 +1,7 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2015-2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -267,7 +267,7 @@ public:
         nClientMintibleCoinsInterval =  5 * 60;
         nClientMintibleCoinsInterval =  1 * 60;
         nMaturity = 25;
-        nMasternodeCountDrift = 20;          // ONLY PIVX
+        nMasternodeCountDrift = 20;          // ONLY KORE
         nMaxMoneyOut = 12000000 * COIN;
 
         /** Height or Time Based Activations **/
@@ -379,8 +379,8 @@ public:
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
         nMinerThreads = 0;
-        nTargetTimespan = 1 * 60; // PIVX: 1 minute
-        nTargetSpacing = 1 * 30;  // PIVX: 30 seconds
+        nTargetTimespan = 1 * 60; // KORE: 1 minute
+        nTargetSpacing = 1 * 30;  // KORE: 30 seconds
         nStakeTargetSpacing = 10; // stake every 10 minutes
         nPastBlocksMin = 64;
         nPastBlocksMax = 64;
@@ -434,7 +434,7 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "pivx-testnet.seed.fuzzbawls.pw"));
+        vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "kore-testnet.seed.fuzzbawls.pw"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,105);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,190);
