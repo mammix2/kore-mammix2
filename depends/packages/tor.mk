@@ -8,6 +8,7 @@ $(package)_dependencies=zlib libevent openssl
 define $(package)_set_vars
 $(package)_config_opts=--disable-asciidoc
 $(package)_config_opts=--disable-tool-name-check
+$(package)_config_opts=--disable-seccomp
 endef
 
 define $(package)_config_cmds
