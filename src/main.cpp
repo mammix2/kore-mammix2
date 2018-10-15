@@ -3571,7 +3571,7 @@ bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigne
 
 bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool fCheckPOW)
 {
-    LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
+    if (fDebug) LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader() : proof of work failed"),
@@ -3586,13 +3586,13 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
-    LogPrintf("CheckBlock fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
+    if (fDebug) LogPrintf("CheckBlock fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
     if (!CheckBlockHeader(block, state, block.IsProofOfWork() && fCheckPOW))
         return state.DoS(100, error("CheckBlock() : CheckBlockHeader failed"),
             REJECT_INVALID, "bad-header", true);
 
     // Check timestamp
-    LogPrint("debug", "%s: block=%s  is proof of stake=%s \n", __func__, block.GetHash().ToString().c_str(), block.IsProofOfStake() ? "true" : "false");
+    if (fDebug) LogPrint("debug", "%s: block=%s  is proof of stake=%s \n", __func__, block.GetHash().ToString().c_str(), block.IsProofOfStake() ? "true" : "false");
     if (block.GetBlockTime() > GetAdjustedTime() + (block.IsProofOfStake() ? 180 : 7200)) // 3 minute future drift for PoS
         return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
             REJECT_INVALID, "time-too-new");
