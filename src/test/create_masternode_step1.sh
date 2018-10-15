@@ -69,17 +69,17 @@ echo "##########################################################################
 
 echo "Executing from $dir"
 echo "Creating masternode account"
-command="$dir/pivx-cli $cli_args getaccountaddress $masternode_name"
+command="$dir/kore-cli $cli_args getaccountaddress $masternode_name"
 echo "  command: $command"
 masternode_account=`$command`
 
 echo "Generating masternode Private Key"
-command="$dir/pivx-cli $cli_args masternode genkey"
+command="$dir/kore-cli $cli_args masternode genkey"
 echo "  command: $command"
 masternode_private_key=`$command`
 
 echo "Sending $masternode_coins_amount to $masternode_account"
-command="$dir/pivx-cli $cli_args sendtoaddress $masternode_account $masternode_coins_amount"
+command="$dir/kore-cli $cli_args sendtoaddress $masternode_account $masternode_coins_amount"
 masternode_tx=`$command`
 echo "  command: $command"
 
@@ -97,12 +97,12 @@ echo "masternodeprivkey=$masternode_private_key"  >> $masternode_conf_file
 echo "masternodeaddr=$masternode_onion_address"   >> $masternode_conf_file
 
 echo "Generating $control_wallet file"
-command="$dir/pivx-cli $cli_args gettransaction $masternode_tx"
+command="$dir/kore-cli $cli_args gettransaction $masternode_tx"
 echo "  command: $command"
 hex_raw_transaction=`$command | jq .hex | tr -d \"`
 
 echo "$hex_raw_transaction"
-command="$dir/pivx-cli $cli_args decoderawtransaction $hex_raw_transaction"
+command="$dir/kore-cli $cli_args decoderawtransaction $hex_raw_transaction"
 echo "  command: $command"
 nValue=`$command | jq .vout[] | jq select\(.value==$masternode_coins_amount\) | jq .n`
 
