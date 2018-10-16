@@ -111,3 +111,8 @@ echo "$masternode_name $masternode_onion_address:$masternode_port $masternode_pr
 echo "Please the configurations are in the files" 
 echo "This file will be used for masternode configuration: $masternode_conf_file"
 echo "This file will be used controle wallet configuration: $control_wallet"
+
+echo "Please use the following command to check if the $masternode_coins_amount sent to $masternode_account already in the blockchain "
+command="$dir/test/create_masternode_step2.sh $network $masternode_account $masternode_coins_amount $control_wallet_user $control_wallet_password"
+echo "$command"
+
