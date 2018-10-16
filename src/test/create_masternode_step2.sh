@@ -16,6 +16,7 @@ echo "##   <account>      : masternode account"
 echo "##   <deposit>      : masternode money requirement"
 echo "##   <rpc-user>     : control wallet rpc user"
 echo "##   <rpc-passoword>: control wallet rpc password"
+echo "##   The amount in the address may change, once the masternode can receive rewards"
 echo "#############################################################################"
 echo "#############################################################################"
 exit 1
@@ -41,10 +42,6 @@ echo "##   rpc-password: $control_wallet_password"
 echo "##   cli args: $cli_args"
 echo "##########################################################################"
 
-
 command="$dir/kore-cli $cli_args listaddressgroupings"
-echo "  command: $command"
-command2="jq '{address:(.[][])}' | jq 'select(.address[0]==\"$masternode_account\" and .address[1]==$masternode_deposit)'"
-command="$command | $command2"
-echo "  command: $command"
-echo "$result"
+result=$($command | jq '{address:(.[][])}' | jq select\(.address[0]==\"$masternode_account\"and.address[1]==$masternode_deposit\) )
+echo $result
