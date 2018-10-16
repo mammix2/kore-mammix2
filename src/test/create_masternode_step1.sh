@@ -106,7 +106,7 @@ command="$dir/kore-cli $cli_args decoderawtransaction $hex_raw_transaction"
 echo "  command: $command"
 nValue=`$command | jq .vout[] | jq select\(.value==$masternode_coins_amount\) | jq .n`
 
-echo "$masternode_name $masternode_onion_addressmasternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue" > $control_wallet
+echo "$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue" > $control_wallet
 
 echo "Please the configurations are in the files" 
 echo "This file will be used for masternode configuration: $masternode_conf_file"

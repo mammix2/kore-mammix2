@@ -8,8 +8,8 @@
             "name": "Attach to pivxd",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceFolder}/src/pivxd",
-            "processId": "38702",
+            "program": "${workspaceFolder}/src/kored",
+            "processId": "111916",
             "MIMode": "gdb",
             "setupCommands": [
                 {
