@@ -88,7 +88,9 @@ confirmations=`$command | jq .confirmations`
 while [ $confirmations != $nBudgetFeeConfirmations ]
 do
   echo " Waiting for $nBudgetFeeConfirmations confirmations. we have $confirmations"
-  confirmations = `$command | jq .confirmations`
+  sleep 5
+  echo " command: $command"
+  confirmations=`$command | jq .confirmations`
 done
 
 echo ""
