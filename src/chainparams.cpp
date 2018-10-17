@@ -459,7 +459,7 @@ public:
         strSporkKey = "0410a94288986fd6e71dc298dc9ea31b049d1dee6b0d23065e2c1e86d07b782e1e6a84e3b93614136bb3c1a955d628f032c6bb843cdd8270370244ceb1feaff1a2";
         strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
         nStartMasternodePayments = 1533841307; //genesis block time
-        nBudget_Fee_Confirmations = 3; // Number of confirmations for the finalization fee. We have to make this very short
+        nBudget_Fee_Confirmations = 2; // Number of confirmations for the finalization fee. We have to make this very short
                                        // here because we only have a 8 block finalization window on testnet
         nBudgetVoteUpdate = 1*60;     // can only change vote after 1 minute
     }
