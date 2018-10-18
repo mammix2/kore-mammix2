@@ -21,14 +21,13 @@ fi
 
 dir=`pwd`
 network=$1
-proposal_name=$2
-proposal_link=$3
+proposal_name="\"$2\""
+proposal_link="\"$3\""
 proposal_one_payment=$4
 proposal_how_many_payments=$5
 control_wallet_user=kore
 control_wallet_password=kore
 masternode_proposal_fee=100
-txConfirmations=6
 # This parameter should match 
 # chainparams nBudget_Fee_Confirmations
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
@@ -88,14 +87,14 @@ echo "##########################################################################
 command="$dir/kore-cli $cli_args gettransaction $proposal_preparation_hash"
 
 confirmations=`$command | jq .confirmations`
-while [ $confirmations != $txConfirmations ]
+while [ $confirmations != $nBudgetFeeConfirmations ]
 do
-  echo " Waiting for $nBudgetFeeConfirmations confirmations. we have $confirmations"
-  sleep 5
-  echo " command: $command"
+  echo " Waiting for $nBudgetFeeConfirmations confirmations, so far we have $confirmations"
+  sleep 10
   confirmations=`$command | jq .confirmations`
 done
-
+echo " COOL ! We got all $nBudgetFeeConfirmations confirmations"
+echo ""
 echo ""
 echo ""
 echo "##########################################################################"
@@ -103,13 +102,13 @@ echo "## 4 Step - Submit Proposal"
 command="$dir/kore-cli $cli_args mnbudget submit $proposal_name $proposal_link $proposal_how_many_payments $proposal_start_at_block $proposal_account $proposal_one_payment $proposal_preparation_hash"
 echo "  command: $command"
 voting_hash=`$command`
-
 echo ""
 echo ""
 echo "##########################################################################"
 echo "## Proposal Details"
 command="$dir/kore-cli $cli_args mnbudget getinfo $proposal_name"
 echo "  command: $command"
+echo `$command`
 
 echo ""
 echo ""
