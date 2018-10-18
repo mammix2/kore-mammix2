@@ -46,6 +46,7 @@ control_wallet_user=kore
 control_wallet_password=kore
 masternode_conf_file="$dir/$masternode_name.conf"
 control_wallet="$dir/masternode.conf.$masternode_name"
+txConfirmations=6
 
 cli_args="-$network -debug -rpcuser=$control_wallet_user -rpcpassword=$control_wallet_password"
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
@@ -112,7 +113,24 @@ echo "Please the configurations are in the files"
 echo "This file will be used for masternode configuration: $masternode_conf_file"
 echo "This file will be used controle wallet configuration: $control_wallet"
 
-echo "Please use the following command to check if the $masternode_coins_amount sent to $masternode_account already in the blockchain "
-command="$dir/test/create_masternode_step2.sh $network $masternode_account $masternode_coins_amount $control_wallet_user $control_wallet_password"
-echo "$command"
+echo "##########################################################################"
+echo "## it is necessary to wait for the collateral confirmations"
+echo "##########################################################################"
+command="$dir/kore-cli $cli_args gettransaction $masternode_tx"
+
+confirmations=`$command | jq .confirmations`
+while [ $confirmations != $txConfirmations ]
+do
+  echo " Waiting for $txConfirmations confirmations. we have $confirmations"
+  sleep 5
+  echo " command: $command"
+  confirmations=`$command | jq .confirmations`
+done
+
+echo "##########################################################################"
+echo "## Congratulations your Masternode is ready to be started !!!             "
+echo "## Before activating it, make sure, you have updated it's kore.conf       "
+echo "##########################################################################"
+
+
 

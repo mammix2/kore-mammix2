@@ -14,6 +14,8 @@ echo "##   name: a name for your proposal - without spaces"
 echo "##   link: link to your proposal - without spaces"
 echo "##   amount: one payment amount"
 echo "##   payments: how many payments of amount"
+echo "##"
+echo "##   example: ./test/masternode/masternode_proposal_creation.sh testnet Primeira-Proposta Link-da-Proposta 1000 1"
 exit 1
 fi
 
@@ -26,6 +28,7 @@ proposal_how_many_payments=$5
 control_wallet_user=kore
 control_wallet_password=kore
 masternode_proposal_fee=100
+txConfirmations=6
 # This parameter should match 
 # chainparams nBudget_Fee_Confirmations
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
@@ -85,7 +88,7 @@ echo "##########################################################################
 command="$dir/kore-cli $cli_args gettransaction $proposal_preparation_hash"
 
 confirmations=`$command | jq .confirmations`
-while [ $confirmations != $nBudgetFeeConfirmations ]
+while [ $confirmations != $txConfirmations ]
 do
   echo " Waiting for $nBudgetFeeConfirmations confirmations. we have $confirmations"
   sleep 5
