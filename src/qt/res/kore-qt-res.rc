@@ -20,7 +20,7 @@ BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
             VALUE "CompanyName",        "Kore"
-            VALUE "FileDescription",    "Kore Core (GUI node for Kore)"
+            VALUE "FileDescription",    "Kore Core (GUI node for Kore )"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "kore-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR
