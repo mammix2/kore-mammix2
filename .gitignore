@@ -3,6 +3,13 @@
 *.sublime-workspace
 todo.txt
 reset-files.bash
+EXPRESSKORE.config
+EXPRESSKORE.creator
+EXPRESSKORE.creator.user
+EXPRESSKORE.files
+EXPRESSKORE.includes
+EXPRESSKORE.pro
+EXPRESSKORE.pro.user
 
 *.tar.gz
 
