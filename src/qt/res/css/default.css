@@ -158,7 +158,7 @@ background-color:transparent;
 }
 
 .QValidatedLineEdit, .QLineEdit { /* Text Entry Fields */
-border: 1px solid #E62D00;
+border: 1px solid #333333;
 font-size:11px;
 min-height:25px;
 outline:0;
@@ -205,7 +205,7 @@ border:1px solid #333;
 }
 
 QComboBox { /* Dropdown Menus */
-border:1px solid #E62D00;
+border:1px solid #333333;
 padding: 3px 5px 3px 5px;
 background:#ffffff;
 min-height:25px;
@@ -213,16 +213,19 @@ color:#818181;
 }
 
 QComboBox:checked {
+border:1px solid #333333;
 background:#f2f2f2;
 }
 
 QComboBox:editable {
+border:1px solid #333333;
 background:#6C6262;
 color:#616161;
 border:0px solid transparent;
 }
 
 QComboBox::drop-down {
+border:1px solid #333333;
 width:25px;
 border:0px;
 }
@@ -233,7 +236,7 @@ border-image: url(':/images/downArrow') 0 0 0 0 stretch stretch;
 
 QComboBox QListView {
 background:#ffffff;
-border:1px solid #333;
+border:1px solid #333333;
 padding-right:1px;
 padding-left:1px;
 color:#818181;
@@ -264,7 +267,7 @@ selection-color:transparent;
 }
 
 QAbstractSpinBox {
-border:1px solid #E62D00;
+border:1px solid #333333;
 padding: 3px 5px 3px 5px;
 background:#ffffff;
 min-height:25px;
@@ -277,8 +280,8 @@ subcontrol-position: top right;
 width:21px;
 background:#ffffff;
 border-left:0px;
-border-right:1px solid #E62D00;
-border-top:1px solid #E62D00;
+border-right:1px solid #333333;
+border-top:1px solid #333333;
 border-bottom:0px;
 padding-right:1px;
 padding-left:5px;
@@ -296,8 +299,8 @@ width:21px;
 background:#ffffff;
 border-top:0px;
 border-left:0px;
-border-right:1px solid #E62D00;
-border-bottom:1px solid #E62D00;
+border-right:1px solid #333333;
+border-bottom:1px solid #333333;
 padding-right:1px;
 padding-left:5px;
 padding-bottom:2px;
@@ -527,6 +530,7 @@ width:15px;
 }
 
 QDialog .QTabWidget .QWidget QComboBox {
+border: 1px solid #333333;
 min-height:15px;
 }
 
@@ -701,6 +705,7 @@ min-height:33px; /* base width of 25px for QLineEdit, plus padding and border */
 
 /* Options Dialog */
 QDialog#OptionsDialog QValueComboBox, QDialog#OptionsDialog QSpinBox {
+border: 1px solid #333333;
 margin-top:5px;
 margin-bottom:5px;
 }
@@ -1507,7 +1512,7 @@ padding-right:5px;
 }
 
 QWidget#ReceiveCoinsDialog .QFrame#frame2 .QLabel#label { /* Amount Label */
-background-color:#6a6a6a;
+background-color:#E62D00;
 min-width:102px;
 color:#ffffff;
 font-weight:bold;
