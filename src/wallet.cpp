@@ -3100,7 +3100,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 int pos = txNew.vout.size();
                 txNew.vout.resize(pos+1);
                 txNew.vout[pos].nValue = devsubsidy;
-                txNew.vout[pos].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
+                txNew.vout[pos].scriptPubKey = CScript() << ParseHex(Params().DevFundPubKey()) << OP_CHECKSIG;
             }
          
             //LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());

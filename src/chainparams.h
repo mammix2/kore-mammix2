@@ -103,6 +103,7 @@ public:
     int PoolMaxTransactions() const { return nPoolMaxTransactions; }
 
     /** Spork key and Masternode Handling **/
+    std::string DevFundPubKey() const { return strDevFundPubKey; }
     std::string SporkKey() const { return strSporkKey; }
     int64_t NewSporkStart() const { return nEnforceNewSporkKey; }
     int64_t RejectOldSporkKey() const { return nRejectOldSporkKey; }
@@ -175,6 +176,7 @@ protected:
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
     CBaseChainParams::Network networkID;
     std::string strNetworkID;
+    std::string strDevFundPubKey;
     CBlock genesis;
     std::vector<CAddress> vFixedSeeds;
     bool fMiningRequiresPeers;

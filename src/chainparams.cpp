@@ -327,6 +327,7 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
+        strDevFundPubKey = "02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b";
         strSporkKey = "0427E31B51989DB4DFEAB8C3901FB1862A621E6B0D4CF556E5C9AAD7283A46C915EC4508FB4F248534C3A03FC0475ED3785086B9C217E0F42ED4C8BF80ED2296C8";
         strObfuscationPoolDummyAddress = "KWFvN4Gb55dzG95cq3k5jXFmNVkJLftyjZ";
         nStartMasternodePayments = 1508884606; //Genesis time
@@ -456,7 +457,8 @@ public:
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 2;
-        strSporkKey = "0410a94288986fd6e71dc298dc9ea31b049d1dee6b0d23065e2c1e86d07b782e1e6a84e3b93614136bb3c1a955d628f032c6bb843cdd8270370244ceb1feaff1a2";
+        strDevFundPubKey = "FB16FAF70501F5292A630BCED3EC5FF4DF277D637E855D129896066854E1D2C9";
+        strSporkKey      = "CA99E36F198EEDD11B386CF2127A036EC1F0028C2B2A5EC0FF71AA2045C1C449";
         strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
         nStartMasternodePayments = 1533841307; //genesis block time
         nBudget_Fee_Confirmations = 2; // Number of confirmations for the finalization fee. We have to make this very short
