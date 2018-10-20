@@ -93,7 +93,6 @@ BitcoinGUI::BitcoinGUI(const NetworkStyle* networkStyle, QWidget* parent) : QMai
             multisigSignAction(0),
             aboutAction(0),
             receiveCoinsAction(0),
-            privacyAction(0),
             optionsAction(0),
             toggleHideAction(0),
             encryptWalletAction(0),
@@ -349,16 +348,6 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
 #endif
     tabGroup->addAction(historyAction);
 
-    privacyAction = new QAction(QIcon(":/icons/privacy"), tr("&Privacy"), this);
-    privacyAction->setStatusTip(tr("Privacy Actions for zKORE"));
-    privacyAction->setToolTip(privacyAction->statusTip());
-    privacyAction->setCheckable(true);
-#ifdef Q_OS_MAC
-    privacyAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_5));
-#else
-    privacyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
-#endif
-    tabGroup->addAction(privacyAction);
 
 #ifdef ENABLE_WALLET
 
@@ -386,8 +375,6 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
-    connect(privacyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(privacyAction, SIGNAL(triggered()), this, SLOT(gotoPrivacyPage()));
     connect(historyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
 #endif // ENABLE_WALLET
@@ -578,9 +565,7 @@ void BitcoinGUI::createToolBars()
         toolbar->addAction(overviewAction);
         toolbar->addAction(sendCoinsAction);
         toolbar->addAction(receiveCoinsAction);
-        toolbar->addAction(privacyAction);
         toolbar->addAction(historyAction);
-        toolbar->addAction(privacyAction);
         QSettings settings;
         if (settings.value("fShowMasternodesTab").toBool()) {
             toolbar->addAction(masternodeAction);
@@ -602,49 +587,9 @@ void BitcoinGUI::createToolBars()
         QWidget* containerWidget = new QWidget();
         containerWidget->setLayout(layout);
         setCentralWidget(containerWidget);
-}
+    }
 
-//    QLabel* labelLogo = new QLabel();
-//    labelLogo->show();
-//    labelLogo->setPixmap(QPixmap(":icons/banner"));
-    
-//    QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
-//    addToolBar(Qt::LeftToolBarArea, toolbar);
-//    toolbar->setOrientation(Qt::Vertical);
-//    toolbar->setFixedWidth(228);
-//    toolbar->setFixedHeight(450);
-//    //toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-//    toolbar->setMovable(false);
-//    toolbar->addWidget(labelLogo);
-//    toolbar->setIconSize(QSize(50,20));
-//    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-//    QWidget* space = new QWidget();
-//    space->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-//    toolbar->addWidget(space);
-//    //toolbar->setStyleSheet("#toolbar {border-radius: 20px; font-weight:600; background:rgba(255, 255, 255, 0); text-align: left; min-width:180px;} QToolBar QToolButton { font-weight:600;font-size:12px; padding-left:20px; padding-right:180px; padding-top:4px;padding-bottom:4px; width:100%; text-align: left; text-transform:uppercase; }");
 
-//    if(walletFrame)
-//    {
-//        toolbar->setObjectName("Main-Toolbar"); // Name for CSS addressing
-//        toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-//        toolbar->addAction(overviewAction);
-//        toolbar->addAction(sendCoinsAction);
-//        toolbar->addAction(receiveCoinsAction);
-//        toolbar->addAction(privacyAction);
-//        toolbar->addAction(historyAction);
-//        toolbar->addAction(privacyAction);
-//        QSettings settings;
-//        if (settings.value("fShowMasternodesTab").toBool()) {
-//            toolbar->addAction(masternodeAction);
-//        }
-//    }
-
-//    //browserButton = new QPushButton(this);
-//    //browserButton->setText("Web Browser");
-//    //connect(browserButton, SIGNAL(released()), this, SLOT(browserClicked()));
-//    //toolbar->addWidget(browserButton);
-
-//    toolbar->addWidget(space);
 }
 
 void BitcoinGUI::setClientModel(ClientModel* clientModel)
@@ -722,7 +667,6 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     overviewAction->setEnabled(enabled);
     sendCoinsAction->setEnabled(enabled);
     receiveCoinsAction->setEnabled(enabled);
-    privacyAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
     QSettings settings;
     if (settings.value("fShowMasternodesTab").toBool()) {
@@ -779,7 +723,6 @@ void BitcoinGUI::createTrayIconMenu()
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(sendCoinsAction);
     trayIconMenu->addAction(receiveCoinsAction);
-    trayIconMenu->addAction(privacyAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(signMessageAction);
     trayIconMenu->addAction(verifyMessageAction);
@@ -873,12 +816,6 @@ void BitcoinGUI::gotoReceiveCoinsPage()
 {
     receiveCoinsAction->setChecked(true);
     if (walletFrame) walletFrame->gotoReceiveCoinsPage();
-}
-
-void BitcoinGUI::gotoPrivacyPage()
-{
-    privacyAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoPrivacyPage();
 }
 
 void BitcoinGUI::gotoSendCoinsPage(QString addr)
