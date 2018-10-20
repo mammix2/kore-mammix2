@@ -564,7 +564,6 @@ void BitcoinGUI::createToolBars()
 
     if (walletFrame) {
         QLabel* header = new QLabel();
-//        header->setMinimumSize(180,180);
         header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         header->setPixmap(QPixmap(":/images/banner"));
         header->setAlignment(Qt::AlignHCenter);
@@ -574,9 +573,6 @@ void BitcoinGUI::createToolBars()
         toolbar->setObjectName("Main-Toolbar"); // Name for CSS addressing
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         // Add some empty space at the top of the toolbars
-//        QWidget* spacer = new QWidget(this);
-
-//        toolbar->addWidget(spacer);
         toolbar->setObjectName("ToolbarSpacer");
         toolbar->addWidget(header);
         toolbar->addAction(overviewAction);
@@ -592,7 +588,6 @@ void BitcoinGUI::createToolBars()
         toolbar->setMovable(false); // remove unused icon in upper left corner
         toolbar->setOrientation(Qt::Vertical);
         toolbar->setIconSize(QSize(40,40));
-//        toolbar->setFixedWidth(200);
         overviewAction->setChecked(true);
 
         /** Create additional container for toolbar and walletFrame and make it the central widget.
