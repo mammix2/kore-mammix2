@@ -147,7 +147,7 @@ newKoreKey() {
             compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)")"
             echo ---
             echo "private key:          0x$exponent"
-            echo "public key:"
+            echo "key:"
             echo "    X:                    $X"
             echo "    Y:                    $Y"
             echo "compressed:"
@@ -193,6 +193,4 @@ vanityAddressFromPublicPoint() {
 # Creating a new Key
 newKoreKey
 
-# For checking the key:
-# ./kore-cli -testnet importprivkey <WIF-uncompressed> "test"
-# ./kore-cli -testnet getaddressesbyaccount "test"
+echo "Use the WIF and https://coinb.in/#verify to get all KEYS details"
