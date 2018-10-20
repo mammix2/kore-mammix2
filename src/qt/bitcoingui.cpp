@@ -55,6 +55,7 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QSizePolicy>
 
 #if QT_VERSION < 0x050000
 #include <QTextDocument>
@@ -559,14 +560,16 @@ void BitcoinGUI::createMenuBar()
 
 void BitcoinGUI::createToolBars()
 {
+
+
     if (walletFrame) {
         QToolBar* toolbar = new QToolBar(tr("Tabs toolbar"));
         toolbar->setObjectName("Main-Toolbar"); // Name for CSS addressing
-        toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         // Add some empty space at the top of the toolbars
-        QAction* spacer = new QAction(this);
-        toolbar->addAction(spacer);
-        toolbar->widgetForAction(spacer)->setObjectName("ToolbarSpacer");
+        QWidget* spacer = new QWidget(this);
+        toolbar->addWidget(spacer);
+        toolbar->setObjectName("ToolbarSpacer");
 
         toolbar->addAction(overviewAction);
         toolbar->addAction(sendCoinsAction);
@@ -581,7 +584,7 @@ void BitcoinGUI::createToolBars()
         toolbar->setMovable(false); // remove unused icon in upper left corner
         toolbar->setOrientation(Qt::Vertical);
         toolbar->setIconSize(QSize(40,40));
-        toolbar->setFixedWidth(130);
+//        toolbar->setFixedWidth(200);
         overviewAction->setChecked(true);
 
         /** Create additional container for toolbar and walletFrame and make it the central widget.
@@ -596,7 +599,49 @@ void BitcoinGUI::createToolBars()
         QWidget* containerWidget = new QWidget();
         containerWidget->setLayout(layout);
         setCentralWidget(containerWidget);
-    }
+}
+
+//    QLabel* labelLogo = new QLabel();
+//    labelLogo->show();
+//    labelLogo->setPixmap(QPixmap(":icons/banner"));
+    
+//    QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
+//    addToolBar(Qt::LeftToolBarArea, toolbar);
+//    toolbar->setOrientation(Qt::Vertical);
+//    toolbar->setFixedWidth(228);
+//    toolbar->setFixedHeight(450);
+//    //toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//    toolbar->setMovable(false);
+//    toolbar->addWidget(labelLogo);
+//    toolbar->setIconSize(QSize(50,20));
+//    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+//    QWidget* space = new QWidget();
+//    space->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//    toolbar->addWidget(space);
+//    //toolbar->setStyleSheet("#toolbar {border-radius: 20px; font-weight:600; background:rgba(255, 255, 255, 0); text-align: left; min-width:180px;} QToolBar QToolButton { font-weight:600;font-size:12px; padding-left:20px; padding-right:180px; padding-top:4px;padding-bottom:4px; width:100%; text-align: left; text-transform:uppercase; }");
+
+//    if(walletFrame)
+//    {
+//        toolbar->setObjectName("Main-Toolbar"); // Name for CSS addressing
+//        toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+//        toolbar->addAction(overviewAction);
+//        toolbar->addAction(sendCoinsAction);
+//        toolbar->addAction(receiveCoinsAction);
+//        toolbar->addAction(privacyAction);
+//        toolbar->addAction(historyAction);
+//        toolbar->addAction(privacyAction);
+//        QSettings settings;
+//        if (settings.value("fShowMasternodesTab").toBool()) {
+//            toolbar->addAction(masternodeAction);
+//        }
+//    }
+
+//    //browserButton = new QPushButton(this);
+//    //browserButton->setText("Web Browser");
+//    //connect(browserButton, SIGNAL(released()), this, SLOT(browserClicked()));
+//    //toolbar->addWidget(browserButton);
+
+//    toolbar->addWidget(space);
 }
 
 void BitcoinGUI::setClientModel(ClientModel* clientModel)
