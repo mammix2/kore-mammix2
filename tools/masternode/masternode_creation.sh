@@ -35,12 +35,14 @@ exit 1
 fi
 
 if [ $# -eq 4 ]
+then
 $echo "## missing authentication user and password"
 exit 1
 fi
 
 
 if [ $# -eq 5 ]
+then
 control_wallet_user=$4
 control_wallet_password=$5
 fi
@@ -50,17 +52,18 @@ echo "####################                          ############################
 echo "#################### MASTERNODE CONFIGURATION ############################"
 echo "####################                          ############################"
 
-dir=`pwd`
+dir=`pwd`/../../src
 user_dir=$HOME
 network=$1
 masternode_name=$2
 masternode_onion_address=$3
 masternode_user=$control_wallet_user
 masternode_password=$control_wallet_password
-masternode_conf_file="$dir/$masternode_name.conf"
+masternode_conf_file=`pwd`/$masternode_name.conf
 txConfirmations=6
 
 if [ $# -eq 5 ]
+then
 cli_args="-$network -debug -rpcuser=$control_wallet_user -rpcpassword=$control_wallet_password"
 else 
 cli_args="-$network -debug"
@@ -82,6 +85,7 @@ echo "##   masternode-name   : $masternode_name"
 echo "##   masternode-address: $masternode_onion_address"
 echo "##   masternode-port   : $masternode_port"
 if [ $# -eq 5 ]
+then
 echo "##   user    : $masternode_user"
 echo "##   password: $masternode_password"
 fi
@@ -110,6 +114,7 @@ echo "Generating $masternode_conf_file file"
 echo "server=1" > $masternode_conf_file
 echo "daemon=1" >> $masternode_conf_file
 if [ $# -eq 5 ]
+then
 echo "rpcuser=$masternode_user"  >> $masternode_conf_file
 echo "rpcpassword=$masternode_password"  >> $masternode_conf_file
 fi
