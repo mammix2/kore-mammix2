@@ -563,14 +563,22 @@ void BitcoinGUI::createToolBars()
 
 
     if (walletFrame) {
+        QLabel* header = new QLabel();
+//        header->setMinimumSize(180,180);
+        header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        header->setPixmap(QPixmap(":/images/banner"));
+        header->setAlignment(Qt::AlignHCenter);
+        header->setMaximumSize(220,124);
+        header->setScaledContents(true);
         QToolBar* toolbar = new QToolBar(tr("Tabs toolbar"));
         toolbar->setObjectName("Main-Toolbar"); // Name for CSS addressing
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         // Add some empty space at the top of the toolbars
-        QWidget* spacer = new QWidget(this);
-        toolbar->addWidget(spacer);
-        toolbar->setObjectName("ToolbarSpacer");
+//        QWidget* spacer = new QWidget(this);
 
+//        toolbar->addWidget(spacer);
+        toolbar->setObjectName("ToolbarSpacer");
+        toolbar->addWidget(header);
         toolbar->addAction(overviewAction);
         toolbar->addAction(sendCoinsAction);
         toolbar->addAction(receiveCoinsAction);
