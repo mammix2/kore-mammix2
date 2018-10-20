@@ -457,8 +457,8 @@ public:
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 2;
-        strDevFundPubKey = "FB16FAF70501F5292A630BCED3EC5FF4DF277D637E855D129896066854E1D2C9";
-        strSporkKey      = "CA99E36F198EEDD11B386CF2127A036EC1F0028C2B2A5EC0FF71AA2045C1C449";
+        strDevFundPubKey = "04fb16faf70501f5292a630bced3ec5ff4df277d637e855d129896066854e1d2c9d7cab8dbd5b98107594e74a005e127c66c13a918be477fd3827b872b33d25e03";
+        strSporkKey      = "04ca99e36f198eedd11b386cf2127a036ec1f0028c2b2a5ec0ff71aa2045c1c4494d45013467a5653eb64442a4d8f93ca62e00f5d9004a3a6469e72b8516ed4a99";
         strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
         nStartMasternodePayments = 1533841307; //genesis block time
         nBudget_Fee_Confirmations = 2; // Number of confirmations for the finalization fee. We have to make this very short
