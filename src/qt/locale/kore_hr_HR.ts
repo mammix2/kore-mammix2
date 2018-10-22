@@ -2442,8 +2442,8 @@ Da biste omogućili, promjenite postavke AutoMint 'enablezeromint=0' na 'enablez
         <translation>PRIVATNOST</translation>
     </message>
     <message>
-        <source>Enter an amount of Piv to convert to zKORE</source>
-        <translation>Unesite iznos Piv za pretvorbu u zKORE</translation>
+        <source>Enter an amount of kore to convert to zKORE</source>
+        <translation>Unesite iznos kore za pretvorbu u zKORE</translation>
     </message>
     <message>
         <source>zKORE Control</source>
@@ -4858,7 +4858,7 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Select zKORE to Spend</source>
         <translation>Odabrani zKORE za utrošiti</translation>

@@ -321,7 +321,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     </context>
 <context>
     <name>kore-core</name>

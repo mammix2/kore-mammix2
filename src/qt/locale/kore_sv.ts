@@ -2341,7 +2341,7 @@ För att aktivera AutoMint ändra 'enablezeromint=0' till 'enablezeromint=1' i k
         <translation>SEKRETESS</translation>
     </message>
     <message>
-        <source>Enter an amount of Piv to convert to zKORE</source>
+        <source>Enter an amount of kore to convert to zKORE</source>
         <translation>Mata in en mängd KORE att konvertera till zKORE</translation>
     </message>
     <message>
@@ -4625,7 +4625,7 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Select zKORE to Spend</source>
         <translation>Välj zKORE att Spendera</translation>

@@ -3093,7 +3093,7 @@ To enable AutoMint change &apos;enablezeromint=0&apos; to &apos;enablezeromint=1
     <message>
         <location line="+182"/>
         <location line="+52"/>
-        <source>Enter an amount of Piv to convert to zKORE</source>
+        <source>Enter an amount of kore to convert to zKORE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6219,9 +6219,9 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
-        <location filename="../forms/zpivcontroldialog.ui" line="+20"/>
+        <location filename="../forms/zkorecontroldialog.ui" line="+20"/>
         <source>Select zKORE to Spend</source>
         <translation type="unfinished"></translation>
     </message>

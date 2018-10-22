@@ -2442,7 +2442,7 @@ Om AutoMint in te schakelend verander je 'enablezeromint=0' naar 'enablezeromint
         <translation>PRIVACY</translation>
     </message>
     <message>
-        <source>Enter an amount of Piv to convert to zKORE</source>
+        <source>Enter an amount of kore to convert to zKORE</source>
         <translation>Vul het aantal KORE in om te converteren naar zKORE</translation>
     </message>
     <message>
@@ -2479,7 +2479,7 @@ Om AutoMint in te schakelend verander je 'enablezeromint=0' naar 'enablezeromint
 zKORE are mature when they have more than 20 confirmations AND more than 2 mints of the same denomination after them were minted</source>
         <translation>Beschikbare (volwwassen en uitgeefbaar) zKORE voor besteding
 
-zPiv zijn volwassen wanneer zij meer dan 20 bevestigingen hebben EN meer dan 2 muntages van dezelfde denominaties nadat zij gemunt zijn.</translation>
+zkore zijn volwassen wanneer zij meer dan 20 bevestigingen hebben EN meer dan 2 muntages van dezelfde denominaties nadat zij gemunt zijn.</translation>
     </message>
     <message>
         <source>0 zKORE</source>
@@ -4858,7 +4858,7 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Select zKORE to Spend</source>
         <translation>Selecteer zKORE om te besteden</translation>

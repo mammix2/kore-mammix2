@@ -2433,7 +2433,7 @@ Um das automatische Prägen zu aktivieren ändere 'enablezeromint=0' zu 'enablez
         <translation>PRIVATSPHÄRE</translation>
     </message>
     <message>
-        <source>Enter an amount of Piv to convert to zKORE</source>
+        <source>Enter an amount of kore to convert to zKORE</source>
         <translation>Geben Sie den Betrag ein, den sie von KORE in zKORE umwandeln möchten</translation>
     </message>
     <message>
@@ -4848,7 +4848,7 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Select zKORE to Spend</source>
         <translation>Wählen Sie die zKORE aus, die Sie ausgeben möchten</translation>

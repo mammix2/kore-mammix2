@@ -1131,7 +1131,7 @@ Adresse: %4
     </message>
     <message>
         <source>Can vary +/- %1 uKORE per input.</source>
-        <translation>Kan variere +/- %1 opiv pr input.</translation>
+        <translation>Kan variere +/- %1 okore pr input.</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -4745,7 +4745,7 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Quantity</source>
         <translation>Antal</translation>

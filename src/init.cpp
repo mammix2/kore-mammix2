@@ -516,8 +516,8 @@ std::string HelpMessage(HelpMessageMode mode)
 #ifdef ENABLE_WALLET
     strUsage += HelpMessageGroup(_("Staking options:"));
     strUsage += HelpMessageOpt("-staking=<n>", strprintf(_("Enable staking functionality (0-1, default: %u)"), 1));
-    strUsage += HelpMessageOpt("-pivstake=<n>", strprintf(_("Enable or disable staking functionality for KORE inputs (0-1, default: %u)"), 1));
-    strUsage += HelpMessageOpt("-zpivstake=<n>", strprintf(_("Enable or disable staking functionality for zKORE inputs (0-1, default: %u)"), 1));
+    strUsage += HelpMessageOpt("-korestake=<n>", strprintf(_("Enable or disable staking functionality for KORE inputs (0-1, default: %u)"), 1));
+    strUsage += HelpMessageOpt("-zkorestake=<n>", strprintf(_("Enable or disable staking functionality for zKORE inputs (0-1, default: %u)"), 1));
     strUsage += HelpMessageOpt("-reservebalance=<amt>", _("Keep the specified amount available for spending at all times (default: 0)"));
     if (GetBoolArg("-help-debug", false)) {
         strUsage += HelpMessageOpt("-printstakemodifier", _("Display the stake modifier calculations in the debug.log file."));
@@ -536,7 +536,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageGroup(_("Obfuscation options:"));
     strUsage += HelpMessageOpt("-enableobfuscation=<n>", strprintf(_("Enable use of automated obfuscation for funds stored in this wallet (0-1, default: %u)"), 0));
     strUsage += HelpMessageOpt("-obfuscationrounds=<n>", strprintf(_("Use N separate masternodes to anonymize funds  (2-8, default: %u)"), 2));
-    strUsage += HelpMessageOpt("-anonymizepivxamount=<n>", strprintf(_("Keep N KORE anonymized (default: %u)"), 0));
+    strUsage += HelpMessageOpt("-anonymizekoreamount=<n>", strprintf(_("Keep N KORE anonymized (default: %u)"), 0));
     strUsage += HelpMessageOpt("-liquidityprovider=<n>", strprintf(_("Provide liquidity to Obfuscation by infrequently mixing coins on a continual basis (0-100, default: %u, 1=very frequent, high fees, 100=very infrequent, low fees)"), 0));
 
     strUsage += HelpMessageGroup(_("SwiftX options:"));
@@ -1590,11 +1590,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         //Inititalize zKOREWallet
         //uiInterface.InitMessage(_("Syncing zKORE wallet..."));
 
-        //bool fEnableZPivBackups = GetBoolArg("-backupzpiv", true);
-        //pwalletMain->setZPivAutoBackups(fEnableZPivBackups);
+        //bool fEnableZkoreBackups = GetBoolArg("-backupzkore", true);
+        //pwalletMain->setZkoreAutoBackups(fEnableZkoreBackups);
 
         //Load zerocoin mint hashes to memory
-        //pwalletMain->zpivTracker->Init();
+        //pwalletMain->zkoreTracker->Init();
         //zwalletMain->LoadMintPoolFromDB();
         //zwalletMain->SyncWithChain();
     }  // (!fDisableWallet)

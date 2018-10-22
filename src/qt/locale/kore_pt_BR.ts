@@ -3635,7 +3635,7 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Quantity</source>
         <translation>Quantia</translation>

@@ -4746,7 +4746,7 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Quantity</source>
         <translation>Cantidad</translation>

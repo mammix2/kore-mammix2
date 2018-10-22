@@ -135,9 +135,9 @@ bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, u
     }
 
     //Construct the stakeinput object
-    CPivStake* pivInput = new CPivStake();
-    pivInput->SetInput(prevtx, txin.prevout.n);
-    stake = std::unique_ptr<CStakeInput>(pivInput);
+    CkoreStake* koreInput = new CkoreStake();
+    koreInput->SetInput(prevtx, txin.prevout.n);
+    stake = std::unique_ptr<CStakeInput>(koreInput);
 
     CBlockIndex* pIndex = NULL;
     BlockMap::iterator iter = mapBlockIndex.find(hashBlock);
