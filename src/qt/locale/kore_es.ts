@@ -3722,8 +3722,8 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>(La comisión automática no se ha inicializado todavía. Esto normalmente necesita unos cuantos bloques...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3878,8 +3878,8 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>La dirección de destino no es válida, por favor compruébelo de nuevo.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>usando o SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>usando o swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4220,35 +4220,35 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>%1 confirmaciones</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
+        <source>%1/offline (verified via swifttx)</source>
         <translation>%1/offline (verificado via swifttx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
+        <source>%1/confirmed (verified via swifttx)</source>
         <translation>%1/confirmado (verificado via swifttx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
+        <source>%1 confirmations (verified via swifttx)</source>
         <translation>%1 confirmaciones (verificado via swifttx)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1/offline (verificación SwiftTX en marcha - %2 de %3 firmas)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
         <translation>%1/confirmado (verificación SwiftTX en marcha - %2 de %3 firmas)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1 confirmaciones (verificación SwiftTX en marcha - %2 de %3 firmas)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
+        <source>%1/offline (swifttx verification failed)</source>
         <translation>%1/offline (falló la verificación SwiftTX)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
+        <source>%1/confirmed (swifttx verification failed)</source>
         <translation>%1/confirmado (falló la verificación SwiftTX)</translation>
     </message>
     <message>
@@ -4714,7 +4714,7 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>Enviar Monedas</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
         <translation>SwiftTX no soporta el envío de importes tan altos todavía. Las transacciones están actualmente limitadas a %1 KORE.</translation>
     </message>
 </context>
@@ -5183,11 +5183,11 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>Habilitar creación automática de Zerocoin (0-1, por defecto: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
         <translation>Activar inclusión del hash de la transacción (fijada mediante SwiftTX) en &lt;address&gt;</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
         <translation>Activar inclusión de la transacción en bruto (fijada mediante SwiftTX) en &lt;address&gt;</translation>
     </message>
     <message>
@@ -5415,8 +5415,8 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>Reindexar as estatísticas de fornecimento de dinheiro KORE e zKORE</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>Opciones SwiftX:</translation>
+        <source>swifttx options:</source>
+        <translation>Opciones swifttx:</translation>
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for staking or merchant applications!</source>
@@ -5439,11 +5439,11 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
 </translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
         <translation>Desabilitar toda la funcionalidad especifica KORE (Masternodes, Obfuscation, SwiftTX, Budgeting) (0-1, predeterminado: %u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
         <translation>Activar swifttx, mostrar confirmaciones para transacciones bloqueadas (bool, predeterminado: %s)</translation>
     </message>
     <message>
@@ -5475,8 +5475,8 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>Tamaño de Billete Zerocoin Preferido para los Zerocoin creados automáticamente (1/5/10/50/100/500/1000/5000), poner 0 si no tiene preferencias. Por defecto: %u) </translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
-        <translation>SwiftX requiere entradas con al menos 6 confirmaciones, es posible que deba esperar unos minutos e intente de nuevo.</translation>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <translation>swifttx requiere entradas con al menos 6 confirmaciones, es posible que deba esperar unos minutos e intente de nuevo.</translation>
     </message>
     <message>
         <source>&lt;category&gt; can be:</source>

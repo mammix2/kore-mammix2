@@ -2723,8 +2723,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>(Smart fee não inicializada ainda. Isso geralmente leva alguns blocos...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3165,36 +3165,36 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>%1 confirmações</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
-        <translation>%1/offline (verificado via SwiftX)</translation>
+        <source>%1/offline (verified via swifttx)</source>
+        <translation>%1/offline (verificado via swifttx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
-        <translation>%1/confirmado (verificado via SwiftX)</translation>
+        <source>%1/confirmed (verified via swifttx)</source>
+        <translation>%1/confirmado (verificado via swifttx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
-        <translation>%1 confirmações (verificado via SwiftX)</translation>
+        <source>%1 confirmations (verified via swifttx)</source>
+        <translation>%1 confirmações (verificado via swifttx)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1/offline (verificação SwiftX  em progresso - %2 de %3 assinaturas)</translation>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1/offline (verificação swifttx  em progresso - %2 de %3 assinaturas)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
-        <translation>%1/confirmado (verificação SwiftX  em progresso - %2 de %3 assinaturas )</translation>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
+        <translation>%1/confirmado (verificação swifttx  em progresso - %2 de %3 assinaturas )</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1 confirmações ( verificação SwiftX  em progresso - %2 de %3 assinaturas)</translation>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1 confirmações ( verificação swifttx  em progresso - %2 de %3 assinaturas)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
-        <translation>%1/offline ( verificação SwiftX falhou)</translation>
+        <source>%1/offline (swifttx verification failed)</source>
+        <translation>%1/offline ( verificação swifttx falhou)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
-        <translation>%1/confirmado (verificação SwiftX falhou)</translation>
+        <source>%1/confirmed (swifttx verification failed)</source>
+        <translation>%1/confirmado (verificação swifttx falhou)</translation>
     </message>
     <message>
         <source>Status</source>
@@ -4004,8 +4004,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Script inválido detectado.</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>opções SwiftX:</translation>
+        <source>swifttx options:</source>
+        <translation>opções swifttx:</translation>
     </message>
     <message>
         <source> unconfirmed transactions removed

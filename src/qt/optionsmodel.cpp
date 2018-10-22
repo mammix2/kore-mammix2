@@ -69,10 +69,6 @@ void OptionsModel::Init()
         settings.setValue("strThirdPartyTxUrls", "");
     strThirdPartyTxUrls = settings.value("strThirdPartyTxUrls", "").toString();
 
-    if (!settings.contains("fHideZeroBalances"))
-        settings.setValue("fHideZeroBalances", true);
-    fHideZeroBalances = settings.value("fHideZeroBalances").toBool();
-
     if (!settings.contains("fCoinControlFeatures"))
         settings.setValue("fCoinControlFeatures", false);
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();

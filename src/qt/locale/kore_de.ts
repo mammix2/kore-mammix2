@@ -3780,7 +3780,7 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>("Intelligente" Gebühren sind noch nicht berechnet. Dies dauert normalerweise ein paar Blöcke...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
+        <source>swifttx</source>
         <translation>Swift Transaktion</translation>
     </message>
     <message>
@@ -3936,8 +3936,8 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>Die Adresse des Empfängers ist nicht gültig, bitte erneut prüfen.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>mit SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>mit swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4278,35 +4278,35 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>%1 Bestätigungen</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
+        <source>%1/offline (verified via swifttx)</source>
         <translation>%1/offline (verifiziert via Swift Transaktion)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
+        <source>%1/confirmed (verified via swifttx)</source>
         <translation>%1/bestätigt (verifiziert via Swift Transaktion)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
+        <source>%1 confirmations (verified via swifttx)</source>
         <translation>%1 Bestätigungen (verifiziert via Swift Transaktion)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1/offline (Swift Transaktion wird verifiziert - %2 aus %3 Signaturen)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
         <translation>%1/bestätigt (Swift Transaktion wird verifiziert - %2 von %3 Signaturen)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1 Bestätigungen (Swift Transaktion wird verifiziert - %2 von %3 Signaturen)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
+        <source>%1/offline (swifttx verification failed)</source>
         <translation>%1/offline (Swift Transaktion konnte nicht verifiziert werden)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
+        <source>%1/confirmed (swifttx verification failed)</source>
         <translation>%1/bestätigt (Swift Transaktion konnte nicht verifiziert werden)</translation>
     </message>
     <message>
@@ -4816,7 +4816,7 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>KOREs überweisen</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
         <translation>Swift Transaktionen unterstützen das senden solch hoher Beträge noch nicht. Transaktionen sind momentan auf %1 KORE begrenzt.</translation>
     </message>
 </context>
@@ -5305,12 +5305,12 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>Automatische Zerocoin-Prägung ermöglichen (0-1, Standard: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Aktivieren Sie die Veröffentlichung der Hash-Transaktion (gesperrt über SwiftX) in &lt;address&gt;</translation>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Aktivieren Sie die Veröffentlichung der Hash-Transaktion (gesperrt über swifttx) in &lt;address&gt;</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Aktivieren Sie die Publish-Raw-Transaktion (gesperrt über SwiftX) in&lt;address&gt;</translation>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Aktivieren Sie die Publish-Raw-Transaktion (gesperrt über swifttx) in&lt;address&gt;</translation>
     </message>
     <message>
         <source>Enable the client to act as a masternode (0-1, default: %u)</source>
@@ -5549,8 +5549,8 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>Ausgewählter Coinwert ist geringer als der Zielbetrag</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>SwiftX Optionen:</translation>
+        <source>swifttx options:</source>
+        <translation>swifttx Optionen:</translation>
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for staking or merchant applications!</source>
@@ -5573,11 +5573,11 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
 </translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
-        <translation>Deaktivieren Sie alle KORE-spezifischen Funktionen (Masternodes, Zerocoin, SwiftX, Budgetierung) (0-1, Standard: %u)</translation>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
+        <translation>Deaktivieren Sie alle KORE-spezifischen Funktionen (Masternodes, Zerocoin, swifttx, Budgetierung) (0-1, Standard: %u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
         <translation>Swifttx aktivieren, Bestätigungen für gesperrte Transaktionen anzeigen (bool, default: %s)</translation>
     </message>
     <message>
@@ -5617,7 +5617,7 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>Benutzerdefinierten Sicherungspfad festlegen, in den Kopien von allen Wallet-Sicherungen abgelegt werden. Wenn ein Verzeichnis ausgewählt ist, wird jede Sicherung als Datei mit Zeitstempel erstellt. Wenn eine Datei ausgewählt ist, wird diese Datei bei jeder Sicherung überschrieben.</translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
         <translation>SwiftTX benötigt mindestens 6 confirmations, Sie sollten ggf. einige Minuten abwarten und dann erneut probieren.</translation>
     </message>
     <message>

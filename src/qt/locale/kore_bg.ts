@@ -3710,8 +3710,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>(Умната такса не е инициализирана все още. Това изисква по няколко блока...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3866,8 +3866,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Адреса на получателя е недвалиден. Моля преверете.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>използвайки SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>използвайки swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4208,35 +4208,35 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>%1 потвърждения</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
+        <source>%1/offline (verified via swifttx)</source>
         <translation>%1 офлайн (потвърдени чрез swiftTx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
+        <source>%1/confirmed (verified via swifttx)</source>
         <translation>%1 потвърдени (потвърдени чрез swiftTx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
+        <source>%1 confirmations (verified via swifttx)</source>
         <translation>%1 потвърждения (потвърдени чрез swiftTx)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1/офлайн (SwiftTX потвърждение в процес - %2 от %3 подписа)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
         <translation>%1/потвърдени (SwiftTX потвърждение в процес - %2 от %3 подписа)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1 потвърждения  (SwiftTX потвърждение в процес - %2 от %3 подписа)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
+        <source>%1/offline (swifttx verification failed)</source>
         <translation>%1/офлайн (Неуспешно SwiftTX потвърждние)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
+        <source>%1/confirmed (swifttx verification failed)</source>
         <translation>%1/потвърдени (Неуспешно SwiftTX потвърждние)</translation>
     </message>
     <message>
@@ -4702,7 +4702,7 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Изпрати Монети</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
         <translation>SwiftTX не подържа изпращането на толкова големи суми. Превода е ограничен до %1 KORE.</translation>
     </message>
 </context>
@@ -5171,12 +5171,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Активирай автоматично сечене на Zerocoin (0-1, По подразбиране: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Вкл. публикуването на хаш транзакцията (закл. чрез SwiftX) в &lt;address&gt;</translation>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Вкл. публикуването на хаш транзакцията (закл. чрез swifttx) в &lt;address&gt;</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Вкл. публикуването на сурова транзакция (закл. чрез SwiftX) в &lt;address&gt;</translation>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Вкл. публикуването на сурова транзакция (закл. чрез swifttx) в &lt;address&gt;</translation>
     </message>
     <message>
         <source>Enable the client to act as a masternode (0-1, default: %u)</source>
@@ -5403,8 +5403,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Индексирай наново KORE и zKORE данните по наличности</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>SwiftX опции:</translation>
+        <source>swifttx options:</source>
+        <translation>swifttx опции:</translation>
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for staking or merchant applications!</source>
@@ -5427,11 +5427,11 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
 </translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
-        <translation>Изключи KORE специфичната функционалност (Главни възли, Zerocoin, SwiftX, Бюджетиране) (0-1, po podrazbirane: %u)</translation>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
+        <translation>Изключи KORE специфичната функционалност (Главни възли, Zerocoin, swifttx, Бюджетиране) (0-1, po podrazbirane: %u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
         <translation>Включи SwiftTX, показвай потвърждения за заключени преводи (bool, default: %s)</translation>
     </message>
     <message>
@@ -5463,7 +5463,7 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Предпочитани деноминации за автоматично изсечените Zerocoin (1/5/10/50/100/500/1000/5000), 0 за каквито и да е. (По подразбиране: %u)</translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
         <translation>SwiftTX изисква входящи преводи с поне 6 потвърждения. Може да се наложи да изчакате още преди да опитате отново.</translation>
     </message>
     <message>

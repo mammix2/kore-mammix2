@@ -3468,8 +3468,8 @@ Ya daha yüksek mezhepleri daraltın (daha az girdi gereklidir) veya harcama mik
         <translation>(Akıllı ücret henüz başlatılmadı.Bu genellikle birkaç blok alıyor ...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3954,36 +3954,36 @@ Ya daha yüksek mezhepleri daraltın (daha az girdi gereklidir) veya harcama mik
         <translation>%1 doğrulama</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
-        <translation>%1 / çevrimdışı (SwiftX ile doğrulanmış)</translation>
+        <source>%1/offline (verified via swifttx)</source>
+        <translation>%1 / çevrimdışı (swifttx ile doğrulanmış)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
-        <translation>%1 / doğrulandı (SwiftX ile doğrulandı)</translation>
+        <source>%1/confirmed (verified via swifttx)</source>
+        <translation>%1 / doğrulandı (swifttx ile doğrulandı)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
-        <translation>%1 doğrulama (SwiftX ile doğrulandı)</translation>
+        <source>%1 confirmations (verified via swifttx)</source>
+        <translation>%1 doğrulama (swifttx ile doğrulandı)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1 / çevrimdışı (SwiftX doğrulama işlemi devam ediyor - %3 imzalardan %2 si)</translation>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1 / çevrimdışı (swifttx doğrulama işlemi devam ediyor - %3 imzalardan %2 si)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
-        <translation>%1 / onaylandı (SwiftX doğrulama işlemi - %3 imzalardan %2 si)</translation>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
+        <translation>%1 / onaylandı (swifttx doğrulama işlemi - %3 imzalardan %2 si)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1 doğrulama (SwiftX doğrulama işlemi - %3 imzalardan %2 si)</translation>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1 doğrulama (swifttx doğrulama işlemi - %3 imzalardan %2 si)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
-        <translation>%1 / çevrimdışı (SwiftX doğrulama başarısız)</translation>
+        <source>%1/offline (swifttx verification failed)</source>
+        <translation>%1 / çevrimdışı (swifttx doğrulama başarısız)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
-        <translation>%1 / onaylandı (SwiftX doğrulama başarısız oldu)</translation>
+        <source>%1/confirmed (swifttx verification failed)</source>
+        <translation>%1 / onaylandı (swifttx doğrulama başarısız oldu)</translation>
     </message>
     <message>
         <source>Status</source>
@@ -4436,8 +4436,8 @@ Ya daha yüksek mezhepleri daraltın (daha az girdi gereklidir) veya harcama mik
         <translation>Koinleri göder</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
-        <translation>SwiftX yüksek değerler göndermeyi desteklemiyor. İşlemler şu anda %1 KORE ile sınırlıdır.</translation>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <translation>swifttx yüksek değerler göndermeyi desteklemiyor. İşlemler şu anda %1 KORE ile sınırlıdır.</translation>
     </message>
 </context>
 <context>
@@ -4665,8 +4665,8 @@ Ya daha yüksek mezhepleri daraltın (daha az girdi gereklidir) veya harcama mik
         <translation>Geçersiz private key.</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>SwiftX seçenekleri:</translation>
+        <source>swifttx options:</source>
+        <translation>swifttx seçenekleri:</translation>
     </message>
     <message>
         <source> mints updated, </source>

@@ -6,8 +6,6 @@
 #ifndef BITCOIN_QT_WALLETFRAME_H
 #define BITCOIN_QT_WALLETFRAME_H
 
-#include "askpassphrasedialog.h"
-
 #include <QFrame>
 #include <QMap>
 
@@ -71,8 +69,7 @@ public slots:
     void gotoVerifyMessageTab(QString addr = "");
     /** Show MultiSend Dialog **/
     void gotoMultiSendDialog();
-    /** show a multisig tab **/
-    void gotoMultisigDialog(int index);
+
     /** Show BIP 38 tool - default to Encryption tab */
     void gotoBip38Tool();
 
@@ -83,12 +80,9 @@ public slots:
     /** Change encrypted wallet passphrase */
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
-    void unlockWallet(AskPassphraseDialog::Context context);
-    void unlockWallet(bool setContext);
+    void unlockWallet();
     /** Lock wallet */
     void lockWallet();
-    /** Toggle Wallet Lock State */
-    void toggleLockWallet();
 
     /** Show used sending addresses */
     void usedSendingAddresses();

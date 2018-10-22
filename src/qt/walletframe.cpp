@@ -140,7 +140,6 @@ void WalletFrame::gotoReceiveCoinsPage()
         i.value()->gotoReceiveCoinsPage();
 }
 
-
 void WalletFrame::gotoSendCoinsPage(QString addr)
 {
     QMap<QString, WalletView*>::const_iterator i;
@@ -177,13 +176,6 @@ void WalletFrame::gotoMultiSendDialog()
         walletView->gotoMultiSendDialog();
 }
 
-void WalletFrame::gotoMultisigDialog(int index)
-{
-    WalletView* walletView = currentWalletView();
-    if(walletView){
-        walletView->gotoMultisigDialog(index);
-    }
-}
 
 void WalletFrame::encryptWallet(bool status)
 {
@@ -206,21 +198,11 @@ void WalletFrame::changePassphrase()
         walletView->changePassphrase();
 }
 
-void WalletFrame::unlockWallet(bool setContext)
-{
-    if (setContext) {
-        unlockWallet(AskPassphraseDialog::Context::Unlock_Full);
-    }
-    else {
-        unlockWallet(AskPassphraseDialog::Context::Unlock_Menu);
-    }
-}
-
-void WalletFrame::unlockWallet(AskPassphraseDialog::Context context)
+void WalletFrame::unlockWallet()
 {
     WalletView* walletView = currentWalletView();
     if (walletView)
-        walletView->unlockWallet(context);
+        walletView->unlockWallet();
 }
 
 void WalletFrame::lockWallet()
@@ -228,13 +210,6 @@ void WalletFrame::lockWallet()
     WalletView* walletView = currentWalletView();
     if (walletView)
         walletView->lockWallet();
-}
-
-void WalletFrame::toggleLockWallet()
-{
-    WalletView* walletView = currentWalletView();
-    if (walletView)
-        walletView->toggleLockWallet();
 }
 
 void WalletFrame::usedSendingAddresses()

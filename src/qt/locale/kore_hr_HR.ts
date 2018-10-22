@@ -3789,8 +3789,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>(Smart naknada još nije inicirana. To obično traje nekoliko blokova ...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3945,8 +3945,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Adresa primatelja nije važeća, ponovo provjerite.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>koristi SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>koristi swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4287,36 +4287,36 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>%1 potvrđeno</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
-        <translation>%1/offline (provjereno s SwiftX)</translation>
+        <source>%1/offline (verified via swifttx)</source>
+        <translation>%1/offline (provjereno s swifttx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
-        <translation>%1 / potvrđeno (potvrđeno putem usluge SwiftX)</translation>
+        <source>%1/confirmed (verified via swifttx)</source>
+        <translation>%1 / potvrđeno (potvrđeno putem usluge swifttx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
-        <translation>Potvrde %1 (potvrđene putem SwiftX-a)</translation>
+        <source>%1 confirmations (verified via swifttx)</source>
+        <translation>Potvrde %1 (potvrđene putem swifttx-a)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1 / offline (SwiftX potvrda u tijeku - %2 od %3 potpisa)</translation>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1 / offline (swifttx potvrda u tijeku - %2 od %3 potpisa)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
-        <translation>%1 / potvrđeno (provjera SwiftX u tijeku -%2 od %3 potpisa)</translation>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
+        <translation>%1 / potvrđeno (provjera swifttx u tijeku -%2 od %3 potpisa)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>Potvrde %1 (provjera SwiftX u tijeku -%2 od %3 potpisa)</translation>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>Potvrde %1 (provjera swifttx u tijeku -%2 od %3 potpisa)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
-        <translation>%1 / offline (SwiftX verifikacija nije uspjela)</translation>
+        <source>%1/offline (swifttx verification failed)</source>
+        <translation>%1 / offline (swifttx verifikacija nije uspjela)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
-        <translation>%1 / potvrđeno (nije uspjela SwiftX provjera)</translation>
+        <source>%1/confirmed (swifttx verification failed)</source>
+        <translation>%1 / potvrđeno (nije uspjela swifttx provjera)</translation>
     </message>
     <message>
         <source>Status</source>
@@ -4826,8 +4826,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Salji novac</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
-        <translation>SwiftX ne podržava slanje visokih vrijednosti. Transakcije su trenutačno ograničene na %1 KORE.</translation>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <translation>swifttx ne podržava slanje visokih vrijednosti. Transakcije su trenutačno ograničene na %1 KORE.</translation>
     </message>
 </context>
 <context>
@@ -5316,12 +5316,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Omogući automatsko Zerocoin stvaranje (0-1, zadano: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Omogući objavu hash transakcije (zaključano putem usluge SwiftX) u </translation>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Omogući objavu hash transakcije (zaključano putem usluge swifttx) u </translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Omogući objavljivanje neobrađene transakcije (zaključano putem usluge SwiftX) u</translation>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Omogući objavljivanje neobrađene transakcije (zaključano putem usluge swifttx) u</translation>
     </message>
     <message>
         <source>Enable the client to act as a masternode (0-1, default: %u)</source>
@@ -5560,8 +5560,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Odabrana vrijednost novčića je manja od količine za plačanje</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>SwiftX opcije:</translation>
+        <source>swifttx options:</source>
+        <translation>swifttx opcije:</translation>
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for staking or merchant applications!</source>
@@ -5583,12 +5583,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>uklonjene nepotvrđene transakcije</translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
-        <translation>Onemogući sve specifične funkcije KORE (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, zadano: %u)</translation>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
+        <translation>Onemogući sve specifične funkcije KORE (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, zadano: %u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
-        <translation>Omogućite SwiftX, prikažite potvrde za zaključane transakcije (bool, zadano: %s)</translation>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
+        <translation>Omogućite swifttx, prikažite potvrde za zaključane transakcije (bool, zadano: %s)</translation>
     </message>
     <message>
         <source>Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
@@ -5627,8 +5627,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Navedite put prilagođenog sigurnosnog kopiranja da biste dodali kopiju sigurnosne kopije lisnice. Ako je postavljeno kao dir, svaka sigurnosna kopija generira vremensku datoteku. Ako je postavljen kao datoteka, prepisat će na tu datoteku svaku kopiju.</translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
-        <translation>SwiftX zahtijeva ulaze s najmanje 6 potvrda, možda ćete morati pričekati nekoliko minuta i pokušati ponovo.</translation>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <translation>swifttx zahtijeva ulaze s najmanje 6 potvrda, možda ćete morati pričekati nekoliko minuta i pokušati ponovo.</translation>
     </message>
     <message>
         <source>&lt;category&gt; can be:</source>

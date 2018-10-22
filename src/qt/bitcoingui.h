@@ -84,7 +84,6 @@ private:
 
     UnitDisplayStatusBarControl* unitDisplayControl;
     QLabel* labelStakingIcon;
-    QPushButton* labelAutoMintIcon;
     QPushButton* labelEncryptionIcon;
     QPushButton* labelConnectionsIcon;
     QLabel* labelBlocksIcon;
@@ -103,12 +102,8 @@ private:
     QAction* signMessageAction;
     QAction* verifyMessageAction;
     QAction* bip38ToolAction;
-    QAction* multisigCreateAction;
-    QAction* multisigSpendAction;
-    QAction* multisigSignAction;
     QAction* aboutAction;
     QAction* receiveCoinsAction;
-    QAction* privacyAction;
     QAction* optionsAction;
     QAction* toggleHideAction;
     QAction* encryptWalletAction;
@@ -184,7 +179,7 @@ public slots:
 
 #ifdef ENABLE_WALLET
     void setStakingStatus();
-    void setAutoMintStatus();
+
 
     /** Set the encryption status as shown in the UI.
        @param[in] status            current encryption status
@@ -219,10 +214,7 @@ private slots:
     void gotoVerifyMessageTab(QString addr = "");
     /** Show MultiSend Dialog */
     void gotoMultiSendDialog();
-    /** Show MultiSig Dialog */
-    void gotoMultisigCreate();
-    void gotoMultisigSpend();
-    void gotoMultisigSign();
+
     /** Show BIP 38 tool - default to Encryption tab */
     void gotoBip38Tool();
 

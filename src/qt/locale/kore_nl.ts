@@ -3790,8 +3790,8 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>(Smart fee nog niet geïnitialiseerd. Dit duurt meestal een paar blokken ...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3946,8 +3946,8 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>Het ontvangstadres is niet geldig, controleer deze.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>met SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>met swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4288,35 +4288,35 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>%1 bevestigingen</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
-        <translation>%1/offline (gecontroleerd via SwiftX)</translation>
+        <source>%1/offline (verified via swifttx)</source>
+        <translation>%1/offline (gecontroleerd via swifttx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
+        <source>%1/confirmed (verified via swifttx)</source>
         <translation>%1/bevestigd (gecontroleerd via swifttx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
+        <source>%1 confirmations (verified via swifttx)</source>
         <translation>%1 bevestigingen (gecontroleerd via swifttx)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1/offline (SwiftTX controle in uitvoering - %2 van %3 handtekeningen)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
         <translation>%1/bevestigd (SwiftTX controle in uitvoering - %2 van %3 handtekeningen)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1 bevestigingen (SwiftTX controle in uitvoering -%2 van %3 handtekeningen)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
+        <source>%1/offline (swifttx verification failed)</source>
         <translation>%1/offline (SwiftTX verificatie mislukt)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
+        <source>%1/confirmed (swifttx verification failed)</source>
         <translation>%1/bevestigd (SwiftTX verificatie mislukt)</translation>
     </message>
     <message>
@@ -4826,7 +4826,7 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>Verzend Munten</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
         <translation>SwiftTX ondersteunt geen verzendwaarden die zo hoog zijn. Transacties zijn momenteel beperkt tot %1 KORE.</translation>
     </message>
 </context>
@@ -5315,11 +5315,11 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>Zet automatische Zerocoin minting aan (0-1, standaard: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
         <translation>Activeer publicatie hash transactie (vergrendeld via SwiftTX) in &lt;address&gt;</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
         <translation>Activeer publicatie raw transactie (vergrendeld via SwiftTX) in &lt;address&gt;</translation>
     </message>
     <message>
@@ -5559,7 +5559,7 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>Geselecteerde munt waarde is minder dan het betalingsdoel</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
+        <source>swifttx options:</source>
         <translation>SwiftTX opties:</translation>
     </message>
     <message>
@@ -5583,12 +5583,12 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
 </translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
         <translation>Schakel alle specifieke KORE functionaliteit uit (Masternodes, Zerocoin, SwiftTX, Budgeting) (0-1, standaard: %u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
-        <translation>Schakel SwiftX in, toon bevestigingen voor vergrendelde transacties (bool, standaard: %s)</translation>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
+        <translation>Schakel swifttx in, toon bevestigingen voor vergrendelde transacties (bool, standaard: %s)</translation>
     </message>
     <message>
         <source>Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
@@ -5627,7 +5627,7 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>Specificeer aangepast back-up pad om een kopie van elke portemonnee back-up toe te voegen. Indien ingesteld als dir zal elke back-up een bestand genereren met een tijdstempel. Indien ingesteld als file zal elke back-up herschreven worden naar dat bestand.</translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
         <translation>SwiftTX vereist invoer van tenminste 6 bevestigingen, je dient wellicht een paar minuten te wachten en het opnieuw proberen.</translation>
     </message>
     <message>

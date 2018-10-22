@@ -2559,8 +2559,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>kas kilobaitą</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3096,8 +3096,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Aptiktas netinkamas programos kodas.</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>SwiftX nustatymai:</translation>
+        <source>swifttx options:</source>
+        <translation>swifttx nustatymai:</translation>
     </message>
     <message>
         <source>Failed to deserialize</source>
