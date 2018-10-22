@@ -336,7 +336,7 @@ public:
 #ifdef ZEROCOIN
     int getZeromintPercentage()
     {
-        return nZeromintPercentage;
+        return nObfuscationRounds;
     }
 
     void setZWallet(CzKOREWallet* zwallet)
@@ -349,7 +349,7 @@ public:
 
     bool isZeromintEnabled()
     {
-        return fEnableZeromint;
+        return fEnableObfuscation;
     }
 
     void setZPivAutoBackups(bool fEnabled)

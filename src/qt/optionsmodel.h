@@ -44,10 +44,7 @@ public:
         ThreadsScriptVerif,  // int
         DatabaseCache,       // int
         SpendZeroConfChange, // bool
-        ZeromintEnable,      // bool
-        ZeromintPercentage,  // int
-        ZeromintPrefDenom,   // int
-        HideZeroBalances,    // bool
+        ObfuscationRounds,   // int
         AnonymizeKoreAmount, //int
         ShowMasternodesTab,  // bool
         Listen,              // bool
@@ -97,9 +94,7 @@ private:
 
 signals:
     void displayUnitChanged(int unit);
-    void zeromintEnableChanged(bool);
-    void zeromintPercentageChanged(int);
-    void preferredDenomChanged(int);
+    void obfuscationRoundsChanged(int);
     void anonymizeKoreAmountChanged(int);
     void coinControlFeaturesChanged(bool);
     void hideZeroBalancesChanged(bool);

@@ -26,13 +26,6 @@
 #include "utilmoneystr.h"
 #include "pos.h"
 
-#ifdef ZEROCOIN
-#include "accumulators.h"
-#include "denomination_functions.h"
-#include "libzerocoin/Denominations.h"
-#include "zpivwallet.h"
-#include "primitives/deterministicmint.h"
-#endif
 #include <assert.h>
 
 #include <boost/algorithm/string/replace.hpp>
@@ -397,11 +390,7 @@ set<uint256> CWallet::GetConflicts(const uint256& txid) const
     std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range;
 
     BOOST_FOREACH (const CTxIn& txin, wtx.vin) {
-        if (mapTxSpends.count(txin.prevout) <= 1 
-#ifdef ZEROCOIN        
-        || wtx.IsZerocoinSpend()
-#endif        
-        )
+        if (mapTxSpends.count(txin.prevout) <= 1)
             continue; // No conflict if zero or one spends
         range = mapTxSpends.equal_range(txin.prevout);
         for (TxSpends::const_iterator it = range.first; it != range.second; ++it)
@@ -756,11 +745,7 @@ void CWallet::SyncTransaction(const CTransaction& tx, const CBlock* pblock)
     // available of the outputs it spends. So force those to be
     // recomputed, also:
     BOOST_FOREACH (const CTxIn& txin, tx.vin) {
-        if (
-#ifdef ZEROCOIN            
-            !tx.IsZerocoinSpend() && 
-#endif            
-            mapWallet.count(txin.prevout.hash))
+        if (mapWallet.count(txin.prevout.hash))
             mapWallet[txin.prevout.hash].MarkDirty();
     }
 }
@@ -791,13 +776,6 @@ isminetype CWallet::IsMine(const CTxIn& txin) const
     }
     return ISMINE_NO;
 }
-
-#ifdef ZEROCOIN
-bool CWallet::IsMyZerocoinSpend(const CBigNum& bnSerial) const
-{
-    return zpivTracker->HasSerial(bnSerial);
-}
-#endif
 
 CAmount CWallet::GetDebit(const CTxIn& txin, const isminefilter& filter) const
 {
@@ -898,7 +876,7 @@ int CWallet::GetInputObfuscationRounds(CTxIn in) const
 {
     LOCK(cs_wallet);
     int realObfuscationRounds = GetRealInputObfuscationRounds(in, 0);
-    return realObfuscationRounds > nZeromintPercentage ? nZeromintPercentage : realObfuscationRounds;
+    return realObfuscationRounds > nObfuscationRounds ? nObfuscationRounds : realObfuscationRounds;
 }
 
 bool CWallet::IsDenominated(const CTxIn& txin) const
@@ -966,14 +944,6 @@ int64_t CWalletTx::GetTxTime() const
 
 int64_t CWalletTx::GetComputedTxTime() const
 {
-#ifdef ZEROCOIN    
-    if (IsZerocoinSpend() || IsZerocoinMint()) {
-        if (IsInMainChain())
-            return mapBlockIndex.at(hashBlock)->GetBlockTime();
-        else
-            return nTimeReceived;
-    }
-#endif    
     return GetTxTime();
 }
 
@@ -1130,7 +1100,7 @@ CAmount CWalletTx::GetAnonymizableCredit(bool fUseCache) const
         if (fMasterNode && vout[i].nValue == 10000 * COIN) continue; // do not count MN-like outputs
 
         const int rounds = pwallet->GetInputObfuscationRounds(vin);
-        if (rounds >= -2 && rounds < nZeromintPercentage) {
+        if (rounds >= -2 && rounds < nObfuscationRounds) {
             nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             if (!MoneyRange(nCredit))
                 throw std::runtime_error("CWalletTx::GetAnonamizableCredit() : value out of range");
@@ -1163,7 +1133,7 @@ CAmount CWalletTx::GetAnonymizedCredit(bool fUseCache) const
         if (pwallet->IsSpent(hashTx, i) || !pwallet->IsDenominated(vin)) continue;
 
         const int rounds = pwallet->GetInputObfuscationRounds(vin);
-        if (rounds >= nZeromintPercentage) {
+        if (rounds >= nObfuscationRounds) {
             nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
             if (!MoneyRange(nCredit))
                 throw std::runtime_error("CWalletTx::GetAnonymizedCredit() : value out of range");
@@ -1384,20 +1354,11 @@ void CWalletTx::GetAmounts(list<COutputEntry>& listReceived,
             // Don't report 'change' txouts
             if (pwallet->IsChange(txout))
                 continue;
-        } else if (!(fIsMine & filter) 
-#ifdef ZEROCOIN
-        && !IsZerocoinSpend()
-#endif        
-        )
+        } else if (!(fIsMine & filter))
             continue;
 
         // In either case, we need to get the destination address
         CTxDestination address;
-#ifdef ZEROCOIN
-        if (txout.scriptPubKey.IsZerocoinMint()) {
-            address = CNoDestination();
-        } else 
-#endif 
         if (!ExtractDestination(txout.scriptPubKey, address)) {
             if (!IsCoinStake() && !IsCoinBase()) {
                 LogPrintf("CWalletTx::GetAmounts: Unknown transaction type found, txid %s\n", this->GetHash().ToString());
@@ -1461,11 +1422,6 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
 {
     int ret = 0;
     int64_t nNow = GetTime();
-#ifdef ZEROCOIN    
-    bool fCheckZKORE = GetBoolArg("-zapwallettxes", false);
-    if (fCheckZKORE)
-        zpivTracker->Init();
-#endif        
 
     CBlockIndex* pindex = pindexStart;
     {
@@ -1797,7 +1753,7 @@ CAmount CWallet::GetNormalizedAnonymizedBalance() const
                 if (pcoin->GetDepthInMainChain() < 0) continue;
 
                 int rounds = GetInputObfuscationRounds(vin);
-                nTotal += pcoin->vout[i].nValue * rounds / nZeromintPercentage;
+                nTotal += pcoin->vout[i].nValue * rounds / nObfuscationRounds;
             }
         }
     }
@@ -2260,7 +2216,7 @@ bool CWallet::SelectCoins(const CAmount& nTargetValue, set<pair<const CWalletTx*
                 CTxIn vin = CTxIn(out.tx->GetHash(), out.i);
                 int rounds = GetInputObfuscationRounds(vin);
                 // make sure it's actually anonymized
-                if (rounds < nZeromintPercentage) continue;
+                if (rounds < nObfuscationRounds) continue;
             }
 
             nValueRet += out.tx->vout[out.i].nValue;
@@ -2280,7 +2236,7 @@ bool CWallet::SelectCoins(const CAmount& nTargetValue, set<pair<const CWalletTx*
                     CTxIn vin = CTxIn(out.tx->GetHash(), out.i);
                     int rounds = GetInputObfuscationRounds(vin);
                     // make sure it's actually anonymized
-                    if (rounds < nZeromintPercentage) continue;
+                    if (rounds < nObfuscationRounds) continue;
                     nValueRet += out.tx->vout[out.i].nValue;
                     setCoinsRet.insert(make_pair(out.tx, out.i));
                 }
@@ -2318,7 +2274,7 @@ bool CWallet::SelectCoins_Legacy(const CAmount& nTargetValue, set<pair<const CWa
                 CTxIn vin = CTxIn(output.tx->GetHash(), output.i);
                 int rounds = GetInputObfuscationRounds(vin);
                 // make sure it's actually anonymized
-                if (rounds < nZeromintPercentage) continue;
+                if (rounds < nObfuscationRounds) continue;
             }
 
             // Stop if we've chosen enough inputs
@@ -2384,7 +2340,7 @@ bool CWallet::SelectCoins_Legacy(const CAmount& nTargetValue, set<pair<const CWa
                     CTxIn vin = CTxIn(out.tx->GetHash(), out.i);
                     int rounds = GetInputObfuscationRounds(vin);
                     // make sure it's actually anonymized
-                    if (rounds < nZeromintPercentage) continue;
+                    if (rounds < nObfuscationRounds) continue;
                     nValueRet += out.tx->vout[out.i].nValue;
                     setCoinsRet.insert(make_pair(out.tx, out.i));
                 }
@@ -2835,7 +2791,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
                     }
 
                     if (useIX) {
-                        strFailReason += " " + _("SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.");
+                        strFailReason += " " + _("SwiftTX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.");
                     }
 
                     return false;
@@ -4251,14 +4207,14 @@ void CWallet::AutoZeromint()
     double dPercentage = 100 * (double)nZerocoinBalance / (double)(nZerocoinBalance + nBalance);
 
     // Check if minting is actually needed
-    if(dPercentage >= nZeromintPercentage){
+    if(dPercentage >= nObfuscationRounds){
         LogPrint("zero", "CWallet::AutoZeromint() @block %ld: percentage of existing zKORE (%lf%%) already >= configured percentage (%d%%). No minting needed...\n",
-                  chainActive.Tip()->nHeight, dPercentage, nZeromintPercentage);
+                  chainActive.Tip()->nHeight, dPercentage, nObfuscationRounds);
         return;
     }
 
     // zKORE amount needed for the target percentage
-    nToMintAmount = ((nZerocoinBalance + nBalance) * nZeromintPercentage / 100);
+    nToMintAmount = ((nZerocoinBalance + nBalance) * nObfuscationRounds / 100);
 
     // zKORE amount missing from target (must be minted)
     nToMintAmount = (nToMintAmount - nZerocoinBalance) / COIN;

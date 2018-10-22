@@ -73,21 +73,13 @@ void OptionsModel::Init()
         settings.setValue("fCoinControlFeatures", false);
     fCoinControlFeatures = settings.value("fCoinControlFeatures", false).toBool();
 
-    if (!settings.contains("fZeromintEnable"))
-        settings.setValue("fZeromintEnable", true);
-    fEnableZeromint = settings.value("fZeromintEnable").toBool();
-
-    if (!settings.contains("nZeromintPercentage"))
-        settings.setValue("nZeromintPercentage", 10);
-    nZeromintPercentage = settings.value("nZeromintPercentage").toLongLong();
-
-    if (!settings.contains("nPreferredDenom"))
-        settings.setValue("nPreferredDenom", 0);
-    nPreferredDenom = settings.value("nPreferredDenom", "0").toLongLong();
+    if (!settings.contains("nObfuscationRounds"))
+        settings.setValue("nObfuscationRounds", 2);
 
     if (!settings.contains("nAnonymizeKoreAmount"))
         settings.setValue("nAnonymizeKoreAmount", 1000);
 
+    nObfuscationRounds = settings.value("nObfuscationRounds").toLongLong();
     nAnonymizeKoreAmount = settings.value("nAnonymizeKoreAmount").toLongLong();
 
     if (!settings.contains("fShowMasternodesTab"))
@@ -156,12 +148,8 @@ void OptionsModel::Init()
     if (!SoftSetArg("-lang", settings.value("language").toString().toStdString()))
         addOverriddenOption("-lang");
 
-    if (settings.contains("fZeromintEnable"))
-        SoftSetBoolArg("-enablezeromint", settings.value("fZeromintEnable").toBool());
-    if (settings.contains("nZeromintPercentage"))
-        SoftSetArg("-zeromintpercentage", settings.value("nZeromintPercentage").toString().toStdString());
-    if (settings.contains("nPreferredDenom"))
-        SoftSetArg("-preferredDenom", settings.value("nPreferredDenom").toString().toStdString());
+    if (settings.contains("nObfuscationRounds"))
+        SoftSetArg("-obfuscationrounds", settings.value("nObfuscationRounds").toString().toStdString());
     if (settings.contains("nAnonymizeKoreAmount"))
         SoftSetArg("-anonymizekoreamount", settings.value("nAnonymizeKoreAmount").toString().toStdString());
 
@@ -246,14 +234,8 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return settings.value("nDatabaseCache");
         case ThreadsScriptVerif:
             return settings.value("nThreadsScriptVerif");
-        case HideZeroBalances:
-            return settings.value("fHideZeroBalances");
-        case ZeromintEnable:
-            return QVariant(fEnableZeromint);
-        case ZeromintPercentage:
-            return QVariant(nZeromintPercentage);
-        case ZeromintPrefDenom:
-            return QVariant(nPreferredDenom);
+        case ObfuscationRounds:
+            return QVariant(nObfuscationRounds);
         case AnonymizeKoreAmount:
             return QVariant(nAnonymizeKoreAmount);
         case Listen:
@@ -363,27 +345,11 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
                 setRestartRequired(true);
             }
             break;
-        case ZeromintEnable:
-            fEnableZeromint = value.toBool();
-            settings.setValue("fZeromintEnable", fEnableZeromint);
-            emit zeromintEnableChanged(fEnableZeromint);
+        case ObfuscationRounds:
+            nObfuscationRounds = value.toInt();
+            settings.setValue("nObfuscationRounds", nObfuscationRounds);
+            emit obfuscationRoundsChanged(nObfuscationRounds);
             break;
-        case ZeromintPercentage:
-            nZeromintPercentage = value.toInt();
-            settings.setValue("nZeromintPercentage", nZeromintPercentage);
-            emit zeromintPercentageChanged(nZeromintPercentage);
-            break;
-        case ZeromintPrefDenom:
-            nPreferredDenom = value.toInt();
-            settings.setValue("nPreferredDenom", nPreferredDenom);
-            emit preferredDenomChanged(nPreferredDenom);
-            break;
-        case HideZeroBalances:
-            fHideZeroBalances = value.toBool();
-            settings.setValue("fHideZeroBalances", fHideZeroBalances);
-            emit hideZeroBalancesChanged(fHideZeroBalances);
-            break;
-
         case AnonymizeKoreAmount:
             nAnonymizeKoreAmount = value.toInt();
             settings.setValue("nAnonymizeKoreAmount", nAnonymizeKoreAmount);
