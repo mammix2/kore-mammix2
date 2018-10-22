@@ -325,15 +325,15 @@ void OverviewPage::updateObfuscationProgress()
     if (!pwalletMain) return;
 
     QString strAmountAndRounds;
-    QString strAnonymizePivxAmount = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nAnonymizePivxAmount * COIN, false, BitcoinUnits::separatorAlways);
+    QString strAnonymizeKoreAmount = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nAnonymizeKoreAmount * COIN, false, BitcoinUnits::separatorAlways);
 
     if (currentBalance == 0) {
         ui->obfuscationProgress->setValue(0);
         ui->obfuscationProgress->setToolTip(tr("No inputs detected"));
 
         // when balance is zero just show info from settings
-        strAnonymizePivxAmount = strAnonymizePivxAmount.remove(strAnonymizePivxAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
-        strAmountAndRounds = strAnonymizePivxAmount + " / " + tr("%n Rounds", "", nObfuscationRounds);
+        strAnonymizeKoreAmount = strAnonymizeKoreAmount.remove(strAnonymizeKoreAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
+        strAmountAndRounds = strAnonymizeKoreAmount + " / " + tr("%n Rounds", "", nObfuscationRounds);
 
         ui->labelAmountRounds->setToolTip(tr("No inputs detected"));
         ui->labelAmountRounds->setText(strAmountAndRounds);
@@ -360,20 +360,20 @@ void OverviewPage::updateObfuscationProgress()
     CAmount nMaxToAnonymize = nAnonymizableBalance + currentAnonymizedBalance + nDenominatedUnconfirmedBalance;
 
     // If it's more than the anon threshold, limit to that.
-    if (nMaxToAnonymize > nAnonymizePivxAmount * COIN) nMaxToAnonymize = nAnonymizePivxAmount * COIN;
+    if (nMaxToAnonymize > nAnonymizeKoreAmount * COIN) nMaxToAnonymize = nAnonymizeKoreAmount * COIN;
 
     if (nMaxToAnonymize == 0) return;
 
-    if (nMaxToAnonymize >= nAnonymizePivxAmount * COIN) {
+    if (nMaxToAnonymize >= nAnonymizeKoreAmount * COIN) {
         ui->labelAmountRounds->setToolTip(tr("Found enough compatible inputs to anonymize %1")
-                                              .arg(strAnonymizePivxAmount));
-        strAnonymizePivxAmount = strAnonymizePivxAmount.remove(strAnonymizePivxAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
-        strAmountAndRounds = strAnonymizePivxAmount + " / " + tr("%n Rounds", "", nObfuscationRounds);
+                                              .arg(strAnonymizeKoreAmount));
+        strAnonymizeKoreAmount = strAnonymizeKoreAmount.remove(strAnonymizeKoreAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
+        strAmountAndRounds = strAnonymizeKoreAmount + " / " + tr("%n Rounds", "", nObfuscationRounds);
     } else {
         QString strMaxToAnonymize = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nMaxToAnonymize, false, BitcoinUnits::separatorAlways);
         ui->labelAmountRounds->setToolTip(tr("Not enough compatible inputs to anonymize <span style='color:red;'>%1</span>,<br>"
                                              "will anonymize <span style='color:red;'>%2</span> instead")
-                                              .arg(strAnonymizePivxAmount)
+                                              .arg(strAnonymizeKoreAmount)
                                               .arg(strMaxToAnonymize));
         strMaxToAnonymize = strMaxToAnonymize.remove(strMaxToAnonymize.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
         strAmountAndRounds = "<span style='color:red;'>" +
@@ -520,7 +520,7 @@ void OverviewPage::toggleObfuscation()
 
         // if wallet is locked, ask for a passphrase
         if (walletModel->getEncryptionStatus() == WalletModel::Locked) {
-            WalletModel::UnlockContext ctx(walletModel->requestUnlock(false));
+             WalletModel::UnlockContext ctx(walletModel->requestUnlock(AskPassphraseDialog::Context::Unlock_Full));
             if (!ctx.isValid()) {
                 //unlock was cancelled
                 obfuScationPool.cachedNumBlocks = std::numeric_limits<int>::max();
@@ -544,7 +544,7 @@ void OverviewPage::toggleObfuscation()
 
         /* show obfuscation configuration if client has defaults set */
 
-        if (nAnonymizePivxAmount == 0) {
+        if (nAnonymizeKoreAmount == 0) {
             ObfuscationConfig dlg(this);
             dlg.setModel(walletModel);
             dlg.exec();
