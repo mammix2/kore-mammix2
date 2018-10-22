@@ -26,7 +26,7 @@ BEGIN
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
             VALUE "OriginalFilename",   "kore-qt.exe"
-            VALUE "ProductName",        "kore Core"
+            VALUE "ProductName",        "kore"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END
