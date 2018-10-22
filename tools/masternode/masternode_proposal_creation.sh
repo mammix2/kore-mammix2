@@ -87,7 +87,7 @@ echo "##########################################################################
 command="$dir/kore-cli $cli_args gettransaction $proposal_preparation_hash"
 
 confirmations=`$command | jq .confirmations`
-while [ $confirmations != $nBudgetFeeConfirmations ]
+while [ $confirmations -lt $nBudgetFeeConfirmations ]
 do
   echo " Waiting for $nBudgetFeeConfirmations confirmations, so far we have $confirmations"
   sleep 10

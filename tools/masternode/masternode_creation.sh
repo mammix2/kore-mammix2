@@ -137,13 +137,16 @@ nValue=`$command | jq .vout[] | jq select\(.value==$masternode_coins_amount\) | 
 
 echo "$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue" >> $control_wallet
 
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+echo "PROBABLY IT IS NECESSARY TO RESTART THE DAEMON HERE !!!"
+
 echo "##########################################################################"
 echo "## Let's wait for the Confirmations"
 echo "##########################################################################"
 command="$dir/kore-cli $cli_args gettransaction $masternode_tx"
 
 confirmations=`$command | jq .confirmations`
-while [ $confirmations != $txConfirmations ]
+while [ $confirmations -lt $txConfirmations ]
 do
   echo " Waiting for $txConfirmations confirmations, so far we have $confirmations"
   sleep 10
@@ -158,7 +161,7 @@ echo "## Let's Make sure the $masternode_coins_amount $coin are locked"
 echo "##########################################################################"
 command="$dir/kore-cli $cli_args listlockunspent"
 
-tx_locked=`$command | jq .[].txid | scan\("$masternode_tx"\)`
+tx_locked=`$command | jq .[].txid | jq scan\("$masternode_tx"\)`
 if [ "$tx_locked" = "$masternode_tx" ]
 then
 echo "## GOOD the transaction $masternode_tx locked $masternode_coins_amount $coin"
