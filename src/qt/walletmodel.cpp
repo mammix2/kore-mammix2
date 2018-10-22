@@ -523,6 +523,29 @@ static void NotifyMultiSigChanged(WalletModel* walletmodel, bool fHaveMultiSig)
     QMetaObject::invokeMethod(walletmodel, "updateMultiSigFlag", Qt::QueuedConnection,
                               Q_ARG(bool, fHaveMultiSig));
 }
+static void NotifyWalletBacked(WalletModel* model, const bool& fSuccess, const string& filename)
+{
+    string message;
+    string title = "Backup ";
+    CClientUIInterface::MessageBoxFlags method;
+
+    if (fSuccess) {
+        message = "The wallet data was successfully saved to ";
+        title += "Successful: ";
+        method = CClientUIInterface::MessageBoxFlags::MSG_INFORMATION;
+    } else {
+        message = "There was an error trying to save the wallet data to ";
+        title += "Failed: ";
+        method = CClientUIInterface::MessageBoxFlags::MSG_ERROR;
+    }
+
+    message += _(filename.data());
+
+    QMetaObject::invokeMethod(model, "message", Qt::QueuedConnection,
+                              Q_ARG(QString, QString::fromStdString(title)),
+                              Q_ARG(QString, QString::fromStdString(message)),
+                              Q_ARG(unsigned int, (unsigned int)method));
+}
 void WalletModel::subscribeToCoreSignals()
 {
     // Connect signals to wallet
@@ -532,6 +555,7 @@ void WalletModel::subscribeToCoreSignals()
     wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
     wallet->NotifyWatchonlyChanged.connect(boost::bind(NotifyWatchonlyChanged, this, _1));
     wallet->NotifyMultiSigChanged.connect(boost::bind(NotifyMultiSigChanged, this, _1));
+    wallet->NotifyWalletBacked.connect(boost::bind(NotifyWalletBacked, this, _1, _2));
 }
 
 void WalletModel::unsubscribeFromCoreSignals()
@@ -543,6 +567,7 @@ void WalletModel::unsubscribeFromCoreSignals()
     wallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
     wallet->NotifyWatchonlyChanged.disconnect(boost::bind(NotifyWatchonlyChanged, this, _1));
     wallet->NotifyMultiSigChanged.disconnect(boost::bind(NotifyMultiSigChanged, this, _1));
+    wallet->NotifyWalletBacked.disconnect(boost::bind(NotifyWalletBacked, this, _1, _2));
 }
 
 // WalletModel::UnlockContext implementation
