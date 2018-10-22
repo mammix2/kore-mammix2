@@ -93,7 +93,7 @@ do
   sleep 10
   confirmations=`$command | jq .confirmations`
 done
-echo " COOL ! We got all $nBudgetFeeConfirmations confirmations"
+echo " COOL ! We got at least $nBudgetFeeConfirmations confirmations"
 echo ""
 echo ""
 echo ""

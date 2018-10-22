@@ -135,10 +135,11 @@ command="$dir/kore-cli $cli_args decoderawtransaction $hex_raw_transaction"
 echo "  command: $command"
 nValue=`$command | jq .vout[] | jq select\(.value==$masternode_coins_amount\) | jq .n`
 
-echo "$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue" >> $control_wallet
-
-echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-echo "PROBABLY IT IS NECESSARY TO RESTART THE DAEMON HERE !!!"
+echo "#######################################################################"
+echo "##  Updating this wallet masternode.conf file: $control_wallet #"
+new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
+echo "## $new_masternode"
+echo  $new_masternode >> $control_wallet
 
 echo "##########################################################################"
 echo "## Let's wait for the Confirmations"
@@ -153,24 +154,8 @@ do
   confirmations=`$command | jq .confirmations`
 done
 echo ""
-echo " COOL ! We got all $confirmations confirmations"
+echo " COOL ! We got at least $txConfirmations confirmations"
 echo ""
-
-echo "##########################################################################"
-echo "## Let's Make sure the $masternode_coins_amount $coin are locked"
-echo "##########################################################################"
-command="$dir/kore-cli $cli_args listlockunspent"
-
-tx_locked=`$command | jq .[].txid | jq scan\("$masternode_tx"\)`
-if [ "$tx_locked" = "$masternode_tx" ]
-then
-echo "## GOOD the transaction $masternode_tx locked $masternode_coins_amount $coin"
-else
-echo "## BAD NEWS !!!"
-echo "## Something Went Wrong, the coins are not locked !"
-echo "## Please take a look at the command: $command"
-exit 0
-fi
 
 echo ""
 echo "##########################################################################"
@@ -180,10 +165,8 @@ echo "## "
 echo "## Now you need to perform the following steps"
 echo "##   1. Change your masternode $coin.conf with the parameters found here:"
 echo "##      $masternode_conf_file"
-echo "##   2. Restart this control Wallet, so the masternode.conf will take effect."
-echo "##   3. Activate your masternode with the command:"
-echo "##    $dir/test/masternode/masternode_activation.sh $dir/kore-cli $cli_args $masternode_name"
+echo "##   2. Restart your masternode"
+echo "##   3. Restart this control Wallet, so the masternode.conf will take effect."
+echo "##   4. Activate your masternode with the command:"
+echo "##    `pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx"
 echo "##########################################################################"
-
-
-
