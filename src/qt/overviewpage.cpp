@@ -193,116 +193,30 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     currentWatchUnconfBalance = watchUnconfBalance;
     currentWatchImmatureBalance = watchImmatureBalance;
 
-    CAmount nLockedBalance = 0;
-    CAmount nWatchOnlyLockedBalance = 0;
-    if (pwalletMain) {
-        nLockedBalance = pwalletMain->GetLockedCoins();
-        nWatchOnlyLockedBalance = pwalletMain->GetLockedWatchOnlyBalance();
-    }
-    // KORE Balance
-    CAmount nTotalBalance = balance + unconfirmedBalance;
-    CAmount pivAvailableBalance = balance - immatureBalance - nLockedBalance;
-    CAmount nTotalWatchBalance = watchOnlyBalance + watchUnconfBalance + watchImmatureBalance;    
-    CAmount nUnlockedBalance = nTotalBalance - nLockedBalance;
-#ifdef ZEROCOIN
-    // zKORE Balance
-    CAmount matureZerocoinBalance = zerocoinBalance - unconfirmedZerocoinBalance - immatureZerocoinBalance;
-#endif   
-#ifndef ZEROCOIN
-    CAmount zerocoinBalance = 0; 
-    CAmount matureZerocoinBalance = 0;
-#endif    
-    // Percentages
-    QString szPercentage = "";
-    QString sPercentage = "";
-    getPercentage(nUnlockedBalance, zerocoinBalance, sPercentage, szPercentage);
-    // Combined balances
-    CAmount availableTotalBalance = pivAvailableBalance + matureZerocoinBalance;
-    CAmount sumTotalBalance = nTotalBalance + zerocoinBalance;
 
-    // KORE labels
-    ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, pivAvailableBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, balance - immatureBalance, false, BitcoinUnits::separatorAlways));
     ui->labelUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, unconfirmedBalance, false, BitcoinUnits::separatorAlways));
     ui->labelImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, immatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelLockedBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nLockedBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nTotalBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelAnonymized->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, anonymizedBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, balance + unconfirmedBalance, false, BitcoinUnits::separatorAlways));
 
-    // Watchonly labels
+
     ui->labelWatchAvailable->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchOnlyBalance, false, BitcoinUnits::separatorAlways));
     ui->labelWatchPending->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchUnconfBalance, false, BitcoinUnits::separatorAlways));
     ui->labelWatchImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchImmatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchLocked->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nWatchOnlyLockedBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, nTotalWatchBalance, false, BitcoinUnits::separatorAlways));
+    ui->labelWatchTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchOnlyBalance + watchUnconfBalance + watchImmatureBalance, false, BitcoinUnits::separatorAlways));
 
-//#ifdef ZEROCOIN
-//    // zKORE labels
-//    ui->labelzBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, zerocoinBalance, false, BitcoinUnits::separatorAlways));
-//    ui->labelzBalanceUnconfirmed->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, unconfirmedZerocoinBalance, false, BitcoinUnits::separatorAlways));
-//    ui->labelzBalanceMature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, matureZerocoinBalance, false, BitcoinUnits::separatorAlways));
-//    ui->labelzBalanceImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, immatureZerocoinBalance, false, BitcoinUnits::separatorAlways));
-//#endif
-
-    // Combined labels
-    ui->labelBalancez->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, availableTotalBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotalz->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, sumTotalBalance, false, BitcoinUnits::separatorAlways));
-
-    // Percentage labels
-    ui->labelKOREPercent->setText(sPercentage);
-//    ui->labelzKOREPercent->setText(szPercentage);
-
-    // Adjust bubble-help according to AutoMint settings
-    QString automintHelp = tr("Current percentage of zKORE.\nIf AutoMint is enabled this percentage will settle around the configured AutoMint percentage (default = 10%).\n");
-    bool fEnableObfuscation = GetBoolArg("-enablezeromint", true);
-    int nObfuscationRounds = GetArg("-zeromintpercentage", 10);
-    if (fEnableObfuscation) {
-        automintHelp += tr("AutoMint is currently enabled and set to ") + QString::number(nObfuscationRounds) + "%.\n";
-        automintHelp += tr("To disable AutoMint add 'enablezeromint=0' in kore.conf.");
-    }
-    else {
-        automintHelp += tr("AutoMint is currently disabled.\nTo enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in kore.conf");
-    }
-
-    // Only show most balances if they are non-zero for the sake of simplicity
-    QSettings settings;
-    bool settingShowAllBalances = !settings.value("fHideZeroBalances").toBool();
-    bool showSumAvailable = settingShowAllBalances || sumTotalBalance != availableTotalBalance;
-    ui->labelBalanceTextz->setVisible(showSumAvailable);
-    ui->labelBalancez->setVisible(showSumAvailable);
-    bool showKOREAvailable = settingShowAllBalances || pivAvailableBalance != nTotalBalance;
-    bool showWatchOnlyKOREAvailable = watchOnlyBalance != nTotalWatchBalance;
-    bool showKOREPending = settingShowAllBalances || unconfirmedBalance != 0;
-    bool showWatchOnlyKOREPending = watchUnconfBalance != 0;
-    bool showKORELocked = settingShowAllBalances || nLockedBalance != 0;
-    bool showWatchOnlyKORELocked = nWatchOnlyLockedBalance != 0;
-    bool showImmature = settingShowAllBalances || immatureBalance != 0;
+    // only show immature (newly mined) balance if it's non-zero, so as not to complicate things
+    // for the non-mining users
+    bool showImmature = immatureBalance != 0;
     bool showWatchOnlyImmature = watchImmatureBalance != 0;
-    bool showWatchOnly = nTotalWatchBalance != 0;
-    ui->labelBalance->setVisible(showKOREAvailable || showWatchOnlyKOREAvailable);
-    ui->labelBalanceText->setVisible(showKOREAvailable || showWatchOnlyKOREAvailable);
-    ui->labelWatchAvailable->setVisible(showKOREAvailable && showWatchOnly);
-    ui->labelUnconfirmed->setVisible(showKOREPending || showWatchOnlyKOREPending);
-    ui->labelPendingText->setVisible(showKOREPending || showWatchOnlyKOREPending);
-    ui->labelWatchPending->setVisible(showKOREPending && showWatchOnly);
-    ui->labelLockedBalance->setVisible(showKORELocked || showWatchOnlyKORELocked);
-    ui->labelLockedBalanceText->setVisible(showKORELocked || showWatchOnlyKORELocked);
-    ui->labelWatchLocked->setVisible(showKORELocked && showWatchOnly);
-    ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature); // for symmetry reasons also show immature label when the watch-only one is shown
+
+    // for symmetry reasons also show immature label when the watch-only one is shown
+    ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
-    ui->labelWatchImmature->setVisible(showImmature && showWatchOnly); // show watch-only immature balance
-//#ifdef ZEROCOIN
-//    bool showzKOREAvailable = settingShowAllBalances || zerocoinBalance != matureZerocoinBalance;
-//    bool showzKOREUnconfirmed = settingShowAllBalances || unconfirmedZerocoinBalance != 0;
-//    bool showzKOREImmature = settingShowAllBalances || immatureZerocoinBalance != 0;
-//    ui->labelzBalanceMature->setVisible(showzKOREAvailable);
-//    ui->labelzBalanceMatureText->setVisible(showzKOREAvailable);
-//    ui->labelzBalanceUnconfirmed->setVisible(showzKOREUnconfirmed);
-//    ui->labelzBalanceUnconfirmedText->setVisible(showzKOREUnconfirmed);
-//    ui->labelzBalanceImmature->setVisible(showzKOREImmature);
-//    ui->labelzBalanceImmatureText->setVisible(showzKOREImmature);
-//#endif
-    bool showPercentages = ! (zerocoinBalance == 0 && nTotalBalance == 0);
-    ui->labelKOREPercent->setVisible(showPercentages);
-//    ui->labelzKOREPercent->setVisible(showPercentages);
+    ui->labelWatchImmature->setVisible(showWatchOnlyImmature); // show watch-only immature balance
+
+    updateObfuscationProgress();
 
     static int cachedTxLocks = 0;
 
@@ -317,9 +231,9 @@ void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly)
 {
     ui->labelSpendable->setVisible(showWatchOnly);      // show spendable label (only when watch-only is active)
     ui->labelWatchonly->setVisible(showWatchOnly);      // show watch-only label
+    ui->lineWatchBalance->setVisible(showWatchOnly);    // show watch-only balance separator line
     ui->labelWatchAvailable->setVisible(showWatchOnly); // show watch-only available balance
     ui->labelWatchPending->setVisible(showWatchOnly);   // show watch-only pending balance
-    ui->labelWatchLocked->setVisible(showWatchOnly);     // show watch-only total balance
     ui->labelWatchTotal->setVisible(showWatchOnly);     // show watch-only total balance
 
     if (!showWatchOnly) {
@@ -327,7 +241,6 @@ void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly)
     } else {
         ui->labelBalance->setIndent(20);
         ui->labelUnconfirmed->setIndent(20);
-        ui->labelLockedBalance->setIndent(20);
         ui->labelImmature->setIndent(20);
         ui->labelTotal->setIndent(20);
     }
