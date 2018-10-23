@@ -146,10 +146,11 @@ newKoreKey() {
             uncompressed_addr="$(hexToAddress "$(pack "04$X$Y" | hash160)")"
             compressed_addr="$(hexToAddress "$(pack "$y_parity$X" | hash160)")"
             echo ---
-            echo "private key:          0x$exponent"
+            echo "private key:              0x$exponent"
             echo "key:"
             echo "    X:                    $X"
             echo "    Y:                    $Y"
+            echo "public key:               04$X$Y"
             echo "compressed:"
             echo "    WIF:                  $compressed_wif"
             echo "    kore address:         $compressed_addr"

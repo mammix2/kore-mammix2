@@ -65,7 +65,7 @@ fi
 echo ""
 echo "## Now Let's start the masternode"
 
-command="$cli $cli_args startmasternode alias 1 $masternode_name"
+command="$cli $cli_args startmasternode alias false $masternode_name"
 echo "Command: $command"
 masternodeStarted=`$command | jq .detail[].result`
 
@@ -83,7 +83,7 @@ then
 else
   echo "##########################################################################"
   echo "## Some Problem Happened when ACTIVATING THE masternode"
-  echo "## result: masternodeStarted"
+  echo "## result: $masternodeStarted"
   echo "## if you wanna try the command here it is:"
   echo "## $command"
   echo "##########################################################################"

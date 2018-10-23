@@ -92,23 +92,21 @@ fi
 echo "##   cli args: $cli_args"
 echo "##########################################################################"
 
-
 echo "Executing from $dir"
 echo "Creating masternode account"
 command="$dir/kore-cli $cli_args getaccountaddress $masternode_name"
 echo "  command: $command"
 masternode_account=`$command`
 
-echo "Generating masternode Private Key"
-command="$dir/kore-cli $cli_args masternode genkey"
-echo "  command: $command"
-masternode_private_key=`$command`
-
 echo "Sending $masternode_coins_amount to $masternode_account"
 command="$dir/kore-cli $cli_args sendtoaddress $masternode_account $masternode_coins_amount"
 masternode_tx=`$command`
 echo "  command: $command"
 
+echo "Generating masternode Private Key"
+command="$dir/kore-cli $cli_args masternode genkey"
+echo "  command: $command"
+masternode_private_key=`$command`
 
 echo "Generating $masternode_conf_file file"
 echo "server=1" > $masternode_conf_file
@@ -140,6 +138,8 @@ echo "##  Updating this wallet masternode.conf file: $control_wallet #"
 new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
 echo "## $new_masternode"
 echo  $new_masternode >> $control_wallet
+echo "## The following is the control wallet masternode.conf "  >> $masternode_conf_file
+echo "## $new_masternode"   >> $masternode_conf_file
 
 echo "##########################################################################"
 echo "## Let's wait for the Confirmations"
