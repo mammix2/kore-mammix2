@@ -136,7 +136,7 @@
         <translation>Служи за изключване на възможността пари да бъдат превеждани, когато акаунта на операционната система е компрометиран. Не предоставя съществено ниво на сигурност.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>За анонимизация, авто-емитиране, и единствено съхранение</translation>
     </message>
     <message>

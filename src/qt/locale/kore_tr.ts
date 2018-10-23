@@ -136,7 +136,7 @@
         <translation>OS hesabı tehlikeye atıldığında önemsiz para göndermeyi devre dışı bırakır. Gerçek bir güvenlik sağlamaz.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Sadece anonimleştirmek, otomatik basım ve stakelemek için</translation>
     </message>
     <message>

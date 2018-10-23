@@ -171,7 +171,7 @@
     </message>
     <message>
         <location line="+3"/>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

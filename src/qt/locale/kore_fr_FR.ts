@@ -136,7 +136,7 @@
         <translation>Est utilisé pour désactiver l'envoi d'argent lorsque l'utilisateur OS est compromis. Ne fournit pas de vrai sécurité.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Pour l'anonymat, l'auto-monnayage et le staking seulement</translation>
     </message>
     <message>

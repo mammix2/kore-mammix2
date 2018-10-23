@@ -136,7 +136,7 @@
         <translation>Ser till att inaktivera obetydliga skickade pengar när OSkontot är i risk. Förser ingen riktig säkerhet.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Endast för anonymisering, automint, och staking.</translation>
     </message>
     <message>
