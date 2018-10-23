@@ -48,7 +48,9 @@ echo "##########################################################################
 echo "## Let's Make sure the coins are locked"
 echo "##########################################################################"
 command="$cli $cli_args listlockunspent"
+echo "Command: $command"
 tx_locked=`$command | jq .[].txid | jq scan\(\"$masternode_tx\"\)`
+echo "Check: $tx_locked = \"$masternode_tx\""
 if [ "$tx_locked" = "\"$masternode_tx\"" ]
 then
 echo "## GOOD the transaction $masternode_tx locked $masternode_coins_amount $coin"
@@ -64,7 +66,7 @@ echo ""
 echo "## Now Let's start the masternode"
 
 command="$cli $cli_args startmasternode alias 1 $masternode_name"
-echo "$command"
+echo "Command: $command"
 masternodeStarted=`$command | jq .detail[].result`
 
 echo ""

@@ -15,11 +15,11 @@ echo "##   link: link to your proposal - without spaces"
 echo "##   amount: one payment amount"
 echo "##   payments: how many payments of amount"
 echo "##"
-echo "##   example: ./test/masternode/masternode_proposal_creation.sh testnet Primeira-Proposta Link-da-Proposta 1000 1"
+echo "##   example: ./masternode_proposal_creation.sh testnet Primeira-Proposta Link-da-Proposta 555 2"
 exit 1
 fi
 
-dir=`pwd`
+dir=`pwd`/../../src
 network=$1
 proposal_name="\"$2\""
 proposal_link="\"$3\""
@@ -72,6 +72,20 @@ proposal_fee_tx=`$command`
 
 command="$dir/kore-cli $cli_args mnbudget nextblock"
 proposal_start_at_block=`$command`
+block_count=`$dir/kore-cli $cli_args getblockcount`
+
+echo "##########################################################################"
+echo "## Get the next Superblock "
+echo "next super block: $proposal_start_at_block"
+echo "current block   : $block_count"
+while [ $(expr $proposal_start_at_block - $block_count) -lt 5 ]
+do
+  echo "Next Super Block Too Close. Waiting to be less then 5: `$(expr $proposal_start_at_block - $block_count)`"
+  sleep 1
+  proposal_start_at_block=`$command`
+  block_count=`$dir/kore-cli $cli_args getblockcount`
+done
+
 
 echo ""
 echo ""
@@ -90,7 +104,7 @@ confirmations=`$command | jq .confirmations`
 while [ $confirmations -lt $nBudgetFeeConfirmations ]
 do
   echo " Waiting for $nBudgetFeeConfirmations confirmations, so far we have $confirmations"
-  sleep 10
+  sleep 1
   confirmations=`$command | jq .confirmations`
 done
 echo " COOL ! We got at least $nBudgetFeeConfirmations confirmations"
