@@ -359,7 +359,6 @@ public:
         nMasternodeExpirationSeconds = 120 * 60;
         nMasternodeRemovalSeconds = 130 * 60;
         nMasternodeCheckSeconds = 5;
-        nMasternodeMinCoins = 500;
         nMasternodeCoinScore = 499;
 
     }
@@ -482,7 +481,6 @@ public:
         nMasternodeExpirationSeconds = 24 * 60;
         nMasternodeRemovalSeconds = 26 * 60;
         nMasternodeCheckSeconds = 1;
-        nMasternodeMinCoins = 500;
         nMasternodeCoinScore = 499;
 
         nBudgetVoteUpdate = 1*60;     // can only change vote after 1 minute

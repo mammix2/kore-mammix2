@@ -108,7 +108,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/qt/kore-qt",
             "args": ["-debug", "-testnet","-par=1"],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,

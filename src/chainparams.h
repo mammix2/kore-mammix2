@@ -119,7 +119,6 @@ public:
     int64_t MasternodeExpirationSeconds() const { return nMasternodeExpirationSeconds; }    
     int64_t MasternodeRemovalSeconds() const { return nMasternodeRemovalSeconds; }
     int64_t MasternodeCheckSeconds() const { return nMasternodeCheckSeconds; }
-    int64_t MasternodeMinCoins() const { return nMasternodeMinCoins; }
     int64_t MasternodeCoinScore() const { return nMasternodeCoinScore; }
         
     CBaseChainParams::Network NetworkID() const { return networkID; }
@@ -227,7 +226,6 @@ protected:
     int64_t nMasternodeExpirationSeconds;
     int64_t nMasternodeRemovalSeconds;
     int64_t nMasternodeCheckSeconds;
-    int64_t nMasternodeMinCoins;
     int64_t nMasternodeCoinScore;    
 
 

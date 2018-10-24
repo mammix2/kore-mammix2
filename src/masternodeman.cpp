@@ -984,7 +984,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         CValidationState state;
         CMutableTransaction tx = CMutableTransaction();
-        CTxOut vout = CTxOut((Params().MasternodeMinCoins() - 0.01) * COIN, obfuScationPool.collateralPubKey);
+        CTxOut vout = CTxOut((MASTERNODE_MIN_COINS - 0.01) * COIN, obfuScationPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         tx.nTime = GetAdjustedTime();
