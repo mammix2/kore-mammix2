@@ -110,8 +110,18 @@ public:
     std::string ObfuscationPoolDummyAddress() const { return strObfuscationPoolDummyAddress; }
     int64_t StartMasternodePayments() const { return nStartMasternodePayments; }
     int64_t BudgetVoteUpdate() const { return nBudgetVoteUpdate; }
-    int64_t Budget_Fee_Confirmations() const { return nBudget_Fee_Confirmations; }
+    int64_t BudgetFeeConfirmations() const { return nBudgetFeeConfirmations; }
 
+    int64_t MasternodeMinConfirmations() const { return nMasternodeMinConfirmations; }
+    int64_t MasternodeMinMNPSeconds() const { return nMasternodeMinMNPSeconds; }
+    int64_t MasternodeMinMNBSeconds() const { return nMasternodeMinMNBSeconds; }
+    int64_t MasternodePingSeconds() const { return nMasternodePingSeconds; }
+    int64_t MasternodeExpirationSeconds() const { return nMasternodeExpirationSeconds; }    
+    int64_t MasternodeRemovalSeconds() const { return nMasternodeRemovalSeconds; }
+    int64_t MasternodeCheckSeconds() const { return nMasternodeCheckSeconds; }
+    int64_t MasternodeMinCoins() const { return nMasternodeMinCoins; }
+    int64_t MasternodeCoinScore() const { return nMasternodeCoinScore; }
+        
     CBaseChainParams::Network NetworkID() const { return networkID; }
 
 #ifdef ZEROCOIN
@@ -209,7 +219,16 @@ protected:
     int nZerocoinRequiredStakeDepth;
     int nBlockZerocoinV2;    
 #endif
-    int64_t nBudget_Fee_Confirmations;
+    int64_t nBudgetFeeConfirmations;
+    int64_t nMasternodeMinConfirmations;
+    int64_t nMasternodeMinMNPSeconds;
+    int64_t nMasternodeMinMNBSeconds;
+    int64_t nMasternodePingSeconds;
+    int64_t nMasternodeExpirationSeconds;
+    int64_t nMasternodeRemovalSeconds;
+    int64_t nMasternodeCheckSeconds;
+    int64_t nMasternodeMinCoins;
+    int64_t nMasternodeCoinScore;    
 
 
     int nBlockEnforceSerialRange;

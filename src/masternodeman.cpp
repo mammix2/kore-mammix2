@@ -13,7 +13,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
-#define MN_WINNER_MINIMUM_AGE 8000    // Age in seconds. This should be > MASTERNODE_REMOVAL_SECONDS to avoid misconfigured new nodes in the list.
+#define MN_WINNER_MINIMUM_AGE 8000    // Age in seconds. This should be > Params().MasternodeRemovalSeconds() to avoid misconfigured new nodes in the list.
 
 /** Masternode manager */
 CMasternodeMan mnodeman;
@@ -227,7 +227,7 @@ void CMasternodeMan::AskForMN(CNode* pnode, CTxIn& vin)
 
     LogPrint("masternode", "CMasternodeMan::AskForMN - Asking node for missing entry, vin: %s\n", vin.prevout.hash.ToString());
     pnode->PushMessage("dseg", vin);
-    int64_t askAgain = GetTime() + MASTERNODE_MIN_MNP_SECONDS;
+    int64_t askAgain = GetTime() + Params().MasternodeMinMNPSeconds();
     mWeAskedForMasternodeListEntry[vin.prevout] = askAgain;
 }
 
@@ -317,7 +317,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
     // remove expired mapSeenMasternodeBroadcast
     map<uint256, CMasternodeBroadcast>::iterator it3 = mapSeenMasternodeBroadcast.begin();
     while (it3 != mapSeenMasternodeBroadcast.end()) {
-        if ((*it3).second.lastPing.sigTime < GetTime() - (MASTERNODE_REMOVAL_SECONDS * 2)) {
+        if ((*it3).second.lastPing.sigTime < GetTime() - (Params().MasternodeRemovalSeconds() * 2)) {
             mapSeenMasternodeBroadcast.erase(it3++);
             masternodeSync.mapSeenSyncMNB.erase((*it3).second.GetHash());
         } else {
@@ -328,7 +328,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
     // remove expired mapSeenMasternodePing
     map<uint256, CMasternodePing>::iterator it4 = mapSeenMasternodePing.begin();
     while (it4 != mapSeenMasternodePing.end()) {
-        if ((*it4).second.sigTime < GetTime() - (MASTERNODE_REMOVAL_SECONDS * 2)) {
+        if ((*it4).second.sigTime < GetTime() - (Params().MasternodeRemovalSeconds() * 2)) {
             mapSeenMasternodePing.erase(it4++);
         } else {
             ++it4;
@@ -362,7 +362,7 @@ int CMasternodeMan::stable_size ()
         if (IsSporkActive (SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
             nMasternode_Age = GetAdjustedTime() - mn.sigTime;
             if ((nMasternode_Age) < nMasternode_Min_Age) {
-                continue; // Skip masternodes younger than (default) 8000 sec (MUST be > MASTERNODE_REMOVAL_SECONDS)
+                continue; // Skip masternodes younger than (default) 8000 sec (MUST be > Params().MasternodeRemovalSeconds())
             }
         }
         mn.Check ();
@@ -654,7 +654,7 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
         if (mn.protocolVersion < minProtocol) continue;
 
         if (!mn.IsEnabled()) {
-            vecMasternodeScores.push_back(make_pair(MASTERNODE_COIN_SCORE, mn));
+            vecMasternodeScores.push_back(make_pair(Params().MasternodeCoinScore(), mn));
             continue;
         }
 
@@ -934,8 +934,8 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             //   e.g. We don't want the entry relayed/time updated when we're syncing the list
             // mn.pubkey = pubkey, IsVinAssociatedWithPubkey is validated once below,
             //   after that they just need to match
-            if (count == -1 && pmn->pubKeyCollateralAddress == pubkey && (GetAdjustedTime() - pmn->nLastDsee > MASTERNODE_MIN_MNB_SECONDS)) {
-                if (pmn->protocolVersion > GETHEADERS_VERSION && sigTime - pmn->lastPing.sigTime < MASTERNODE_MIN_MNB_SECONDS) return;
+            if (count == -1 && pmn->pubKeyCollateralAddress == pubkey && (GetAdjustedTime() - pmn->nLastDsee > Params().MasternodeMinMNBSeconds())) {
+                if (pmn->protocolVersion > GETHEADERS_VERSION && sigTime - pmn->lastPing.sigTime < Params().MasternodeMinMNBSeconds()) return;
                 if (pmn->nLastDsee < sigTime) { //take the newest entry
                     LogPrint("masternode", "dsee - Got updated entry for %s\n", vin.prevout.hash.ToString());
                     if (pmn->protocolVersion < GETHEADERS_VERSION) {
@@ -984,7 +984,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         CValidationState state;
         CMutableTransaction tx = CMutableTransaction();
-        CTxOut vout = CTxOut((MASTERNODE_MIN_COINS - 0.01) * COIN, obfuScationPool.collateralPubKey);
+        CTxOut vout = CTxOut((Params().MasternodeMinCoins() - 0.01) * COIN, obfuScationPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         tx.nTime = GetAdjustedTime();
@@ -997,24 +997,24 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         }
 
         if (fAcceptable) {
-            if (GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS) {
-                LogPrint("masternode","dsee - Input must have least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
+            if (GetInputAge(vin) < Params().MasternodeMinConfirmations()) {
+                LogPrint("masternode","dsee - Input must have least %d confirmations\n", Params().MasternodeMinConfirmations());
                 Misbehaving(pfrom->GetId(), 20);
                 return;
             }
 
             // verify that sig time is legit in past
-            // should be at least not earlier than block when 1000 KORE tx got MASTERNODE_MIN_CONFIRMATIONS
+            // should be at least not earlier than block when 1000 KORE tx got Params().MasternodeMinConfirmations()
             uint256 hashBlock = 0;
             CTransaction tx2;
             GetTransaction(vin.prevout.hash, tx2, hashBlock, true);
             BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
             if (mi != mapBlockIndex.end() && (*mi).second) {
                 CBlockIndex* pMNIndex = (*mi).second;                                                        // block for 10000 KORE tx -> 1 confirmation
-                CBlockIndex* pConfIndex = chainActive[pMNIndex->nHeight + MASTERNODE_MIN_CONFIRMATIONS - 1]; // block where tx got MASTERNODE_MIN_CONFIRMATIONS
+                CBlockIndex* pConfIndex = chainActive[pMNIndex->nHeight + Params().MasternodeMinConfirmations() - 1]; // block where tx got 
                 if (pConfIndex->GetBlockTime() > sigTime) {
                     LogPrint("masternode","mnb - Bad sigTime %d for Masternode %s (%i conf block is at %d)\n",
-                        sigTime, vin.prevout.hash.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
+                        sigTime, vin.prevout.hash.ToString(), Params().MasternodeMinConfirmations(), pConfIndex->GetBlockTime());
                     return;
                 }
             }
@@ -1094,7 +1094,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         if (pmn != NULL && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
             // LogPrint("masternode","dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
             // take this only if it's newer
-            if (sigTime - pmn->nLastDseep > MASTERNODE_MIN_MNP_SECONDS) {
+            if (sigTime - pmn->nLastDseep > Params().MasternodeMinMNPSeconds()) {
                 std::string strMessage = pmn->addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
 
                 std::string errorMessage = "";

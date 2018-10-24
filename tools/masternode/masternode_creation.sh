@@ -60,7 +60,6 @@ masternode_onion_address=$3
 masternode_user=$control_wallet_user
 masternode_password=$control_wallet_password
 masternode_conf_file=`pwd`/$masternode_name.conf
-txConfirmations=6
 
 if [ $# -eq 5 ]
 then
@@ -73,9 +72,12 @@ if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
 then
   masternode_port=11743
   control_wallet="$user_dir/.$coin/testnet4/masternode.conf"
+  # needs to be the same as nMasternode_Min_Confirmations
+  txConfirmations=6
 else
   masternode_port=10743
   control_wallet="$user_dir/.$coin/masternode.conf"
+  txConfirmations=15
 fi
 
 echo "## "
@@ -122,6 +124,9 @@ echo "staking=0"  >> $masternode_conf_file
 echo "masternode=1"  >> $masternode_conf_file
 echo "masternodeprivkey=$masternode_private_key"  >> $masternode_conf_file
 echo "masternodeaddr=$masternode_onion_address"   >> $masternode_conf_file
+echo "# sporkkey for testnet"
+echo "sporkkey=8pLecrnAhZjHZyKfqMAtN4rekdcBFrikTi1w1hXjuDRfV1Ygean"   >> $masternode_conf_file
+
 
 echo "Generating $control_wallet file"
 command="$dir/kore-cli $cli_args gettransaction $masternode_tx"

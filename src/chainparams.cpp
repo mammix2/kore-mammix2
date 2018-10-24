@@ -350,7 +350,18 @@ public:
         nZerocoinRequiredStakeDepth = 200; //The required confirmations for a zpiv to be stakable
 #endif
 
-        nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
+        nBudgetFeeConfirmations = 6; // Number of confirmations for the finalization fee
+
+        nMasternodeMinConfirmations = 15;
+        nMasternodeMinMNPSeconds = 10 * 60;  
+        nMasternodeMinMNBSeconds =  5 * 60;   
+        nMasternodePingSeconds = 5 * 60;
+        nMasternodeExpirationSeconds = 120 * 60;
+        nMasternodeRemovalSeconds = 130 * 60;
+        nMasternodeCheckSeconds = 5;
+        nMasternodeMinCoins = 500;
+        nMasternodeCoinScore = 499;
+
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
@@ -461,8 +472,19 @@ public:
         strSporkKey      = "04ca99e36f198eedd11b386cf2127a036ec1f0028c2b2a5ec0ff71aa2045c1c4494d45013467a5653eb64442a4d8f93ca62e00f5d9004a3a6469e72b8516ed4a99";
         strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
         nStartMasternodePayments = 1533841307; //genesis block time
-        nBudget_Fee_Confirmations = 2; // Number of confirmations for the finalization fee. We have to make this very short
+        nBudgetFeeConfirmations = 2; // Number of confirmations for the finalization fee. We have to make this very short
                                        // here because we only have a 8 block finalization window on testnet
+
+        nMasternodeMinConfirmations = 6;    
+        nMasternodeMinMNPSeconds = 2 * 60;
+        nMasternodeMinMNBSeconds =  1 * 60;
+        nMasternodePingSeconds = 1 * 60;
+        nMasternodeExpirationSeconds = 24 * 60;
+        nMasternodeRemovalSeconds = 26 * 60;
+        nMasternodeCheckSeconds = 1;
+        nMasternodeMinCoins = 500;
+        nMasternodeCoinScore = 499;
+
         nBudgetVoteUpdate = 1*60;     // can only change vote after 1 minute
     }
     const Checkpoints::CCheckpointData& Checkpoints() const

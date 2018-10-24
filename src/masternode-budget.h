@@ -358,12 +358,14 @@ public:
     bool GetPayeeAndAmount(int64_t nBlockHeight, CScript& payee, CAmount& nAmount)
     {
         LOCK(cs);
-
+        LogPrint("mnbudget","CBudgetManager::GetPayeeAndAmount \n");
         int i = nBlockHeight - GetBlockStart();
         if (i < 0) return false;
         if (i > (int)vecBudgetPayments.size() - 1) return false;
         payee = vecBudgetPayments[i].payee;
         nAmount = vecBudgetPayments[i].nAmount;
+        LogPrint("mnbudget","CBudgetManager::GetPayeeAndAmount payee %s \n",payee.ToString());
+        LogPrint("mnbudget","CBudgetManager::GetPayeeAndAmount nAmount %d \n",nAmount);
         return true;
     }
 

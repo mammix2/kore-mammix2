@@ -29,7 +29,7 @@ control_wallet_user=kore
 control_wallet_password=kore
 masternode_proposal_fee=100
 # This parameter should match 
-# chainparams nBudget_Fee_Confirmations
+# chainparams nBudgetFeeConfirmations
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
 then
   nBudgetFeeConfirmations=2
@@ -127,9 +127,16 @@ echo `$command`
 echo ""
 echo ""
 echo "##########################################################################"
-echo "## VOTING HASH - this is the hash you need to publish, so people can vote"
+echo "## Now you can publish the hash for voting"
 echo "## "
-echo "## HASH=$voting_hash"
+echo "## VOTING FROM CONTROL WALLET"
+echo "##     To vote YES: $dir/kore-cli $cli_args mnbudget vote-many $voting_hash yes"
+echo "##     To vote NO : $dir/kore-cli $cli_args mnbudget vote-many $voting_hash no"
+echo "##"
+echo "## VOTING FROM MASTERNODE"
+echo "##     To vote YES: $dir/kore-cli $cli_args mnbudget vote-many $voting_hash yes"
+echo "##     To vote NO : $dir/kore-cli $cli_args mnbudget vote-many $voting_hash no"
+
 
 
 
