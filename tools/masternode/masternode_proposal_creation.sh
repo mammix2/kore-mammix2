@@ -32,8 +32,10 @@ masternode_proposal_fee=100
 # chainparams nBudgetFeeConfirmations
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
 then
+  proposal_fee_confirmations=2
   nBudgetFeeConfirmations=2
 else
+  proposal_fee_confirmations=6
   nBudgetFeeConfirmations=6
 fi
 
@@ -70,6 +72,20 @@ command="$dir/kore-cli $cli_args sendtoaddress $proposal_account $masternode_pro
 echo "  command: $command"
 proposal_fee_tx=`$command`
 
+echo "##########################################################################"
+echo "## Let's wait for the Proposal Fee Confirmations"
+echo "##########################################################################"
+command="$dir/kore-cli $cli_args gettransaction $proposal_fee_tx"
+echo "command: $command"
+confirmations=`$command | jq .confirmations`
+while [ $confirmations -lt $proposal_fee_confirmations ]
+do
+  echo " Waiting for $proposal_fee_confirmations confirmations, so far we have $confirmations"
+  sleep 10
+  confirmations=`$command | jq .confirmations`
+done
+
+
 command="$dir/kore-cli $cli_args mnbudget nextblock"
 proposal_start_at_block=`$command`
 block_count=`$dir/kore-cli $cli_args getblockcount`
@@ -80,7 +96,8 @@ echo "next super block: $proposal_start_at_block"
 echo "current block   : $block_count"
 while [ $(expr $proposal_start_at_block - $block_count) -lt 5 ]
 do
-  echo "Next Super Block Too Close. Waiting to be less then 5: `$(expr $proposal_start_at_block - $block_count)`"
+  echo "Next Super Block Too Close."
+  echo " Waiting the distance to be greather then 5: now: `expr $proposal_start_at_block - $block_count`"
   sleep 1
   proposal_start_at_block=`$command`
   block_count=`$dir/kore-cli $cli_args getblockcount`
@@ -95,11 +112,13 @@ command="$dir/kore-cli $cli_args mnbudget prepare $proposal_name $proposal_link 
 echo "  command: $command"
 proposal_preparation_hash=`$command`
 
+
+
 echo "##########################################################################"
 echo "## it is necessary to wait for the collateral confirmations"
 echo "##########################################################################"
 command="$dir/kore-cli $cli_args gettransaction $proposal_preparation_hash"
-
+echo "$command | jq .confirmations"
 confirmations=`$command | jq .confirmations`
 while [ $confirmations -lt $nBudgetFeeConfirmations ]
 do
@@ -136,17 +155,3 @@ echo "##"
 echo "## VOTING FROM MASTERNODE"
 echo "##     To vote YES: $dir/kore-cli $cli_args mnbudget vote-many $voting_hash yes"
 echo "##     To vote NO : $dir/kore-cli $cli_args mnbudget vote-many $voting_hash no"
-
-
-
-
-
-
-
-
-
-
-
-
-
-

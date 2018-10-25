@@ -26,12 +26,8 @@ std::vector<CFinalizedBudgetBroadcast> vecImmatureFinalizedBudgets;
 int nSubmittedFinalBudget;
 
 int GetBudgetPaymentCycleBlocks()
-{
-    // Amount of blocks in a months period of time (using 1 minutes per) = (60*24*30)
-    if (Params().NetworkID() == CBaseChainParams::MAIN) return 43200;
-    //for testing purposes
-
-    return 14;
+{    
+    return Params().MasternodeBudgetPaymentCycle();
 }
 
 bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, std::string& strError, int64_t& nTime, int& nConf, bool fBudgetFinalization)
@@ -161,15 +157,8 @@ void CBudgetManager::SubmitFinalBudget()
     }
 
      // Submit final budget during the last 2 days (2880 blocks) before payment for Mainnet, about 9 minutes (9 blocks) for Testnet
-    int finalizationWindow = ((GetBudgetPaymentCycleBlocks() / 30) * 2);
-
-    if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        // NOTE: 9 blocks for testnet is way to short to have any masternode submit an automatic vote on the finalized(!) budget,
-        //       because those votes are only submitted/relayed once every 56 blocks in CFinalizedBudget::AutoCheck()
-
-        finalizationWindow = 64; // 56 + 4 finalization confirmations + 4 minutes buffer for propagation
-    }
-
+    int finalizationWindow = Params().MasternodeFinalizationWindow();
+    
     int nFinalizationStart = nBlockStart - finalizationWindow;
  
     int nOffsetToStart = nFinalizationStart - nCurrentHeight;
@@ -430,13 +419,18 @@ void DumpBudgets()
 bool CBudgetManager::AddFinalizedBudget(CFinalizedBudget& finalizedBudget)
 {
     std::string strError = "";
-    if (!finalizedBudget.IsValid(strError)) return false;
+    LogPrint("mnbudget","AddFinalizedBudget -->\n");
+    if (!finalizedBudget.IsValid(strError)) 
+        return false;
 
+    LogPrint("mnbudget","AddFinalizedBudget Check if the budget is already at mapFinalizedBudgets \n");
     if (mapFinalizedBudgets.count(finalizedBudget.GetHash())) {
         return false;
     }
 
+    LogPrint("mnbudget","Adding a new FinalizedBudget\n");
     mapFinalizedBudgets.insert(make_pair(finalizedBudget.GetHash(), finalizedBudget));
+    LogPrint("mnbudget","AddFinalizedBudget <--\n");
     return true;
 }
 
@@ -1035,8 +1029,10 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     if (!masternodeSync.IsBlockchainSynced()) return;
 
     LOCK(cs_budget);
+    LogPrint("mnbudget", "ProcessMessage strCommand: %s\n", strCommand);
 
     if (strCommand == "mnvs") { //Masternode vote sync
+        LogPrint("mnbudget", "ProcessMessage (mnvs) Masternode vote sync \n");
         uint256 nProp;
         vRecv >> nProp;
 
@@ -1056,6 +1052,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     }
 
     if (strCommand == "mprop") { //Masternode Proposal
+        LogPrint("mnbudget", "ProcessMessage (mprop) Masternode Proposal \n");
         CBudgetProposalBroadcast budgetProposalBroadcast;
         vRecv >> budgetProposalBroadcast;
 
@@ -1092,6 +1089,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     }
 
     if (strCommand == "mvote") { //Masternode Vote
+        LogPrint("mnbudget", "ProcessMessage (mvote) Masternode vote \n");
         CBudgetVote vote;
         vRecv >> vote;
         vote.fValid = true;
@@ -1128,6 +1126,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     }
 
     if (strCommand == "fbs") { //Finalized Budget Suggestion
+        LogPrint("mnbudget", "ProcessMessage (fbs) Finalized Budget Suggestion \n");
         CFinalizedBudgetBroadcast finalizedBudgetBroadcast;
         vRecv >> finalizedBudgetBroadcast;
 
@@ -1165,6 +1164,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     }
 
     if (strCommand == "fbvote") { //Finalized Budget Vote
+        LogPrint("mnbudget", "ProcessMessage (fbvote) Finalized Budget Vote \n");
         CFinalizedBudgetVote vote;
         vRecv >> vote;
         vote.fValid = true;

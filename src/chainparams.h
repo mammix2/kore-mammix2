@@ -120,6 +120,8 @@ public:
     int64_t MasternodeRemovalSeconds() const { return nMasternodeRemovalSeconds; }
     int64_t MasternodeCheckSeconds() const { return nMasternodeCheckSeconds; }
     int64_t MasternodeCoinScore() const { return nMasternodeCoinScore; }
+    int64_t MasternodeBudgetPaymentCycle() const { return nMasternodeBudgetPaymentCycle; }
+    int64_t MasternodeFinalizationWindow() const { return nMasternodeFinalizationWindow; }
         
     CBaseChainParams::Network NetworkID() const { return networkID; }
 
@@ -226,7 +228,9 @@ protected:
     int64_t nMasternodeExpirationSeconds;
     int64_t nMasternodeRemovalSeconds;
     int64_t nMasternodeCheckSeconds;
-    int64_t nMasternodeCoinScore;    
+    int64_t nMasternodeCoinScore;   
+    int64_t nMasternodeBudgetPaymentCycle;
+    int64_t nMasternodeFinalizationWindow;
 
 
     int nBlockEnforceSerialRange;
