@@ -362,7 +362,8 @@ public:
         nMasternodeCoinScore = 499;
         // Amount of blocks in a months period of time
         nMasternodeBudgetPaymentCycle = 43200; // (using 1 minutes per) = (60*24*30)
-        nMasternodeFinalizationWindow = 64; // 56 + 4 finalization confirmations + 4 minutes buffer for propagation
+        // Submit final budget during the last 2 days (2880 blocks) before payment for Mainnet
+        nMasternodeFinalizationWindow = ((MasternodeBudgetPaymentCycle() / 30) * 2);        
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
@@ -485,8 +486,7 @@ public:
         nMasternodeCheckSeconds = 1;
         nMasternodeCoinScore = 499;
         nMasternodeBudgetPaymentCycle = 14; // every 14 blocks, it will check if it is necessary to pay
-        // Submit final budget during the last 2 days (2880 blocks) before payment for Mainnet
-        nMasternodeFinalizationWindow = ((MasternodeBudgetPaymentCycle() / 30) * 2);
+        nMasternodeFinalizationWindow = 64; // 56 + 4 finalization confirmations + 4 minutes buffer for propagation
 
         nBudgetVoteUpdate = 1*60;     // can only change vote after 1 minute
     }
