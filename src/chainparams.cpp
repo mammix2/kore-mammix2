@@ -486,8 +486,8 @@ public:
         nMasternodeCheckSeconds = 1;
         nMasternodeCoinScore = 499;
         // a superblock will have 140 cycle
-        nMasternodeBudgetPaymentCycle = 60; // every 60 blocks, it will check if it is necessary to pay
-        nMasternodeFinalizationWindow = 24; // 20 + 2 finalization confirmations + 2 minutes buffer for propagation
+        nMasternodeBudgetPaymentCycle = 30; // every 60 blocks, it will check if it is necessary to pay
+        nMasternodeFinalizationWindow = 15; // 13 + 1 finalization confirmations + 1 minutes buffer for propagation
 
         nBudgetVoteUpdate = 1*60;     // can only change vote after 1 minute
     }

@@ -27,7 +27,9 @@ proposal_one_payment=$4
 proposal_how_many_payments=$5
 control_wallet_user=kore
 control_wallet_password=kore
-masternode_proposal_fee=100
+# 50COINS submition fee
+# 5COINS activation fee
+masternode_proposal_fee=55 
 # This parameter should match 
 # chainparams nBudgetFeeConfirmations
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
