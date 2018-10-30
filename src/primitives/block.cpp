@@ -16,7 +16,7 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    // PIVX
+    // kore
     //return HashQuark(BEGIN(nVersion), END(nNonce));
     // Kore uses this one
     // return Hash(BEGIN(nVersion), END(nBirthdayB));

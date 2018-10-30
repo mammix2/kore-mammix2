@@ -136,7 +136,7 @@
         <translation>Служит для отключения тривиальных сендмонэй, когда учетная запись ОС скомпрометирована. Не обеспечивает реальной безопасности. </translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Только для анонимности, автосоздания и хранения</translation>
     </message>
     <message>
@@ -1130,8 +1130,8 @@ MultiSend: %1</translation>
         <translation>Этот маркер становится красным если получаемая адресатом сумма меньше, чем %1</translation>
     </message>
     <message>
-        <source>Can vary +/- %1 upiv per input.</source>
-        <translation>Может вариироваться +/- %1 upiv при вводе</translation>
+        <source>Can vary +/- %1 uKORE per input.</source>
+        <translation>Может вариироваться +/- %1 uKORE при вводе</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -3718,8 +3718,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>(Умный платеж еще не инициализирован. Обычно это занимает несколько блоков....)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3874,8 +3874,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Адрес получателя недействителен, повторите проверку.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>используйте SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>используйте swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4216,36 +4216,36 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>%1 подтверждения</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
-        <translation>%1 / офлайн (проверено через SwiftX)</translation>
+        <source>%1/offline (verified via swifttx)</source>
+        <translation>%1 / офлайн (проверено через swifttx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
-        <translation>%1 / подтверждено (проверено через SwiftX)</translation>
+        <source>%1/confirmed (verified via swifttx)</source>
+        <translation>%1 / подтверждено (проверено через swifttx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
-        <translation>%1 подтверждений (проверено через SwiftX)</translation>
+        <source>%1 confirmations (verified via swifttx)</source>
+        <translation>%1 подтверждений (проверено через swifttx)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1 / офлайн (проверка SwiftX - %2 %3 подписей)</translation>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1 / офлайн (проверка swifttx - %2 %3 подписей)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
-        <translation>%1 / подтверждено (выполняется проверка SwiftX - %2 %3 подписей)</translation>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
+        <translation>%1 / подтверждено (выполняется проверка swifttx - %2 %3 подписей)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1 подтверждений (Проверка SwiftX в процессе - %2 %3 подписи)</translation>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1 подтверждений (Проверка swifttx в процессе - %2 %3 подписи)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
-        <translation>%1 / офлайн (проверка SwiftX не выполнена)</translation>
+        <source>%1/offline (swifttx verification failed)</source>
+        <translation>%1 / офлайн (проверка swifttx не выполнена)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
-        <translation>%1 / подтверждено (проверка SwiftX не выполнена)</translation>
+        <source>%1/confirmed (swifttx verification failed)</source>
+        <translation>%1 / подтверждено (проверка swifttx не выполнена)</translation>
     </message>
     <message>
         <source>Status</source>
@@ -4710,8 +4710,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Отправить Монеты</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
-        <translation>SwiftX не поддерживает отправку значений, которые еще высоки. В настоящее время транзакции ограничены %1 KORE.</translation>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <translation>swifttx не поддерживает отправку значений, которые еще высоки. В настоящее время транзакции ограничены %1 KORE.</translation>
     </message>
 </context>
 <context>
@@ -4742,7 +4742,7 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Quantity</source>
         <translation>Количество</translation>
@@ -5179,12 +5179,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Включить автоматическую чистку Zerocoin (0-1, по умолчанию: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Включить публикацию хеш-транзакции (заблокированной через SwiftX) в &lt;address&gt;</translation>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Включить публикацию хеш-транзакции (заблокированной через swifttx) в &lt;address&gt;</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Включить публикацию необработанных транзакций (заблокированных через SwiftX) в &lt;address&gt;</translation>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Включить публикацию необработанных транзакций (заблокированных через swifttx) в &lt;address&gt;</translation>
     </message>
     <message>
         <source>Enable the client to act as a masternode (0-1, default: %u)</source>
@@ -5411,8 +5411,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Reindex статистика денежной массы KORE и zKORE</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>Параметры SwiftX:</translation>
+        <source>swifttx options:</source>
+        <translation>Параметры swifttx:</translation>
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for staking or merchant applications!</source>
@@ -5435,12 +5435,12 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
 </translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
-        <translation>Отключите все специфические функции KORE (Masternodes, Zerocoin, SwiftX, Бюджетирование) (0-1, по умолчанию: %u)</translation>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
+        <translation>Отключите все специфические функции KORE (Masternodes, Zerocoin, swifttx, Бюджетирование) (0-1, по умолчанию: %u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
-        <translation>Включить SwiftX, показать подтверждения для заблокированных транзакций (bool, default: %s)</translation>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
+        <translation>Включить swifttx, показать подтверждения для заблокированных транзакций (bool, default: %s)</translation>
     </message>
     <message>
         <source>Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
@@ -5471,8 +5471,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Предпочтительный номинал для автоматически чеканившегося Zerocoin (1/5/10/50/100/500/1000/5000), 0 без предпочтений. default: %u)</translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
-        <translation>SwiftX требует ввода с не менее чем 6 подтверждениями, вам может потребоваться несколько минут и повторите попытку.</translation>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <translation>swifttx требует ввода с не менее чем 6 подтверждениями, вам может потребоваться несколько минут и повторите попытку.</translation>
     </message>
     <message>
         <source>&lt;category&gt; can be:</source>

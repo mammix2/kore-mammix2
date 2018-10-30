@@ -136,7 +136,7 @@
         <translation>Sirve simplemente para deshabilitar el envío de dinero cuando la cuenta del SO ha sido comprometida. No suministra seguridad real.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Para solo anonimizar, automint y staking</translation>
     </message>
     <message>
@@ -561,7 +561,7 @@
     </message>
     </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     </context>
 <context>
     <name>kore-core</name>

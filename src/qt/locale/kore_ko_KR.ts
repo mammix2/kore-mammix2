@@ -136,7 +136,7 @@
         <translation>운영체제 계정이 손상되었을 때 일반적인 송금을 비활성화 합니다. 실질적인 보안을 제공하지 않습니다.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>익명성 스테이킹 전용 모드</translation>
     </message>
     <message>
@@ -1130,8 +1130,8 @@ Address: %4
         <translation>받는 사람이 %1 보다 작은 금액을 받으면 라벨이 빨간색으로 변경됩니다.</translation>
     </message>
     <message>
-        <source>Can vary +/- %1 upiv per input.</source>
-        <translation>Can vary +/- %1 upiv per input.</translation>
+        <source>Can vary +/- %1 uKORE per input.</source>
+        <translation>Can vary +/- %1 uKORE per input.</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -2261,7 +2261,7 @@ If AutoMint is enabled this percentage will settle around the configured AutoMin
         <source>AutoMint is currently disabled.
 To enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in kore.conf</source>
         <translation>자동 저장 기능이 현재 사용 중지되었습니다 .
-자동 변환을 사용하려면 pivotx.conf에서 'enablezeromint = 0'에서 'enablezeromint = 1'로 변경하십시오.</translation>
+자동 변환을 사용하려면 koreotx.conf에서 'enablezeromint = 0'에서 'enablezeromint = 1'로 변경하십시오.</translation>
     </message>
 </context>
 <context>
@@ -2441,7 +2441,7 @@ To enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in kore.conf<
         <translation>프라이버시</translation>
     </message>
     <message>
-        <source>Enter an amount of Piv to convert to zKORE</source>
+        <source>Enter an amount of kore to convert to zKORE</source>
         <translation>zKORE로 변환할 KORE 수량을 입력하세요.</translation>
     </message>
     <message>
@@ -3749,8 +3749,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>(스마트 수수료가 아직 초기화 되지 않았습니다. 일반적으로 몇 블록이 지나야됩니다...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3905,8 +3905,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>수신자 주소가 유효하지 않습니다. 다시 확인해주세요.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>SwiftX 사용</translation>
+        <source>using swifttx</source>
+        <translation>swifttx 사용</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4247,36 +4247,36 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>%1 확인</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
+        <source>%1/offline (verified via swifttx)</source>
         <translation>%1/오프라인 (swifttx를 통해 확인 됨)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
+        <source>%1/confirmed (verified via swifttx)</source>
         <translation>%1/확인 됨 (swifttx를 통해 확인 됨)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
+        <source>%1 confirmations (verified via swifttx)</source>
         <translation>%1 확인 (swifttx를 통해 확인 됨)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1/오프라인 (SwiftTX 확인 진행 중 - %2 중 %3 서명)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
         <translation>%1/확인 됨 (SwiftTX 확인 진행 중 - %2 중 %3 서명)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
         <translation>%1 확인 (SwiftTX 확인 진행 중 - %2 중 %3 서명)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
+        <source>%1/offline (swifttx verification failed)</source>
         <translation>%1/오프라인 (SwiftTX 확인 실패)
 </translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
+        <source>%1/confirmed (swifttx verification failed)</source>
         <translation>%1/확인 됨 (SwiftTX 확인 실패)</translation>
     </message>
     <message>
@@ -4742,7 +4742,7 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>코인 전송 </translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
         <translation>SwiftTX는 아직 높은 값을 전송하는 것을 지원하지 않습니다. 트랜잭션은 현재 %1 KORE로 제한됩니다.</translation>
     </message>
 </context>
@@ -4774,7 +4774,7 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Quantity</source>
         <translation>수량</translation>
@@ -5211,11 +5211,11 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>자동 제로코인 생성 (0-1, 기본값: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
         <translation>&lt;address&gt; 에서 해시 전송 게시 가능 (SwiftTX로 설정된)</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
         <translation>&lt;address&gt;에서 Raw 트랜잭션 게시 지원 (SwiftTX를 통해 잠겨진)</translation>
     </message>
     <message>
@@ -5443,8 +5443,8 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>KORE 및 zKORE 공급량 다시 색인</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>SwiftX 옵션:</translation>
+        <source>swifttx options:</source>
+        <translation>swifttx 옵션:</translation>
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for staking or merchant applications!</source>
@@ -5467,11 +5467,11 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
 </translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
         <translation>KORE의 모든 특정 기능들을 비활성화합니다(마스터노드, 난독화, SwiftTX, Budgeting) (0-1, 기본값: %u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
         <translation>swiftTX 활성화, 잠긴 트랜잭션들에 대한 확인 표시 (bool, 기본값: %s)</translation>
     </message>
     <message>
@@ -5503,7 +5503,7 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>자동생성 제로코인 선호 디노미네이션 (1/5/10/50/100/500/1000/5000) 0사용안됨, 기본값 : %u)</translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
         <translation>SwiftTX는 최소 6회 확인이 필요한 입력으로 몇 분 후에 다시 시도해야 할 수 있습니다.</translation>
     </message>
     <message>

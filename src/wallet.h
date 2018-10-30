@@ -23,8 +23,8 @@
 #include "wallet_ismine.h"
 #include "walletdb.h"
 #ifdef ZEROCOIN
-#include "zpivwallet.h"
-#include "zpivtracker.h"
+#include "zkorewallet.h"
+#include "zkoretracker.h"
 #endif
 
 #include <algorithm>
@@ -219,7 +219,7 @@ public:
     std::string ResetMintZerocoin();
     std::string ResetSpentZerocoin();
     void ReconsiderZerocoins(std::list<CZerocoinMint>& listMintsRestored, std::list<CDeterministicMint>& listDMintsRestored);
-    void ZPivBackupWallet();
+    void ZkoreBackupWallet();
     bool GetZerocoinKey(const CBigNum& bnSerial, CKey& key);
     bool CreateZKOREOutPut(libzerocoin::CoinDenomination denomination, CTxOut& outMint, CDeterministicMint& dMint);
     bool GetMint(const uint256& hashSerial, CZerocoinMint& mint);
@@ -253,7 +253,7 @@ public:
     std::string strWalletFile;
     bool fBackupMints;
 
-    //std::unique_ptr<CzKORETracker> zpivTracker;
+    //std::unique_ptr<CzKORETracker> zkoreTracker;
 
     std::set<int64_t> setKeyPool;
     std::map<CKeyID, CKeyMetadata> mapKeyMetadata;
@@ -336,23 +336,23 @@ public:
 #ifdef ZEROCOIN
     int getZeromintPercentage()
     {
-        return nZeromintPercentage;
+        return nObfuscationRounds;
     }
 
     void setZWallet(CzKOREWallet* zwallet)
     {
         zwalletMain = zwallet;
-        zpivTracker = std::unique_ptr<CzKORETracker>(new CzKORETracker(strWalletFile));
+        zkoreTracker = std::unique_ptr<CzKORETracker>(new CzKORETracker(strWalletFile));
     }
 
     CzKOREWallet* getZWallet() { return zwalletMain; }
 
     bool isZeromintEnabled()
     {
-        return fEnableZeromint;
+        return fEnableObfuscation;
     }
 
-    void setZPivAutoBackups(bool fEnabled)
+    void setZkoreAutoBackups(bool fEnabled)
     {
         fBackupMints = fEnabled;
     }

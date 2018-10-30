@@ -115,6 +115,7 @@ BITCOIN_CORE_H = \
   compressor.h \
   primitives/block.h \
   primitives/transaction.h \
+  primitives/deterministicmint.h \
   core_io.h \
   crypter.h \
   obfuscation.h \
@@ -161,6 +162,7 @@ BITCOIN_CORE_H = \
   rpcprotocol.h \
   rpcserver.h \
   scheduler.h \
+  semiOrderedMap.h \
   script/interpreter.h \
   script/script.h \
   script/sigcache.h \
@@ -312,7 +314,15 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/sph_keccak.h \
   crypto/sph_skein.h \
   crypto/sph_types.h \
-  crypto/yescrypt/yescrypt.c
+  crypto/yescrypt/yescrypt.c \
+  crypto/yescrypt/yescrypt.h \  
+  crypto/yescrypt/sha256_c.h \
+  crypto/yescrypt/sha256.h \
+  crypto/yescrypt/sysendian.h \
+  crypto/yescrypt/yescrypt-best_c.h \
+  crypto/yescrypt/yescrypt-opt_c.h \
+  crypto/yescrypt/yescrypt-platform_c.h \
+  crypto/yescrypt/yescrypt-simd_c.h
 
 # common: shared between kored, and kore-qt and non-server tools
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)

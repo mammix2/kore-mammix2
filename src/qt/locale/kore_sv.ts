@@ -136,7 +136,7 @@
         <translation>Ser till att inaktivera obetydliga skickade pengar när OSkontot är i risk. Förser ingen riktig säkerhet.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Endast för anonymisering, automint, och staking.</translation>
     </message>
     <message>
@@ -1130,8 +1130,8 @@ MultiSend: %1</translation>
         <translation>Den här etiketten blir röd, ifall någon mottagare får en mängd som är mindre än %1.</translation>
     </message>
     <message>
-        <source>Can vary +/- %1 upiv per input.</source>
-        <translation>Kan variera med +/- %1 upiv per inmatning.</translation>
+        <source>Can vary +/- %1 uKORE per input.</source>
+        <translation>Kan variera med +/- %1 uKORE per inmatning.</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -2341,7 +2341,7 @@ För att aktivera AutoMint ändra 'enablezeromint=0' till 'enablezeromint=1' i k
         <translation>SEKRETESS</translation>
     </message>
     <message>
-        <source>Enter an amount of Piv to convert to zKORE</source>
+        <source>Enter an amount of kore to convert to zKORE</source>
         <translation>Mata in en mängd KORE att konvertera till zKORE</translation>
     </message>
     <message>
@@ -3597,8 +3597,8 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
         <translation>(Smart fee inte initierad än. Detta tar vanligtvis några block...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3745,8 +3745,8 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
         <translation>Mottagaradressen är ej giltig, var vänlig kontrollera den.</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>använder SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>använder swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4063,36 +4063,36 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
         <translation>%1 bekräftelser</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
-        <translation>%1/offline (verifierade via SwiftX)</translation>
+        <source>%1/offline (verified via swifttx)</source>
+        <translation>%1/offline (verifierade via swifttx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
-        <translation>%1/bekräftade (verifierade via SwiftX)</translation>
+        <source>%1/confirmed (verified via swifttx)</source>
+        <translation>%1/bekräftade (verifierade via swifttx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
-        <translation>%1 bekräftelser (verifierade via SwiftX)</translation>
+        <source>%1 confirmations (verified via swifttx)</source>
+        <translation>%1 bekräftelser (verifierade via swifttx)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1/offline (SwiftX verifikation arbetar på det - %2 av %3 signaturer)</translation>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1/offline (swifttx verifikation arbetar på det - %2 av %3 signaturer)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
-        <translation>%1/bekräftade (SwiftX verifikation arbetar på det - %2 av %3 signaturer)</translation>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
+        <translation>%1/bekräftade (swifttx verifikation arbetar på det - %2 av %3 signaturer)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1 bekräftelser (SwiftX verifikation arbetar på det - %2 av %3 signaturer)</translation>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1 bekräftelser (swifttx verifikation arbetar på det - %2 av %3 signaturer)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
-        <translation>%1/offline (SwiftX verifikation misslyckades)</translation>
+        <source>%1/offline (swifttx verification failed)</source>
+        <translation>%1/offline (swifttx verifikation misslyckades)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
-        <translation>%1/bekräftade (SwiftX verifikation misslyckades)</translation>
+        <source>%1/confirmed (swifttx verification failed)</source>
+        <translation>%1/bekräftade (swifttx verifikation misslyckades)</translation>
     </message>
     <message>
         <source>Status</source>
@@ -4593,7 +4593,7 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
         <translation>Skicka Mynt</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
         <translation>wiftX stödjer inte att skicka så höga värden än. Transaktioner är för nuvarande begränsade till %1 KORE.</translation>
     </message>
 </context>
@@ -4625,7 +4625,7 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Select zKORE to Spend</source>
         <translation>Välj zKORE att Spendera</translation>
@@ -5070,12 +5070,12 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
         <translation>Aktivera automatisk Zerocoin minting (0-1, standard: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Aktivera publicera hash transaktion (låst via SwiftX) i &lt;address&gt;</translation>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Aktivera publicera hash transaktion (låst via swifttx) i &lt;address&gt;</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Aktivera publicera rå transaktion (låst via SwiftX) i &lt;address&gt;</translation>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Aktivera publicera rå transaktion (låst via swifttx) i &lt;address&gt;</translation>
     </message>
     <message>
         <source>Enable the client to act as a masternode (0-1, default: %u)</source>

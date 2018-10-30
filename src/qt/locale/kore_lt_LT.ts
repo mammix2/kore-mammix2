@@ -136,7 +136,7 @@
         <translation>Pašalina nereikšmingą sendmoney, kai OS sąskaita pažeista. Nesuteikia jokio realaus saugumo.</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Tik dėl anonimizacijos ir "kasimo"</translation>
     </message>
     <message>
@@ -1122,8 +1122,8 @@ MultiSend: %1</translation>
         <translation>Ši etiketė taps raudona, jei gavėjas gaus sumą mažesnę už %1</translation>
     </message>
     <message>
-        <source>Can vary +/- %1 upiv per input.</source>
-        <translation>Gali skirtis +/- %1 upiv kiekvienoje įvestyje.</translation>
+        <source>Can vary +/- %1 uKORE per input.</source>
+        <translation>Gali skirtis +/- %1 uKORE kiekvienoje įvestyje.</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -2559,8 +2559,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>kas kilobaitą</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -2979,7 +2979,7 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
     </message>
     </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>0</source>
         <translation>0</translation>
@@ -3096,8 +3096,8 @@ https://www.transifex.com/kore-project/kore-project-translations</translation>
         <translation>Aptiktas netinkamas programos kodas.</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
-        <translation>SwiftX nustatymai:</translation>
+        <source>swifttx options:</source>
+        <translation>swifttx nustatymai:</translation>
     </message>
     <message>
         <source>Failed to deserialize</source>

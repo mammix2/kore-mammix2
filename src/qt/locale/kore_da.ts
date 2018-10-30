@@ -136,7 +136,7 @@
         <translation>Slår ligegyldige afsendelser fra, når operativsystemets konto er kompromitteret. Denne funktion giver ikke ægte sikkerhed</translation>
     </message>
     <message>
-        <source>For anonymization, automint, and staking only</source>
+        <source>For anonymization, and staking only</source>
         <translation>Til anonymisering, automint og staking alene</translation>
     </message>
     <message>
@@ -1130,8 +1130,8 @@ Adresse: %4
         <translation>Denne tekstmarkør bliver rød, hvis en modtageradresse modtager et beløb mindre end %1.</translation>
     </message>
     <message>
-        <source>Can vary +/- %1 upiv per input.</source>
-        <translation>Kan variere +/- %1 opiv pr input.</translation>
+        <source>Can vary +/- %1 uKORE per input.</source>
+        <translation>Kan variere +/- %1 okore pr input.</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -3721,8 +3721,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>(Smartgebyr endnu ikke initialiseret. Det tager som regel nogle få blokke...)</translation>
     </message>
     <message>
-        <source>SwiftX</source>
-        <translation>SwiftX</translation>
+        <source>swifttx</source>
+        <translation>swifttx</translation>
     </message>
     <message>
         <source>Confirmation time:</source>
@@ -3877,8 +3877,8 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Modtageradressen er ikke gyldig. Kontroller igen</translation>
     </message>
     <message>
-        <source>using SwiftX</source>
-        <translation>ved hjælp af SwiftX</translation>
+        <source>using swifttx</source>
+        <translation>ved hjælp af swifttx</translation>
     </message>
     <message>
         <source> split into %1 outputs using the UTXO splitter.</source>
@@ -4219,36 +4219,36 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>%1/bekræftelser</translation>
     </message>
     <message>
-        <source>%1/offline (verified via SwiftX)</source>
+        <source>%1/offline (verified via swifttx)</source>
         <translation>%1/offline (verified via svifttx)</translation>
     </message>
     <message>
-        <source>%1/confirmed (verified via SwiftX)</source>
+        <source>%1/confirmed (verified via swifttx)</source>
         <translation>%1/bekræftet (verified via svifttx)</translation>
     </message>
     <message>
-        <source>%1 confirmations (verified via SwiftX)</source>
+        <source>%1 confirmations (verified via swifttx)</source>
         <translation>%1/bekræftelser (verified via svifttx)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1/offline (SwifTX verificering i gang - %2 af %3 signaturer)</translation>
+        <source>%1/offline (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1/offline (swifttx verificering i gang - %2 af %3 signaturer)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification in progress - %2 of %3 signatures )</source>
-        <translation>%1/bekræftet(SwifTX verificering i gang - %2 af %3 signaturer)</translation>
+        <source>%1/confirmed (swifttx verification in progress - %2 of %3 signatures )</source>
+        <translation>%1/bekræftet(swifttx verificering i gang - %2 af %3 signaturer)</translation>
     </message>
     <message>
-        <source>%1 confirmations (SwiftX verification in progress - %2 of %3 signatures)</source>
-        <translation>%1/bekræftelser (SwifTX verificering i gang - %2 af %3 signaturer)</translation>
+        <source>%1 confirmations (swifttx verification in progress - %2 of %3 signatures)</source>
+        <translation>%1/bekræftelser (swifttx verificering i gang - %2 af %3 signaturer)</translation>
     </message>
     <message>
-        <source>%1/offline (SwiftX verification failed)</source>
-        <translation>%1/offline (SwifTX verificering mislykkedes)</translation>
+        <source>%1/offline (swifttx verification failed)</source>
+        <translation>%1/offline (swifttx verificering mislykkedes)</translation>
     </message>
     <message>
-        <source>%1/confirmed (SwiftX verification failed)</source>
-        <translation>%1/bekræftet (SwifTX verificering mislykkedes)</translation>
+        <source>%1/confirmed (swifttx verification failed)</source>
+        <translation>%1/bekræftet (swifttx verificering mislykkedes)</translation>
     </message>
     <message>
         <source>Status</source>
@@ -4713,7 +4713,7 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Send mønter</translation>
     </message>
     <message>
-        <source>SwiftX doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
+        <source>swifttx doesn't support sending values that high yet. Transactions are currently limited to %1 KORE.</source>
         <translation>SwiftTx understøtter ikke afsendelse af så store beløb endnu. Transaktioner er for tiden begrænsede til %1KORE.</translation>
     </message>
 </context>
@@ -4745,7 +4745,7 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
     </message>
 </context>
 <context>
-    <name>ZPivControlDialog</name>
+    <name>ZkoreControlDialog</name>
     <message>
         <source>Quantity</source>
         <translation>Antal</translation>
@@ -5183,12 +5183,12 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Aktivér automatisk Zerocoin-mintning (0-1, standard: %u)</translation>
     </message>
     <message>
-        <source>Enable publish hash transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Aktivér publicering af hash-transaktion (låst via SwiftX) i &lt;address&gt;</translation>
+        <source>Enable publish hash transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Aktivér publicering af hash-transaktion (låst via swifttx) i &lt;address&gt;</translation>
     </message>
     <message>
-        <source>Enable publish raw transaction (locked via SwiftX) in &lt;address&gt;</source>
-        <translation>Aktivér publicere rå transaktion (låst via SwiftX) i &lt;address&gt;</translation>
+        <source>Enable publish raw transaction (locked via swifttx) in &lt;address&gt;</source>
+        <translation>Aktivér publicere rå transaktion (låst via swifttx) i &lt;address&gt;</translation>
     </message>
     <message>
         <source>Enable the client to act as a masternode (0-1, default: %u)</source>
@@ -5415,7 +5415,7 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Reindex KORE og zKORE pengemængde statistikker</translation>
     </message>
     <message>
-        <source>SwiftX options:</source>
+        <source>swifttx options:</source>
         <translation>SwiftTX optioner:</translation>
     </message>
     <message>
@@ -5439,11 +5439,11 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
 </translation>
     </message>
     <message>
-        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)</source>
+        <source>Disable all KORE specific functionality (Masternodes, Zerocoin, swifttx, Budgeting) (0-1, default: %u)</source>
         <translation>Slå alle KORE funktioner fra (Masternoder, Tilsløring, SwiftTX, Budgetting)(0-1,default:%u)</translation>
     </message>
     <message>
-        <source>Enable SwiftX, show confirmations for locked transactions (bool, default: %s)</source>
+        <source>Enable swifttx, show confirmations for locked transactions (bool, default: %s)</source>
         <translation>Aktiver swifttx, vis bekræftelser for låste transaktioner (bool, default: %s)</translation>
     </message>
     <message>
@@ -5475,7 +5475,7 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Foretrukken Betegnelse for automatisk mintede Zerocoin (1/5/10/50/100/500/1000/5000), 0 uden præference. standard: %u)</translation>
     </message>
     <message>
-        <source>SwiftX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
+        <source>swifttx requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.</source>
         <translation>SwiftTX kræver mindst 6 bekræftelser. Vent nogle minutter og prøv igen.</translation>
     </message>
     <message>

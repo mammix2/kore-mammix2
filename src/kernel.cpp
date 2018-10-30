@@ -360,9 +360,9 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
         return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
 
     //Construct the stakeinput object
-    CPivStake* pivInput = new CPivStake();
-    pivInput->SetInput(txPrev, txin.prevout.n);
-    stake = std::unique_ptr<CStakeInput>(pivInput);
+    CkoreStake* koreInput = new CkoreStake();
+    koreInput->SetInput(txPrev, txin.prevout.n);
+    stake = std::unique_ptr<CStakeInput>(koreInput);
 
     CBlockIndex* pindex = stake->GetIndexFrom();
     if (!pindex)

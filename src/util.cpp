@@ -114,17 +114,13 @@ bool fLiteMode = false;
 // SwiftX
 bool fEnableSwiftTX = true;
 int nSwiftTXDepth = 5;
-// Automatic Zerocoin minting
-bool fEnableZeromint = true;
-int nZeromintPercentage = 10;
-int nPreferredDenom = 0;
-const int64_t AUTOMINT_DELAY = (60 * 5); // Wait at least 5 minutes until Automint starts
-
+int nObfuscationRounds = 2;
 int nAnonymizeKoreAmount = 1000;
 int nLiquidityProvider = 0;
 /** Spork enforcement enabled time */
 int64_t enforceMasternodePaymentsTime = 4085657524;
 bool fSucessfullyLoaded = false;
+bool fEnableObfuscation = false;
 /** All denominations used by obfuscation */
 std::vector<int64_t> obfuScationDenominations;
 string strBudgetMode = "";
@@ -243,7 +239,6 @@ bool LogAcceptCategory(const char* category)
                 ptrCategory->insert(string("swiftx"));
                 ptrCategory->insert(string("masternode"));
                 ptrCategory->insert(string("mnpayments"));
-                ptrCategory->insert(string("zero"));
                 ptrCategory->insert(string("mnbudget"));
             }
         }
@@ -424,13 +419,13 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-// Windows < Vista: C:\Documents and Settings\Username\Application Data\KORE
-// Windows >= Vista: C:\Users\Username\AppData\Roaming\KORE
-// Mac: ~/Library/Application Support/KORE
+// Windows < Vista: C:\Documents and Settings\Username\Application Data\kore
+// Windows >= Vista: C:\Users\Username\AppData\Roaming\kore
+// Mac: ~/Library/Application Support/kore
 // Unix: ~/.kore
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "KORE";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "kore";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -442,7 +437,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "KORE";
+    return pathRet / "kore";
 #else
     // Unix
     return pathRet / ".kore";
