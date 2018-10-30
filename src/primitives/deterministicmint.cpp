@@ -1,12 +1,13 @@
-// Copyright (c) 2018 The PIVX developers
+// Copyright (c) 2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
+#ifdef ZEROCOIN 
 #include <libzerocoin/Coin.h>
+using namespace libzerocoin;
+#endif
 #include <tinyformat.h>
 #include "deterministicmint.h"
 
-using namespace libzerocoin;
 
 CDeterministicMint::CDeterministicMint()
 {
@@ -34,12 +35,14 @@ void CDeterministicMint::SetNull()
     hashPubcoin = 0;
     txid = 0;
     nHeight = 0;
+#ifdef ZEROCOIN     
     denom = CoinDenomination::ZQ_ERROR;
+#endif    
     isUsed = false;
 }
 
 std::string CDeterministicMint::ToString() const
 {
-    return strprintf(" DeterministicMint:\n   version=%d\n   count=%d\n   hashseed=%s\n   hashSerial=%s\n   hashStake=%s\n   hashPubcoin=%s\n   txid=%s\n   height=%d\n   denom=%d\n   isUsed=%d\n",
-    nVersion, nCount, hashSeed.GetHex(), hashSerial.GetHex(), hashStake.GetHex(), hashPubcoin.GetHex(), txid.GetHex(), nHeight, denom, isUsed);
+    return strprintf(" DeterministicMint:\n   version=%d\n   count=%d\n   hashseed=%s\n   hashSerial=%s\n   hashStake=%s\n   hashPubcoin=%s\n   txid=%s\n   height=%d\n  isUsed=%d\n",
+    nVersion, nCount, hashSeed.GetHex(), hashSerial.GetHex(), hashStake.GetHex(), hashPubcoin.GetHex(), txid.GetHex(), nHeight, isUsed);
 }

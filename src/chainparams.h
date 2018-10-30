@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2015-2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -13,8 +13,9 @@
 #include "primitives/block.h"
 #include "protocol.h"
 #include "uint256.h"
-
+#ifdef ZEROCOIN
 #include "libzerocoin/Params.h"
+#endif
 #include <vector>
 
 typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
@@ -26,7 +27,7 @@ struct CDNSSeedData {
 
 /**
  * CChainParams defines various tweakable parameters of a given instance of the
- * PIVX system. There are three: the main network on which people trade goods
+ * KORE system. There are three: the main network on which people trade goods
  * and services, the public test network which gets reset from time to time and
  * a regression test mode which is intended for private networks only. It has
  * minimal difficulty to ensure that blocks can be found instantly.
@@ -50,6 +51,7 @@ public:
     const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
     int GetDefaultPort() const { return nDefaultPort; }
     const uint256& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
+    const uint256& ProofOfStakeLimit() const { return bnProofOfStakeLimit; }
     int SubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     /** Used to check majorities for block version upgrade */
     int EnforceBlockUpgradeMajority() const { return nEnforceBlockUpgradeMajority; }
@@ -74,6 +76,15 @@ public:
     bool RequireStandard() const { return fRequireStandard; }
     int64_t TargetTimespan() const { return nTargetTimespan; }
     int64_t TargetSpacing() const { return nTargetSpacing; }
+    int64_t StakeTargetSpacing() const {return nStakeTargetSpacing;}
+    int64_t DifficultyAdjustmentInterval() const { return nTargetTimespan / nTargetSpacing; }
+    int64_t PastBlocksMin() const { return nPastBlocksMin; }
+    int64_t PastBlocksMax() const { return nPastBlocksMax; }
+    unsigned int StakeMinAge() const {return nStakeMinAge;}
+    unsigned int GetModifier() const {return nModifier;}
+    int64_t ClientMintibleCoinsInterval() const { return nClientMintibleCoinsInterval; }
+    int64_t EnsureMintibleCoinsInterval() const { return nEnsureMintibleCoinsInterval; }
+    
     int64_t Interval() const { return nTargetTimespan / nTargetSpacing; }
     int COINBASE_MATURITY() const { return nMaturity; }
     CAmount MaxMoneyOut() const { return nMaxMoneyOut; }
@@ -92,16 +103,29 @@ public:
     int PoolMaxTransactions() const { return nPoolMaxTransactions; }
 
     /** Spork key and Masternode Handling **/
+    std::string DevFundPubKey() const { return strDevFundPubKey; }
     std::string SporkKey() const { return strSporkKey; }
-    std::string SporkKeyOld() const { return strSporkKeyOld; }
     int64_t NewSporkStart() const { return nEnforceNewSporkKey; }
     int64_t RejectOldSporkKey() const { return nRejectOldSporkKey; }
     std::string ObfuscationPoolDummyAddress() const { return strObfuscationPoolDummyAddress; }
     int64_t StartMasternodePayments() const { return nStartMasternodePayments; }
-    int64_t Budget_Fee_Confirmations() const { return nBudget_Fee_Confirmations; }
+    int64_t BudgetVoteUpdate() const { return nBudgetVoteUpdate; }
+    int64_t BudgetFeeConfirmations() const { return nBudgetFeeConfirmations; }
 
+    int64_t MasternodeMinConfirmations() const { return nMasternodeMinConfirmations; }
+    int64_t MasternodeMinMNPSeconds() const { return nMasternodeMinMNPSeconds; }
+    int64_t MasternodeMinMNBSeconds() const { return nMasternodeMinMNBSeconds; }
+    int64_t MasternodePingSeconds() const { return nMasternodePingSeconds; }
+    int64_t MasternodeExpirationSeconds() const { return nMasternodeExpirationSeconds; }    
+    int64_t MasternodeRemovalSeconds() const { return nMasternodeRemovalSeconds; }
+    int64_t MasternodeCheckSeconds() const { return nMasternodeCheckSeconds; }
+    int64_t MasternodeCoinScore() const { return nMasternodeCoinScore; }
+    int64_t MasternodeBudgetPaymentCycle() const { return nMasternodeBudgetPaymentCycle; }
+    int64_t MasternodeFinalizationWindow() const { return nMasternodeFinalizationWindow; }
+        
     CBaseChainParams::Network NetworkID() const { return networkID; }
 
+#ifdef ZEROCOIN
     /** Zerocoin **/
     std::string Zerocoin_Modulus() const { return zerocoinModulus; }
     libzerocoin::ZerocoinParams* Zerocoin_Params(bool useModulusV1) const;
@@ -114,17 +138,20 @@ public:
     int Zerocoin_RequiredStakeDepth() const { return nZerocoinRequiredStakeDepth; }
 
     /** Height or Time Based Activations **/
-    int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
-    int LAST_POW_BLOCK() const { return nLastPOWBlock; }
+     
     int Zerocoin_StartHeight() const { return nZerocoinStartHeight; }
     int Zerocoin_Block_EnforceSerialRange() const { return nBlockEnforceSerialRange; }
     int Zerocoin_Block_RecalculateAccumulators() const { return nBlockRecalculateAccumulators; }
     int Zerocoin_Block_FirstFraudulent() const { return nBlockFirstFraudulent; }
     int Zerocoin_Block_LastGoodCheckpoint() const { return nBlockLastGoodCheckpoint; }
     int Zerocoin_StartTime() const { return nZerocoinStartTime; }
-    int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
+    
     int Zerocoin_Block_V2_Start() const { return nBlockZerocoinV2; }
     CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; };
+#endif
+   int LAST_POW_BLOCK() const { return nLastPOWBlock; }
+   int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
+   int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
 
 protected:
     CChainParams() {}
@@ -135,6 +162,7 @@ protected:
     std::vector<unsigned char> vAlertPubKey;
     int nDefaultPort;
     uint256 bnProofOfWorkLimit;
+    uint256 bnProofOfStakeLimit;
     int nMaxReorganizationDepth;
     int nSubsidyHalvingInterval;
     int nEnforceBlockUpgradeMajority;
@@ -142,6 +170,13 @@ protected:
     int nToCheckBlockUpgradeMajority;
     int64_t nTargetTimespan;
     int64_t nTargetSpacing;
+    int64_t nStakeTargetSpacing;
+    int64_t nPastBlocksMin; // used when calculating the NextWorkRequired 
+    int64_t nPastBlocksMax;
+    unsigned int nStakeMinAge;
+    unsigned int nModifier;
+    int64_t nClientMintibleCoinsInterval; // PoS mining
+    int64_t nEnsureMintibleCoinsInterval;
     int nLastPOWBlock;
     int nMasternodeCountDrift;
     int nMaturity;
@@ -152,6 +187,7 @@ protected:
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
     CBaseChainParams::Network networkID;
     std::string strNetworkID;
+    std::string strDevFundPubKey;
     CBlock genesis;
     std::vector<CAddress> vFixedSeeds;
     bool fMiningRequiresPeers;
@@ -164,11 +200,13 @@ protected:
     bool fHeadersFirstSyncingActive;
     int nPoolMaxTransactions;
     std::string strSporkKey;
-    std::string strSporkKeyOld;
     int64_t nEnforceNewSporkKey;
     int64_t nRejectOldSporkKey;
     std::string strObfuscationPoolDummyAddress;
     int64_t nStartMasternodePayments;
+    int64_t nBudgetVoteUpdate;
+    void  MineNewGenesisBlock();
+#ifdef ZEROCOIN    
     std::string zerocoinModulus;
     int nMaxZerocoinSpendsPerTransaction;
     CAmount nMinZerocoinMintFee;
@@ -177,17 +215,29 @@ protected:
     int nRequiredAccumulation;
     int nDefaultSecurityLevel;
     int nZerocoinHeaderVersion;
-    int64_t nBudget_Fee_Confirmations;
     int nZerocoinStartHeight;
     int nZerocoinStartTime;
     int nZerocoinRequiredStakeDepth;
+    int nBlockZerocoinV2;    
+#endif
+    int64_t nBudgetFeeConfirmations;
+    int64_t nMasternodeMinConfirmations;
+    int64_t nMasternodeMinMNPSeconds;
+    int64_t nMasternodeMinMNBSeconds;
+    int64_t nMasternodePingSeconds;
+    int64_t nMasternodeExpirationSeconds;
+    int64_t nMasternodeRemovalSeconds;
+    int64_t nMasternodeCheckSeconds;
+    int64_t nMasternodeCoinScore;   
+    int64_t nMasternodeBudgetPaymentCycle;
+    int64_t nMasternodeFinalizationWindow;
+
 
     int nBlockEnforceSerialRange;
     int nBlockRecalculateAccumulators;
     int nBlockFirstFraudulent;
     int nBlockLastGoodCheckpoint;
     int nBlockEnforceInvalidUTXO;
-    int nBlockZerocoinV2;
 };
 
 /**

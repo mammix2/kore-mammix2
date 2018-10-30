@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2016-2017 The PIVX developers
+// Copyright (c) 2016-2017 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -137,7 +137,9 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CMutabl
         bool fSolved =
             Solver(keystore, subscript, hash2, nHashType, txin.scriptSig, subType) && subType != TX_SCRIPTHASH;
         // Append serialized subscript whether or not it is completely signed:
+        // Lico
         txin.scriptSig << static_cast<valtype>(subscript);
+        //txin.scriptSig << valtype(subscript.begin(), subscript.end());
         if (!fSolved) return false;
     }
 

@@ -1,13 +1,13 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2015-2018 The KORE developers
 // Copyright (c) 2018      The Kore developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/pivx-config.h"
+#include "config/bitcoin-config.h"
 #endif
 
 #include "net.h"
@@ -41,7 +41,7 @@
 
 namespace fs = boost::filesystem;
 extern "C" {
-    int tor_main(int argc, char *argv[]);
+int tor_main(int argc, char* argv[]);
 }
 
 // Dump addresses to peers.dat every 15 minutes (900s)
@@ -75,7 +75,7 @@ struct ListenSocket {
 
     ListenSocket(SOCKET socket, bool whitelisted) : socket(socket), whitelisted(whitelisted) {}
 };
-}
+} // namespace
 
 //
 // Global state variables
@@ -362,8 +362,8 @@ CNode* FindNode(const CSubNet& subNet)
 {
     LOCK(cs_vNodes);
     for (CNode* pnode : vNodes)
-    if (subNet.Match((CNetAddr)pnode->addr))
-        return (pnode);
+        if (subNet.Match((CNetAddr)pnode->addr))
+            return (pnode);
     return NULL;
 }
 
@@ -514,12 +514,11 @@ bool CNode::IsBanned(CNetAddr ip)
     bool fResult = false;
     {
         LOCK(cs_setBanned);
-        for (banmap_t::iterator it = setBanned.begin(); it != setBanned.end(); it++)
-        {
+        for (banmap_t::iterator it = setBanned.begin(); it != setBanned.end(); it++) {
             CSubNet subNet = (*it).first;
             CBanEntry banEntry = (*it).second;
 
-            if(subNet.Match(ip) && GetTime() < banEntry.nBanUntil)
+            if (subNet.Match(ip) && GetTime() < banEntry.nBanUntil)
                 fResult = true;
         }
     }
@@ -541,51 +540,49 @@ bool CNode::IsBanned(CSubNet subnet)
     return fResult;
 }
 
-void CNode::Ban(const CNetAddr& addr, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
+void CNode::Ban(const CNetAddr& addr, const BanReason& banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
 {
     CSubNet subNet(addr);
     Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch);
 }
 
-void CNode::Ban(const CSubNet& subNet, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
+void CNode::Ban(const CSubNet& subNet, const BanReason& banReason, int64_t bantimeoffset, bool sinceUnixEpoch)
 {
     CBanEntry banEntry(GetTime());
     banEntry.banReason = banReason;
-    if (bantimeoffset <= 0)
-    {
-        bantimeoffset = GetArg("-bantime", 60*60*24); // Default 24-hour ban
+    if (bantimeoffset <= 0) {
+        bantimeoffset = GetArg("-bantime", 60 * 60 * 24); // Default 24-hour ban
         sinceUnixEpoch = false;
     }
-    banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime() )+bantimeoffset;
+    banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime()) + bantimeoffset;
 
     {
         LOCK(cs_setBanned);
         if (setBanned[subNet].nBanUntil < banEntry.nBanUntil) {
             setBanned[subNet] = banEntry;
             setBannedIsDirty = true;
-        }
-        else
+        } else
             return;
     }
     uiInterface.BannedListChanged();
     {
         LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes) {
+        BOOST_FOREACH (CNode* pnode, vNodes) {
             if (subNet.Match((CNetAddr)pnode->addr))
                 pnode->fDisconnect = true;
         }
     }
-    if(banReason == BanReasonManuallyAdded)
+    if (banReason == BanReasonManuallyAdded)
         DumpBanlist(); //store banlist to disk immediately if user requested ban
 }
 
-bool CNode::Unban(const CNetAddr &addr)
+bool CNode::Unban(const CNetAddr& addr)
 {
     CSubNet subNet(addr);
     return Unban(subNet);
 }
 
-bool CNode::Unban(const CSubNet &subNet)
+bool CNode::Unban(const CSubNet& subNet)
 {
     {
         LOCK(cs_setBanned);
@@ -598,13 +595,13 @@ bool CNode::Unban(const CSubNet &subNet)
     return true;
 }
 
-void CNode::GetBanned(banmap_t &banMap)
+void CNode::GetBanned(banmap_t& banMap)
 {
     LOCK(cs_setBanned);
     banMap = setBanned; //create a thread safe copy
 }
 
-void CNode::SetBanned(const banmap_t &banMap)
+void CNode::SetBanned(const banmap_t& banMap)
 {
     LOCK(cs_setBanned);
     setBanned = banMap;
@@ -619,23 +616,20 @@ void CNode::SweepBanned()
     {
         LOCK(cs_setBanned);
         banmap_t::iterator it = setBanned.begin();
-        while(it != setBanned.end())
-        {
+        while (it != setBanned.end()) {
             CSubNet subNet = (*it).first;
             CBanEntry banEntry = (*it).second;
-            if(now > banEntry.nBanUntil)
-            {
+            if (now > banEntry.nBanUntil) {
                 setBanned.erase(it++);
                 setBannedIsDirty = true;
                 notifyUI = true;
                 LogPrint("net", "%s: Removed banned node ip/subnet from banlist.dat: %s\n", __func__, subNet.ToString());
-            }
-            else
+            } else
                 ++it;
         }
     }
     // update UI
-    if(notifyUI) {
+    if (notifyUI) {
         uiInterface.BannedListChanged();
     }
 }
@@ -702,7 +696,7 @@ void CNode::copyStats(CNodeStats& stats)
         nPingUsecWait = GetTimeMicros() - nPingUsecStart;
     }
 
-    // Raw ping time is in microseconds, but show it to user as whole seconds (PIVX users should be well used to small numbers with many decimal places by now :)
+    // Raw ping time is in microseconds, but show it to user as whole seconds (KORE users should be well used to small numbers with many decimal places by now :)
     stats.dPingTime = (((double)nPingUsecTime) / 1e6);
     stats.dPingWait = (((double)nPingUsecWait) / 1e6);
 
@@ -901,7 +895,7 @@ void ThreadSocketHandler()
             LOCK(cs_vNodes);
             vNodesSize = vNodes.size();
         }
-        if(vNodesSize != nPrevNodeCount) {
+        if (vNodesSize != nPrevNodeCount) {
             nPrevNodeCount = vNodesSize;
             uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount);
         }
@@ -1121,6 +1115,40 @@ void ThreadSocketHandler()
     }
 }
 
+/* Tor implementation ---------------------------------*/
+
+// hidden service seeds
+/* just for testing we can add this nodes to kore.conf
+addnode=jsfoupaz7kwoibq2.onion
+addnode=4aynkbwmoje6p27p.onion
+addnode=hxgchjn2dom3teev.onion
+addnode=hzvrfa5xa2qulysi.onion 
+addnode=hggmh3vhkjebz4j5.onion
+addnode=gameldrtkm4u4ds2.onion
+addnode=k75pshpf226ra65s.onion
+addnode=zdwnbnrwty33uuev.onion
+addnode=l4meqo3zi74h7edw.onion
+addnode=k6a5ebhrkfxbwqvl.onion
+addnode=5j6hwetvycvjzdur.onion
+addnode=hvjjqjjajii2ycix.onion
+addnode=bqr7zsfgpztd4m4q.onion
+*/
+
+extern bool fTestNet;
+static const char *strMainNetOnionSeed[][1] = {
+    {"ci5bvyjhizibhstq.onion"}, 
+    {"iqjl3czk3vjlulka.onion"}, 
+    {"6ucjnzdee5esbshd.onion"}, 
+    {"p2ow4tts3qidjvua.onion"},
+    {"iqjl3czk3vjlulka.onion"},
+    {"6ucjnzdee5esbshd.onion"},
+    {"p2ow4tts3qidjvua.onion"},
+    {NULL} // last element => couldn't use size ?
+};
+
+static const char *strTestNetOnionSeed[][1] = {
+    {NULL} // last element => couldn't use size ?
+};
 
 #ifdef USE_UPNP
 void ThreadMapPort()
@@ -1164,7 +1192,7 @@ void ThreadMapPort()
             }
         }
 
-        string strDesc = "PIVX " + FormatFullVersion();
+        string strDesc = "KORE " + FormatFullVersion();
 
         try {
             while (true) {
@@ -1230,8 +1258,9 @@ void MapPort(bool)
 }
 #endif
 
-static char * convert_arg(const std::string &arg) {
-    char *r = new char[arg.size() + 1];
+static char* convert_arg(const std::string& arg)
+{
+    char* r = new char[arg.size() + 1];
     std::strcpy(r, arg.c_str());
     return r;
 }
@@ -1251,23 +1280,25 @@ void TorThread()
     2) Get bridges (don´t need to be IPV6)
       visit  https://bridges.torproject.org with your browser
 
-    3) Add a torrc file at: /home/kore/.pivx/tor
+    3) Add a torrc file at: /home/kore/.kore/tor
        add the bridges for torrc file, for example:
     bridge obfs4 216.105.171.92:443 223B0045E80C57E3DA06CC1C60B006AB598BA4B8 cert=ofCL3Wiw2IpLUc+BwhzYlYTvLwdTzQnNZIomoaqjSsyoDWQLJdLcpetZA5VzOjvgVhUIUw iat-mode=0
     bridge obfs4 34.207.17.234:9443 5376E7D45629B310C551CC692B8A708E67F946DE cert=RdeLCwFKDvWVx/8cB1gujdfrp7DG+j116DhlNG6rNkSruaJUibvMq5FpTU/iQ+rwTmK7bQ iat-mode=0
 
     */
+   /*
 #ifdef WIN32
     if (stat("obfs4proxy.exe", &sb) == 0 && sb.st_mode & S_IXUSR) {
-      clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
+        clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
     }
 #else
     if ((stat("obfs4proxy", &sb) == 0 && sb.st_mode & S_IXUSR) || !std::system("which obfs4proxy")) {
-      LogPrintf("Attention Attention, please list your bridges !");
-      LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
-      clientTransportPlugin = "obfs4 exec /usr/bin/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
+        LogPrintf("Attention Attention, please list your bridges !");
+        LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
+        clientTransportPlugin = "obfs4 exec /usr/bin/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
     }
 #endif
+*/
 
     // set up command line arguments for tor
     std::vector<std::string> tor_args;
@@ -1284,8 +1315,10 @@ void TorThread()
     tor_args.push_back((tor_directory / "geoip").string());
     tor_args.push_back("--GeoIPv6File");
     tor_args.push_back((tor_directory / "geoip6").string());
-//    tor_args.push_back("--HiddenServiceDir");
-//    tor_args.push_back((tor_directory / "onion").string());
+    tor_args.push_back("--HiddenServiceDir");    
+    tor_args.push_back((tor_directory / "onion").string());
+    tor_args.push_back("--HiddenServicePort");
+    tor_args.push_back(std::to_string(Params().GetDefaultPort()));    
     tor_args.push_back("-f");
     tor_args.push_back((tor_directory / "torrc").string());
     tor_args.push_back("--DataDirectory");
@@ -1293,21 +1326,21 @@ void TorThread()
     tor_args.push_back("--ignore-missing-torrc");
 
     if (clientTransportPlugin) {
-      LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
-      tor_args.push_back("--ClientTransportPlugin");
-      tor_args.push_back(*clientTransportPlugin);
-      tor_args.push_back("--UseBridges");
-      tor_args.push_back("1");
+        LogPrintf("Using external obfs4proxy as ClientTransportPlugin.\nSpecify bridges in %s\n", tor_directory);
+        tor_args.push_back("--ClientTransportPlugin");
+        tor_args.push_back(*clientTransportPlugin);
+        tor_args.push_back("--UseBridges");
+        tor_args.push_back("1");
     }
 
 
     // set up args in memory and call tor_main()
-    std::vector<char *> argv;
+    std::vector<char*> argv;
     std::transform(tor_args.begin(), tor_args.end(), std::back_inserter(argv), convert_arg);
     tor_main(argv.size(), &argv[0]);
 }
 
-static boost::thread *tor_thread = nullptr;
+static boost::thread* tor_thread = nullptr;
 
 extern const char tor_git_revision[] = "";
 
@@ -1319,15 +1352,51 @@ void StartTor()
 
 void InterruptTor()
 {
-    tor_thread->interrupt();
+    if (tor_thread != nullptr) {
+        tor_thread->interrupt();
+    }
 }
 
 void StopTor()
 {
-    tor_thread->join();
-    delete tor_thread;
+    if (tor_thread != nullptr) {
+        tor_thread->join();
+        delete tor_thread;
+        tor_thread = nullptr;
+    }
 }
 
+
+void ThreadOnionSeed()
+{
+
+    // Make this thread recognisable as the tor thread
+    RenameThread("onionseed");
+
+    static const char *(*strOnionSeed)[1] = fTestNet ? strTestNetOnionSeed : strMainNetOnionSeed;
+
+    int found = 0;
+
+    LogPrintf("Loading addresses from .onion seeds\n");
+
+    for (unsigned int seed_idx = 0; strOnionSeed[seed_idx][0] != NULL; seed_idx++) {
+        CNetAddr parsed;
+        if (
+            !parsed.SetSpecial(
+                strOnionSeed[seed_idx][0]
+            )
+        ) {
+            throw runtime_error("ThreadOnionSeed() : invalid .onion seed");
+        }
+        int nOneDay = 24*3600;
+        CAddress addr = CAddress(CService(parsed, Params().GetDefaultPort()));
+        addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
+        found++;
+        addrman.Add(addr, parsed);
+    }
+
+    LogPrintf("%d addresses found from .onion seeds\n", found);
+}
 
 void ThreadDNSAddressSeed()
 {
@@ -1354,7 +1423,9 @@ void ThreadDNSAddressSeed()
         } else {
             vector<CNetAddr> vIPs;
             vector<CAddress> vAdd;
+            LogPrintf("LookupHost : %s\n", seed.host.c_str());
             if (LookupHost(seed.host.c_str(), vIPs)) {
+                LogPrintf("Found Host : %s\n", seed.host.c_str());
                 BOOST_FOREACH (CNetAddr& ip, vIPs) {
                     int nOneDay = 24 * 3600;
                     CAddress addr = CAddress(CService(ip, Params().GetDefaultPort()));
@@ -1740,7 +1811,7 @@ bool BindListenPort(const CService& addrBind, string& strError, bool fWhiteliste
     if (::bind(hListenSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR) {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE)
-            strError = strprintf(_("Unable to bind to %s on this computer. PIVX Core is probably already running."), addrBind.ToString());
+            strError = strprintf(_("Unable to bind to %s on this computer. KORE Core is probably already running."), addrBind.ToString());
         else
             strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %s)"), addrBind.ToString(), NetworkErrorString(nErr));
         LogPrintf("%s\n", strError);
@@ -1825,9 +1896,9 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (!bandb.Read(banmap))
         LogPrintf("Invalid or missing banlist.dat; recreating\n");
 
-    CNode::SetBanned(banmap); //thread save setter
+    CNode::SetBanned(banmap);        //thread save setter
     CNode::SetBannedSetDirty(false); //no need to write down just read or nonexistent data
-    CNode::SweepBanned(); //sweap out unused entries
+    CNode::SweepBanned();            //sweap out unused entries
 
     // Initialize random numbers. Even when rand() is only usable for trivial use-cases most nodes should have a different
     // seed after all the file-IO done at this point. Should be good enough even when nodes are started via scripts.
@@ -1855,7 +1926,9 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (!GetBoolArg("-dnsseed", true))
         LogPrintf("DNS seeding disabled\n");
     else
-        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed));
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "onionseed", &ThreadOnionSeed));
+	    // Lico waiting for dnsseed
+        //threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed));
 
     // Map ports with UPnP
     MapPort(GetBoolArg("-upnp", DEFAULT_UPNP));
@@ -1993,8 +2066,8 @@ void RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
 void RelayInv(CInv& inv)
 {
     LOCK(cs_vNodes);
-    BOOST_FOREACH (CNode* pnode, vNodes){
-    		if((pnode->nServices==NODE_BLOOM_WITHOUT_MN) && inv.IsMasterNodeType())continue;
+    BOOST_FOREACH (CNode* pnode, vNodes) {
+        if ((pnode->nServices == NODE_BLOOM_WITHOUT_MN) && inv.IsMasterNodeType()) continue;
         if (pnode->nVersion >= ActiveProtocol())
             pnode->PushInventory(inv);
     }
@@ -2280,7 +2353,7 @@ void CNode::EndMessage() UNLOCK_FUNCTION(cs_vSend)
         Fuzz(GetArg("-fuzzmessagestest", 10));
 
     if (ssSend.size() == 0) {
-	    LEAVE_CRITICAL_SECTION(cs_vSend);
+        LEAVE_CRITICAL_SECTION(cs_vSend);
         return;
     }
 
@@ -2333,7 +2406,7 @@ bool CBanDB::Write(const banmap_t& banSet)
 
     // open temp output file, and associate with CAutoFile
     boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
-    FILE *file = fopen(pathTmp.string().c_str(), "wb");
+    FILE* file = fopen(pathTmp.string().c_str(), "wb");
     CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull())
         return error("%s: Failed to open file %s", __func__, pathTmp.string());
@@ -2341,8 +2414,7 @@ bool CBanDB::Write(const banmap_t& banSet)
     // Write and commit header, data
     try {
         fileout << ssBanlist;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         return error("%s: Serialize or I/O error - %s", __func__, e.what());
     }
     FileCommit(fileout.Get());
@@ -2358,7 +2430,7 @@ bool CBanDB::Write(const banmap_t& banSet)
 bool CBanDB::Read(banmap_t& banSet)
 {
     // open input file, and associate with CAutoFile
-    FILE *file = fopen(pathBanlist.string().c_str(), "rb");
+    FILE* file = fopen(pathBanlist.string().c_str(), "rb");
     CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull())
         return error("%s: Failed to open file %s", __func__, pathBanlist.string());
@@ -2375,10 +2447,9 @@ bool CBanDB::Read(banmap_t& banSet)
 
     // read data and checksum from file
     try {
-        filein.read((char *)&vchData[0], dataSize);
+        filein.read((char*)&vchData[0], dataSize);
         filein >> hashIn;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
     filein.fclose();
@@ -2401,8 +2472,7 @@ bool CBanDB::Read(banmap_t& banSet)
 
         // de-serialize address data into one CAddrMan object
         ssBanlist >> banSet;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         return error("%s: Deserialize or I/O error - %s", __func__, e.what());
     }
 

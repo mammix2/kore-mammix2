@@ -1,5 +1,5 @@
 // Copyright (c) 2012-2013 The PPCoin developers
-// Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2015-2018 The KORE developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef BITCOIN_KERNEL_H
@@ -11,9 +11,9 @@
 
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
 static const unsigned int MODIFIER_INTERVAL = 60;
-static const unsigned int MODIFIER_INTERVAL_TESTNET = 60;
+static const unsigned int MODIFIER_INTERVAL_TESTNET = 5;
 extern unsigned int nModifierInterval;
-extern unsigned int getIntervalVersion(bool fTestNet);
+extern unsigned int getIntervalVersion();
 
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group

@@ -1,11 +1,12 @@
-// Copyright (c) 2018 The PIVX developers
+// Copyright (c) 2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PIVX_DETERMINISTICMINT_H
-#define PIVX_DETERMINISTICMINT_H
-
+#ifndef KORE_DETERMINISTICMINT_H
+#define KORE_DETERMINISTICMINT_H
+#ifdef ZEROCOIN 
 #include <libzerocoin/Denominations.h>
+#endif
 #include <uint256.h>
 #include <serialize.h>
 
@@ -21,14 +22,18 @@ private:
     uint256 hashPubcoin;
     uint256 txid;
     int nHeight;
+#ifdef ZEROCOIN     
     libzerocoin::CoinDenomination denom;
+#endif    
     bool isUsed;
 
 public:
     CDeterministicMint();
     CDeterministicMint(uint8_t nVersion, const uint32_t& nCount, const uint256& hashSeed, const uint256& hashSerial, const uint256& hashPubcoin, const uint256& hashStake);
 
+#ifdef ZEROCOIN 
     libzerocoin::CoinDenomination GetDenomination() const { return denom; }
+#endif    
     uint32_t GetCount() const { return nCount; }
     int GetHeight() const { return nHeight; }
     uint256 GetSeedHash() const { return hashSeed; }
@@ -38,7 +43,9 @@ public:
     uint256 GetTxHash() const { return txid; }
     uint8_t GetVersion() const { return nVersion; }
     bool IsUsed() const { return isUsed; }
+#ifdef ZEROCOIN     
     void SetDenomination(const libzerocoin::CoinDenomination denom) { this->denom = denom; }
+#endif    
     void SetHeight(const int& nHeight) { this->nHeight = nHeight; }
     void SetNull();
     void SetStakeHash(const uint256& hashStake) { this->hashStake = hashStake; }
@@ -59,9 +66,11 @@ public:
         READWRITE(hashPubcoin);
         READWRITE(txid);
         READWRITE(nHeight);
+#ifdef ZEROCOIN         
         READWRITE(denom);
+#endif        
         READWRITE(isUsed);
     };
 };
 
-#endif //PIVX_DETERMINISTICMINT_H
+#endif //KORE_DETERMINISTICMINT_H

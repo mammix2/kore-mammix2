@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2016-2018 The PIVX developers
+// Copyright (c) 2016-2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,7 +9,9 @@
 
 #include "leveldbwrapper.h"
 #include "main.h"
+#ifdef ZEROCOIN
 #include "primitives/zerocoin.h"
+#endif
 
 #include <map>
 #include <string>
@@ -69,6 +71,7 @@ public:
     bool LoadBlockIndexGuts();
 };
 
+#ifdef ZEROCOIN
 class CZerocoinDB : public CLevelDBWrapper
 {
 public:
@@ -92,5 +95,6 @@ public:
     bool ReadAccumulatorValue(const uint32_t& nChecksum, CBigNum& bnValue);
     bool EraseAccumulatorValue(const uint32_t& nChecksum);
 };
+#endif
 
 #endif // BITCOIN_TXDB_H

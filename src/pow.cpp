@@ -1,12 +1,13 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2017 The KORE developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "pow.h"
 
+#include "arith_uint256.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "main.h"
@@ -16,16 +17,78 @@
 
 #include <math.h>
 
-
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
+static arith_uint256 GetTargetLimit_Legacy(int64_t nTime, bool fProofOfStake)
 {
-    /* current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
+    uint256 nLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
+
+    return UintToArith256(nLimit);
+}
+
+
+unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int64_t nFirstBlockTime)
+{
+    int64_t nActualSpacing = pindexLast->GetBlockTime() - nFirstBlockTime;
+    int64_t nTargetSpacing = Params().TargetSpacing();
+
+    // Limit adjustment step
+
+    if (nActualSpacing < 0)
+        nActualSpacing = nTargetSpacing;
+
+    // Retarget
+    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
+    arith_uint256 bnNew, bnOld;
+    bnNew.SetCompact(pindexLast->nBits);
+    bnOld = bnNew;
+    bnNew *= ((Params().DifficultyAdjustmentInterval() - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+    bnNew /= ((Params().DifficultyAdjustmentInterval() + 1) * nTargetSpacing);
+
+    if (bnNew <= 0 || bnNew > bnPowLimit)
+        bnNew = bnPowLimit;
+
+    if (fDebug) {
+        LogPrintf("RETARGET\n");
+        LogPrintf("params.nTargetSpacing = %d    nActualSpacing = %d\n", Params().TargetSpacing(), nActualSpacing);
+        LogPrintf("Before: %08x  %s\n", pindexLast->nBits, bnOld.ToString());
+        LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.ToString());
+    }
+
+    return bnNew.GetCompact();
+}
+
+
+unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
+{
+    unsigned int nTargetLimit = UintToArith256(Params().ProofOfWorkLimit()).GetCompact();
+
+    // Genesis block
+    if (pindexLast == NULL)
+        return nTargetLimit;
+
+    const CBlockIndex* pindexPrev = GetLastBlockIndex_Legacy(pindexLast, fProofOfStake);
+    if (pindexPrev->pprev == NULL)
+        return nTargetLimit; // first block
+    const CBlockIndex* pindexPrevPrev = GetLastBlockIndex_Legacy(pindexPrev->pprev, fProofOfStake);
+    if (pindexPrevPrev->pprev == NULL)
+        return nTargetLimit; // second block
+
+    return CalculateNextWorkRequired_Legacy(pindexPrev, pindexPrevPrev->GetBlockTime());
+}
+
+
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
+{
+    // Lico
+    // if FORK_condition
+    //return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
+
+    /* current difficulty formula, kore - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;
     const CBlockIndex* BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = 24;
-    int64_t PastBlocksMax = 24;
+    int64_t PastBlocksMin = Params().PastBlocksMin();
+    int64_t PastBlocksMax = Params().PastBlocksMax();
     int64_t CountBlocks = 0;
     uint256 PastDifficultyAverage;
     uint256 PastDifficultyAveragePrev;
@@ -34,10 +97,13 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return Params().ProofOfWorkLimit().GetCompact();
     }
 
-    if (pindexLast->nHeight > Params().LAST_POW_BLOCK()) {
-        uint256 bnTargetLimit = (~uint256(0) >> 24);
-        int64_t nTargetSpacing = 60;
-        int64_t nTargetTimespan = 60 * 40;
+    if (pindexLast->nHeight > Params().LAST_POW_BLOCK() || !fProofOfStake) {
+        //uint256 bnTargetLimit = (~uint256(0) >> 24);
+        uint256 bnTargetLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
+        int64_t nTargetSpacing = Params().TargetSpacing();
+        int64_t nTargetTimespan = Params().TargetTimespan();
+        //int64_t nTargetSpacing = 60;
+        //int64_t nTargetTimespan = 60 * 40;
 
         int64_t nActualSpacing = 0;
         if (pindexLast->nHeight != 0)
@@ -58,6 +124,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         if (bnNew <= 0 || bnNew > bnTargetLimit)
             bnNew = bnTargetLimit;
 
+        if (fDebug) LogPrintf("GetNextWorkRequired: %s \n", bnNew.ToString().c_str());
         return bnNew.GetCompact();
     }
 
@@ -92,11 +159,17 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     uint256 bnNew(PastDifficultyAverage);
 
     int64_t _nTargetTimespan = CountBlocks * Params().TargetSpacing();
+    if (fDebug) {
+        LogPrintf("nActualTimespan: %d \n", nActualTimespan);
+        LogPrintf("PastDifficultyAverage: %s \n", PastDifficultyAverage.ToString().c_str());
+        LogPrintf("_nTargetTimespan : %d \n", _nTargetTimespan);
+    }
 
     if (nActualTimespan < _nTargetTimespan / 3)
         nActualTimespan = _nTargetTimespan / 3;
     if (nActualTimespan > _nTargetTimespan * 3)
         nActualTimespan = _nTargetTimespan * 3;
+
 
     // Retarget
     bnNew *= nActualTimespan;
@@ -106,11 +179,19 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         bnNew = Params().ProofOfWorkLimit();
     }
 
+    if (fDebug) {
+        LogPrintf("nActualTimespan: %d \n", nActualTimespan);
+        LogPrintf("GetNextWorkRequired: %s \n", bnNew.ToString().c_str());
+    }
+
     return bnNew.GetCompact();
 }
 
+
 bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 {
+    // Lico FORK
+    // return CheckProofOfWork_Legacy(hash, nBits);
     bool fNegative;
     bool fOverflow;
     uint256 bnTarget;
@@ -121,12 +202,47 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
 
     // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > Params().ProofOfWorkLimit())
-        return error("CheckProofOfWork() : nBits below minimum work");
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > Params().ProofOfWorkLimit()) {
+        if (fDebug) LogPrintf("CheckProofOfWork() : nBits below minimum work");
+        return false;
+    }
+
 
     // Check proof of work matches claimed amount
-    if (hash > bnTarget)
-        return error("CheckProofOfWork() : hash doesn't match nBits");
+    if (fDebug) {
+        //LogPrintf("CheckProofOfWork \n");
+        //LogPrintf("hash    : %s \n", hash.ToString().c_str());
+        //LogPrintf("bnTarget: %s \n", bnTarget.ToString().c_str());
+    }
+    if (hash > bnTarget) {
+        if (fDebug) LogPrintf("CheckProofOfWork() : hash doesn't match nBits");
+        return false;
+    }
+
+    return true;
+}
+
+bool CheckProofOfWork_Legacy(uint256 hash, unsigned int nBits)
+{
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(Params().ProofOfWorkLimit()))
+        return false;
+
+    if (fDebug) {
+        LogPrintf("CheckProofOfWork \n");
+        LogPrintf("nBits    : %x \n", nBits);
+        LogPrintf("hash    : %s \n", UintToArith256(hash).ToString().c_str());
+        LogPrintf("bnTarget: %s \n", bnTarget.ToString().c_str());
+    }
+    // Check proof of work matches claimed amount
+    if (UintToArith256(hash) > bnTarget)
+        return false;
 
     return true;
 }

@@ -1,16 +1,16 @@
-// Copyright (c) 2018 The PIVX developers
+// Copyright (c) 2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PIVX_ACCUMULATORCHECKPOINTS_H
-#define PIVX_ACCUMULATORCHECKPOINTS_H
+#ifndef KORE_ACCUMULATORCHECKPOINTS_H
+#define KORE_ACCUMULATORCHECKPOINTS_H
 
 #include <libzerocoin/bignum.h>
 #include <univalue/include/univalue.h>
 
 namespace AccumulatorCheckpoints
 {
-    typedef std::map<libzerocoin::CoinDenomination, CBigNum> Checkpoint;
+    typedef std::map<libzerocoin::CoinDenomination, CBigNum> Checkpoint;   
     extern std::map<int, Checkpoint> mapCheckpoints;
 
     UniValue read_json(const std::string& jsondata);
@@ -18,4 +18,4 @@ namespace AccumulatorCheckpoints
     Checkpoint GetClosestCheckpoint(const int& nHeight, int& nHeightCheckpoint);
 }
 
-#endif //PIVX_ACCUMULATORCHECKPOINTS_H
+#endif //KORE_ACCUMULATORCHECKPOINTS_H

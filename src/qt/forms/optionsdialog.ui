@@ -30,10 +30,10 @@
        <item>
         <widget class="QCheckBox" name="bitcoinAtStartup">
          <property name="toolTip">
-          <string>Automatically start PIVX after logging in to the system.</string>
+          <string>Automatically start KORE after logging in to the system.</string>
          </property>
          <property name="text">
-          <string>&amp;Start PIVX on system login</string>
+          <string>&amp;Start Kore on system login</string>
          </property>
         </widget>
        </item>
@@ -131,32 +131,19 @@
         </spacer>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBoxZeromintEnable">
-         <property name="toolTip">
-          <string>Enable automatic minting of PIV units to zPIV</string>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="text">
-          <string>Enable zPIV Automint</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QLabel" name="percentage_label">
+          <widget class="QLabel" name="label">
            <property name="toolTip">
-            <string>Percentage of incoming PIV which get automatically converted to zPIV via Zerocoin Protocol (min: 10%)</string>
+            <string>This setting determines the amount of individual masternodes that an input will be anonymized through.&lt;br/&gt;More rounds of anonymization gives a higher degree of privacy, but also costs more in fees.</string>
            </property>
            <property name="text">
-            <string>Percentage of autominted zPIV</string>
+            <string>Obfuscation rounds to use</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="zeromintPercentage">
+          <widget class="QSpinBox" name="obfuscationRounds">
            <property name="minimum">
             <number>1</number>
            </property>
@@ -173,37 +160,40 @@
           <enum>QLayout::SetFixedSize</enum>
          </property>
          <item>
-          <widget class="QLabel" name="labelPreferredDenom">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
+          <widget class="QLabel" name="label_2">
            <property name="toolTip">
-            <string>Wait with automatic conversion to Zerocoin until enough PIV for this denomination is available</string>
+            <string>This amount acts as a threshold to turn off Obfuscation once it's reached.</string>
+           </property>
+           <property name="statusTip">
+            <string notr="true"/>
+           </property>
+           <property name="whatsThis">
+            <string notr="true"/>
+           </property>
+           <property name="accessibleName">
+            <string notr="true"/>
+           </property>
+           <property name="accessibleDescription">
+            <string notr="true"/>
            </property>
            <property name="text">
-            <string>Preferred Automint zPIV Denomination</string>
+            <string>Amount of KORE to keep anonymized</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="preferredDenom">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>27</height>
-            </size>
+          <widget class="QSpinBox" name="anonymizeKore">
+           <property name="minimum">
+            <number>100</number>
            </property>
-           <property name="toolTip">
-            <string>Wait with automatic conversion to Zerocoin until enough PIV for this denomination is available</string>
+           <property name="maximum">
+            <number>100000</number>
            </property>
-           <property name="maxVisibleItems">
-            <number>9</number>
+           <property name="singleStep">
+            <number>100</number>
            </property>
-           <property name="maxCount">
-            <number>9</number>
+           <property name="value">
+            <number>1000</number>
            </property>
           </widget>
          </item>
@@ -299,7 +289,7 @@
        <item>
         <widget class="QCheckBox" name="mapPortUpnp">
          <property name="toolTip">
-          <string>Automatically open the PIVX client port on the router. This only works when your router supports UPnP and it is enabled.</string>
+          <string>Automatically open the KORE client port on the router. This only works when your router supports UPnP and it is enabled.</string>
          </property>
          <property name="text">
           <string>Map port using &amp;UPnP</string>
@@ -319,7 +309,7 @@
        <item>
         <widget class="QCheckBox" name="connectSocks">
          <property name="toolTip">
-          <string>Connect to the PIVX network through a SOCKS5 proxy.</string>
+          <string>Connect to the KORE network through a SOCKS5 proxy.</string>
          </property>
          <property name="text">
           <string>&amp;Connect through SOCKS5 proxy (default proxy):</string>
@@ -485,7 +475,7 @@
          <item>
           <widget class="QValueComboBox" name="lang">
            <property name="toolTip">
-            <string>The user interface language can be set here. This setting will take effect after restarting PIVX.</string>
+            <string>The user interface language can be set here. This setting will take effect after restarting KORE.</string>
            </property>
           </widget>
          </item>
@@ -507,7 +497,7 @@
          </property>
          <property name="text">
           <string>Language missing or translation incomplete? Help contributing translations here:
-https://www.transifex.com/pivx-project/pivx-project-translations</string>
+https://www.transifex.com/kore-project/kore-project-translations</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

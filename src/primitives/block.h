@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2013 The Bitcoin developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2017 The KORE developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -27,14 +27,15 @@ class CBlockHeader
 {
 public:
     // header
-    static const int32_t CURRENT_VERSION=4;
+    static const int32_t CURRENT_VERSION=1;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
-    uint256 nAccumulatorCheckpoint;
+    uint32_t nBirthdayA;
+    uint32_t nBirthdayB;
 
     CBlockHeader()
     {
@@ -52,10 +53,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-
-        //zerocoin active, header changes to include accumulator checksum
-        if(nVersion > 3)
-            READWRITE(nAccumulatorCheckpoint);
+        READWRITE(nBirthdayA);
+        READWRITE(nBirthdayB);
     }
 
     void SetNull()
@@ -66,7 +65,8 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
-        nAccumulatorCheckpoint = 0;
+        nBirthdayA = 0;
+	    nBirthdayB = 0;
     }
 
     bool IsNull() const
@@ -75,11 +75,18 @@ public:
     }
 
     uint256 GetHash() const;
+    uint256 GetHash_Legacy();
+	
+    //uint256 GetVerifiedHash() const;
 
+    uint256 GetMidHash() const;
     int64_t GetBlockTime() const
     {
         return (int64_t)nTime;
     }
+
+private:
+    uint256 CalculateBestBirthdayHash();
 };
 
 
@@ -135,13 +142,15 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-        block.nAccumulatorCheckpoint = nAccumulatorCheckpoint;
+	    block.nBirthdayA     = nBirthdayA;
+        block.nBirthdayB     = nBirthdayB; 
         return block;
     }
 
     // ppcoin: two types of block: proof-of-work or proof-of-stake
     bool IsProofOfStake() const
     {
+        // more than 1 transaction and the second transaction vtx[1] needs to be the stake.
         return (vtx.size() > 1 && vtx[1].IsCoinStake());
     }
 
@@ -149,8 +158,6 @@ public:
     {
         return !IsProofOfStake();
     }
-
-    bool IsZerocoinStake() const;
 
     std::pair<COutPoint, unsigned int> GetProofOfStake() const
     {
@@ -167,6 +174,7 @@ public:
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
     std::string ToString() const;
     void print() const;
+   
 };
 
 
@@ -199,7 +207,7 @@ struct CBlockLocator
         vHave.clear();
     }
 
-    bool IsNull()
+    bool IsNull() const
     {
         return vHave.empty();
     }

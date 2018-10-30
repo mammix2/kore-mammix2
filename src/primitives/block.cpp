@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2015-2017 The PIVX developers
+// Copyright (c) 2015-2017 The KORE developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -10,15 +10,66 @@
 #include "script/standard.h"
 #include "script/sign.h"
 #include "tinyformat.h"
+#include "momentum.h"
 #include "utilstrencodings.h"
 #include "util.h"
 
 uint256 CBlockHeader::GetHash() const
 {
-    if(nVersion < 4)
-        return HashQuark(BEGIN(nVersion), END(nNonce));
+    // kore
+    //return HashQuark(BEGIN(nVersion), END(nNonce));
+    // Kore uses this one
+    // return Hash(BEGIN(nVersion), END(nBirthdayB));
+    return SerializeHashYescrypt(*this);
+}
 
-    return Hash(BEGIN(nVersion), END(nAccumulatorCheckpoint));
+uint256 CBlockHeader::GetMidHash() const
+{
+    return Hash(BEGIN(nVersion), END(nNonce));
+}
+
+#ifdef LICO
+uint256 CBlockHeader::GetVerifiedHash() const
+{
+ 
+ 	uint256 midHash = GetMidHash();
+ 		    	
+	uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
+
+ 	if(!bts::momentum_verify( midHash, nBirthdayA, nBirthdayB)){
+ 		return uint256S("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeee");
+ 	}
+   
+     return r;
+}
+#endif
+
+uint256 CBlockHeader::GetHash_Legacy()
+{
+  return CalculateBestBirthdayHash();
+}
+
+uint256 CBlockHeader::CalculateBestBirthdayHash()
+{
+    uint256 midHash = GetMidHash();
+    std::vector<std::pair<uint32_t, uint32_t> > results = bts::momentum_search(midHash);
+    uint32_t candidateBirthdayA = 0;
+    uint32_t candidateBirthdayB = 0;
+    uint256 smallestHashSoFar = uint256S("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdddd");
+    for (unsigned i = 0; i < results.size(); i++) {
+        nBirthdayA = results[i].first;
+        nBirthdayB = results[i].second;
+        uint256 fullHash = Hash(BEGIN(nVersion), END(nBirthdayB));
+        if (fullHash < smallestHashSoFar) {
+            smallestHashSoFar = fullHash;
+            candidateBirthdayA = results[i].first;
+            candidateBirthdayB = results[i].second;
+        }
+        nBirthdayA = candidateBirthdayA;
+        nBirthdayB = candidateBirthdayB;
+    }
+
+   return Hash(BEGIN(nVersion), END(nBirthdayB));
 }
 
 uint256 CBlock::BuildMerkleTree(bool* fMutated) const
@@ -118,30 +169,33 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMer
 std::string CBlock::ToString() const
 {
     std::stringstream s;
-    s << strprintf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
-        GetHash().ToString(),
-        nVersion,
-        hashPrevBlock.ToString(),
-        hashMerkleRoot.ToString(),
-        nTime, nBits, nNonce,
-        vtx.size());
+    s << "CBlock ============================>>>>\n";    
+    s << strprintf("    hash=%s \n", GetHash().ToString());
+    s << strprintf("    ver=%d \n", nVersion);
+    s << strprintf("    hashPrevBlock=%s, \n", hashPrevBlock.ToString());
+    s << strprintf("    hashMerkleRoot=%s, \n", hashMerkleRoot.ToString());
+    s << strprintf("    nTime=%u, \n", nTime);
+    s << strprintf("    nBits=%x, \n", nBits);
+    s << strprintf("    nNonce=%u, \n", nNonce);
+    s << strprintf("    nBirthdayA=%u, \n", nBirthdayA);
+    s << strprintf("    nBirthdayB=%u, \n", nBirthdayB);
+	s << strprintf("    vchBlockSig=%s, \n", HexStr(vchBlockSig.begin(), vchBlockSig.end()));    
+
+    s << strprintf("    Vtx : size %u \n",vtx.size());
     for (unsigned int i = 0; i < vtx.size(); i++)
     {
-        s << "  " << vtx[i].ToString() << "\n";
+        s << "    " << vtx[i].ToString() << "\n";
     }
     s << "  vMerkleTree: ";
+    s << strprintf("    vMerkleTree : size %u \n",vMerkleTree.size());
     for (unsigned int i = 0; i < vMerkleTree.size(); i++)
-        s << " " << vMerkleTree[i].ToString();
-    s << "\n";
+        s << "    " << vMerkleTree[i].ToString();
+
+    s << "CBlock <<<<============================\n";
     return s.str();
 }
 
 void CBlock::print() const
 {
     LogPrintf("%s", ToString());
-}
-
-bool CBlock::IsZerocoinStake() const
-{
-    return IsProofOfStake() && vtx[1].IsZerocoinSpend();
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2017-2018 The PIVX developers
+// Copyright (c) 2017-2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -150,10 +150,11 @@ const char* GetOpName(opcodetype opcode)
     case OP_NOP8                   : return "OP_NOP8";
     case OP_NOP9                   : return "OP_NOP9";
     case OP_NOP10                  : return "OP_NOP10";
-
+#ifdef ZEROCOIN
     // zerocoin
     case OP_ZEROCOINMINT           : return "OP_ZEROCOINMINT";
     case OP_ZEROCOINSPEND          : return "OP_ZEROCOINSPEND";
+#endif
 
     case OP_INVALIDOPCODE          : return "OP_INVALIDOPCODE";
 
@@ -243,11 +244,12 @@ bool CScript::IsPayToScriptHash() const
 {
     // Extra-fast test for pay-to-script-hash CScripts:
     return (this->size() == 23 &&
-            this->at(0) == OP_HASH160 &&
-            this->at(1) == 0x14 &&
-            this->at(22) == OP_EQUAL);
+            (*this)[0] == OP_HASH160 &&
+            (*this)[1] == 0x14 &&
+            (*this)[22] == OP_EQUAL);
 }
 
+#ifdef ZEROCOIN
 bool CScript::IsZerocoinMint() const
 {
     //fast test for Zerocoin Mint CScripts
@@ -262,6 +264,7 @@ bool CScript::IsZerocoinSpend() const
 
     return (this->at(0) == OP_ZEROCOINSPEND);
 }
+#endif
 
 bool CScript::IsPushOnly(const_iterator pc) const
 {
@@ -304,10 +307,12 @@ std::string CScript::ToString() const
             str += ValueString(vch);
         } else {
             str += GetOpName(opcode);
+#ifdef ZEROCOIN
             if (opcode == OP_ZEROCOINSPEND) {
                 //Zerocoinspend has no further op codes.
                 break;
             }
+#endif
         }
 
     }
