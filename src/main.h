@@ -454,9 +454,14 @@ public:
 
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos);
-bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos);
+bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeight);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 
+// marck here the Fork Block
+static const int HEIGHT_TO_FORK = 2000;
+
+/* Check if it is necessary to use the new code or old code */
+bool UseLegacyCode(int nHeight);
 
 /** Functions for validating blocks and updating the block tree */
 
@@ -473,8 +478,8 @@ bool DisconnectBlocksAndReprocess(int blocks);
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck, bool fAlreadyChecked = false);
 
 /** Context-independent validity checks */
-bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool fCheckPOW = true);
-bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
+bool CheckBlockHeader(const CBlockHeader& block, const CBlockIndex* bIndex, CValidationState& state, bool fCheckPOW = true);
+bool CheckBlock(const CBlock& block, const CBlockIndex* bIndex, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
 bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev);
 
 /** Context-dependent validity checks */

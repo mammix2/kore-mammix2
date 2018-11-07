@@ -27,7 +27,7 @@ class CBlockHeader
 {
 public:
     // header
-    static const int32_t CURRENT_VERSION=1;
+    static const int32_t CURRENT_VERSION=0x80000001UL;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;

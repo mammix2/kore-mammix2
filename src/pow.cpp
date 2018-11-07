@@ -79,8 +79,8 @@ unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBl
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
     // Lico
-    // if FORK_condition
-    //return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
+    if (UseLegacyCode(pindexLast->nHeight))
+      return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
 
     /* current difficulty formula, kore - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;
@@ -188,10 +188,11 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 }
 
 
-bool CheckProofOfWork(uint256 hash, unsigned int nBits)
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, const int nHeight)
 {
     // Lico FORK
-    // return CheckProofOfWork_Legacy(hash, nBits);
+     if (UseLegacyCode(nHeight))
+       return CheckProofOfWork_Legacy(hash, nBits);
     bool fNegative;
     bool fOverflow;
     uint256 bnTarget;
