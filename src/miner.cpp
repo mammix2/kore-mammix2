@@ -190,9 +190,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         const int nHeight = pindexPrev->nHeight + 1;
         if (!fProofOfStake)
           pblock->nTime = GetAdjustedTime();
-        // Version as 1 and last bit already setted to let us know when the
-        // majority of blocks has this bit setted, than we can do the fork.
-        pblock->nVersion = 0x80000001UL;
+        pblock->nVersion = 1;
         CCoinsViewCache view(pcoinsTip);
 
         // Priority order to process transactions
@@ -623,8 +621,6 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             
             LogPrintf("nbits : %08x \n", pblock->nBits);            
             while (true) {
-                // LICO - For
-                //hash = pblock->GetHash_Legacy();
                 hash = pblock->GetHash();
                 LogPrintf("pblock.nBirthdayA: %d\n", pblock->nBirthdayA);
                 LogPrintf("pblock.nBirthdayB: %d\n", pblock->nBirthdayB);

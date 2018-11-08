@@ -460,6 +460,11 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 // marck here the Fork Block
 static const int HEIGHT_TO_FORK = 2000;
 
+/* This function will return the nHeight from an pIndex, 
+  if pIndex is Null it will return the 
+  */
+int GetnHeight(const CBlockIndex* pIndex);
+
 /* Check if it is necessary to use the new code or old code */
 bool UseLegacyCode(int nHeight);
 
@@ -478,9 +483,12 @@ bool DisconnectBlocksAndReprocess(int blocks);
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck, bool fAlreadyChecked = false);
 
 /** Context-independent validity checks */
-bool CheckBlockHeader(const CBlockHeader& block, const CBlockIndex* bIndex, CValidationState& state, bool fCheckPOW = true);
-bool CheckBlock(const CBlock& block, const CBlockIndex* bIndex, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
+bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW = true);
+bool CheckBlock(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
 bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev);
+
+bool CheckBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, bool fCheckPOW = true);
+bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
 /** Context-dependent validity checks */
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex* pindexPrev);

@@ -46,7 +46,7 @@ uint256 CBlockHeader::GetVerifiedHash() const
 
 uint256 CBlockHeader::GetHash_Legacy()
 {
-  return CalculateBestBirthdayHash();
+  return Hash(BEGIN(nVersion), END(nBirthdayB));
 }
 
 uint256 CBlockHeader::CalculateBestBirthdayHash()

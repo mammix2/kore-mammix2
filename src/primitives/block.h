@@ -27,7 +27,7 @@ class CBlockHeader
 {
 public:
     // header
-    static const int32_t CURRENT_VERSION=0x80000001UL;
+    static const int32_t CURRENT_VERSION=1;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -102,6 +102,7 @@ public:
     // memory only
     mutable CScript payee;
     mutable std::vector<uint256> vMerkleTree;
+    mutable bool fChecked;
 
     CBlock()
     {
@@ -129,6 +130,7 @@ public:
         CBlockHeader::SetNull();
         vtx.clear();
         vMerkleTree.clear();
+	    fChecked = false;
         payee = CScript();
         vchBlockSig.clear();
     }

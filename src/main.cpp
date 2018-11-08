@@ -2517,7 +2517,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 {
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
-    if (!fAlreadyChecked && !CheckBlock(block, pindex, state, !fJustCheck, !fJustCheck))
+    if (!fAlreadyChecked && !CheckBlock(block, GetnHeight(pindex), state, !fJustCheck, !fJustCheck))
         return false;
 
     // verify that the view's current state corresponds to the previous block
@@ -3574,25 +3574,43 @@ bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigne
     return true;
 }
 
-bool CheckBlockHeader(const CBlockHeader& block, const CBlockIndex* bIndex, CValidationState& state, bool fCheckPOW)
+int GetnHeight(const CBlockIndex* pIndex) 
+{
+    return pIndex ? pIndex->nHeight : chainActive.Height();
+}
+
+bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW)
 {
     if (fDebug) LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, bIndex ? bIndex->nHeight : chainActive.Height() ))
+    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, nHeight ))
         return state.DoS(50, error("CheckBlockHeader() : proof of work failed"),
             REJECT_INVALID, "high-hash");
 
     return true;
 }
 
-bool CheckBlock(const CBlock& block, const CBlockIndex* bIndex, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
+bool CheckBlockHeader_Legacy(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW)
+{
+    // Check proof of work matches claimed amount
+    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, nHeight))
+        return state.DoS(50, error("CheckBlockHeader(): proof of work failed"), REJECT_INVALID, "high-hash");
+
+    // Check timestamp
+    if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
+        return state.Invalid(error("CheckBlockHeader(): block timestamp too far in the future"), REJECT_INVALID, "time-too-new");
+
+    return true;
+}
+
+bool CheckBlock(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
 {
     // These are checks that are independent of context.
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
     if (fDebug) LogPrintf("CheckBlock fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
-    if (!CheckBlockHeader(block, bIndex, state, block.IsProofOfWork() && fCheckPOW))
+    if (!CheckBlockHeader(block, height, state, block.IsProofOfWork() && fCheckPOW))
         return state.DoS(100, error("CheckBlock() : CheckBlockHeader failed"),
             REJECT_INVALID, "bad-header", true);
 
@@ -3718,6 +3736,143 @@ bool CheckBlock(const CBlock& block, const CBlockIndex* bIndex, CValidationState
         return state.DoS(100, error("CheckBlock() : out-of-bounds SigOpCount"),
             REJECT_INVALID, "bad-blk-sigops", true);
 
+    return true;
+}
+
+bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot)
+{
+    // These are checks that are independent of context.
+
+    if (block.fChecked)
+        return true;
+
+    // Check that the header is valid (particularly PoW).  This is mostly
+    // redundant with the call in AcceptBlockHeader.
+    if (!CheckBlockHeader_Legacy(block, height, state, block.IsProofOfWork() && fCheckPOW))
+        return false;
+/*
+    CBlockIndex* pindexPrev = chainActive.Tip();
+
+    // Check the merkle root.
+    if (fCheckMerkleRoot) {
+        bool mutated;
+        uint256 hashMerkleRoot2 = BlockMerkleRoot(block, &mutated);
+        if (block.hashMerkleRoot != hashMerkleRoot2)
+            return state.DoS(100, error("CheckBlock(): hashMerkleRoot mismatch"), REJECT_INVALID, "bad-txnmrklroot", true);
+
+        // Check for merkle tree malleability (CVE-2012-2459): repeating sequences
+        // of transactions in a block without affecting the merkle root of a block,
+        // while still invalidating it.
+        if (mutated)
+            return state.DoS(100, error("CheckBlock(): duplicate transaction"), REJECT_INVALID, "bad-txns-duplicate", true);
+    }
+
+    // All potential-corruption validation must be done before we do any
+    // transaction validation, as otherwise we may mark the header as invalid
+    // because we receive the wrong transactions for it.
+
+    // Size limits
+    if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+        return state.DoS(100, error("CheckBlock(): size limits failed"), REJECT_INVALID, "bad-blk-length");
+
+    // First transaction must be coinbase, the rest must not be
+    if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
+        return state.DoS(100, error("CheckBlock(): first tx is not coinbase"), REJECT_INVALID, "bad-cb-missing");
+    for (unsigned int i = 1; i < block.vtx.size(); i++)
+        if (block.vtx[i].IsCoinBase())
+            return state.DoS(100, error("CheckBlock(): more than one coinbase"), REJECT_INVALID, "bad-cb-multiple");
+
+    // Check coinbase timestamp
+    if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
+        return state.DoS(25, error("CheckBlock(): coinbase timestamp is too early blocktime=%d nTimeTx=%u", block.GetBlockTime(), block.vtx[0].nTime),
+                         REJECT_INVALID, "bad-cb-time");
+
+    // Check coinstake timestamp
+    if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), block.vtx[1].nTime))
+        return state.DoS(50, error("CheckBlock(): coinstake timestamp violation nTimeBlock=%d nTimeTx=%u", block.GetBlockTime(), block.vtx[1].nTime),
+                         REJECT_INVALID, "bad-cs-time");
+
+    if (block.IsProofOfStake())
+    {
+        // Coinbase output must be empty if proof-of-stake block
+        if (block.vtx[0].vout.size() != 1 || !block.vtx[0].vout[0].IsEmpty())
+            return state.DoS(100, error("CheckBlock(): coinbase output not empty for proof-of-stake block"), REJECT_INVALID, "bad-cb-not-empty");
+
+        // Second transaction must be coinstake, the rest must not be
+        if (block.vtx.size() < 2 || !block.vtx[1].IsCoinStake())
+            return state.DoS(100, error("CheckBlock(): second tx is not coinstake"), REJECT_INVALID, "bad-cs-missing");
+
+        for (unsigned int i = 2; i < block.vtx.size(); i++)
+            if (block.vtx[i].IsCoinStake())
+                return state.DoS(100, error("CheckBlock(): more than one coinstake"), REJECT_INVALID, "bad-cs-multiple");
+    }
+
+        // Check proof-of-stake block signature
+        if (!CheckBlockSignature(block, block.GetHash()))
+            return state.DoS(100, error("CheckBlock(): bad proof-of-stake block signature"), REJECT_INVALID, "bad-block-signature");
+
+    // ----------- swiftTX transaction scanning -----------
+    BOOST_FOREACH (const CTransaction& tx, block.vtx) {
+        if (!tx.IsCoinBase()) {
+            //only reject blocks when it's based on complete consensus
+            BOOST_FOREACH (const CTxIn& in, tx.vin) {
+                if (mapLockedInputs.count(in.prevout)) {
+                    if (mapLockedInputs[in.prevout] != tx.GetHash()) {
+                        mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
+                        return state.DoS(0, error("CheckBlock() : found conflicting transaction with transaction lock"),
+                            REJECT_INVALID, "conflicting-tx-ix");
+                    }
+                }
+            }
+        }
+    }
+
+    // ----------- masternode payments / budgets -----------
+
+
+    if (pindexPrev != NULL) {
+        int nHeight = 0;
+        if (pindexPrev->GetBlockHash() == block.hashPrevBlock) {
+            nHeight = pindexPrev->nHeight + 1;
+        } else { //out of order
+            BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+            if (mi != mapBlockIndex.end() && (*mi).second)
+                nHeight = (*mi).second->nHeight + 1;
+        }
+
+        if (nHeight != 0 && !IsInitialBlockDownload()) {
+            if (!IsBlockPayeeValid(block, nHeight)) {
+                mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
+                return state.DoS(100, error("CheckBlock() : Couldn't find masternode/budget payment"));
+            }
+        } else {
+            if (fDebug)
+                LogPrintf("CheckBlock(): Masternode payment check skipped on sync - skipping IsBlockPayeeValid()\n");
+        }
+    }
+
+        // Check transactions
+        BOOST_FOREACH(const CTransaction& tx, block.vtx){
+        if (!CheckTransaction(tx, state))
+            return error("CheckBlock(): CheckTransaction of %s failed with %s",tx.GetHash().ToString(), FormatStateMessage(state));
+
+        // check transaction timestamp
+        if (block.GetBlockTime() < (int64_t)tx.nTime)
+            return state.DoS(100, error("CheckBlock() : block timestamp earlier than transaction timestamp"), REJECT_INVALID, "bad-tx-time");
+    }
+
+    unsigned int nSigOps = 0;
+    BOOST_FOREACH(const CTransaction& tx, block.vtx)
+    {
+        nSigOps += GetLegacySigOpCount(tx);
+    }
+    if (nSigOps > MAX_BLOCK_SIGOPS)
+        return state.DoS(100, error("CheckBlock(): out-of-bounds SigOpCount"),
+                         REJECT_INVALID, "bad-blk-sigops");
+
+    if (fCheckPOW && fCheckMerkleRoot)
+        block.fChecked = true;
+*/
     return true;
 }
 
@@ -3864,7 +4019,7 @@ bool AcceptBlockHeader(const CBlock& block, CValidationState& state, CBlockIndex
         return true;
     }
 
-    if (!CheckBlockHeader(block, pindex, state, false)) {
+    if (!CheckBlockHeader(block, GetnHeight(pindex), state, false)) {
         LogPrintf("AcceptBlockHeader(): CheckBlockHeader failed \n");
         return false;
     }
@@ -3969,7 +4124,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
         return true;
     }
 
-    if ((!fAlreadyCheckedBlock && !CheckBlock(block, pindex, state)) || !ContextualCheckBlock(block, state, pindex->pprev)) {
+    if ((!fAlreadyCheckedBlock && !CheckBlock(block, GetnHeight(pindex), state)) || !ContextualCheckBlock(block, state, pindex->pprev)) {
         if (state.IsInvalid() && !state.CorruptionPossible()) {
             pindex->nStatus |= BLOCK_FAILED_VALID;
             setDirtyBlockIndex.insert(pindex);
@@ -4065,7 +4220,7 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
 {
     // Preliminary checks
     int64_t nStartTime = GetTimeMillis();
-    bool checked = CheckBlock(*pblock, chainActive.Tip() ,state);
+    bool checked = CheckBlock(*pblock, GetnHeight(chainActive.Tip()) ,state);
 
 #ifdef ZEROCOIN
     int nMints = 0;

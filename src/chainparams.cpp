@@ -137,10 +137,10 @@ void CChainParams::MineNewGenesisBlock()
     arith_uint256 hashTarget = UintToArith256(bnProofOfWorkLimit);
 
     while (true) {
-        //thash = genesis.GetHash_Legacy();
+        // Legacy way, using 
+        //thash = UintToArith256(genesis.CalculateBestBirthdayHash());
 
         // Testing yescript. This is just for testnet
-        //thash = UintToArith256(genesis.GetHash_Legacy());
         thash = UintToArith256(genesis.GetHash());
         printf("genesis.nNonce = %u \n", genesis.nNonce);
         printf("teHash      %s\n", thash.ToString().c_str());
