@@ -18,6 +18,7 @@
 #include "checkqueue.h"
 #include "init.h"
 #include "kernel.h"
+#include "legacy/consensus/merkle.h"
 #include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternodeman.h"
@@ -1118,6 +1119,57 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
                 REJECT_INVALID, "bad-cb-length");
     } 
 
+    return true;
+}
+
+bool CheckTransaction_Legacy(const CTransaction& tx, CValidationState &state)
+{
+    /*
+    // Basic checks that don't depend on any context
+    if (tx.vin.empty())
+        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
+    if (tx.vout.empty())
+        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-empty");
+    // Size limits
+    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+        return state.DoS(100, false, REJECT_INVALID, "bad-txns-oversize");
+
+    // Check for negative or overflow output values
+    CAmount nValueOut = 0;
+    BOOST_FOREACH(const CTxOut& txout, tx.vout)
+    {
+        if (txout.IsEmpty() && !tx.IsCoinBase() && !tx.IsCoinStake())
+            return state.DoS(100, error("CheckTransaction(): txout empty for user transaction"));
+        if (txout.nValue < 0)
+            return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-negative");
+        if (txout.nValue > MAX_MONEY)
+            return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-toolarge");
+        nValueOut += txout.nValue;
+        if (!MoneyRange(nValueOut))
+            return state.DoS(100, false, REJECT_INVALID, "bad-txns-txouttotal-toolarge");
+    }
+
+    // Check for duplicate inputs
+    set<COutPoint> vInOutPoints;
+    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+    {
+        if (vInOutPoints.count(txin.prevout))
+            return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-duplicate");
+        vInOutPoints.insert(txin.prevout);
+    }
+
+    if (tx.IsCoinBase())
+    {
+        if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
+            return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
+    }
+    else
+    {
+        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            if (txin.prevout.IsNull())
+                return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
+    }
+*/
     return true;
 }
 
@@ -3750,7 +3802,7 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
     // redundant with the call in AcceptBlockHeader.
     if (!CheckBlockHeader_Legacy(block, height, state, block.IsProofOfWork() && fCheckPOW))
         return false;
-/*
+
     CBlockIndex* pindexPrev = chainActive.Tip();
 
     // Check the merkle root.
@@ -3767,13 +3819,15 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
             return state.DoS(100, error("CheckBlock(): duplicate transaction"), REJECT_INVALID, "bad-txns-duplicate", true);
     }
 
+
     // All potential-corruption validation must be done before we do any
     // transaction validation, as otherwise we may mark the header as invalid
     // because we receive the wrong transactions for it.
 
     // Size limits
-    if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_SIZE_LEGACY || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE_LEGACY)
         return state.DoS(100, error("CheckBlock(): size limits failed"), REJECT_INVALID, "bad-blk-length");
+
 
     // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
@@ -3786,6 +3840,7 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
     if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
         return state.DoS(25, error("CheckBlock(): coinbase timestamp is too early blocktime=%d nTimeTx=%u", block.GetBlockTime(), block.vtx[0].nTime),
                          REJECT_INVALID, "bad-cb-time");
+
 
     // Check coinstake timestamp
     if (block.IsProofOfStake() && !CheckCoinStakeTimestamp(block.GetBlockTime(), block.vtx[1].nTime))
@@ -3808,7 +3863,7 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
     }
 
         // Check proof-of-stake block signature
-        if (!CheckBlockSignature(block, block.GetHash()))
+        if (!CheckBlockSignature_Legacy(block, block.GetHash()))
             return state.DoS(100, error("CheckBlock(): bad proof-of-stake block signature"), REJECT_INVALID, "bad-block-signature");
 
     // ----------- swiftTX transaction scanning -----------
@@ -3827,6 +3882,7 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
         }
     }
 
+
     // ----------- masternode payments / budgets -----------
 
 
@@ -3841,7 +3897,7 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
         }
 
         if (nHeight != 0 && !IsInitialBlockDownload()) {
-            if (!IsBlockPayeeValid(block, nHeight)) {
+            if (!IsBlockPayeeValid_Legacy(block, nHeight)) {
                 mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
                 return state.DoS(100, error("CheckBlock() : Couldn't find masternode/budget payment"));
             }
@@ -3849,30 +3905,29 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
             if (fDebug)
                 LogPrintf("CheckBlock(): Masternode payment check skipped on sync - skipping IsBlockPayeeValid()\n");
         }
-    }
+    }    
 
         // Check transactions
         BOOST_FOREACH(const CTransaction& tx, block.vtx){
-        if (!CheckTransaction(tx, state))
+        if (!CheckTransaction_Legacy(tx, state))
             return error("CheckBlock(): CheckTransaction of %s failed with %s",tx.GetHash().ToString(), FormatStateMessage(state));
 
         // check transaction timestamp
         if (block.GetBlockTime() < (int64_t)tx.nTime)
             return state.DoS(100, error("CheckBlock() : block timestamp earlier than transaction timestamp"), REJECT_INVALID, "bad-tx-time");
+            
     }
-
     unsigned int nSigOps = 0;
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
     {
         nSigOps += GetLegacySigOpCount(tx);
     }
-    if (nSigOps > MAX_BLOCK_SIGOPS)
+    if (nSigOps > MAX_BLOCK_SIGOPS_LEGACY)
         return state.DoS(100, error("CheckBlock(): out-of-bounds SigOpCount"),
                          REJECT_INVALID, "bad-blk-sigops");
 
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
-*/
     return true;
 }
 

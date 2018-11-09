@@ -16,10 +16,9 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    // kore
-    //return HashQuark(BEGIN(nVersion), END(nNonce));
-    // Kore uses this one
-    // return Hash(BEGIN(nVersion), END(nBirthdayB));
+    if(nVersion < 2)
+        return Hash(BEGIN(nVersion), END(nBirthdayB));
+
     return SerializeHashYescrypt(*this);
 }
 
@@ -43,11 +42,6 @@ uint256 CBlockHeader::GetVerifiedHash() const
      return r;
 }
 #endif
-
-uint256 CBlockHeader::GetHash_Legacy()
-{
-  return Hash(BEGIN(nVersion), END(nBirthdayB));
-}
 
 uint256 CBlockHeader::CalculateBestBirthdayHash()
 {

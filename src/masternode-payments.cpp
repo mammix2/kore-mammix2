@@ -268,6 +268,37 @@ bool IsBlockPayeeValid(const CBlock& block, int nBlockHeight)
     return true;
 }
 
+bool IsBlockPayeeValid_Legacy(const CBlock& block, int nBlockHeight)
+{
+    if (!masternodeSync.IsSynced()) { //there is no budget data to use to check anything -- find the longest chain
+        LogPrint("mnpayments", "Client not synced, skipping block payee checks\n");
+        return true;
+    }
+
+    const CTransaction& txNew = (block.IsProofOfStake() ? block.vtx[1] : block.vtx[0]);
+
+    //check if it's a budget block
+
+	if (budget.IsBudgetPaymentBlock_Legacy(nBlockHeight)) {
+		if (budget.IsTransactionValid_Legacy(txNew, nBlockHeight)) {
+			return true;
+		} else {
+			LogPrintf("Invalid budget payment detected %s\n", txNew.ToString().c_str());
+			return false;
+		}
+	}   
+
+    //check for masternode payee
+    if (masternodePayments.IsTransactionValid(txNew, nBlockHeight)) {
+        return true;
+    } else {
+        LogPrintf("Invalid mn payment detected %s\n", txNew.ToString().c_str());
+        return false;
+    }
+
+    return false;
+}
+
 
 void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake, bool fZKOREStake, bool stakeSplitted)
 {

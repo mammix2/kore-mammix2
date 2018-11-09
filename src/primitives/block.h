@@ -75,7 +75,6 @@ public:
     }
 
     uint256 GetHash() const;
-    uint256 GetHash_Legacy();
 	
     //uint256 GetVerifiedHash() const;
 

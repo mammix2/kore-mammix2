@@ -234,6 +234,7 @@ public:
     std::vector<CBudgetProposal*> GetAllProposals();
     std::vector<CFinalizedBudget*> GetFinalizedBudgets();
     bool IsBudgetPaymentBlock(int nBlockHeight);
+    bool IsBudgetPaymentBlock_Legacy(int nBlockHeight);
     bool AddProposal(CBudgetProposal& budgetProposal);
     bool AddFinalizedBudget(CFinalizedBudget& finalizedBudget);
     void SubmitFinalBudget();
@@ -242,6 +243,7 @@ public:
     bool UpdateFinalizedBudget(CFinalizedBudgetVote& vote, CNode* pfrom, std::string& strError);
     bool PropExists(uint256 nHash);
     TrxValidationStatus IsTransactionValid(const CTransaction& txNew, int nBlockHeight);
+    bool IsTransactionValid_Legacy(const CTransaction& txNew, int nBlockHeight);
     std::string GetRequiredPaymentsString(int nBlockHeight);
     void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake);
 
@@ -345,6 +347,7 @@ public:
     int GetVoteCount() { return (int)mapVotes.size(); }
     bool IsPaidAlready(uint256 nProposalHash, int nBlockHeight);
     TrxValidationStatus IsTransactionValid(const CTransaction& txNew, int nBlockHeight);
+    bool IsTransactionValid_Legacy(const CTransaction& txNew, int nBlockHeight);
     bool GetBudgetPaymentByBlock(int64_t nBlockHeight, CTxBudgetPayment& payment)
     {
         LOCK(cs);

@@ -40,5 +40,9 @@ static const int MEMPOOL_GD_VERSION = 60002;
 //! "filter*" commands are disabled without NODE_BLOOM after and including this version
 static const int NO_BLOOM_VERSION = 70011;
 
+// Legacy
+//! minimum peer version for masternode budgets
+static const int MIN_BUDGET_PEER_PROTO_VERSION = 70100;
+
 
 #endif // BITCOIN_VERSION_H

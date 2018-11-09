@@ -134,6 +134,7 @@ BITCOIN_CORE_H = \
   swifttx.h \
   key.h \
   keystore.h \
+  legacy/consensus/merkle.h \
   leveldbwrapper.h \
   limitedmap.h \
   main.h \
@@ -347,6 +348,7 @@ libbitcoin_common_a_SOURCES = \
   invalid.cpp \
   key.cpp \
   keystore.cpp \
+  legacy/consensus/merkle.cpp \
   netaddress.cpp \
   netbase.cpp \
   protocol.cpp \

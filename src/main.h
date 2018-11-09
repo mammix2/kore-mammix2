@@ -356,6 +356,7 @@ void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCach
 
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
+bool CheckTransaction_Legacy(const CTransaction& tx, CValidationState &state);
 
 #ifdef ZEROCOIN
 bool BlockToPubcoinList(const CBlock& block, list<libzerocoin::PublicCoin>& listPubcoins, bool fFilterInvalid);
