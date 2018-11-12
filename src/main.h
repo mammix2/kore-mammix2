@@ -356,7 +356,6 @@ void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCach
 
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
-bool CheckTransaction_Legacy(const CTransaction& tx, CValidationState &state);
 
 #ifdef ZEROCOIN
 bool BlockToPubcoinList(const CBlock& block, list<libzerocoin::PublicCoin>& listPubcoins, bool fFilterInvalid);
@@ -488,6 +487,8 @@ bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationS
 bool CheckBlock(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
 bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev);
 
+/** Convert CValidationState to a human-readable message for logging */
+std::string FormatStateMessage(const CValidationState &state);
 bool CheckBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, bool fCheckPOW = true);
 bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
@@ -574,14 +575,17 @@ private:
     std::string strRejectReason;
     unsigned char chRejectCode;
     bool corruptionPossible;
+    std::string strDebugMessage;    
 
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}
-    bool DoS(int level, bool ret = false, unsigned char chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false)
+    bool DoS(int level, bool ret = false, unsigned char chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false,
+    const std::string &strDebugMessageIn="")
     {
         chRejectCode = chRejectCodeIn;
         strRejectReason = strRejectReasonIn;
         corruptionPossible = corruptionIn;
+        strDebugMessage = strDebugMessageIn;        
         if (mode == MODE_ERROR)
             return ret;
         nDoS += level;
@@ -590,9 +594,10 @@ public:
     }
     bool Invalid(bool ret = false,
         unsigned char _chRejectCode = 0,
-        std::string _strRejectReason = "")
+        std::string _strRejectReason = "",
+        const std::string &_strDebugMessage="")
     {
-        return DoS(0, ret, _chRejectCode, _strRejectReason);
+        return DoS(0, ret, _chRejectCode, _strRejectReason, false, _strDebugMessage);
     }
     bool Error(std::string strRejectReasonIn = "")
     {
@@ -632,6 +637,7 @@ public:
     }
     unsigned char GetRejectCode() const { return chRejectCode; }
     std::string GetRejectReason() const { return strRejectReason; }
+    std::string GetDebugMessage_Legacy() const { return strDebugMessage; }
 };
 
 /** RAII wrapper for VerifyDB: Verify consistency of the block and coin databases */

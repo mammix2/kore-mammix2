@@ -1068,70 +1068,18 @@ bool BlockToMintValueVector(const CBlock& block, const CoinDenomination denom, v
 }
 #endif
 
-bool CheckTransaction(const CTransaction& tx, CValidationState& state)
+
+bool CheckTransaction(const CTransaction& tx, CValidationState &state)
 {
-    // Basic checks that don't depend on any context
-    if (tx.vin.empty())
-        return state.DoS(10, error("CheckTransaction() : vin empty"),
-            REJECT_INVALID, "bad-txns-vin-empty");
-    if (tx.vout.empty())
-        return state.DoS(10, error("CheckTransaction() : vout empty"),
-            REJECT_INVALID, "bad-txns-vout-empty");
-
-    // Size limits
-    unsigned int nMaxSize = MAX_ZEROCOIN_TX_SIZE;
-
-    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > nMaxSize)
-        return state.DoS(100, error("CheckTransaction() : size limits failed"),
-            REJECT_INVALID, "bad-txns-oversize");
-
-    // Check for negative or overflow output values
-    CAmount nValueOut = 0;
-    int nZCSpendCount = 0;
-    BOOST_FOREACH (const CTxOut& txout, tx.vout) {
-        if (txout.IsEmpty() && !tx.IsCoinBase() && !tx.IsCoinStake())
-            return state.DoS(100, error("CheckTransaction(): txout empty for user transaction"));
-
-        if (txout.nValue < 0)
-            return state.DoS(100, error("CheckTransaction() : txout.nValue negative"),
-                REJECT_INVALID, "bad-txns-vout-negative");
-        if (txout.nValue > Params().MaxMoneyOut())
-            return state.DoS(100, error("CheckTransaction() : txout.nValue too high"),
-                REJECT_INVALID, "bad-txns-vout-toolarge");
-        nValueOut += txout.nValue;
-        if (!MoneyRange(nValueOut))
-            return state.DoS(100, error("CheckTransaction() : txout total out of range"),
-                REJECT_INVALID, "bad-txns-txouttotal-toolarge");
-        
-    }
-
-    // Check for duplicate inputs
-    set<COutPoint> vInOutPoints;
-    for (const CTxIn& txin : tx.vin) {
-        if (vInOutPoints.count(txin.prevout))
-            return state.DoS(100, error("CheckTransaction() : duplicate inputs"),
-                REJECT_INVALID, "bad-txns-inputs-duplicate");
-    }
-
-    if (tx.IsCoinBase()) {
-        if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
-            return state.DoS(100, error("CheckTransaction() : coinbase script size=%d", tx.vin[0].scriptSig.size()),
-                REJECT_INVALID, "bad-cb-length");
-    } 
-
-    return true;
-}
-
-bool CheckTransaction_Legacy(const CTransaction& tx, CValidationState &state)
-{
-    /*
+    
     // Basic checks that don't depend on any context
     if (tx.vin.empty())
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
     if (tx.vout.empty())
         return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-empty");
+        
     // Size limits
-    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE_LEGACY)
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-oversize");
 
     // Check for negative or overflow output values
@@ -1142,7 +1090,7 @@ bool CheckTransaction_Legacy(const CTransaction& tx, CValidationState &state)
             return state.DoS(100, error("CheckTransaction(): txout empty for user transaction"));
         if (txout.nValue < 0)
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-negative");
-        if (txout.nValue > MAX_MONEY)
+        if (txout.nValue > Params().MaxMoneyOut())
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-toolarge");
         nValueOut += txout.nValue;
         if (!MoneyRange(nValueOut))
@@ -1169,7 +1117,6 @@ bool CheckTransaction_Legacy(const CTransaction& tx, CValidationState &state)
             if (txin.prevout.IsNull())
                 return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
     }
-*/
     return true;
 }
 
@@ -3791,6 +3738,15 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
     return true;
 }
 
+/** Convert CValidationState to a human-readable message for logging */
+std::string FormatStateMessage_Legacy(const CValidationState &state)
+{
+    return strprintf("%s%s (code %i)",
+        state.GetRejectReason(),
+        state.GetDebugMessage_Legacy().empty() ? "" : ", "+state.GetDebugMessage_Legacy(),
+        state.GetRejectCode());
+}
+
 bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot)
 {
     // These are checks that are independent of context.
@@ -3909,8 +3865,8 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
 
         // Check transactions
         BOOST_FOREACH(const CTransaction& tx, block.vtx){
-        if (!CheckTransaction_Legacy(tx, state))
-            return error("CheckBlock(): CheckTransaction of %s failed with %s",tx.GetHash().ToString(), FormatStateMessage(state));
+        if (!CheckTransaction(tx, state))
+            return error("CheckBlock(): CheckTransaction of %s failed with %s",tx.GetHash().ToString(), FormatStateMessage_Legacy(state));
 
         // check transaction timestamp
         if (block.GetBlockTime() < (int64_t)tx.nTime)
