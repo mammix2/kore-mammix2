@@ -262,13 +262,24 @@ public:
         nStakeTargetSpacing = 60; // stake every 1 hour
         nPastBlocksMin = 24; 
         nPastBlocksMax = 24;
-        nStakeMinAge = 60*60; // it will stake after 1 hour
+        nStakeMinAge = 4 * 60 * 60;
         nModifier = MODIFIER_INTERVAL_TESTNET;
         nClientMintibleCoinsInterval =  5 * 60;
         nClientMintibleCoinsInterval =  1 * 60;
         nMaturity = 25;
         nMasternodeCountDrift = 20;          // ONLY KORE
         nMaxMoneyOut = 12000000 * COIN;
+        nRuleChangeActivationThreshold = 1916; // 95% of 2016
+        nMinerConfirmationWindow = 50; // nPowTargetTimespan / nPowTargetSpacing
+        vDeployments[DEPLOYMENT_TESTDUMMY].bit = 28;
+        vDeployments[DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
+        vDeployments[DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
+        // Deployment of BIP68, BIP112, and BIP113.
+        vDeployments[DEPLOYMENT_CSV].bit = 0;
+        vDeployments[DEPLOYMENT_CSV].nStartTime = 1462060800; // May 1st, 2016
+        vDeployments[DEPLOYMENT_CSV].nTimeout = 1493596800; // May 1st, 2017
+
+
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 1000;
@@ -406,6 +417,15 @@ public:
         bnProofOfWorkLimit = ~uint256(0) >> 3;
         //consensus.posLimit = uint256S("0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 	    bnProofOfStakeLimit = ~uint256(0) >> 4;
+
+        vDeployments[DEPLOYMENT_TESTDUMMY].bit = 28;
+        vDeployments[DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
+        vDeployments[DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
+        // Deployment of BIP68, BIP112, and BIP113.
+        vDeployments[DEPLOYMENT_CSV].bit = 0;
+        vDeployments[DEPLOYMENT_CSV].nStartTime = 1456790400; // March 1st, 2016
+        vDeployments[DEPLOYMENT_CSV].nTimeout = 1493596800; // May 1st, 2017
+
 
         
         nLastPOWBlock = 1000;

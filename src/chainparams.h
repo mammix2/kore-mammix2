@@ -46,6 +46,25 @@ public:
         MAX_BASE58_TYPES
     };
 
+    enum DeploymentPos {
+        DEPLOYMENT_TESTDUMMY,
+        DEPLOYMENT_CSV, // Deployment of BIP68, BIP112, and BIP113.
+        // NOTE: Also add new deployments to VersionBitsDeploymentInfo in versionbits.cpp
+        MAX_VERSION_BITS_DEPLOYMENTS
+    };
+
+    struct BIP9Deployment {
+        /** Bit position to select the particular bit in nVersion. */
+        int bit;
+        /** Start MedianTime for version bits miner confirmation. Can be a date in the past */
+        int64_t nStartTime;
+        /** Timeout/expiry MedianTime for the deployment attempt. */
+        int64_t nTimeout;
+    };
+
+    typedef BIP9Deployment vDeployments_type[MAX_VERSION_BITS_DEPLOYMENTS];
+
+
     const uint256& HashGenesisBlock() const { return hashGenesisBlock; }
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
@@ -98,6 +117,11 @@ public:
     std::string NetworkIDString() const { return strNetworkID; }
     const std::vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
     const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
+
+    uint32_t RuleChangeActivationThreshold() const { return nRuleChangeActivationThreshold;}
+    uint32_t MinerConfirmationWindow() const { return nMinerConfirmationWindow;}
+
+    const CChainParams::vDeployments_type & GetVDeployments() const { return vDeployments;}
     const std::vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
     virtual const Checkpoints::CCheckpointData& Checkpoints() const = 0;
     int PoolMaxTransactions() const { return nPoolMaxTransactions; }
@@ -185,6 +209,9 @@ protected:
     int nMinerThreads;
     std::vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
+    uint32_t nRuleChangeActivationThreshold;
+    uint32_t nMinerConfirmationWindow;
+    vDeployments_type vDeployments;
     CBaseChainParams::Network networkID;
     std::string strNetworkID;
     std::string strDevFundPubKey;

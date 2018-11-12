@@ -31,6 +31,7 @@
 #include "txmempool.h"
 #include "uint256.h"
 #include "undo.h"
+#include "versionbits.h"
 
 #include <algorithm>
 #include <exception>
@@ -397,6 +398,7 @@ bool CheckFinalTx(const CTransaction& tx, int flags = -1);
 bool IsStandardTx(const CTransaction& tx, std::string& reason);
 
 bool IsFinalTx(const CTransaction& tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
+bool IsFinalTx_Legacy(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime);
 
 /** Undo information for a CBlock */
 class CBlockUndo
@@ -496,12 +498,19 @@ bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& 
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex* pindexPrev);
 bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindexPrev);
 
+extern VersionBitsCache versionbitscache;
+bool ContextualCheckBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, CBlockIndex * const pindexPrev);
+bool ContextualCheckBlock_Legacy(const CBlock& block, CValidationState& state, CBlockIndex *pindexPrev);
+
 /** Check a block is completely valid from start to finish (only works on top of our current best block, with cs_main held) */
 bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
 /** Store block on disk. If dbp is provided, the file is known to already reside on disk */
 bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** pindex, CDiskBlockPos* dbp = NULL, bool fAlreadyCheckedBlock = false);
 bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex = NULL);
+
+bool AcceptBlock_Legacy(CBlock& block, CValidationState& state, CBlockIndex **pindex, bool fRequested, CDiskBlockPos* dbp, const uint256& hash);
+bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, const uint256& hash, CBlockIndex **ppindex= NULL);
 
 
 class CBlockFileInfo

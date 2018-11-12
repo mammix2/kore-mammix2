@@ -735,6 +735,20 @@ bool IsFinalTx(const CTransaction& tx, int nBlockHeight, int64_t nBlockTime)
     return true;
 }
 
+bool IsFinalTx_Legacy(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
+{
+    if (tx.nLockTime == 0)
+        return true;
+    if ((int64_t)tx.nLockTime < ((int64_t)tx.nLockTime < LOCKTIME_THRESHOLD ? (int64_t)nBlockHeight : nBlockTime))
+        return true;
+    BOOST_FOREACH(const CTxIn& txin, tx.vin) {
+        if (!(txin.nSequence == CTxIn::SEQUENCE_FINAL))
+            return false;
+    }
+    return true;
+}
+
+
 /**
  * Check transaction inputs to mitigate two
  * potential denial-of-service attacks:
@@ -3448,6 +3462,40 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
     return pindexNew;
 }
 
+CBlockIndex* AddToBlockIndex_Legacy(const CBlockHeader& block)
+{
+    // Check for duplicate
+    uint256 hash = block.GetHash();
+    BlockMap::iterator it = mapBlockIndex.find(hash);
+    if (it != mapBlockIndex.end())
+        return it->second;
+
+    // Construct new block index object
+    CBlockIndex* pindexNew = new CBlockIndex(block);
+    assert(pindexNew);
+    // We assign the sequence id to blocks only when the full data is available,
+    // to avoid miners withholding blocks but broadcasting headers, to get a
+    // competitive advantage.
+    pindexNew->nSequenceId = 0;
+    BlockMap::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
+    pindexNew->phashBlock = &((*mi).first);
+    BlockMap::iterator miPrev = mapBlockIndex.find(block.hashPrevBlock);
+    if (miPrev != mapBlockIndex.end())
+    {
+        pindexNew->pprev = (*miPrev).second;
+        pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
+        pindexNew->BuildSkip();
+    }
+    pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);
+    pindexNew->RaiseValidity(BLOCK_VALID_TREE);
+    if (pindexBestHeader == NULL || pindexBestHeader->nChainWork < pindexNew->nChainWork)
+        pindexBestHeader = pindexNew;
+
+    setDirtyBlockIndex.insert(pindexNew);
+
+    return pindexNew;
+}
+
 /** Mark a block as having its data received and checked (up to BLOCK_VALID_TRANSACTIONS). */
 bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBlockIndex* pindexNew, const CDiskBlockPos& pos)
 {
@@ -3961,6 +4009,16 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     return true;
 }
 
+bool ContextualCheckBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, CBlockIndex * const pindexPrev)
+{
+    // Check timestamp against prev
+    if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
+        return state.Invalid(error("%s: block's timestamp is too early nVersion= %d ", __func__, block.nVersion), REJECT_INVALID, "time-too-old");
+
+    return true;
+}
+
+
 bool IsBlockHashInChain(const uint256& hashBlock)
 {
     if (hashBlock == 0 || !mapBlockIndex.count(hashBlock))
@@ -4006,6 +4064,42 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
             !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
             return state.DoS(100, error("%s : block height mismatch in coinbase", __func__), REJECT_INVALID, "bad-cb-height");
         }
+    }
+
+    return true;
+}
+
+// Protected by cs_main
+VersionBitsCache versionbitscache;
+
+bool ContextualCheckBlock_Legacy(const CBlock& block, CValidationState& state, CBlockIndex * const pindexPrev)
+{
+    const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
+
+    if (block.IsProofOfWork() && nHeight > Params().LAST_POW_BLOCK())
+        return state.DoS(100, error("%s : reject proof-of-work at height %d", __func__, nHeight), REJECT_INVALID, "bad-pow-height");
+
+    // Start enforcing BIP113 (Median Time Past) using versionbits logic.
+    int nLockTimeFlags = 0;
+    if (VersionBitsState(pindexPrev, CChainParams::DEPLOYMENT_CSV, versionbitscache) == THRESHOLD_ACTIVE) {
+        nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
+    }
+
+    int64_t nLockTimeCutoff = (nLockTimeFlags & LOCKTIME_MEDIAN_TIME_PAST) ? pindexPrev->GetMedianTimePast() : block.GetBlockTime();
+
+    // Check that all transactions are finalized
+    BOOST_FOREACH(const CTransaction& tx, block.vtx) {
+        if (!IsFinalTx_Legacy(tx, nHeight, nLockTimeCutoff)) {
+            return state.DoS(10, error("%s: contains a non-final transaction", __func__), REJECT_INVALID, "bad-txns-nonfinal");
+        }
+    }
+
+    // Enforce rule that the coinbase starts with serialized block height
+
+    CScript expect = CScript() << nHeight;
+    if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
+        !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
+        return state.DoS(100, error("%s: block height mismatch in coinbase", __func__), REJECT_INVALID, "bad-cb-height");
     }
 
     return true;
@@ -4069,6 +4163,136 @@ bool AcceptBlockHeader(const CBlock& block, CValidationState& state, CBlockIndex
     if (ppindex)
         *ppindex = pindex;
 
+    return true;
+}
+
+static bool CheckIndexAgainstCheckpoint_Legacy(const CBlockIndex* pindexPrev, CValidationState& state, const uint256& hash)
+{
+    if (*pindexPrev->phashBlock == Params().HashGenesisBlock())
+        return true;
+
+    int nHeight = pindexPrev->nHeight+1;
+    // Don't accept any forks from the main chain prior to last checkpoint
+    CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint();
+    if (pcheckpoint && nHeight < pcheckpoint->nHeight)
+        return state.DoS(100, error("%s: forked chain older than last checkpoint (height %d)", __func__, nHeight));
+
+    if (chainActive.Height() - nHeight >= Params().MaxReorganizationDepth())
+        return state.DoS(1, error("%s: forked chain older than max reorganization depth (height %d)", __func__, nHeight));
+
+    return true;
+}
+
+static bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex=NULL)
+{
+    AssertLockHeld(cs_main);
+    // Check for duplicate
+    uint256 hash = block.GetHash();
+    BlockMap::iterator miSelf = mapBlockIndex.find(hash);
+    CBlockIndex *pindex = NULL;
+    if (hash != Params().HashGenesisBlock()) {
+
+        if (miSelf != mapBlockIndex.end()) {
+            // Block header is already known.
+            pindex = miSelf->second;
+            if (ppindex)
+                *ppindex = pindex;
+            if (pindex->nStatus & BLOCK_FAILED_MASK)
+                return state.Invalid(error("%s: block is marked invalid", __func__), 0, "duplicate");
+            return true;
+        }
+
+        if (!CheckBlockHeader_Legacy(block, GetnHeight(pindex), state, false))
+            return false;
+
+        // Get prev block index
+        CBlockIndex* pindexPrev = NULL;
+        BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+        if (mi == mapBlockIndex.end())
+            return state.DoS(10, error("%s: prev block not found", __func__), 0, "bad-prevblk");
+        pindexPrev = (*mi).second;
+        if (pindexPrev->nStatus & BLOCK_FAILED_MASK)
+            return state.DoS(100, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
+
+        assert(pindexPrev);
+        if (!CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, hash))
+            return error("%s: CheckIndexAgainstCheckpoint_Legacy(): %s", __func__, state.GetRejectReason().c_str());
+
+        if (!ContextualCheckBlockHeader_Legacy(block, state, pindexPrev))
+            return false;
+    }
+    if (pindex == NULL)
+        pindex = AddToBlockIndex_Legacy(block);
+
+    if (ppindex)
+        *ppindex = pindex;
+
+    return true;
+}
+
+/** Store block on disk. If dbp is non-NULL, the file is known to already reside on disk */
+static bool AcceptBlock_Legacy(const CBlock& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fRequested, CDiskBlockPos* dbp)
+{
+    AssertLockHeld(cs_main);
+
+    CBlockIndex *&pindex = *ppindex;
+
+    if (!AcceptBlockHeader_Legacy(block, state, &pindex))
+        return false;
+
+    // Try to process all requested blocks that we don't have, but only
+    // process an unrequested block if it's new and has enough work to
+    // advance our tip, and isn't too many blocks ahead.
+    bool fAlreadyHave = pindex->nStatus & BLOCK_HAVE_DATA;
+    bool fHasMoreWork = (chainActive.Tip() ? pindex->nChainWork > chainActive.Tip()->nChainWork : true);
+    // Blocks that are too out-of-order needlessly limit the effectiveness of
+    // pruning, because pruning will not delete block files that contain any
+    // blocks which are too close in height to the tip.  Apply this test
+    // regardless of whether pruning is enabled; it should generally be safe to
+    // not process unrequested blocks.
+    bool fTooFarAhead = (pindex->nHeight > int(chainActive.Height() + MIN_BLOCKS_TO_KEEP));
+
+    // TODO: deal better with return value and error conditions for duplicate
+    // and unrequested blocks.
+    if (fAlreadyHave) return true;
+    if (!fRequested) {  // If we didn't ask for it:
+        if (pindex->nTx != 0) return true;  // This is a previously-processed block that was pruned
+        if (!fHasMoreWork) return true;     // Don't process less-work chains
+        if (fTooFarAhead) return true;      // Block height is too high
+    }
+
+
+    if ((!CheckBlock_Legacy(block,  GetnHeight(pindex), state)) || !ContextualCheckBlock_Legacy(block, state, pindex->pprev)) {
+        if (state.IsInvalid() && !state.CorruptionPossible()) {
+            pindex->nStatus |= BLOCK_FAILED_VALID;
+            setDirtyBlockIndex.insert(pindex);
+        }
+        return false;
+    }
+
+/* LICO
+    int nHeight = pindex->nHeight;
+    if(block.IsProofOfStake()) pindex->SetProofOfStake();
+    // Write block to history file
+    try {
+        unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+        CDiskBlockPos blockPos;
+        if (dbp != NULL)
+            blockPos = *dbp;
+        if (!FindBlockPos(state, blockPos, nBlockSize+8, nHeight, block.GetBlockTime(), dbp != NULL))
+            return error("AcceptBlock(): FindBlockPos failed");
+        if (dbp == NULL)
+            if (!WriteBlockToDisk(block, blockPos, chainparams.MessageStart()))
+                AbortNode(state, "Failed to write block");
+        if (!ReceivedBlockTransactions(block, state, pindex, blockPos))
+            return error("AcceptBlock(): ReceivedBlockTransactions failed");
+    } catch (const std::runtime_error& e) {
+        return AbortNode(state, std::string("System error: ") + e.what());
+    }
+
+    if (fCheckForPruning)
+        FlushStateToDisk(state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
+*/
     return true;
 }
 
@@ -4620,6 +4844,7 @@ void UnloadBlockIndex()
     setBlockIndexCandidates.clear();
     chainActive.SetTip(NULL);
     pindexBestInvalid = NULL;
+    versionbitscache.Clear();
 }
 
 bool LoadBlockIndex(string& strError)
