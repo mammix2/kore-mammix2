@@ -327,7 +327,7 @@ public:
         fHeadersFirstSyncingActive = false;
 
         nPoolMaxTransactions = 3;
-        strDevFundPubKey = "02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b";
+        strDevFundPubKey = "04D410C4A7FEC6DBF6FEDC9721104ADA1571D5E3E4791085EFC083A9F3F4C007D240A6A647DDA0CA1466641B0739A86A67B97AC48484FC7CA88257804B7CE52ED2";
         strSporkKey = "0427E31B51989DB4DFEAB8C3901FB1862A621E6B0D4CF556E5C9AAD7283A46C915EC4508FB4F248534C3A03FC0475ED3785086B9C217E0F42ED4C8BF80ED2296C8";
         strObfuscationPoolDummyAddress = "KWFvN4Gb55dzG95cq3k5jXFmNVkJLftyjZ";
         nStartMasternodePayments = 1508884606; //Genesis time
@@ -350,7 +350,20 @@ public:
         nZerocoinRequiredStakeDepth = 200; //The required confirmations for a zkore to be stakable
 #endif
 
-        nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
+        nBudgetFeeConfirmations = 6; // Number of confirmations for the finalization fee
+
+        nMasternodeMinConfirmations = 15;
+        nMasternodeMinMNPSeconds = 10 * 60;  
+        nMasternodeMinMNBSeconds =  5 * 60;   
+        nMasternodePingSeconds = 5 * 60;
+        nMasternodeExpirationSeconds = 120 * 60;
+        nMasternodeRemovalSeconds = 130 * 60;
+        nMasternodeCheckSeconds = 5;
+        nMasternodeCoinScore = 499;
+        // Amount of blocks in a months period of time
+        nMasternodeBudgetPaymentCycle = 43200; // (using 1 minutes per) = (60*24*30)
+        // Submit final budget during the last 2 days (2880 blocks) before payment for Mainnet
+        nMasternodeFinalizationWindow = ((MasternodeBudgetPaymentCycle() / 30) * 2);        
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
@@ -461,8 +474,21 @@ public:
         strSporkKey      = "04ca99e36f198eedd11b386cf2127a036ec1f0028c2b2a5ec0ff71aa2045c1c4494d45013467a5653eb64442a4d8f93ca62e00f5d9004a3a6469e72b8516ed4a99";
         strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
         nStartMasternodePayments = 1533841307; //genesis block time
-        nBudget_Fee_Confirmations = 2; // Number of confirmations for the finalization fee. We have to make this very short
+        nBudgetFeeConfirmations = 2; // Number of confirmations for the finalization fee. We have to make this very short
                                        // here because we only have a 8 block finalization window on testnet
+
+        nMasternodeMinConfirmations = 6;    
+        nMasternodeMinMNPSeconds = 2 * 60;
+        nMasternodeMinMNBSeconds =  1 * 60;
+        nMasternodePingSeconds = 1 * 60;
+        nMasternodeExpirationSeconds = 24 * 60;
+        nMasternodeRemovalSeconds = 26 * 60;
+        nMasternodeCheckSeconds = 1;
+        nMasternodeCoinScore = 499;
+        // a superblock will have 140 cycle
+        nMasternodeBudgetPaymentCycle = 30; // every 60 blocks, it will check if it is necessary to pay
+        nMasternodeFinalizationWindow = 15; // 13 + 1 finalization confirmations + 1 minutes buffer for propagation
+
         nBudgetVoteUpdate = 1*60;     // can only change vote after 1 minute
     }
     const Checkpoints::CCheckpointData& Checkpoints() const

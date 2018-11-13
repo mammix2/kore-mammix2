@@ -4805,59 +4805,72 @@ bool static AlreadyHave(const CInv& inv)
 {
     switch (inv.type) {
     case MSG_TX: {
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_TX \n");
         bool txInMap = false;
         txInMap = mempool.exists(inv.hash);
         return txInMap || mapOrphanTransactions.count(inv.hash) ||
                pcoinsTip->HaveCoins(inv.hash);
     }
     case MSG_DSTX:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_DSTX \n");
         return mapObfuscationBroadcastTxes.count(inv.hash);
     case MSG_BLOCK:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_BLOCK \n");
         return mapBlockIndex.count(inv.hash);
     case MSG_TXLOCK_REQUEST:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_TXLOCK_REQUEST \n");
         return mapTxLockReq.count(inv.hash) ||
                mapTxLockReqRejected.count(inv.hash);
     case MSG_TXLOCK_VOTE:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_TXLOCK_VOTE \n");
         return mapTxLockVote.count(inv.hash);
     case MSG_SPORK:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_SPORK \n");
         return mapSporks.count(inv.hash);
     case MSG_MASTERNODE_WINNER:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_MASTERNODE_WINNER \n");
         if (masternodePayments.mapMasternodePayeeVotes.count(inv.hash)) {
             masternodeSync.AddedMasternodeWinner(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_VOTE:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_BUDGET_VOTE \n");
         if (budget.mapSeenMasternodeBudgetVotes.count(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_PROPOSAL:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_BUDGET_PROPOSAL \n");
         if (budget.mapSeenMasternodeBudgetProposals.count(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_FINALIZED_VOTE:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_BUDGET_FINALIZED_VOTE \n");
         if (budget.mapSeenFinalizedBudgetVotes.count(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_FINALIZED:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_BUDGET_FINALIZED \n");
         if (budget.mapSeenFinalizedBudgets.count(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_MASTERNODE_ANNOUNCE:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_MASTERNODE_ANNOUNCE \n");
         if (mnodeman.mapSeenMasternodeBroadcast.count(inv.hash)) {
             masternodeSync.AddedMasternodeList(inv.hash);
             return true;
         }
         return false;
     case MSG_MASTERNODE_PING:
+        if (fDebug) LogPrintf("AlreadyHave inv.type = MSG_MASTERNODE_PING \n");
         return mnodeman.mapSeenMasternodePing.count(inv.hash);
     }
     // Don't know what it is, just say we already got one
@@ -4958,6 +4971,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << tx;
+                        if (fDebug) LogPrintf("Send Back Tx to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("tx", ss);
                         pushed = true;
                     }
@@ -4967,6 +4981,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << mapTxLockVote[inv.hash];
+                        if (fDebug) LogPrintf("Send Back txlvote to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("txlvote", ss);
                         pushed = true;
                     }
@@ -4976,6 +4991,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << mapTxLockReq[inv.hash];
+                        if (fDebug) LogPrintf("Send Back ix to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("ix", ss);
                         pushed = true;
                     }
@@ -4985,6 +5001,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << mapSporks[inv.hash];
+                        if (fDebug) LogPrintf("Send Back spork to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("spork", ss);
                         pushed = true;
                     }
@@ -4994,6 +5011,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << masternodePayments.mapMasternodePayeeVotes[inv.hash];
+                        if (fDebug) LogPrintf("Send Back mnw to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("mnw", ss);
                         pushed = true;
                     }
@@ -5003,6 +5021,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << budget.mapSeenMasternodeBudgetVotes[inv.hash];
+                        if (fDebug) LogPrintf("Send Back mvote to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("mvote", ss);
                         pushed = true;
                     }
@@ -5013,6 +5032,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << budget.mapSeenMasternodeBudgetProposals[inv.hash];
+                        if (fDebug) LogPrintf("Send Back mprop to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("mprop", ss);
                         pushed = true;
                     }
@@ -5023,6 +5043,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << budget.mapSeenFinalizedBudgetVotes[inv.hash];
+                        if (fDebug) LogPrintf("Send Back fbvote to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("fbvote", ss);
                         pushed = true;
                     }
@@ -5033,6 +5054,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << budget.mapSeenFinalizedBudgets[inv.hash];
+                        if (fDebug) LogPrintf("Send Back fbs to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("fbs", ss);
                         pushed = true;
                     }
@@ -5043,6 +5065,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << mnodeman.mapSeenMasternodeBroadcast[inv.hash];
+                        if (fDebug) LogPrintf("Send Back mnb to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("mnb", ss);
                         pushed = true;
                     }
@@ -5053,6 +5076,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << mnodeman.mapSeenMasternodePing[inv.hash];
+                        if (fDebug) LogPrintf("Send Back mnp to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("mnp", ss);
                         pushed = true;
                     }
@@ -5063,7 +5087,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << mapObfuscationBroadcastTxes[inv.hash].tx << mapObfuscationBroadcastTxes[inv.hash].vin << mapObfuscationBroadcastTxes[inv.hash].vchSig << mapObfuscationBroadcastTxes[inv.hash].sigTime;
-
+                        if (fDebug) LogPrintf("Send Back dstx to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("dstx", ss);
                         pushed = true;
                     }
@@ -5093,6 +5117,7 @@ void static ProcessGetData(CNode* pfrom)
         // do that because they want to know about (and store and rebroadcast and
         // risk analyze) the dependencies of transactions relevant to them, without
         // having to download the entire memory pool.
+        if (fDebug) LogPrintf("Send Back notfound to peer=%d\n", pfrom->id);
         pfrom->PushMessage("notfound", vNotFound);
     }
 }
@@ -5101,7 +5126,7 @@ bool fRequestedSporksIDB = false;
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
     RandAddSeedPerfmon();
-    LogPrint("net", "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->id);
+    LogPrint("net", "received: %s (%u bytes) command: %s peer=%d\n", SanitizeString(strCommand), vRecv.size(), strCommand, pfrom->id);
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0) {
         LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n");
         return true;
