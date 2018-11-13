@@ -5,7 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "txdb.h"
-
+#include "chain.h"
 #include "main.h"
 #include "pow.h"
 #include "uint256.h"
@@ -19,6 +19,16 @@ using namespace libzerocoin;
 #include <boost/thread.hpp>
 
 using namespace std;
+
+static const char DB_COINS = 'c';
+static const char DB_BLOCK_FILES = 'f';
+static const char DB_TXINDEX = 't';
+static const char DB_BLOCK_INDEX = 'b';
+
+static const char DB_BEST_BLOCK = 'B';
+static const char DB_FLAG = 'F';
+static const char DB_REINDEX_FLAG = 'R';
+static const char DB_LAST_BLOCK = 'l';
 
 void static BatchWriteCoins(CLevelDBBatch& batch, const uint256& hash, const CCoins& coins)
 {
@@ -171,6 +181,22 @@ bool CCoinsViewDB::GetStats(CCoinsStats& stats) const
     stats.hashSerialized = ss.GetHash();
     stats.nTotalAmount = nTotalAmount;
     return true;
+}
+
+bool CBlockTreeDB::WriteBatchSync_Legacy(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo) {
+    
+    //CDBBatch batch(&GetObfuscateKey());
+    CLevelDBBatch batch;
+    for (std::vector<std::pair<int, const CBlockFileInfo*> >::const_iterator it=fileInfo.begin(); it != fileInfo.end(); it++) {
+        batch.Write(make_pair(DB_BLOCK_FILES, it->first), *it->second);
+    }
+    batch.Write(DB_LAST_BLOCK, nLastFile);
+    for (std::vector<const CBlockIndex*>::const_iterator it=blockinfo.begin(); it != blockinfo.end(); it++) {
+        batch.Write(make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()), CDiskBlockIndex(*it));
+    }
+
+    return WriteBatch(batch, true);
+    
 }
 
 bool CBlockTreeDB::ReadTxIndex(const uint256& txid, CDiskTxPos& pos)

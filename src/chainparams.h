@@ -109,6 +109,7 @@ public:
     CAmount MaxMoneyOut() const { return nMaxMoneyOut; }
     /** The masternode count that we will allow the see-saw reward payments to be off by */
     int MasternodeCountDrift() const { return nMasternodeCountDrift; }
+    uint64_t PruneAfterHeight_Legacy() const { return nPruneAfterHeight; }    
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
     /** In the future use NetworkIDString() for RPC fields */
@@ -185,6 +186,7 @@ protected:
     //! Raw pub key bytes for the broadcast alert signing key.
     std::vector<unsigned char> vAlertPubKey;
     int nDefaultPort;
+    uint64_t nPruneAfterHeight; // Legacy    
     uint256 bnProofOfWorkLimit;
     uint256 bnProofOfStakeLimit;
     int nMaxReorganizationDepth;

@@ -113,6 +113,7 @@ BITCOIN_CORE_H = \
   compat.h \
   compat/sanity.h \
   compressor.h \
+  core_memusage.h \
   primitives/block.h \
   primitives/transaction.h \
   primitives/deterministicmint.h \
@@ -144,6 +145,7 @@ BITCOIN_CORE_H = \
   masternode-sync.h \
   masternodeman.h \
   masternodeconfig.h \
+  memusage.h \  
   merkleblock.h \
   miner.h \
   momentum.h \

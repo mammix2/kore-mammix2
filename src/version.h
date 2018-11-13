@@ -44,5 +44,8 @@ static const int NO_BLOOM_VERSION = 70011;
 //! minimum peer version for masternode budgets
 static const int MIN_BUDGET_PEER_PROTO_VERSION = 70100;
 
+//! demand canonical block signatures starting from this version
+static const int CANONICAL_BLOCK_SIG_VERSION = 70012;
+
 
 #endif // BITCOIN_VERSION_H
