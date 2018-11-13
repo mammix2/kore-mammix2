@@ -252,6 +252,7 @@ CAmount GetBlockValue(int nHeight);
 CBlockIndex* InsertBlockIndex(uint256 hash);
 /** Abort with a message */
 bool AbortNode(const std::string& msg, const std::string& userMessage = "");
+bool AbortNode(CValidationState& state, const std::string& strMessage, const std::string& userMessage="");
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats& stats);
 /** Increase a node's misbehavior score. */
@@ -455,7 +456,7 @@ public:
 
 
 /** Functions for disk access for blocks */
-bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos);
+bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeight);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 
