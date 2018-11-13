@@ -130,7 +130,7 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
             ret.first->second.flags = CCoinsCacheEntry::FRESH;
         }
     } else {
-        cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage();
+        cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage_Legacy();
     }
     // Assume that whenever ModifyCoins is called, the entry will be modified.
     ret.first->second.flags |= CCoinsCacheEntry::DIRTY;

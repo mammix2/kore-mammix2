@@ -145,7 +145,7 @@ BITCOIN_CORE_H = \
   masternode-sync.h \
   masternodeman.h \
   masternodeconfig.h \
-  memusage.h \  
+  memusage.h \
   merkleblock.h \
   miner.h \
   momentum.h \
@@ -193,7 +193,7 @@ BITCOIN_CORE_H = \
   utiltime.h \
   validationinterface.h \
   version.h \
-  versionbits.h \  
+  versionbits.h \
   wallet.h \
   wallet_ismine.h \
   walletdb.h \
@@ -245,7 +245,7 @@ libbitcoin_server_a_SOURCES = \
   txdb.cpp \
   txmempool.cpp \
   validationinterface.cpp \
-  versionbits.cpp \  
+  versionbits.cpp \
   $(BITCOIN_CORE_H)
 
 if ENABLE_ZMQ
@@ -320,7 +320,7 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/sph_skein.h \
   crypto/sph_types.h \
   crypto/yescrypt/yescrypt.c \
-  crypto/yescrypt/yescrypt.h \  
+  crypto/yescrypt/yescrypt.h \
   crypto/yescrypt/sha256_c.h \
   crypto/yescrypt/sha256.h \
   crypto/yescrypt/sysendian.h \

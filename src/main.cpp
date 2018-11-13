@@ -3128,7 +3128,7 @@ bool static FlushStateToDisk_Legacy(CValidationState &state, FlushStateMode mode
                 vBlocks.push_back(*it);
                 setDirtyBlockIndex.erase(it++);
             }
-            if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
+            if (!pblocktree->WriteBatchSync_Legacy(vFiles, nLastBlockFile, vBlocks)) {
                 return AbortNode(state, "Files to write to block index database");
             }
         }
