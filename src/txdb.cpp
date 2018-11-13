@@ -183,7 +183,7 @@ bool CCoinsViewDB::GetStats(CCoinsStats& stats) const
     return true;
 }
 
-bool CBlockTreeDB::WriteBatchSync_Legacy(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo) {
+bool CBlockTreeDB::WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo) {
     
     //CDBBatch batch(&GetObfuscateKey());
     CLevelDBBatch batch;
