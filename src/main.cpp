@@ -204,6 +204,7 @@ map<uint256, NodeId> mapBlockSource;
      * Memory used: 1.7MB
      */
     boost::scoped_ptr<CRollingBloomFilter_Legacy> recentRejects;
+    uint256 hashRecentRejectsChainTip;
 
 /** Blocks that are in flight, and that are in the queue to be downloaded. Protected by cs_main. */
 struct QueuedBlock {
@@ -2661,6 +2662,7 @@ bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError
     return true;
 }
 
+static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS]; // Legacy
 static int64_t nTimeVerify = 0;
 static int64_t nTimeConnect = 0;
 static int64_t nTimeIndex = 0;
@@ -5547,6 +5549,40 @@ void UnloadBlockIndex()
     versionbitscache.Clear();
 }
 
+void UnloadBlockIndex_Legacy()
+{
+    LOCK(cs_main);
+    setBlockIndexCandidates.clear();
+    chainActive.SetTip(NULL);
+    pindexBestInvalid = NULL;
+    pindexBestHeader = NULL;
+    mempool.clear();
+    mapOrphanTransactions.clear();
+    mapOrphanTransactionsByPrev.clear();
+    nSyncStarted = 0;
+    mapBlocksUnlinked.clear();
+    vinfoBlockFile.clear();
+    nLastBlockFile = 0;
+    nBlockSequenceId = 1;
+    mapBlockSource.clear();
+    mapBlocksInFlight.clear();
+    nPreferredDownload = 0;
+    setDirtyBlockIndex.clear();
+    setDirtyFileInfo.clear();
+    mapNodeState.clear();
+    recentRejects.reset(NULL);
+    versionbitscache.Clear();
+    for (int b = 0; b < VERSIONBITS_NUM_BITS; b++) {
+        warningcache[b].clear();
+    }
+
+    BOOST_FOREACH(BlockMap::value_type& entry, mapBlockIndex) {
+        delete entry.second;
+    }
+    mapBlockIndex.clear();
+    fHavePruned = false;
+}
+
 bool LoadBlockIndex(string& strError)
 {
     // Load block index from databases
@@ -6202,6 +6238,82 @@ bool static AlreadyHave(const CInv& inv)
     return true;
 }
 
+
+bool static AlreadyHave_Legacy(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+{
+    switch (inv.type)
+    {
+    case MSG_TX:
+        {
+            assert(recentRejects);
+            if (chainActive.Tip()->GetBlockHash() != hashRecentRejectsChainTip)
+            {
+                // If the chain tip has changed previously rejected transactions
+                // might be now valid, e.g. due to a nLockTime'd tx becoming valid,
+                // or a double-spend. Reset the rejects filter and give those
+                // txs a second chance.
+                hashRecentRejectsChainTip = chainActive.Tip()->GetBlockHash();
+                recentRejects->reset();
+            }
+
+            return recentRejects->contains(inv.hash) ||
+                   mempool.exists(inv.hash) ||
+                   mapOrphanTransactions.count(inv.hash) ||
+                   pcoinsTip->HaveCoins(inv.hash);
+        }
+    case MSG_DSTX:
+        return mapObfuscationBroadcastTxes.count(inv.hash);
+    case MSG_BLOCK:
+        return mapBlockIndex.count(inv.hash);
+    case MSG_TXLOCK_REQUEST:
+        return mapTxLockReq.count(inv.hash) ||
+               mapTxLockReqRejected.count(inv.hash);
+    case MSG_TXLOCK_VOTE:
+        return mapTxLockVote.count(inv.hash);
+    case MSG_SPORK:
+        return mapSporks.count(inv.hash);
+    case MSG_MASTERNODE_WINNER:
+        if (masternodePayments.mapMasternodePayeeVotes.count(inv.hash)) {
+            masternodeSync.AddedMasternodeWinner(inv.hash);
+            return true;
+        }
+        return false;
+    case MSG_BUDGET_VOTE:
+        if (budget.mapSeenMasternodeBudgetVotes.count(inv.hash)) {
+            masternodeSync.AddedBudgetItem(inv.hash);
+            return true;
+        }
+        return false;
+    case MSG_BUDGET_PROPOSAL:
+        if (budget.mapSeenMasternodeBudgetProposals.count(inv.hash)) {
+            masternodeSync.AddedBudgetItem(inv.hash);
+            return true;
+        }
+        return false;
+    case MSG_BUDGET_FINALIZED_VOTE:
+        if (budget.mapSeenFinalizedBudgetVotes.count(inv.hash)) {
+            masternodeSync.AddedBudgetItem(inv.hash);
+            return true;
+        }
+        return false;
+    case MSG_BUDGET_FINALIZED:
+        if (budget.mapSeenFinalizedBudgets.count(inv.hash)) {
+            masternodeSync.AddedBudgetItem(inv.hash);
+            return true;
+        }
+        return false;
+    case MSG_MASTERNODE_ANNOUNCE:
+        if (mnodeman.mapSeenMasternodeBroadcast.count(inv.hash)) {
+            masternodeSync.AddedMasternodeList(inv.hash);
+            return true;
+        }
+        return false;
+    case MSG_MASTERNODE_PING:
+        return mnodeman.mapSeenMasternodePing.count(inv.hash);
+    }
+    // Don't know what it is, just say we already got one
+    return true;
+}
 
 void static ProcessGetData(CNode* pfrom)
 {
