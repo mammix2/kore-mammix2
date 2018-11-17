@@ -125,6 +125,7 @@ static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
 
+static const bool DEFAULT_CHECKPOINTS_ENABLED = true; // Legacy
 static const bool DEFAULT_TXINDEX = true;
 static const bool DEFAULT_ADDRINDEX = true;
 
