@@ -2169,6 +2169,7 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 
 bool IsInitialBlockDownload()
 {
+    const CChainParams& chainParams = Params();
     LOCK(cs_main);
     if (fImporting || fReindex || fVerifyingBlocks || chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
         return true;
@@ -2176,7 +2177,25 @@ bool IsInitialBlockDownload()
     if (lockIBDState)
         return false;
     bool state = (chainActive.Height() < pindexBestHeader->nHeight - 24 * 6 ||
-                  pindexBestHeader->GetBlockTime() < GetTime() - 6 * 60 * 60); // ~144 blocks behind -> 2 x fork detection time
+                  pindexBestHeader->GetBlockTime() < GetTime() - chainParams.MaxTipAge()); // ~144 blocks behind -> 2 x fork detection time
+    if (!state)
+        lockIBDState = true;
+    return state;
+}
+
+bool IsInitialBlockDownload_Legacy()
+{
+    const CChainParams& chainParams = Params();
+    LOCK(cs_main);
+    if (fImporting || fReindex)
+        return true;
+    if (fCheckpointsEnabled && chainActive.Height() < Checkpoints::GetTotalBlocksEstimate())
+        return true;
+    static bool lockIBDState = false;
+    if (lockIBDState)
+        return false;
+    bool state = (chainActive.Height() < pindexBestHeader->nHeight - 24 * 6 ||
+            pindexBestHeader->GetBlockTime() < GetTime() - chainParams.MaxTipAge());
     if (!state)
         lockIBDState = true;
     return state;
@@ -5126,7 +5145,7 @@ static bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState
             return state.DoS(100, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
 
         assert(pindexPrev);
-        if (!CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, hash))
+        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, hash))
             return error("%s: CheckIndexAgainstCheckpoint_Legacy(): %s", __func__, state.GetRejectReason().c_str());
 
         if (!ContextualCheckBlockHeader_Legacy(block, state, pindexPrev))

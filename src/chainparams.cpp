@@ -247,6 +247,7 @@ public:
         pchMessageStart[3] = 0x4a;
         vAlertPubKey = ParseHex("042b0fb78026380244cc458a914dae461899b121f53bc42105d134158b9773e3fdadca67ca3015dc9c4ef9b9df91f2ef05b890a15cd2d2b85930d37376b2196002");
         nDefaultPort = 10743;
+        nMaxTipAge = 24 * 60 * 60;
         nPruneAfterHeight = 100000; // Legacy        
         //consensus.powLimit = uint256S("1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         bnProofOfWorkLimit = ~uint256(0) >> 3;
