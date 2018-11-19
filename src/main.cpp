@@ -95,6 +95,8 @@ bool fVerifyingBlocks = false;
 unsigned int nCoinCacheSize = 5000;
 bool fAlerts = DEFAULT_ALERTS;
 
+int nChainHeight = -1; // Legacy
+
 int64_t nReserveBalance = 0;
 
 /** Fees smaller than this (in uKORE) are considered zero fee (for relaying and mining)
@@ -2736,6 +2738,46 @@ bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError
     return true;
 }
 
+int32_t ComputeBlockVersion_Legacy(const CBlockIndex* pindexPrev)
+{
+    LOCK(cs_main);
+    int32_t nVersion = VERSIONBITS_TOP_BITS;
+
+    for (int i = 0; i < (int)CChainParams::MAX_VERSION_BITS_DEPLOYMENTS; i++) {
+        ThresholdState state = VersionBitsState(pindexPrev, (CChainParams::DeploymentPos)i, versionbitscache);
+        if (state == THRESHOLD_LOCKED_IN || state == THRESHOLD_STARTED) {
+            nVersion |= VersionBitsMask((CChainParams::DeploymentPos)i);
+        }
+    }
+
+    return nVersion;
+}
+
+// This is a Legacy Class
+/**
+ * Threshold condition checker that triggers when unknown versionbits are seen on the network.
+ */
+class WarningBitsConditionChecker : public AbstractThresholdConditionChecker
+{
+private:
+    int bit;
+
+public:
+    WarningBitsConditionChecker(int bitIn) : bit(bitIn) {}
+
+    int64_t BeginTime() const { return 0; }
+    int64_t EndTime() const { return std::numeric_limits<int64_t>::max(); }
+    int Period() const { return Params().MinerConfirmationWindow(); }
+    int Threshold() const { return Params().RuleChangeActivationThreshold(); }
+
+    bool Condition(const CBlockIndex* pindex) const
+    {
+        return ((pindex->nVersion & VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS) &&
+               ((pindex->nVersion >> bit) & 1) != 0 &&
+               ((ComputeBlockVersion_Legacy(pindex->pprev) >> bit) & 1) == 0;
+    }
+};
+
 static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS]; // Legacy
 static int64_t nTimeCheck = 0; // Legacy
 static int64_t nTimeForks = 0; // Legacy
@@ -3658,6 +3700,66 @@ void static UpdateTip(CBlockIndex* pindexNew)
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
             CAlert::Notify(strMiscWarning, true);
             fWarned = true;
+        }
+    }
+}
+
+/** Update chainActive and related internal data structures. */
+void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
+    const CChainParams& chainParams = Params();
+    chainActive.SetTip(pindexNew);
+
+    // New best block
+    nChainHeight = pindexNew->nHeight;
+    nTimeBestReceived = GetTime();
+    mempool.AddTransactionsUpdated(1);
+
+    LogPrintf("%s: new best=%s  height=%d  log2_work=%.8g  tx=%lu  date=%s progress=%f  cache=%.1fMiB(%utx)\n", __func__,
+      chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
+      DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
+      Checkpoints::GuessVerificationProgress(chainActive.Tip()), pcoinsTip->DynamicMemoryUsage_Legacy() * (1.0 / (1<<20)), pcoinsTip->GetCacheSize());
+
+
+    cvBlockChange.notify_all();
+
+    // Check the version of the last 100 blocks to see if we need to upgrade:
+    static bool fWarned = false;
+    if (!IsInitialBlockDownload_Legacy())
+    {
+        int nUpgraded = 0;
+        const CBlockIndex* pindex = chainActive.Tip();
+        for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
+            WarningBitsConditionChecker checker(bit);
+            ThresholdState state = checker.GetStateFor(pindex, warningcache[bit]);
+            if (state == THRESHOLD_ACTIVE || state == THRESHOLD_LOCKED_IN) {
+                if (state == THRESHOLD_ACTIVE) {
+                    strMiscWarning = strprintf(_("Warning: unknown new rules activated (versionbit %i)"), bit);
+                    if (!fWarned) {
+                        CAlert::Notify(strMiscWarning, true);
+                        fWarned = true;
+                    }
+                } else {
+                    LogPrintf("%s: unknown new rules are about to activate (versionbit %i)\n", __func__, bit);
+                }
+            }
+        }
+        for (int i = 0; i < 100 && pindex != NULL; i++)
+        {
+            int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
+            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
+                ++nUpgraded;
+            pindex = pindex->pprev;
+        }
+        if (nUpgraded > 0)
+            LogPrintf("%s: %d of last 100 blocks have unexpected version\n", __func__, nUpgraded);
+        if (nUpgraded > 100/2)
+        {
+            // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
+            strMiscWarning = _("Warning: Unknown block versions being mined! It's possible unknown rules are in effect");
+            if (!fWarned) {
+                CAlert::Notify(strMiscWarning, true);
+                fWarned = true;
+            }
         }
     }
 }
