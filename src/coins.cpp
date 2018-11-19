@@ -57,6 +57,15 @@ bool CCoins::Spend(int nPos)
     return Spend(out, undo);
 }
 
+bool CCoins::Spend_Legacy(uint32_t nPos) 
+{
+    if (nPos >= vout.size() || vout[nPos].IsNull())
+        return false;
+    vout[nPos].SetNull();
+    Cleanup();
+    return true;
+}
+
 
 bool CCoinsView::GetCoins(const uint256& txid, CCoins& coins) const { return false; }
 bool CCoinsView::HaveCoins(const uint256& txid) const { return false; }
@@ -135,6 +144,15 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
     // Assume that whenever ModifyCoins is called, the entry will be modified.
     ret.first->second.flags |= CCoinsCacheEntry::DIRTY;
     return CCoinsModifier(*this, ret.first, cachedCoinUsage);
+}
+
+CCoinsModifier CCoinsViewCache::ModifyNewCoins_Legacy(const uint256 &txid) {
+    assert(!hasModifier);
+    std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
+    ret.first->second.coins.Clear();
+    ret.first->second.flags = CCoinsCacheEntry::FRESH;
+    ret.first->second.flags |= CCoinsCacheEntry::DIRTY;
+    return CCoinsModifier(*this, ret.first, 0);
 }
 
 const CCoins* CCoinsViewCache::AccessCoins(const uint256& txid) const

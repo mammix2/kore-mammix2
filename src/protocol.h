@@ -31,6 +31,8 @@
 class CMessageHeader
 {
 public:
+    typedef unsigned char MessageStartChars[MESSAGE_START_SIZE]; // Legacy
+
     CMessageHeader();
     CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn);
 

@@ -1939,7 +1939,7 @@ CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input)
 int64_t GetBlockValue(int nHeight)
 {
     if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        if (nHeight >= 0 && nHeight < 10)
+        if (nHeight >= 0 && nHeight < 100)
             return 5000 * COIN;
     }
     return 5 * COIN;
@@ -2329,6 +2329,48 @@ void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCach
     inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
 }
 
+void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight)
+{
+    // mark inputs spent
+    if (!tx.IsCoinBase()) {
+        txundo.vprevout.reserve(tx.vin.size());
+        BOOST_FOREACH(const CTxIn &txin, tx.vin) {
+            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
+            unsigned nPos = txin.prevout.n;
+
+            if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull())
+                assert(false);
+            // mark an outpoint spent, and construct undo information
+            txundo.vprevout.push_back(CTxInUndo(coins->vout[nPos]));
+            coins->Spend_Legacy(nPos);
+            if (coins->vout.size() == 0) {
+                CTxInUndo& undo = txundo.vprevout.back();
+                undo.nHeight = coins->nHeight;
+                undo.fCoinBase = coins->fCoinBase;
+                undo.fCoinStake = coins->fCoinStake;
+                undo.nVersion = coins->nVersion;
+                undo.nTime = coins->nTime;
+            }
+        }
+        // add outputs
+        inputs.ModifyNewCoins_Legacy(tx.GetHash())->FromTx(tx, nHeight);
+    }
+    else {
+        // add outputs for coinbase tx
+        // In this case call the full ModifyCoins which will do a database
+        // lookup to be sure the coins do not already exist otherwise we do not
+        // know whether to mark them fresh or not.  We want the duplicate coinbases
+        // before BIP30 to still be properly overwritten.
+        inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
+    }
+}
+
+void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, int nHeight)
+{
+    CTxUndo txundo;
+    UpdateCoins_Legacy(tx, state, inputs, txundo, nHeight);
+}
+
 bool CScriptCheck::operator()()
 {
     const CScript& scriptSig = ptxTo->vin[nIn].scriptSig;
@@ -2364,6 +2406,14 @@ CAmount GetInvalidUTXOValue()
     return nValue;
 }
 
+int GetSpendHeight(const CCoinsViewCache& inputs)
+{
+    LOCK(cs_main);
+    CBlockIndex* pindexPrev = mapBlockIndex.find(inputs.GetBestBlock())->second;
+    return pindexPrev->nHeight + 1;
+}
+
+
 bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, bool fScriptChecks, unsigned int flags, bool cacheStore, std::vector<CScriptCheck>* pvChecks)
 {
     if (!tx.IsCoinBase()) {
@@ -2376,9 +2426,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
             return state.Invalid(error("CheckInputs() : %s inputs unavailable", tx.GetHash().ToString()));
 
         // While checking, GetBestBlock() refers to the parent block.
-        // This is also true for mempool checks.
-        CBlockIndex* pindexPrev = mapBlockIndex.find(inputs.GetBestBlock())->second;
-        int nSpendHeight = pindexPrev->nHeight + 1;
+        // This is also true for mempool checks.        
+        int nSpendHeight = GetSpendHeight(inputs);
         CAmount nValueIn = 0;
         CAmount nFees = 0;
         for (unsigned int i = 0; i < tx.vin.size(); i++) {
@@ -2394,6 +2443,10 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
                         REJECT_INVALID, "bad-txns-premature-spend-of-coinbase");
             }
 
+            // Check transaction timestamp
+            if (coins->nTime > tx.nTime)
+                return state.DoS(100, false, REJECT_INVALID, "bad-txns-time-earlier-than-input");
+
             // Check for negative or overflow input values
             nValueIn += coins->vout[prevout.n].nValue;
             if (!MoneyRange(coins->vout[prevout.n].nValue) || !MoneyRange(nValueIn))
@@ -2402,6 +2455,15 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
         }
 
         if (!tx.IsCoinStake()) {
+            // ----------- swiftTX transaction scanning -----------
+            BOOST_FOREACH (const CTxIn& in, tx.vin) {
+                if (mapLockedInputs.count(in.prevout)) {
+                    if (mapLockedInputs[in.prevout] != tx.GetHash()) {
+                        return state.DoS(0, false, REJECT_INVALID, "CheckInputs() : conflicts with existing transaction lock: tx-lock-conflict");
+                    }
+                }
+            }
+
             if (nValueIn < tx.GetValueOut())
                 return state.DoS(100, error("CheckInputs() : %s value in (%s) < value out (%s)",
                                           tx.GetHash().ToString(), FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())),
@@ -2443,10 +2505,10 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
                         // arguments; if so, don't trigger DoS protection to
                         // avoid splitting the network between upgraded and
                         // non-upgraded nodes.
-                        CScriptCheck check(*coins, tx, i,
+                        CScriptCheck check2(*coins, tx, i,
                             flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS, cacheStore);
-                        if (check())
-                            return state.Invalid(false, REJECT_NONSTANDARD, strprintf("non-mandatory-script-verify-flag (%s)", ScriptErrorString(check.GetScriptError())));
+                        if (check2())
+                            return state.Invalid(false, REJECT_NONSTANDARD, strprintf("non-mandatory-script-verify-flag (%s)", ScriptErrorString(check2.GetScriptError())));
                     }
                     // Failures of other flags indicate a transaction that is
                     // invalid in new blocks, e.g. a invalid P2SH. We DoS ban
@@ -2582,6 +2644,7 @@ void static FlushBlockFile(bool fFinalize = false)
 }
 
 bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigned int nAddSize);
+bool FindUndoPos_Legacy(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigned int nAddSize);
 
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
@@ -2965,6 +3028,42 @@ void static BuildAddrIndex_Legacy(const CScript &script, const CExtDiskTxPos &po
     }
 }
 
+/** Convert CValidationState to a human-readable message for logging */
+std::string FormatStateMessage_Legacy(const CValidationState &state)
+{
+    return strprintf("%s%s (code %i)",
+        state.GetRejectReason(),
+        state.GetDebugMessage_Legacy().empty() ? "" : ", "+state.GetDebugMessage_Legacy(),
+        state.GetRejectCode());
+}
+
+bool UndoWriteToDisk_Legacy(const CBlockUndo& blockundo, CDiskBlockPos& pos, const uint256& hashBlock, const CMessageHeader::MessageStartChars& messageStart)
+{
+    // Open history file to append
+    CAutoFile fileout(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
+    if (fileout.IsNull())
+        return error("%s: OpenUndoFile failed", __func__);
+
+    // Write index header
+    unsigned int nSize = fileout.GetSerializeSize(blockundo);
+    fileout << FLATDATA(messageStart) << nSize;
+
+    // Write undo data
+    long fileOutPos = ftell(fileout.Get());
+    if (fileOutPos < 0)
+        return error("%s: ftell failed", __func__);
+    pos.nPos = (unsigned int)fileOutPos;
+    fileout << blockundo;
+
+    // calculate & write checksum
+    CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
+    hasher << hashBlock;
+    hasher << blockundo;
+    fileout << hasher.GetHash();
+
+    return true;
+}
+
 bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck)
 {
     const CChainParams& chainparams = Params();
@@ -3119,16 +3218,17 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
         }
-        UpdateCoins(tx, state, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
+        UpdateCoins_Legacy(tx, state, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
 
         //vPos.push_back(std::make_pair(tx.GetHash(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
     }
-    /*
+    
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2), 0.001 * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * 0.000001);
 
-    CAmount blockReward = nFees + GetProofOfWorkSubsidy(pindex->nHeight, chainparams.GetConsensus());
+    CAmount blockReward = nFees + GetBlockValue(pindex->nHeight);
+    
     if (block.vtx[0].GetValueOut() > blockReward && pindex->nHeight > 1)
         return state.DoS(100, error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)", block.vtx[0].GetValueOut(), blockReward), REJECT_INVALID, "bad-cb-amount");
 
@@ -3140,16 +3240,17 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
         uint256 hash;
         BOOST_FOREACH(const CTxIn &txin, block.vtx[1].vin)
         {
-        if (GetTransaction(txin.prevout.hash, tx2, Params().GetConsensus(), hash, true))
+        if (GetTransaction(txin.prevout.hash, tx2, hash, true))
             if (tx2.vout.size() > txin.prevout.n)
             nValueIns += tx2.vout[txin.prevout.n].nValue;
         }
 
-        CAmount blockReward = nFees + GetProofOfStakeSubsidy(pindex->nHeight, nValueIns);
+        CAmount blockReward = nFees + GetProofOfStakeSubsidy_Legacy(pindex->nHeight, nValueIns);
 
         if (nActualStakeReward > blockReward)
             return state.DoS(100, error("ConnectBlock(): coinstake pays too much (actual=%d vs limit=%d)", nActualStakeReward, blockReward), REJECT_INVALID, "bad-cs-amount");
     }
+
 
     CAmount reward = block.IsProofOfStake() ? nActualStakeReward : block.vtx[0].GetValueOut();
 
@@ -3157,8 +3258,9 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
 
     pindex->nMoneySupply = (pindex->pprev ? pindex->pprev->nMoneySupply : 0) + reward;
 
+
     if (!fJustCheck)
-        pindex->nStakeModifier = ComputeStakeModifier(pindex->pprev, block.IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindex->GetBlockHash());
+        pindex->nStakeModifierOld = ComputeStakeModifier_Legacy(pindex->pprev, block.IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindex->GetBlockHash());
 
     if (fJustCheck)
         return true;
@@ -3174,9 +3276,9 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
     {
         if (pindex->GetUndoPos().IsNull()) {
             CDiskBlockPos pos;
-            if (!FindUndoPos(state, pindex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
+            if (!FindUndoPos_Legacy(state, pindex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
                 return error("ConnectBlock(): FindUndoPos failed");
-            if (!UndoWriteToDisk(blockundo, pos, pindex->pprev->GetBlockHash(), chainparams.MessageStart()))
+            if (!UndoWriteToDisk_Legacy(blockundo, pos, pindex->pprev->GetBlockHash(), chainparams.MessageStart()))
                 return AbortNode(state, "Failed to write undo data");
 
             // update nUndoPos in block index
@@ -3193,7 +3295,7 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
             return AbortNode(state, "Failed to write transaction index");
 
     if (fAddrIndex)
-        if (!pblocktree->AddAddrIndex(vPosAddrid))
+        if (!pblocktree->AddAddrIndex_Legacy(vPosAddrid))
             return AbortNode(state, "Failed to write address index");
 
     // add this block to the view's block chain
@@ -3210,7 +3312,7 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
     int64_t nTime6 = GetTimeMicros(); nTimeCallbacks += nTime6 - nTime5;
     LogPrint("bench", "    - Callbacks: %.2fms [%.2fs]\n", 0.001 * (nTime6 - nTime5), nTimeCallbacks * 0.000001);
 
-*/
+
     return true;
 }
 
@@ -4602,15 +4704,6 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             REJECT_INVALID, "bad-blk-sigops", true);
 
     return true;
-}
-
-/** Convert CValidationState to a human-readable message for logging */
-std::string FormatStateMessage_Legacy(const CValidationState &state)
-{
-    return strprintf("%s%s (code %i)",
-        state.GetRejectReason(),
-        state.GetDebugMessage_Legacy().empty() ? "" : ", "+state.GetDebugMessage_Legacy(),
-        state.GetRejectCode());
 }
 
 bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot)
