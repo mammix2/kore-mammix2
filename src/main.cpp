@@ -5517,6 +5517,32 @@ bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex
 }
 
 
+bool TestBlockValidity_Legacy(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
+{
+    AssertLockHeld(cs_main);
+    assert(pindexPrev && pindexPrev == chainActive.Tip());
+    if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, block.GetHash()))
+        return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__, state.GetRejectReason().c_str());
+
+    CCoinsViewCache viewNew(pcoinsTip);
+    CBlockIndex indexDummy(block);
+    indexDummy.pprev = pindexPrev;
+    indexDummy.nHeight = pindexPrev->nHeight + 1;
+
+    // NOTE: CheckBlockHeader is called by CheckBlock
+    if (!ContextualCheckBlockHeader_Legacy(block, state, pindexPrev))
+        return false;
+    if (!CheckBlock_Legacy(block, pindexPrev->nHeight + 1, state, fCheckPOW, fCheckMerkleRoot))
+        return false;
+    if (!ContextualCheckBlock_Legacy(block, state, pindexPrev))
+        return false;
+    if (!ConnectBlock_Legacy(block, state, &indexDummy, viewNew, true))
+        return false;
+    assert(state.IsValid());
+
+    return true;
+}
+
 bool AbortNode(const std::string& strMessage, const std::string& userMessage)
 {
     strMiscWarning = strMessage;
