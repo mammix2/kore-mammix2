@@ -451,6 +451,13 @@ public:
     // Standard CCoinsView methods
     bool GetCoins(const uint256& txid, CCoins& coins) const;
     bool HaveCoins(const uint256& txid) const;
+    /**
+     * Check if we have the given tx already loaded in this cache.
+     * The semantics are the same as HaveCoins(), but no calls to
+     * the backing CCoinsView are made.
+     */
+    bool HaveCoinsInCache_Legacy(const uint256 &txid) const;
+
     uint256 GetBestBlock() const;
     void SetBestBlock(const uint256& hashBlock);
     bool BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock);
@@ -515,6 +522,7 @@ public:
 
     //! Return priority of tx at height nHeight
     double GetPriority(const CTransaction& tx, int nHeight) const;
+    double GetPriority_Legacy(const CTransaction &tx, int nHeight, CAmount &inChainInputValue) const;
 
     const CTxOut& GetOutputFor(const CTxIn& input) const;
 

@@ -1115,8 +1115,8 @@ void BitcoinGUI::dragEnterEvent(QDragEnterEvent* event)
 void BitcoinGUI::dropEvent(QDropEvent* event)
 {
     if (event->mimeData()->hasUrls()) {
-        foreach (const QUrl& uri, event->mimeData()->urls()) {
-            emit receivedURI(uri.toString());
+        Q_FOREACH (const QUrl& uri, event->mimeData()->urls()) {
+            Q_EMIT receivedURI(uri.toString());
         }
     }
     event->acceptProposedAction();
@@ -1310,7 +1310,7 @@ void UnitDisplayStatusBarControl::mousePressEvent(QMouseEvent* event)
 void UnitDisplayStatusBarControl::createContextMenu()
 {
     menu = new QMenu();
-    foreach (BitcoinUnits::Unit u, BitcoinUnits::availableUnits()) {
+    Q_FOREACH (BitcoinUnits::Unit u, BitcoinUnits::availableUnits()) {
         QAction* menuAction = new QAction(QString(BitcoinUnits::name(u)), this);
         menuAction->setData(QVariant(u));
         menu->addAction(menuAction);

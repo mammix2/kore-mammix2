@@ -17,6 +17,8 @@ typedef int64_t CAmount;
 static const CAmount COIN = 100000000;
 static const CAmount CENT = 1000000;
 
+static const CAmount MAX_MONEY = 10500000 * COIN;
+
 /** Type-safe wrapper class to for fee rates
  * (how much to pay based on transaction size)
  */
@@ -38,6 +40,7 @@ public:
     friend bool operator==(const CFeeRate& a, const CFeeRate& b) { return a.nSatoshisPerK == b.nSatoshisPerK; }
     friend bool operator<=(const CFeeRate& a, const CFeeRate& b) { return a.nSatoshisPerK <= b.nSatoshisPerK; }
     friend bool operator>=(const CFeeRate& a, const CFeeRate& b) { return a.nSatoshisPerK >= b.nSatoshisPerK; }
+    CFeeRate& operator+=(const CFeeRate& a) { nSatoshisPerK += a.nSatoshisPerK; return *this; }
     std::string ToString() const;
 
     ADD_SERIALIZE_METHODS;

@@ -136,6 +136,7 @@ BITCOIN_CORE_H = \
   key.h \
   keystore.h \
   legacy/consensus/merkle.h \
+  legacy/policy/fees.h \
   leveldbwrapper.h \
   limitedmap.h \
   main.h \
@@ -353,6 +354,7 @@ libbitcoin_common_a_SOURCES = \
   key.cpp \
   keystore.cpp \
   legacy/consensus/merkle.cpp \
+  legacy/policy/fees.cpp \
   netaddress.cpp \
   netbase.cpp \
   protocol.cpp \

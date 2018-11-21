@@ -124,10 +124,16 @@ static const unsigned char REJECT_NONSTANDARD = 0x40;
 static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
+/** Transaction is already known (either in mempool or blockchain) */
+static const unsigned int REJECT_ALREADY_KNOWN = 0x101; // Legacy
+/** Transaction conflicts with a transaction already known */
+static const unsigned int REJECT_CONFLICT = 0x102; // Legacy
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true; // Legacy
 static const bool DEFAULT_TXINDEX = true;
 static const bool DEFAULT_ADDRINDEX = true;
+/** Default for -mempoolreplacement */
+static const bool DEFAULT_ENABLE_REPLACEMENT = true; // Legacy
 
 struct BlockHasher {
     size_t operator()(const uint256& hash) const { return hash.GetLow64(); }
@@ -285,6 +291,9 @@ void FlushStateToDisk();
 
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool ignoreFees = false);
+bool AcceptToMemoryPool_Legacy(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
+                        bool* pfMissingInputs, bool fOverrideMempoolLimit=false, bool fRejectAbsurdFee=false);
+
 
 bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool isDSTX = false);
 
@@ -422,6 +431,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight);
+void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, int nHeight);
 
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
@@ -459,6 +469,16 @@ bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError
  * See consensus/consensus.h for flag definitions.
  */
 bool CheckFinalTx(const CTransaction& tx, int flags = -1);
+
+bool CheckFinalTx_Legacy(const CTransaction &tx, int flags);
+
+/**
+ * Test whether the LockPoints height and time are still valid on the current chain
+ */
+bool TestLockPointValidity(const LockPoints* lp);
+
+
+bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints* lp = NULL, bool useExistingLockPoints = false);
 
 /** Check for standard transaction types
  * @return True if all outputs (scriptPubKeys) use only standard transaction forms
@@ -545,6 +565,13 @@ bool UseLegacyCode(int nHeight);
  *  will be true if no problems were found. Otherwise, the return value will be false in case
  *  of problems. Note that in any case, coins may be modified. */
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool* pfClean = NULL);
+
+/** Undo the effects of this block (with given index) on the UTXO set represented by coins.
+ *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
+ *  will be true if no problems were found. Otherwise, the return value will be false in case
+ *  of problems. Note that in any case, coins may be modified. */
+bool DisconnectBlock_Legacy(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& coins, bool* pfClean = NULL);
+
 
 /** Reprocess a number of blocks to try and get on the correct chain again **/
 bool DisconnectBlocksAndReprocess(int blocks);
@@ -656,7 +683,7 @@ private:
 
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}
-    bool DoS(int level, bool ret = false, unsigned char chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false,
+    bool DoS(int level, bool ret = false, unsigned int chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false,
     const std::string &strDebugMessageIn="")
     {
         chRejectCode = chRejectCodeIn;
@@ -670,7 +697,7 @@ public:
         return ret;
     }
     bool Invalid(bool ret = false,
-        unsigned char _chRejectCode = 0,
+        unsigned int _chRejectCode = 0,
         std::string _strRejectReason = "",
         const std::string &_strDebugMessage="")
     {

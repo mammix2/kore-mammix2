@@ -175,6 +175,11 @@ bool CCoinsViewCache::HaveCoins(const uint256& txid) const
     return (it != cacheCoins.end() && !it->second.coins.vout.empty());
 }
 
+bool CCoinsViewCache::HaveCoinsInCache_Legacy(const uint256 &txid) const {
+    CCoinsMap::const_iterator it = cacheCoins.find(txid);
+    return it != cacheCoins.end();
+}
+
 uint256 CCoinsViewCache::GetBestBlock() const
 {
     if (hashBlock == uint256(0))
@@ -308,6 +313,26 @@ double CCoinsViewCache::GetPriority(const CTransaction& tx, int nHeight) const
     }
     return tx.ComputePriority(dResult);
 }
+
+double CCoinsViewCache::GetPriority_Legacy(const CTransaction &tx, int nHeight, CAmount &inChainInputValue) const
+{
+    inChainInputValue = 0;
+    if (tx.IsCoinBase() || tx.IsCoinStake())
+        return 0.0;
+    double dResult = 0.0;
+    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+    {
+        const CCoins* coins = AccessCoins(txin.prevout.hash);
+        assert(coins);
+        if (!coins->IsAvailable(txin.prevout.n)) continue;
+        if (coins->nHeight <= nHeight) {
+            dResult += coins->vout[txin.prevout.n].nValue * (nHeight-coins->nHeight);
+            inChainInputValue += coins->vout[txin.prevout.n].nValue;
+        }
+    }
+    return tx.ComputePriority(dResult);
+}
+
 
 CCoinsModifier::CCoinsModifier(CCoinsViewCache& cache_, CCoinsMap::iterator it_, size_t usage) : cache(cache_), it(it_), cachedCoinUsage(usage)
 {

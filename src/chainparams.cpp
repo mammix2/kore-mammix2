@@ -5,6 +5,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "amount.h"
 #include "chainparams.h"
 #include "random.h"
 #include "util.h"
@@ -270,7 +271,7 @@ public:
         nClientMintibleCoinsInterval =  1 * 60;
         nMaturity = 25;
         nMasternodeCountDrift = 20;          // ONLY KORE
-        nMaxMoneyOut = 12000000 * COIN;
+        nMaxMoneyOut = MAX_MONEY;
         nRuleChangeActivationThreshold = 1916; // 95% of 2016
         nMinerConfirmationWindow = 50; // nPowTargetTimespan / nPowTargetSpacing
         vDeployments[DEPLOYMENT_TESTDUMMY].bit = 28;
