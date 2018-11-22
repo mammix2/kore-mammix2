@@ -90,6 +90,7 @@ bool fAddrIndex = false; // Legacy
 size_t nCoinCacheUsage = 5000 * 300; // Legacy
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED; // Legacy
 bool fRequireStandard = true; // Legacy
+unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP_LEGACY; // Legacy
 bool fIsBareMultisigStd = true;
 bool fCheckBlockIndex = false;
 bool fVerifyingBlocks = false;
@@ -1770,6 +1771,26 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints* lp, bool 
 }
 
 
+void LimitMempoolSize_Legacy(CTxMemPool& pool, size_t limit, unsigned long age) {
+    int expired = pool.Expire(GetTime() - age);
+    if (expired != 0)
+        LogPrint("mempool", "Expired %i transactions from the memory pool\n", expired);
+
+    std::vector<uint256> vNoSpendsRemaining;
+    pool.TrimToSize(limit, &vNoSpendsRemaining);
+    BOOST_FOREACH(const uint256& removed, vNoSpendsRemaining)
+        pcoinsTip->Uncache_Legacy(removed);
+}
+
+/** Convert CValidationState to a human-readable message for logging */
+std::string FormatStateMessage_Legacy(const CValidationState &state)
+{
+    return strprintf("%s%s (code %i)",
+        state.GetRejectReason(),
+        state.GetDebugMessage_Legacy().empty() ? "" : ", "+state.GetDebugMessage_Legacy(),
+        state.GetRejectCode());
+}
+
 bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                               bool* pfMissingInputs, bool fOverrideMempoolLimit, bool fRejectAbsurdFee, std::vector<uint256>& vHashTxnToUncache)
 {
@@ -1943,7 +1964,6 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
                 break;
             }
         }
-/* LICO FORKING
         CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height(), pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOps, lp);
         unsigned int nSize = entry.GetTxSize();
 
@@ -1952,14 +1972,14 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
         // itself can contain sigops MAX_STANDARD_TX_SIGOPS is less than
         // MAX_BLOCK_SIGOPS; we still consider this an invalid rather than
         // merely non-standard transaction.
-        if ((nSigOps > MAX_STANDARD_TX_SIGOPS) || (nBytesPerSigOp && nSigOps > nSize / nBytesPerSigOp))
+        if ((nSigOps > MAX_STANDARD_TX_SIGOPS_LEGACY) || (nBytesPerSigOp && nSigOps > nSize / nBytesPerSigOp))
             return state.DoS(0, false, REJECT_NONSTANDARD, "bad-txns-too-many-sigops", false,
                 strprintf("%d", nSigOps));
 
-        CAmount mempoolRejectFee = pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000).GetFee(nSize);
+        CAmount mempoolRejectFee = pool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_LEGACY) * 1000000).GetFee(nSize);
         if (mempoolRejectFee > 0 && nModifiedFees < mempoolRejectFee) {
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "mempool min fee not met", false, strprintf("%d < %d", nFees, mempoolRejectFee));
-        } else if (GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY) && nModifiedFees < ::minRelayTxFee.GetFee(nSize) && !AllowFree(entry.GetPriority(chainActive.Height() + 1))) {
+        } else if (GetBoolArg("-relaypriority", DEFAULT_RELAYPRIORITY_LEGACY) && nModifiedFees < ::minRelayTxFee.GetFee(nSize) && !AllowFree(entry.GetPriority(chainActive.Height() + 1))) {
             // Require that free transactions have sufficient priority to be mined in the next block.
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "insufficient priority");
         }
@@ -1981,7 +2001,7 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
             nLastTime = nNow;
             // -limitfreerelay unit is thousand-bytes-per-minute
             // At default rate it would take over a month to fill 1GB
-            if (dFreeCount >= GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY) * 10 * 1000)
+            if (dFreeCount >= GetArg("-limitfreerelay", DEFAULT_LIMITFREERELAY_LEGACY) * 10 * 1000)
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "rate limited free transaction");
             LogPrint("mempool", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount+nSize);
             dFreeCount += nSize;
@@ -1989,15 +2009,17 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
 
         if (fRejectAbsurdFee && nFees > ::minRelayTxFee.GetFee(nSize) * 10000)
             return state.Invalid(false,
-                REJECT_HIGHFEE, "absurdly-high-fee",
+                REJECT_HIGHFEE_LEGACY, "absurdly-high-fee",
                 strprintf("%d > %d", nFees, ::minRelayTxFee.GetFee(nSize) * 10000));
+
 
         // Calculate in-mempool ancestors, up to a limit.
         CTxMemPool::setEntries setAncestors;
-        size_t nLimitAncestors = GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
-        size_t nLimitAncestorSize = GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT)*1000;
-        size_t nLimitDescendants = GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT);
-        size_t nLimitDescendantSize = GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT)*1000;
+        
+        size_t nLimitAncestors = GetArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT_LEGACY);
+        size_t nLimitAncestorSize = GetArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT_LEGACY)*1000;
+        size_t nLimitDescendants = GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT_LEGACY);
+        size_t nLimitDescendantSize = GetArg("-limitdescendantsize", DEFAULT_DESCENDANT_SIZE_LIMIT_LEGACY)*1000;
         std::string errString;
         if (!pool.CalculateMemPoolAncestors(entry, setAncestors, nLimitAncestors, nLimitAncestorSize, nLimitDescendants, nLimitDescendantSize, errString)) {
             return state.DoS(0, false, REJECT_NONSTANDARD, "too-long-mempool-chain", false, errString);
@@ -2027,7 +2049,7 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
         // If we don't hold the lock allConflicting might be incomplete; the
         // subsequent RemoveStaged() and addUnchecked() calls don't guarantee
         // mempool consistency for us.
-        LOCK(pool.cs);
+        LOCK(pool.cs);        
         if (setConflicts.size())
         {
             CFeeRate newFeeRate(nModifiedFees, nSize);
@@ -2157,7 +2179,7 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
         if (!CheckInputs(tx, state, view, true, MANDATORY_SCRIPT_VERIFY_FLAGS, true))
         {
             return error("%s: BUG! PLEASE REPORT THIS! ConnectInputs failed against MANDATORY but not STANDARD flags %s, %s",
-                __func__, hash.ToString(), FormatStateMessage(state));
+                __func__, hash.ToString(), FormatStateMessage_Legacy(state));
         }
 
         // Remove conflicting transactions from the mempool
@@ -2172,15 +2194,13 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
         pool.RemoveStaged(allConflicting);
 
         // Store transaction in memory
-        pool.addUnchecked(hash, entry, setAncestors, !IsInitialBlockDownload());
-
+        pool.addUnchecked(hash, entry, setAncestors, !IsInitialBlockDownload_Legacy());
         // trim mempool and check if tx was trimmed
         if (!fOverrideMempoolLimit) {
-            LimitMempoolSize(pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+            LimitMempoolSize_Legacy(pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_LEGACY) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY_LEGACY) * 60 * 60);
             if (!pool.exists(hash))
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "mempool full");
-        }
-        */
+        }        
     }
 
     SyncWithWallets(tx, NULL);
@@ -3756,14 +3776,6 @@ void static BuildAddrIndex_Legacy(const CScript &script, const CExtDiskTxPos &po
     }
 }
 
-/** Convert CValidationState to a human-readable message for logging */
-std::string FormatStateMessage_Legacy(const CValidationState &state)
-{
-    return strprintf("%s%s (code %i)",
-        state.GetRejectReason(),
-        state.GetDebugMessage_Legacy().empty() ? "" : ", "+state.GetDebugMessage_Legacy(),
-        state.GetRejectCode());
-}
 
 bool UndoWriteToDisk_Legacy(const CBlockUndo& blockundo, CDiskBlockPos& pos, const uint256& hashBlock, const CMessageHeader::MessageStartChars& messageStart)
 {
@@ -4899,9 +4911,9 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
 
     if (fBlocksDisconnected) {
         mempool.removeForReorg_Legacy(pcoinsTip, chainActive.Tip()->nHeight + 1, STANDARD_LOCKTIME_VERIFY_FLAGS);
-        LimitMempoolSize(mempool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+        LimitMempoolSize(mempool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_LEGACY) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
     }
-    mempool.check(pcoinsTip);
+    mempool.check_Legacy(pcoinsTip);
 
     // Callbacks/notifications for a new best chain.
     if (fInvalidFound)
@@ -5021,9 +5033,8 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
 
         // Notifications/callbacks that can run without cs_main
         // Always notify the UI if a new block tip was connected
-        /* LICO FORKING
         if (pindexFork != pindexNewTip) {
-            uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
+            uiInterface.NotifyBlockTip_Legacy(fInitialDownload, pindexNewTip);
 
             if (!fInitialDownload) {
                 // Find the hashes of all blocks that weren't previously in the best chain.
@@ -5032,7 +5043,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
                 while (pindexToAnnounce != pindexFork) {
                     vHashes.push_back(pindexToAnnounce->GetBlockHash());
                     pindexToAnnounce = pindexToAnnounce->pprev;
-                    if (vHashes.size() == MAX_BLOCKS_TO_ANNOUNCE) {
+                    if (vHashes.size() == MAX_BLOCKS_TO_ANNOUNCE_LEGACY) {
                         // Limit announcements in case of a huge reorganization.
                         // Rely on the peer's synchronization mechanism in that case.
                         break;
@@ -5041,7 +5052,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
                 // Relay inventory, but don't relay old inventory during initial block download.
                 int nBlockEstimate = 0;
                 if (fCheckpointsEnabled)
-                    nBlockEstimate = Checkpoints::GetTotalBlocksEstimate(chainparams.Checkpoints());
+                    nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
                 {
                     LOCK(cs_vNodes);
                     BOOST_FOREACH(CNode* pnode, vNodes) {
@@ -5058,7 +5069,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
                 }
             }
         }
-        */
+        
     } while(pindexMostWork != chainActive.Tip());
     
     CheckBlockIndex_Legacy();

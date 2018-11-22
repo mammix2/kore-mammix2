@@ -7,6 +7,6 @@
 #define BITCOIN_POLICY_POLICY_H
 
 /** Default for -maxmempool, maximum megabytes of mempool memory usage */
-static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE = 300;
+static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE_LEGACY = 300;
 
 #endif // BITCOIN_POLICY_POLICY_H

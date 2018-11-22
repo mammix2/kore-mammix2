@@ -16,6 +16,7 @@
 #include "chain.h"
 #include "chainparams.h"
 #include "coins.h"
+#include "legacy/policy/policy.h"
 #include "net.h"
 #include "pow.h"
 #include "primitives/block.h"
@@ -78,8 +79,21 @@ static const unsigned int MAX_P2SH_SIGOPS = 15;
 /** The maximum number of sigops we're willing to relay/mine in a single tx */
 static const unsigned int MAX_TX_SIGOPS_CURRENT = MAX_BLOCK_SIGOPS_CURRENT / 5;
 static const unsigned int MAX_TX_SIGOPS_LEGACY = MAX_BLOCK_SIGOPS_LEGACY / 5;
+/** The maximum number of sigops we're willing to relay/mine in a single tx */
+static const unsigned int MAX_STANDARD_TX_SIGOPS_LEGACY = MAX_BLOCK_SIGOPS_LEGACY/5;
 /** Default for -maxorphantx, maximum number of orphan transactions kept in memory */
 static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
+/** Default for -limitancestorcount, max number of in-mempool ancestors */
+static const unsigned int DEFAULT_ANCESTOR_LIMIT_LEGACY = 25;
+/** Default for -limitancestorsize, maximum kilobytes of tx + all in-mempool ancestors */
+static const unsigned int DEFAULT_ANCESTOR_SIZE_LIMIT_LEGACY = 101;
+/** Default for -limitdescendantcount, max number of in-mempool descendants */
+static const unsigned int DEFAULT_DESCENDANT_LIMIT_LEGACY = 25;
+/** Default for -limitdescendantsize, maximum kilobytes of in-mempool descendants */
+static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT_LEGACY = 101;
+/** Default for -mempoolexpiry, expiration time for mempool transactions in hours */
+static const unsigned int DEFAULT_MEMPOOL_EXPIRY_LEGACY = 72;
+
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 /** The pre-allocation chunk size for blk?????.dat files (since 0.8) */
@@ -124,6 +138,8 @@ static const unsigned char REJECT_NONSTANDARD = 0x40;
 static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
+/** Too high fee. Can not be triggered by P2P transactions */
+static const unsigned int REJECT_HIGHFEE_LEGACY = 0x100;
 /** Transaction is already known (either in mempool or blockchain) */
 static const unsigned int REJECT_ALREADY_KNOWN = 0x101; // Legacy
 /** Transaction conflicts with a transaction already known */
@@ -134,7 +150,14 @@ static const bool DEFAULT_TXINDEX = true;
 static const bool DEFAULT_ADDRINDEX = true;
 /** Default for -mempoolreplacement */
 static const bool DEFAULT_ENABLE_REPLACEMENT = true; // Legacy
+/** Maximum number of headers to announce when relaying blocks with headers message.*/
+static const unsigned int MAX_BLOCKS_TO_ANNOUNCE_LEGACY = 8;
 
+static const unsigned int DEFAULT_LIMITFREERELAY_LEGACY = 15;
+static const bool DEFAULT_RELAYPRIORITY_LEGACY = true;
+
+/** Default for -permitbaremultisig */
+static const unsigned int DEFAULT_BYTES_PER_SIGOP_LEGACY = 20;
 struct BlockHasher {
     size_t operator()(const uint256& hash) const { return hash.GetLow64(); }
 };
@@ -258,6 +281,7 @@ void ThreadScriptCheck();
 
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
+bool IsInitialBlockDownload_Legacy();
 /** Format a string that describes several potential problems detected by the core */
 std::string GetWarnings(std::string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
