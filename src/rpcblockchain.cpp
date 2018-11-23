@@ -455,6 +455,29 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
     return ret;
 }
 
+UniValue dumptxoutset(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "dumptxoutset\n"
+            "\nDump the unspent transaction output set to a file \"dump_$BLOCKHEIGTH.csv\".\n"
+            "Note this call may take some time.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("dumptxoutset", "")
+            + HelpExampleRpc("dumptxoutset", "")
+        );
+
+    UniValue ret(UniValue::VOBJ);
+
+    FlushStateToDisk();
+    string fileSaved;
+    string fileName = params.size() > 0 ? params[0].get_str() : NULL;
+    if (pcoinsTip->DumpUTXO(fileSaved, fileName)) {
+        ret.push_back(Pair("File exported to: ", fileSaved));
+    }
+    return ret;
+}
+
 UniValue gettxout(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 3)

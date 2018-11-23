@@ -359,6 +359,9 @@ public:
     //! Calculate statistics about the unspent transaction output set
     virtual bool GetStats(CCoinsStats& stats) const;
 
+    //! Dump the unspent transaction output set to a file "dump_$BLOCKHEIGTH.csv"
+    virtual bool DumpUTXO(string &fileSaved, string fileBaseName = "dump_");
+
     //! As we use CCoinsViews polymorphically, have a virtual destructor
     virtual ~CCoinsView() {}
 };
@@ -378,6 +381,7 @@ public:
     void SetBackend(CCoinsView& viewIn);
     bool BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock);
     bool GetStats(CCoinsStats& stats) const;
+    bool DumpUTXO(string &fileSaved, string fileBaseName = "dump_");
 };
 
 class CCoinsViewCache;

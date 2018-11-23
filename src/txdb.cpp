@@ -14,6 +14,9 @@
 using namespace libzerocoin;
 #endif
 
+#include <iostream>
+#include <fstream>
+
 #include <stdint.h>
 
 #include <boost/thread.hpp>
@@ -170,6 +173,78 @@ bool CCoinsViewDB::GetStats(CCoinsStats& stats) const
     stats.nHeight = mapBlockIndex.find(GetBestBlock())->second->nHeight;
     stats.hashSerialized = ss.GetHash();
     stats.nTotalAmount = nTotalAmount;
+    return true;
+}
+
+bool CCoinsViewDB::DumpUTXO(string &fileSaved, string fileBaseName)
+{
+    /* It seems that there are no "const iterators" for LevelDB.  Since we
+       only need read operations on it, use a const-cast to get around
+       that restriction.  */
+    boost::scoped_ptr<leveldb::Iterator> pcursor(const_cast<CLevelDBWrapper*>(&db)->NewIterator());
+    pcursor->SeekToFirst();
+
+    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+    uint256 hashBlock = GetBestBlock();
+    ss << hashBlock;
+    CAmount nTotalAmount = 0;
+    int nTransactionOutputs = 0;
+    uint64_t serializedSize = 0;
+
+    fileSaved = fileBaseName;
+    string nHeight;
+    ofstream myfile;
+    {    
+        LOCK(cs_main);
+    
+        fileSaved += itostr(mapBlockIndex.find(hashBlock)->second->nHeight);
+        fileSaved += ".csv";
+    }
+    myfile.open(fileSaved);
+    
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        try {
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
+            char chType;
+            ssKey >> chType;
+            if (chType == 'c') {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                CCoins coins;
+                ssValue >> coins;
+                uint256 txhash;
+                ssKey >> txhash;
+                ss << txhash;
+                ss << VARINT(coins.nVersion);
+                ss << (coins.fCoinBase ? 'c' : 'n');
+                ss << VARINT(coins.nHeight);
+                for (unsigned int i=0; i<coins.vout.size(); i++) {
+                    const CTxOut &out = coins.vout[i];
+                    if (!out.IsNull()) {
+                        myfile << out.scriptPubKey.ToString() << "," << out.nValue << "\n";
+                        nTransactionOutputs++;
+                        ss << VARINT(i+1);
+                        ss << out;
+                        nTotalAmount += out.nValue;
+                    }
+                }
+                serializedSize += 32 + slValue.size();
+                ss << VARINT(0);
+            }
+            pcursor->Next();
+        } catch (std::exception& e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+
+    myfile << "Outputs: " << nTransactionOutputs << "\n";
+    myfile << "Total Value: " << nTotalAmount << "\n";
+    myfile << "Dumped at block: " << mapBlockIndex.find(GetBestBlock())->second->nHeight << "\n";
+    myfile << "Hash: " << ss.GetHash().GetHex() << "\n";
+
+    myfile.close();
     return true;
 }
 

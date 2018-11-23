@@ -42,6 +42,7 @@ public:
     uint256 GetBestBlock() const;
     bool BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock);
     bool GetStats(CCoinsStats& stats) const;
+    bool DumpUTXO(string &fileSaved, string fileBaseName = "dump_");
 };
 
 /** Access to the block database (blocks/index/) */
