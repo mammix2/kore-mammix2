@@ -68,6 +68,7 @@ static const unsigned int DEFAULT_BLOCK_MIN_SIZE = 0;
 static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
 /** Default for accepting alerts from the P2P network. */
 static const bool DEFAULT_ALERTS = true;
+static const bool DEFAULT_WHITELISTFORCERELAY_LEGACY = true;
 /** The maximum size for transactions we're willing to relay/mine */
 static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
 static const unsigned int MAX_ZEROCOIN_TX_SIZE = 150000;
@@ -138,6 +139,7 @@ static const unsigned char REJECT_NONSTANDARD = 0x40;
 static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
+static const unsigned int REJECT_INTERNAL_LEGACY = 0x100;
 /** Too high fee. Can not be triggered by P2P transactions */
 static const unsigned int REJECT_HIGHFEE_LEGACY = 0x100;
 /** Transaction is already known (either in mempool or blockchain) */
@@ -158,6 +160,7 @@ static const bool DEFAULT_RELAYPRIORITY_LEGACY = true;
 
 /** Default for -permitbaremultisig */
 static const unsigned int DEFAULT_BYTES_PER_SIGOP_LEGACY = 20;
+static const bool DEFAULT_WHITELISTRELAY_LEGACY = true;
 struct BlockHasher {
     size_t operator()(const uint256& hash) const { return hash.GetLow64(); }
 };
