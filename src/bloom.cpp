@@ -210,7 +210,7 @@ void CBloomFilter::UpdateEmptyFull()
 }
 
 
-CRollingBloomFilter_Legacy::CRollingBloomFilter_Legacy(unsigned int nElements, double fpRate) :
+CRollingBloomFilter::CRollingBloomFilter(unsigned int nElements, double fpRate) :
     b1(nElements * 2, fpRate, 0), b2(nElements * 2, fpRate, 0)
 {
     // Implemented using two bloom filters of 2 * nElements each.
@@ -223,7 +223,7 @@ CRollingBloomFilter_Legacy::CRollingBloomFilter_Legacy(unsigned int nElements, d
     reset();
 }
 
-void CRollingBloomFilter_Legacy::insert(const std::vector<unsigned char>& vKey)
+void CRollingBloomFilter::insert(const std::vector<unsigned char>& vKey)
 {
     if (nInsertions == 0) {
         b1.clear();
@@ -237,13 +237,13 @@ void CRollingBloomFilter_Legacy::insert(const std::vector<unsigned char>& vKey)
     }
 }
 
-void CRollingBloomFilter_Legacy::insert(const uint256& hash)
+void CRollingBloomFilter::insert(const uint256& hash)
 {
     vector<unsigned char> data(hash.begin(), hash.end());
     insert(data);
 }
 
-bool CRollingBloomFilter_Legacy::contains(const std::vector<unsigned char>& vKey) const
+bool CRollingBloomFilter::contains(const std::vector<unsigned char>& vKey) const
 {
     if (nInsertions < nBloomSize / 2) {
         return b2.contains(vKey);
@@ -251,13 +251,13 @@ bool CRollingBloomFilter_Legacy::contains(const std::vector<unsigned char>& vKey
     return b1.contains(vKey);
 }
 
-bool CRollingBloomFilter_Legacy::contains(const uint256& hash) const
+bool CRollingBloomFilter::contains(const uint256& hash) const
 {
     vector<unsigned char> data(hash.begin(), hash.end());
     return contains(data);
 }
 
-void CRollingBloomFilter_Legacy::reset()
+void CRollingBloomFilter::reset()
 {
     unsigned int nNewTweak = GetRand(std::numeric_limits<unsigned int>::max());
     b1.reset(nNewTweak);

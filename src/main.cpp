@@ -211,7 +211,7 @@ map<uint256, NodeId> mapBlockSource;
      *
      * Memory used: 1.7MB
      */
-    boost::scoped_ptr<CRollingBloomFilter_Legacy> recentRejects;
+    boost::scoped_ptr<CRollingBloomFilter> recentRejects;
     uint256 hashRecentRejectsChainTip;
 
 /** Blocks that are in flight, and that are in the queue to be downloaded. Protected by cs_main. */
@@ -278,7 +278,9 @@ struct CNodeState {
     //! The hash of the last unknown block this peer has announced.
     uint256 hashLastUnknownBlock;
     //! The last full block we both have.
-    CBlockIndex* pindexLastCommonBlock;
+    CBlockIndex *pindexLastCommonBlock;
+    //! The best header we have sent our peer.
+    CBlockIndex *pindexBestHeaderSent_Legacy;
     //! Whether we've started headers synchronization with this peer.
     bool fSyncStarted;
     //! Since when we're stalling block download progress (in microseconds), or 0.
@@ -299,6 +301,7 @@ struct CNodeState {
         pindexBestKnownBlock = NULL;
         hashLastUnknownBlock = uint256(0);
         pindexLastCommonBlock = NULL;
+        pindexBestHeaderSent_Legacy = NULL;
         fSyncStarted = false;
         nStallingSince = 0;
         nBlocksInFlight = 0;
@@ -676,7 +679,7 @@ CSporkDB* pSporkDB = NULL;
 // mapOrphanTransactions
 //
 
-bool AddOrphanTx(const CTransaction& tx, NodeId peer)
+bool AddOrphanTx(const CTransaction& tx, NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     uint256 hash = tx.GetHash();
     if (mapOrphanTransactions.count(hash))
@@ -690,27 +693,29 @@ bool AddOrphanTx(const CTransaction& tx, NodeId peer)
     // 10,000 orphans, each of which is at most 5,000 bytes big is
     // at most 500 megabytes of orphans:
     unsigned int sz = tx.GetSerializeSize(SER_NETWORK, CTransaction::CURRENT_VERSION);
-    if (sz > 5000) {
+    if (sz > 5000)
+    {
         LogPrint("mempool", "ignoring large orphan tx (size: %u, hash: %s)\n", sz, hash.ToString());
         return false;
     }
 
     mapOrphanTransactions[hash].tx = tx;
     mapOrphanTransactions[hash].fromPeer = peer;
-    BOOST_FOREACH (const CTxIn& txin, tx.vin)
+    BOOST_FOREACH(const CTxIn& txin, tx.vin)
         mapOrphanTransactionsByPrev[txin.prevout.hash].insert(hash);
 
     LogPrint("mempool", "stored orphan tx %s (mapsz %u prevsz %u)\n", hash.ToString(),
-        mapOrphanTransactions.size(), mapOrphanTransactionsByPrev.size());
+             mapOrphanTransactions.size(), mapOrphanTransactionsByPrev.size());
     return true;
 }
 
-void static EraseOrphanTx(uint256 hash)
+void static EraseOrphanTx(uint256 hash) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     map<uint256, COrphanTx>::iterator it = mapOrphanTransactions.find(hash);
     if (it == mapOrphanTransactions.end())
         return;
-    BOOST_FOREACH (const CTxIn& txin, it->second.tx.vin) {
+    BOOST_FOREACH(const CTxIn& txin, it->second.tx.vin)
+    {
         map<uint256, set<uint256> >::iterator itPrev = mapOrphanTransactionsByPrev.find(txin.prevout.hash);
         if (itPrev == mapOrphanTransactionsByPrev.end())
             continue;
@@ -725,9 +730,11 @@ void EraseOrphansFor(NodeId peer)
 {
     int nErased = 0;
     map<uint256, COrphanTx>::iterator iter = mapOrphanTransactions.begin();
-    while (iter != mapOrphanTransactions.end()) {
+    while (iter != mapOrphanTransactions.end())
+    {
         map<uint256, COrphanTx>::iterator maybeErase = iter++; // increment to avoid iterator becoming invalid
-        if (maybeErase->second.fromPeer == peer) {
+        if (maybeErase->second.fromPeer == peer)
+        {
             EraseOrphanTx(maybeErase->second.tx.GetHash());
             ++nErased;
         }
@@ -736,10 +743,11 @@ void EraseOrphansFor(NodeId peer)
 }
 
 
-unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
+unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     unsigned int nEvicted = 0;
-    while (mapOrphanTransactions.size() > nMaxOrphans) {
+    while (mapOrphanTransactions.size() > nMaxOrphans)
+    {
         // Evict a random orphan:
         uint256 randomhash = GetRandHash();
         map<uint256, COrphanTx>::iterator it = mapOrphanTransactions.lower_bound(randomhash);
@@ -7130,7 +7138,7 @@ bool InitBlockIndex_Legacy(const CChainParams& chainparams)
     LOCK(cs_main);
 
     // Initialize global variables that cannot be constructed at startup.
-    recentRejects.reset(new CRollingBloomFilter_Legacy(120000, 0.000001));
+    recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL)
@@ -8467,6 +8475,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         bool fMissingZerocoinInputs = false;
         CValidationState state;
 
+        pfrom->setAskFor.erase(inv.hash);
         mapAlreadyAskedFor.erase(inv.hash);
 
         if (
@@ -9313,7 +9322,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         vRecv >> locator >> hashStop;
 
         LOCK(cs_main);
-        if (IsInitialBlockDownload() && !pfrom->fWhitelisted) {
+        if (IsInitialBlockDownload_Legacy() && !pfrom->fWhitelisted) {
             LogPrint("net", "Ignoring getheaders from peer=%d because node is in initial block download\n", pfrom->id);
             return true;
         }
@@ -9350,7 +9359,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         // if our peer has chainActive.Tip() (and thus we are sending an empty
         // headers message). In both cases it's safe to update
         // pindexBestHeaderSent to be our tip.
-        nodestate->pindexBestHeaderSent = pindex ? pindex : chainActive.Tip();
+        nodestate->pindexBestHeaderSent_Legacy = pindex ? pindex : chainActive.Tip();
         pfrom->PushMessage(NetMsgType::HEADERS, vHeaders);
     }
 
@@ -9427,7 +9436,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         pfrom->setAskFor.erase(inv.hash);
         mapAlreadyAskedFor.erase(inv.hash);
 
-        if (!AlreadyHave(inv) && AcceptToMemoryPool(mempool, state, tx, true, &fMissingInputs))
+        if (!AlreadyHave_Legacy(inv) && AcceptToMemoryPool_Legacy(mempool, state, tx, true, &fMissingInputs))
         {
             mempool.check(pcoinsTip);
             RelayTransaction(tx);
@@ -9461,7 +9470,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
 
                     if (setMisbehaving.count(fromPeer))
                         continue;
-                    if (AcceptToMemoryPool(mempool, stateDummy, orphanTx, true, &fMissingInputs2))
+                    if (AcceptToMemoryPool_Legacy(mempool, stateDummy, orphanTx, true, &fMissingInputs2))
                     {
                         LogPrint("mempool", "   accepted orphan tx %s\n", orphanHash.ToString());
                         RelayTransaction(orphanTx);
@@ -9541,7 +9550,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
             if (nDoS > 0)
                 Misbehaving(pfrom->GetId(), nDoS);
         }
-        FlushStateToDisk(state, FLUSH_STATE_PERIODIC);
+        FlushStateToDisk_Legacy(state, FLUSH_STATE_PERIODIC);
     }
 
 
@@ -9575,7 +9584,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
                 Misbehaving(pfrom->GetId(), 20);
                 return error("non-continuous headers sequence");
             }
-            if (!AcceptBlockHeader(header, state, chainparams, &pindexLast)) {
+            if (!AcceptBlockHeader_Legacy(header, state, &pindexLast)) {
                 int nDoS;
                 if (state.IsInvalid(nDoS)) {
                     if (nDoS > 0)
@@ -9596,7 +9605,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
             pfrom->PushMessage(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexLast), uint256());
         }
 
-        bool fCanDirectFetch = CanDirectFetch(chainparams.GetConsensus());
+        bool fCanDirectFetch = CanDirectFetch();
         CNodeState *nodestate = State(pfrom->GetId());
         // If this set of headers is valid and ends in a block with at least as
         // much work as our tip, download as much as possible.
@@ -9629,7 +9638,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
                         break;
                     }
                     vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                    MarkBlockAsInFlight(pfrom->GetId(), pindex->GetBlockHash(), chainparams.GetConsensus(), pindex);
+                    MarkBlockAsInFlight_Legacy(pfrom->GetId(), pindex->GetBlockHash(), pindex);
                     LogPrint("net", "Requesting block %s from  peer=%d\n",
                             pindex->GetBlockHash().ToString(), pfrom->id);
                 }
@@ -9643,7 +9652,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
             }
         }
 
-        CheckBlockIndex(chainparams.GetConsensus());
+        CheckBlockIndex_Legacy();
     }
 
     else if (strCommand == NetMsgType::BLOCK && !fImporting && !fReindex) // Ignore blocks received while importing
@@ -9662,7 +9671,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         // Such an unrequested block may still be processed, subject to the
         // conditions in AcceptBlock().
         bool forceProcessing = pfrom->fWhitelisted && !IsInitialBlockDownload();
-        ProcessNewBlock(state, chainparams, pfrom, &block, forceProcessing, NULL);
+        ProcessNewBlock_Legacy(state, chainparams, pfrom, &block, forceProcessing, NULL);
         int nDoS;
         if (state.IsInvalid(nDoS)) {
             assert (state.GetRejectCode() < REJECT_INTERNAL_LEGACY); // Blocks are never rejected with internal reject codes
@@ -9827,7 +9836,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         uint256 alertHash = alert.GetHash();
         if (pfrom->setKnown.count(alertHash) == 0)
         {
-            if (alert.ProcessAlert(chainparams.AlertKey()))
+            if (alert.ProcessAlert())
             {
                 // Relay
                 pfrom->setKnown.insert(alertHash);
@@ -9933,7 +9942,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
 
         // Ignore unknown commands for extensibility
         LogPrint("net", "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->id);
-        */
+       */ 
     }
     
     return true;
@@ -10116,7 +10125,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             BOOST_FOREACH (CNode* pnode, vNodes) {
                 // Periodically clear setAddrKnown to allow refresh broadcasts
                 if (nLastRebroadcast)
-                    pnode->setAddrKnown.clear();
+                    //pnode->addrKnown.clear();
 
                 // Rebroadcast our address
                 AdvertizeLocal(pnode);
@@ -10132,8 +10141,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             vector<CAddress> vAddr;
             vAddr.reserve(pto->vAddrToSend.size());
             BOOST_FOREACH (const CAddress& addr, pto->vAddrToSend) {
-                // returns true if wasn't already contained in the set
-                if (pto->setAddrKnown.insert(addr).second) {
+                if (!pto->addrKnown.contains(addr.GetKey())) {
+                    pto->addrKnown.insert(addr.GetKey());
                     vAddr.push_back(addr);
                     // receiver rejects addr messages larger than 1000
                     if (vAddr.size() >= 1000) {
@@ -10144,7 +10153,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             }
             pto->vAddrToSend.clear();
             if (!vAddr.empty())
-                pto->PushMessage("addr", vAddr);
+                pto->PushMessage(NetMsgType::ADDR, vAddr);
         }
 
         CNodeState& state = *State(pto->GetId());
@@ -10199,7 +10208,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             vInv.reserve(pto->vInventoryToSend.size());
             vInvWait.reserve(pto->vInventoryToSend.size());
             BOOST_FOREACH (const CInv& inv, pto->vInventoryToSend) {
-                if (pto->setInventoryKnown.count(inv))
+                if (pto->filterInventoryKnown.contains(inv.hash))
                     continue;
 
                 // trickle out tx inv to protect privacy
@@ -10219,18 +10228,17 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 }
 
                 // returns true if wasn't already contained in the set
-                if (pto->setInventoryKnown.insert(inv).second) {
-                    vInv.push_back(inv);
-                    if (vInv.size() >= 1000) {
-                        pto->PushMessage("inv", vInv);
-                        vInv.clear();
-                    }
+                pto->filterInventoryKnown.insert(inv.hash);
+                vInv.push_back(inv);
+                if (vInv.size() >= 1000) {
+                    pto->PushMessage("inv", vInv);
+                    vInv.clear();
                 }
             }
             pto->vInventoryToSend = vInvWait;
         }
         if (!vInv.empty())
-            pto->PushMessage("inv", vInv);
+            pto->PushMessage(NetMsgType::INV, vInv);
 
         // Detect whether we're stalling
         int64_t nNow = GetTimeMicros();
@@ -10290,7 +10298,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->mapAskFor.erase(pto->mapAskFor.begin());
         }
         if (!vGetData.empty())
-            pto->PushMessage("getdata", vGetData);
+            pto->PushMessage(NetMsgType::GETDATA, vGetData);
+
     }
     return true;
 }

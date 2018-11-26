@@ -709,6 +709,7 @@ void CNode::copyStats(CNodeStats &stats)
 
     // Raw ping time is in microseconds, but show it to user as whole seconds (KORE users should be well used to small numbers with many decimal places by now :)
     stats.dPingTime = (((double)nPingUsecTime) / 1e6);
+    stats.dPingMin  = (((double)nMinPingUsecTime) / 1e6);
     stats.dPingWait = (((double)nPingUsecWait) / 1e6);
 
     // Leave string empty if addrLocal invalid (not filled in yet)
@@ -847,6 +848,48 @@ void SocketSendData(CNode *pnode)
 }
 
 static list<CNode*> vNodesDisconnected;
+
+class CNodeRef {
+public:
+    CNodeRef(CNode *pnode) : _pnode(pnode) {
+        LOCK(cs_vNodes);
+        _pnode->AddRef();
+    }
+
+    ~CNodeRef() {
+        LOCK(cs_vNodes);
+        _pnode->Release();
+    }
+
+    CNode& operator *() const {return *_pnode;};
+    CNode* operator ->() const {return _pnode;};
+
+    CNodeRef& operator =(const CNodeRef& other)
+    {
+        if (this != &other) {
+            LOCK(cs_vNodes);
+
+            _pnode->Release();
+            _pnode = other._pnode;
+            _pnode->AddRef();
+        }
+        return *this;
+    }
+
+    CNodeRef(const CNodeRef& other):
+        _pnode(other._pnode)
+    {
+        LOCK(cs_vNodes);
+        _pnode->AddRef();
+    }
+private:
+    CNode *_pnode;
+};
+
+static bool ReverseCompareNodeMinPingTime(const CNodeRef &a, const CNodeRef &b)
+{
+    return a->nMinPingUsecTime > b->nMinPingUsecTime;
+}
 
 void ThreadSocketHandler()
 {
@@ -2315,7 +2358,10 @@ bool CAddrDB::Read(CAddrMan& addr)
 unsigned int ReceiveFloodSize() { return 1000 * GetArg("-maxreceivebuffer", 5 * 1000); }
 unsigned int SendBufferSize() { return 1000 * GetArg("-maxsendbuffer", 1 * 1000); }
 
-CNode::CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn, bool fInboundIn) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
+CNode::CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn, bool fInboundIn) : 
+  ssSend(SER_NETWORK, INIT_PROTO_VERSION), 
+  addrKnown(5000, 0.001),
+  filterInventoryKnown(50000, 0.000001)
 {
     nServices = 0;
     hSocket = hSocketIn;
@@ -2344,14 +2390,14 @@ CNode::CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn, bool fIn
     nStartingHeight = -1;
     fGetAddr = false;
     fRelayTxes = false;
-    setInventoryKnown.max_size(SendBufferSize() / 1000);
+    filterInventoryKnown.reset();
     pfilter = new CBloomFilter();
     nPingNonceSent = 0;
     nPingUsecStart = 0;
     nPingUsecTime = 0;
     fPingQueued = false;
     fObfuScationMaster = false;
-
+    nMinPingUsecTime = std::numeric_limits<int64_t>::max();
     {
         LOCK(cs_nLastNodeId);
         id = nLastNodeId++;
@@ -2381,7 +2427,10 @@ CNode::~CNode()
 
 void CNode::AskFor(const CInv& inv)
 {
-    if (mapAskFor.size() > MAPASKFOR_MAX_SZ)
+    if (mapAskFor.size() > MAPASKFOR_MAX_SZ || setAskFor.size() > SETASKFOR_MAX_SZ)
+        return;
+    // a peer may not have multiple non-responded queue positions for a single inv item
+    if (!setAskFor.insert(inv.hash).second)
         return;
     // We're using mapAskFor as a priority queue,
     // the key is the earliest time the request can be sent

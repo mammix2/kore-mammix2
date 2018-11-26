@@ -55,7 +55,7 @@ private:
 
  // Private constructor for CRollingBloomFilter, no restrictions on size
     CBloomFilter(unsigned int nElements, double nFPRate, unsigned int nTweak);
-    friend class CRollingBloomFilter_Legacy;
+    friend class CRollingBloomFilter;
 
 public:
     /**
@@ -114,13 +114,13 @@ public:
  * contains(item) will always return true if item was one of the last N things
  * insert()'ed ... but may also return true for items that were not inserted.
  */
-class CRollingBloomFilter_Legacy
+class CRollingBloomFilter
 {
 public:
     // A random bloom filter calls GetRand() at creation time.
     // Don't create global CRollingBloomFilter objects, as they may be
     // constructed before the randomizer is properly initialized.
-    CRollingBloomFilter_Legacy(unsigned int nElements, double nFPRate);
+    CRollingBloomFilter(unsigned int nElements, double nFPRate);
 
     void insert(const std::vector<unsigned char>& vKey);
     void insert(const uint256& hash);

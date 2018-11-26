@@ -36,9 +36,8 @@ class CBlockIndex;
 class CScheduler;
 class CNode;
 
-namespace boost
-{
-class thread_group;
+namespace boost {
+    class thread_group;
 } // namespace boost
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
@@ -65,6 +64,8 @@ static const bool DEFAULT_UPNP = false;
 #endif
 /** The maximum number of entries in mapAskFor */
 static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
+/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
+static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
 static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 125;
 /** Default for blocks only*/
 static const bool DEFAULT_BLOCKSONLY = false;
@@ -88,7 +89,7 @@ unsigned short GetListenPort();
 bool BindListenPort(const CService& bindAddr, std::string& strError, bool fWhitelisted = false);
 void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler);
 bool StopNode();
-void SocketSendData(CNode* pnode);
+void SocketSendData(CNode *pnode);
 
 typedef int NodeId;
 
@@ -108,7 +109,8 @@ void StartTor();
 void InterruptTor();
 void StopTor();
 
-enum {
+enum
+{
     LOCAL_NONE,   // unknown
     LOCAL_IF,     // address a local interface listens on
     LOCAL_BIND,   // address explicit bound to
@@ -128,7 +130,7 @@ bool AddLocal(const CNetAddr& addr, int nScore = LOCAL_NONE);
 bool RemoveLocal(const CService& addr);
 bool SeenLocal(const CService& addr);
 bool IsLocal(const CService& addr);
-bool GetLocal(CService& addr, const CNetAddr* paddrPeer = NULL);
+bool GetLocal(CService &addr, const CNetAddr *paddrPeer = NULL);
 bool IsReachable(enum Network net);
 bool IsReachable(const CNetAddr& addr);
 CAddress GetLocalAddress(const CNetAddr* paddrPeer = NULL);
@@ -181,23 +183,25 @@ public:
     bool fWhitelisted;
     double dPingTime;
     double dPingWait;
+    double dPingMin;
     std::string addrLocal;
 };
 
 
-class CNetMessage
-{
-public:
-    bool in_data; // parsing header (false) or data (true)
 
-    CDataStream hdrbuf; // partially received header
-    CMessageHeader hdr; // complete header
+
+class CNetMessage {
+public:
+    bool in_data;                   // parsing header (false) or data (true)
+
+    CDataStream hdrbuf;             // partially received header
+    CMessageHeader hdr;             // complete header
     unsigned int nHdrPos;
 
-    CDataStream vRecv; // received message data
+    CDataStream vRecv;              // received message data
     unsigned int nDataPos;
 
-    int64_t nTime; // time (in microseconds) of message receipt.
+    int64_t nTime;                  // time (in microseconds) of message receipt.
 
     CNetMessage(int nTypeIn, int nVersionIn) : hdrbuf(nTypeIn, nVersionIn), vRecv(nTypeIn, nVersionIn)
     {
@@ -221,8 +225,8 @@ public:
         vRecv.SetVersion(nVersionIn);
     }
 
-    int readHeader(const char* pch, unsigned int nBytes);
-    int readData(const char* pch, unsigned int nBytes);
+    int readHeader(const char *pch, unsigned int nBytes);
+    int readData(const char *pch, unsigned int nBytes);
 };
 
 
@@ -287,7 +291,6 @@ public:
 
 typedef std::map<CSubNet, CBanEntry> banmap_t;
 
-
 /** Information about a peer */
 class CNode
 {
@@ -296,7 +299,7 @@ public:
     uint64_t nServices;
     SOCKET hSocket;
     CDataStream ssSend;
-    size_t nSendSize;   // total size of all vSendMsg entries
+    size_t nSendSize; // total size of all vSendMsg entries
     size_t nSendOffset; // offset inside the first vSendMsg already sent
     uint64_t nSendBytes;
     std::deque<CSerializeData> vSendMsg;
@@ -330,8 +333,8 @@ public:
     bool fDisconnect;
     // We use fRelayTxes for two purposes -
     // a) it allows us to not relay tx invs before receiving the peer's version message
-    // b) the peer may tell us in their version message that we should not relay tx invs
-    //    until they have initialized their bloom filter.
+    // b) the peer may tell us in its version message that we should not relay tx invs
+    //    unless it loads a bloom filter.
     bool fRelayTxes;
     // Should be 'true' only if we connected to this node to actually mix funds.
     // In this case node will be released automatically via CMasternodeMan::ProcessMasternodeConnections().
@@ -344,8 +347,8 @@ public:
     CBloomFilter* pfilter;
     int nRefCount;
     NodeId id;
-
 protected:
+
     // Denial-of-service detection/prevention
     // Key is IP address, value is banned-until-time
     static banmap_t setBanned;
@@ -369,19 +372,20 @@ public:
 
     // flood relay
     std::vector<CAddress> vAddrToSend;
-    mruset<CAddress> setAddrKnown;
+    CRollingBloomFilter addrKnown;
     bool fGetAddr;
     std::set<uint256> setKnown;
 
     // inventory based relay
-    mruset<CInv> setInventoryKnown;
+    CRollingBloomFilter filterInventoryKnown;
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
+    std::set<uint256> setAskFor;    
     std::multimap<int64_t, CInv> mapAskFor;
     std::vector<uint256> vBlockRequested;
     // Used for headers announcements - unfiltered blocks to relay
     // Also protected by cs_inventory
-    std::vector<uint256> vBlockHashesToAnnounce;    
+    std::vector<uint256> vBlockHashesToAnnounce;
 
     // Ping time measurement:
     // The pong reply we're expecting, or 0 if no pong expected.
@@ -390,6 +394,8 @@ public:
     int64_t nPingUsecStart;
     // Last measured round-trip time.
     int64_t nPingUsecTime;
+    // Best measured round-trip time.
+    int64_t nMinPingUsecTime;
     // Whether a ping is requested.
     bool fPingQueued;
 
@@ -411,9 +417,9 @@ private:
     void operator=(const CNode&);
 
 public:
-    NodeId GetId() const
-    {
-        return id;
+
+    NodeId GetId() const {
+      return id;
     }
 
     int GetRefCount()
@@ -426,19 +432,19 @@ public:
     unsigned int GetTotalRecvSize()
     {
         unsigned int total = 0;
-        BOOST_FOREACH (const CNetMessage& msg, vRecvMsg)
+        BOOST_FOREACH(const CNetMessage &msg, vRecvMsg)
             total += msg.vRecv.size() + 24;
         return total;
     }
 
     // requires LOCK(cs_vRecvMsg)
-    bool ReceiveMsgBytes(const char* pch, unsigned int nBytes);
+    bool ReceiveMsgBytes(const char *pch, unsigned int nBytes);
 
     // requires LOCK(cs_vRecvMsg)
     void SetRecvVersion(int nVersionIn)
     {
         nRecvVersion = nVersionIn;
-        BOOST_FOREACH (CNetMessage& msg, vRecvMsg)
+        BOOST_FOREACH(CNetMessage &msg, vRecvMsg)
             msg.SetVersion(nVersionIn);
     }
 
@@ -456,7 +462,7 @@ public:
 
     void AddAddressKnown(const CAddress& addr)
     {
-        setAddrKnown.insert(addr);
+        addrKnown.insert(addr.GetKey());
     }
 
     void PushAddress(const CAddress& addr)
@@ -464,7 +470,7 @@ public:
         // Known checking here is only to save space from duplicates.
         // SendMessages will filter it again for knowns that were added
         // after addresses were pushed.
-        if (addr.IsValid() && !setAddrKnown.count(addr)) {
+        if (addr.IsValid() && !addrKnown.contains(addr.GetKey())) {
             if (vAddrToSend.size() >= MAX_ADDR_TO_SEND) {
                 vAddrToSend[insecure_rand() % vAddrToSend.size()] = addr;
             } else {
@@ -478,7 +484,7 @@ public:
     {
         {
             LOCK(cs_inventory);
-            setInventoryKnown.insert(inv);
+            filterInventoryKnown.insert(inv.hash);
         }
     }
 
@@ -486,8 +492,9 @@ public:
     {
         {
             LOCK(cs_inventory);
-            if (!setInventoryKnown.count(inv))
-                vInventoryToSend.push_back(inv);
+            if (inv.type == MSG_TX && filterInventoryKnown.contains(inv.hash))
+                return;
+            vInventoryToSend.push_back(inv);
         }
     }
 
@@ -495,7 +502,7 @@ public:
     {
         LOCK(cs_inventory);
         vBlockHashesToAnnounce.push_back(hash);
-    }    
+    }
 
     void AskFor(const CInv& inv);
 
@@ -513,7 +520,8 @@ public:
 
     void PushMessage(const char* pszCommand)
     {
-        try {
+        try
+        {
             BeginMessage(pszCommand);
             EndMessage();
         } catch (...) {
@@ -738,13 +746,13 @@ public:
     static bool BannedSetIsDirty();
     //!set the "dirty" flag for the banlist
     static void SetBannedSetDirty(bool dirty=true);
-    //!clean unused entires (if bantime has expired)
+    //!clean unused entries (if bantime has expired)
     static void SweepBanned();
 
-    void copyStats(CNodeStats& stats);
+    void copyStats(CNodeStats &stats);
 
-    static bool IsWhitelistedRange(const CNetAddr& ip);
-    static void AddWhitelistedRange(const CSubNet& subnet);
+    static bool IsWhitelistedRange(const CNetAddr &ip);
+    static void AddWhitelistedRange(const CSubNet &subnet);
 
     // Network stats
     static void RecordBytesRecv(uint64_t bytes);
@@ -761,7 +769,6 @@ public:
     //!response the time in second left in the current max outbound cycle
     // in case of no limit, it will always response 0
     static uint64_t GetMaxOutboundTimeLeftInCycle();
-
 };
 
 class CExplicitNetCleanup
@@ -781,7 +788,6 @@ class CAddrDB
 {
 private:
     boost::filesystem::path pathAddr;
-
 public:
     CAddrDB();
     bool Write(const CAddrMan& addr);
