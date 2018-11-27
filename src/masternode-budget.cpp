@@ -1102,19 +1102,19 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     LOCK(cs_budget);
     LogPrint("mnbudget", "ProcessMessage strCommand: %s\n", strCommand);
 
-    if (strCommand == "mnvs") { //Masternode vote sync
+    if (strCommand == NetMsgType::MNVS) { //Masternode vote sync
         LogPrint("mnbudget", "ProcessMessage (mnvs) Masternode vote sync \n");
         uint256 nProp;
         vRecv >> nProp;
 
         if (Params().NetworkID() == CBaseChainParams::MAIN) {
             if (nProp == 0) {
-                if (pfrom->HasFulfilledRequest("mnvs")) {
+                if (pfrom->HasFulfilledRequest(NetMsgType::MNVS)) {
                     LogPrint("mnbudget","mnvs - peer already asked me for the list\n");
-                    Misbehaving(pfrom->GetId(), 20);
+                    Misbehaving(pfrom->GetId(), 2);
                     return;
                 }
-                pfrom->FulfilledRequest("mnvs");
+                pfrom->FulfilledRequest(NetMsgType::MNVS);
             }
         }
 
@@ -1181,7 +1181,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         mapSeenMasternodeBudgetVotes.insert(make_pair(vote.GetHash(), vote));
         if (!vote.SignatureValid(true)) {
             LogPrint("mnbudget","mvote - signature invalid\n");
-            if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 20);
+            if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 2);
             // it could just be a non-synced masternode
             mnodeman.AskForMN(pfrom, vote.vin);
             return;
@@ -1255,7 +1255,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         mapSeenFinalizedBudgetVotes.insert(make_pair(vote.GetHash(), vote));
         if (!vote.SignatureValid(true)) {
             LogPrint("mnbudget","fbvote - signature invalid\n");
-            if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 20);
+            if (masternodeSync.IsSynced()) Misbehaving(pfrom->GetId(), 2);
             // it could just be a non-synced masternode
             mnodeman.AskForMN(pfrom, vote.vin);
             return;

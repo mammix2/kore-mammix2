@@ -8276,7 +8276,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == "inv") {
+    else if (strCommand == NetMsgType::INV) {
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
@@ -8325,7 +8325,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == "getdata") {
+    else if (strCommand == NetMsgType::GETDATA) {
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
@@ -9931,18 +9931,21 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         }        
     }
     else
-    {  /*
-        obfuScationPool.ProcessMessageObfuscation(pfrom, strCommand, vRecv);        
-        mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
+    {  
+        obfuScationPool.ProcessMessageObfuscation(pfrom, strCommand, vRecv);
+        
+        mnodeman.ProcessMessage(pfrom, strCommand, vRecv);        
         budget.ProcessMessage(pfrom, strCommand, vRecv);
+        
         masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
-        ProcessMessageSwiftTX(pfrom, strCommand, vRecv);
+        
+        ProcessMessageSwiftTX_Legacy(pfrom, strCommand, vRecv);        
         ProcessSpork(pfrom, strCommand, vRecv);
         masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
 
         // Ignore unknown commands for extensibility
         LogPrint("net", "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->id);
-       */ 
+        
     }
     
     return true;

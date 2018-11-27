@@ -51,6 +51,7 @@ bool IsIXTXValid(const CTransaction& txCollateral);
 bool CheckForConflictingLocks(CTransaction& tx);
 
 void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
+void ProcessMessageSwiftTX_Legacy(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
 //check if we need to vote on this transaction
 void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight);
