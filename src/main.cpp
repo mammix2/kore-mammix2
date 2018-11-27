@@ -9528,7 +9528,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
                     LogPrintf("Force relaying tx %s from whitelisted peer=%d\n", tx.GetHash().ToString(), pfrom->id);
                     RelayTransaction(tx);
                 } else {
-                    LogPrintf("Not relaying invalid transaction %s from whitelisted peer=%d (%s)\n", tx.GetHash().ToString(), pfrom->id, FormatStateMessage(state));
+                    LogPrintf("Not relaying invalid transaction %s from whitelisted peer=%d (%s)\n", tx.GetHash().ToString(), pfrom->id, FormatStateMessage_Legacy(state));
                 }
             }
         }
@@ -9543,7 +9543,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         {
             LogPrint("mempoolrej", "%s from peer=%d was not accepted: %s\n", tx.GetHash().ToString(),
                 pfrom->id,
-                FormatStateMessage(state));
+                FormatStateMessage_Legacy(state));
             if (state.GetRejectCode() < REJECT_INTERNAL_LEGACY) // Never send AcceptToMemoryPool's internal codes over P2P
                 pfrom->PushMessage(NetMsgType::REJECT, strCommand, (unsigned char)state.GetRejectCode(),
                                    state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
@@ -9931,8 +9931,8 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         }        
     }
     else
-    { /*
-        obfuScationPool.ProcessMessageObfuscation(pfrom, strCommand, vRecv);
+    {  /*
+        obfuScationPool.ProcessMessageObfuscation(pfrom, strCommand, vRecv);        
         mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
         budget.ProcessMessage(pfrom, strCommand, vRecv);
         masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
@@ -10106,11 +10106,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->nPingUsecStart = GetTimeMicros();
             if (pto->nVersion > BIP0031_VERSION) {
                 pto->nPingNonceSent = nonce;
-                pto->PushMessage("ping", nonce);
+                pto->PushMessage(NetMsgType::PING, nonce);
             } else {
                 // Peer is too old to support ping command with nonce, pong will never arrive.
                 pto->nPingNonceSent = 0;
-                pto->PushMessage("ping");
+                pto->PushMessage(NetMsgType::PING);
             }
         }
 
@@ -10125,7 +10125,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             BOOST_FOREACH (CNode* pnode, vNodes) {
                 // Periodically clear setAddrKnown to allow refresh broadcasts
                 if (nLastRebroadcast)
-                    //pnode->addrKnown.clear();
+                    pnode->addrKnown.reset();
 
                 // Rebroadcast our address
                 AdvertizeLocal(pnode);
@@ -10145,8 +10145,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     pto->addrKnown.insert(addr.GetKey());
                     vAddr.push_back(addr);
                     // receiver rejects addr messages larger than 1000
-                    if (vAddr.size() >= 1000) {
-                        pto->PushMessage("addr", vAddr);
+                    if (vAddr.size() >= 1000)
+                    {
+                        pto->PushMessage(NetMsgType::ADDR, vAddr);
                         vAddr.clear();
                     }
                 }
@@ -10156,7 +10157,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 pto->PushMessage(NetMsgType::ADDR, vAddr);
         }
 
-        CNodeState& state = *State(pto->GetId());
+        CNodeState &state = *State(pto->GetId());
         if (state.fShouldBan) {
             if (pto->fWhitelisted)
                 LogPrintf("Warning: not punishing whitelisted peer %s!\n", pto->addr.ToString());
@@ -10171,8 +10172,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             state.fShouldBan = false;
         }
 
-        BOOST_FOREACH (const CBlockReject& reject, state.rejects)
-            pto->PushMessage("reject", (string) "block", reject.chRejectCode, reject.strRejectReason, reject.hashBlock);
+        BOOST_FOREACH(const CBlockReject& reject, state.rejects)
+            pto->PushMessage(NetMsgType::REJECT, (string)NetMsgType::BLOCK, reject.chRejectCode, reject.strRejectReason, reject.hashBlock);
         state.rejects.clear();
 
         // Start block sync
@@ -10230,8 +10231,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 // returns true if wasn't already contained in the set
                 pto->filterInventoryKnown.insert(inv.hash);
                 vInv.push_back(inv);
-                if (vInv.size() >= 1000) {
-                    pto->PushMessage("inv", vInv);
+                if (vInv.size() >= 1000)
+                {
+                    pto->PushMessage(NetMsgType::INV, vInv);
                     vInv.clear();
                 }
             }
@@ -10291,7 +10293,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     LogPrint("net", "Requesting %s peer=%d\n", inv.ToString(), pto->id);
                 vGetData.push_back(inv);
                 if (vGetData.size() >= 1000) {
-                    pto->PushMessage("getdata", vGetData);
+                    pto->PushMessage(NetMsgType::GETDATA, vGetData);
                     vGetData.clear();
                 }
             }
@@ -10304,6 +10306,375 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
     return true;
 }
 
+bool PeerHasHeader_Legacy(CNodeState *state, CBlockIndex *pindex)
+{
+    if (state->pindexBestKnownBlock && pindex == state->pindexBestKnownBlock->GetAncestor(pindex->nHeight))
+        return true;
+    if (state->pindexBestHeaderSent_Legacy && pindex == state->pindexBestHeaderSent_Legacy->GetAncestor(pindex->nHeight))
+        return true;
+    return false;
+}
+
+bool SendMessages_Legacy(CNode* pto)
+{
+    {
+        // Don't send anything until we get its version message
+        if (pto->nVersion == 0)
+            return true;
+
+        //
+        // Message: ping
+        //
+        bool pingSend = false;
+        if (pto->fPingQueued) {
+            // RPC ping request by user
+            pingSend = true;
+        }
+        if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
+            // Ping automatically sent as a latency probe & keepalive.
+            pingSend = true;
+        }
+        if (pingSend) {
+            uint64_t nonce = 0;
+            while (nonce == 0) {
+                GetRandBytes((unsigned char*)&nonce, sizeof(nonce));
+            }
+            pto->fPingQueued = false;
+            pto->nPingUsecStart = GetTimeMicros();
+            if (pto->nVersion > BIP0031_VERSION) {
+                pto->nPingNonceSent = nonce;
+                if (pto->nVersion >= PING_INCLUDES_HEIGHT_VERSION) {
+                    pto->PushMessage(NetMsgType::PING, nonce, nChainHeight);
+                }
+                else {
+                    pto->PushMessage(NetMsgType::PING, nonce);
+                }
+            } else {
+                // Peer is too old to support ping command with nonce, pong will never arrive.
+                pto->nPingNonceSent = 0;
+                pto->PushMessage(NetMsgType::PING);
+            }
+        }
+
+        TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
+        if (!lockMain)
+            return true;
+
+        // Address refresh broadcast
+        int64_t nNow = GetTimeMicros();
+        if (!IsInitialBlockDownload() && pto->nNextLocalAddrSend < nNow) {
+            AdvertizeLocal(pto);
+            pto->nNextLocalAddrSend = PoissonNextSend_Legacy(nNow, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL_LEGACY);
+        }
+
+        //
+        // Message: addr
+        //
+        if (pto->nNextAddrSend < nNow) {
+            pto->nNextAddrSend = PoissonNextSend_Legacy(nNow, AVG_ADDRESS_BROADCAST_INTERVAL_LEGACY);
+            vector<CAddress> vAddr;
+            vAddr.reserve(pto->vAddrToSend.size());
+            BOOST_FOREACH (const CAddress& addr, pto->vAddrToSend) {
+                if (!pto->addrKnown.contains(addr.GetKey())) {
+                    pto->addrKnown.insert(addr.GetKey());
+                    vAddr.push_back(addr);
+                    // receiver rejects addr messages larger than 1000
+                    if (vAddr.size() >= 1000)
+                    {
+                        pto->PushMessage(NetMsgType::ADDR, vAddr);
+                        vAddr.clear();
+                    }
+                }
+            }
+            pto->vAddrToSend.clear();
+            if (!vAddr.empty())
+                pto->PushMessage(NetMsgType::ADDR, vAddr);
+        }
+
+        CNodeState &state = *State(pto->GetId());
+        if (state.fShouldBan) {
+            if (pto->fWhitelisted)
+                LogPrintf("Warning: not punishing whitelisted peer %s!\n", pto->addr.ToString());
+            else {
+                pto->fDisconnect = true;
+                if (pto->addr.IsLocal())
+                    LogPrintf("Warning: not banning local peer %s!\n", pto->addr.ToString());
+                else {
+                    CNode::Ban(pto->addr, BanReasonNodeMisbehaving);
+                }
+            }
+            state.fShouldBan = false;
+        }
+
+        BOOST_FOREACH(const CBlockReject& reject, state.rejects)
+            pto->PushMessage(NetMsgType::REJECT, (string)NetMsgType::BLOCK, reject.chRejectCode, reject.strRejectReason, reject.hashBlock);
+        state.rejects.clear();
+
+        // Start block sync
+        if (pindexBestHeader == NULL)
+            pindexBestHeader = chainActive.Tip();
+        bool fFetch = state.fPreferredDownload || (nPreferredDownload == 0 && !pto->fClient && !pto->fOneShot); // Download if this is a nice peer, or we have no nice peers and this one might do.
+        if (!state.fSyncStarted && !pto->fClient && !fImporting && !fReindex) {
+            // Only actively request headers from a single peer, unless we're close to today.
+            if ((nSyncStarted == 0 && fFetch) || pindexBestHeader->GetBlockTime() > GetAdjustedTime() - 24 * 60 * 60) {
+                state.fSyncStarted = true;
+                nSyncStarted++;
+                const CBlockIndex *pindexStart = pindexBestHeader;
+                /* If possible, start at the block preceding the currently
+                   best known header.  This ensures that we always get a
+                   non-empty list of headers back as long as the peer
+                   is up-to-date.  With a non-empty response, we can initialise
+                   the peer's known best block.  This wouldn't be possible
+                   if we requested starting at pindexBestHeader and
+                   got back an empty response.  */
+                if (pindexStart->pprev)
+                    pindexStart = pindexStart->pprev;
+                LogPrint("net", "initial getheaders (%d) to peer=%d (startheight:%d)\n", pindexStart->nHeight, pto->id, pto->nStartingHeight);
+                pto->PushMessage(NetMsgType::GETHEADERS, chainActive.GetLocator(pindexStart), uint256());
+            }
+        }
+
+        // Resend wallet transactions that haven't gotten in a block yet
+        // Except during reindex, importing and IBD, when old wallet
+        // transactions become unconfirmed and spams other nodes.
+        if (!fReindex && !fImporting && !IsInitialBlockDownload_Legacy())
+        {
+            // LICO can be without nTimeBestReceived ???
+            //GetMainSignals().Broadcast(nTimeBestReceived);
+            GetMainSignals().Broadcast();
+        }
+
+        //
+        // Try sending block announcements via headers
+        //
+        {
+            // If we have less than MAX_BLOCKS_TO_ANNOUNCE in our
+            // list of block hashes we're relaying, and our peer wants
+            // headers announcements, then find the first header
+            // not yet known to our peer but would connect, and send.
+            // If no header would connect, or if we have too many
+            // blocks, or if the peer doesn't want headers, just
+            // add all to the inv queue.
+            LOCK(pto->cs_inventory);
+            vector<CBlock> vHeaders;
+            bool fRevertToInv = (!state.fPreferHeaders || pto->vBlockHashesToAnnounce.size() > MAX_BLOCKS_TO_ANNOUNCE_LEGACY);
+            CBlockIndex *pBestIndex = NULL; // last header queued for delivery
+            ProcessBlockAvailability(pto->id); // ensure pindexBestKnownBlock is up-to-date
+
+            if (!fRevertToInv) {
+                bool fFoundStartingHeader = false;
+                // Try to find first header that our peer doesn't have, and
+                // then send all headers past that one.  If we come across any
+                // headers that aren't on chainActive, give up.
+                BOOST_FOREACH(const uint256 &hash, pto->vBlockHashesToAnnounce) {
+                    BlockMap::iterator mi = mapBlockIndex.find(hash);
+                    assert(mi != mapBlockIndex.end());
+                    CBlockIndex *pindex = mi->second;
+                    if (chainActive[pindex->nHeight] != pindex) {
+                        // Bail out if we reorged away from this block
+                        fRevertToInv = true;
+                        break;
+                    }
+                    if (pBestIndex != NULL && pindex->pprev != pBestIndex) {
+                        // This means that the list of blocks to announce don't
+                        // connect to each other.
+                        // This shouldn't really be possible to hit during
+                        // regular operation (because reorgs should take us to
+                        // a chain that has some block not on the prior chain,
+                        // which should be caught by the prior check), but one
+                        // way this could happen is by using invalidateblock /
+                        // reconsiderblock repeatedly on the tip, causing it to
+                        // be added multiple times to vBlockHashesToAnnounce.
+                        // Robustly deal with this rare situation by reverting
+                        // to an inv.
+                        fRevertToInv = true;
+                        break;
+                    }
+                    pBestIndex = pindex;
+                    if (fFoundStartingHeader) {
+                        // add this to the headers message
+                        vHeaders.push_back(pindex->GetBlockHeader());
+                    } else if (PeerHasHeader_Legacy(&state, pindex)) {
+                        continue; // keep looking for the first new block
+                    } else if (pindex->pprev == NULL || PeerHasHeader_Legacy(&state, pindex->pprev)) {
+                        // Peer doesn't have this header but they do have the prior one.
+                        // Start sending headers.
+                        fFoundStartingHeader = true;
+                        vHeaders.push_back(pindex->GetBlockHeader());
+                    } else {
+                        // Peer doesn't have this header or the prior one -- nothing will
+                        // connect, so bail out.
+                        fRevertToInv = true;
+                        break;
+                    }
+                }
+            }
+            if (fRevertToInv) {
+                // If falling back to using an inv, just try to inv the tip.
+                // The last entry in vBlockHashesToAnnounce was our tip at some point
+                // in the past.
+                if (!pto->vBlockHashesToAnnounce.empty()) {
+                    const uint256 &hashToAnnounce = pto->vBlockHashesToAnnounce.back();
+                    BlockMap::iterator mi = mapBlockIndex.find(hashToAnnounce);
+                    assert(mi != mapBlockIndex.end());
+                    CBlockIndex *pindex = mi->second;
+
+                    // Warn if we're announcing a block that is not on the main chain.
+                    // This should be very rare and could be optimized out.
+                    // Just log for now.
+                    if (chainActive[pindex->nHeight] != pindex) {
+                        LogPrint("net", "Announcing block %s not on main chain (tip=%s)\n",
+                            hashToAnnounce.ToString(), chainActive.Tip()->GetBlockHash().ToString());
+                    }
+
+                    // If the peer announced this block to us, don't inv it back.
+                    // (Since block announcements may not be via inv's, we can't solely rely on
+                    // setInventoryKnown to track this.)
+                    if (!PeerHasHeader_Legacy(&state, pindex)) {
+                        pto->PushInventory(CInv(MSG_BLOCK, hashToAnnounce));
+                        LogPrint("net", "%s: sending inv peer=%d hash=%s\n", __func__,
+                            pto->id, hashToAnnounce.ToString());
+                    }
+                }
+            } else if (!vHeaders.empty()) {
+                if (vHeaders.size() > 1) {
+                    LogPrint("net", "%s: %u headers, range (%s, %s), to peer=%d\n", __func__,
+                            vHeaders.size(),
+                            vHeaders.front().GetHash().ToString(),
+                            vHeaders.back().GetHash().ToString(), pto->id);
+                } else {
+                    LogPrint("net", "%s: sending header %s to peer=%d\n", __func__,
+                            vHeaders.front().GetHash().ToString(), pto->id);
+                }
+                pto->PushMessage(NetMsgType::HEADERS, vHeaders);
+                state.pindexBestHeaderSent_Legacy = pBestIndex;
+            }
+            pto->vBlockHashesToAnnounce.clear();
+        }
+
+        //
+        // Message: inventory
+        //
+        vector<CInv> vInv;
+        vector<CInv> vInvWait;
+        {
+            bool fSendTrickle = pto->fWhitelisted;
+            if (pto->nNextInvSend < nNow) {
+                fSendTrickle = true;
+                pto->nNextInvSend = PoissonNextSend_Legacy(nNow, AVG_INVENTORY_BROADCAST_INTERVAL_LEGACY);
+            }
+            LOCK(pto->cs_inventory);
+            vInv.reserve(std::min<size_t>(1000, pto->vInventoryToSend.size()));
+            vInvWait.reserve(pto->vInventoryToSend.size());
+            BOOST_FOREACH(const CInv& inv, pto->vInventoryToSend)
+            {
+                if (inv.type == MSG_TX && pto->filterInventoryKnown.contains(inv.hash))
+                    continue;
+
+                // trickle out tx inv to protect privacy
+                if (inv.type == MSG_TX && !fSendTrickle)
+                {
+                    // 1/4 of tx invs blast to all immediately
+                    static uint256 hashSalt;
+                    if (hashSalt.IsNull())
+                        hashSalt = GetRandHash();
+                    uint256 hashRand = ArithToUint256(UintToArith256(inv.hash) ^ UintToArith256(hashSalt));
+                    hashRand = Hash(BEGIN(hashRand), END(hashRand));
+                    bool fTrickleWait = ((UintToArith256(hashRand) & 3) != 0);
+
+                    if (fTrickleWait)
+                    {
+                        vInvWait.push_back(inv);
+                        continue;
+                    }
+                }
+
+                pto->filterInventoryKnown.insert(inv.hash);
+                vInv.push_back(inv);
+                if (vInv.size() >= 1000)
+                {
+                    pto->PushMessage(NetMsgType::INV, vInv);
+                    vInv.clear();
+                }
+            }
+            pto->vInventoryToSend = vInvWait;
+        }
+        if (!vInv.empty())
+            pto->PushMessage(NetMsgType::INV, vInv);
+
+        // Detect whether we're stalling
+        nNow = GetTimeMicros();
+        if (!pto->fDisconnect && state.nStallingSince && state.nStallingSince < nNow - 1000000 * BLOCK_STALLING_TIMEOUT) {
+            // Stalling only triggers when the block download window cannot move. During normal steady state,
+            // the download window should be much larger than the to-be-downloaded set of blocks, so disconnection
+            // should only happen during initial block download.
+            LogPrintf("Peer=%d is stalling block download, disconnecting\n", pto->id);
+            pto->fDisconnect = true;
+        }
+        // In case there is a block that has been in flight from this peer for 2 + 0.5 * N times the block interval
+        // (with N the number of peers from which we're downloading validated blocks), disconnect due to timeout.
+        // We compensate for other peers to prevent killing off peers due to our own downstream link
+        // being saturated. We only count validated in-flight blocks so peers can't advertise non-existing block hashes
+        // to unreasonably increase our timeout.
+        if (!pto->fDisconnect && state.vBlocksInFlight.size() > 0) {
+            QueuedBlock &queuedBlock = state.vBlocksInFlight.front();
+            int nOtherPeersWithValidatedDownloads = nPeersWithValidatedDownloads - (state.nBlocksInFlightValidHeaders > 0);
+            if (nNow > state.nDownloadingSince + Params().TargetSpacing() * (BLOCK_DOWNLOAD_TIMEOUT_BASE_LEGACY + BLOCK_DOWNLOAD_TIMEOUT_BASE_LEGACY * nOtherPeersWithValidatedDownloads)) {
+                LogPrintf("Timeout downloading block %s from peer=%d, disconnecting\n", queuedBlock.hash.ToString(), pto->id);
+                pto->fDisconnect = true;
+            }
+        }
+
+        //
+        // Message: getdata (blocks)
+        //
+        vector<CInv> vGetData;
+        if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload_Legacy()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+            vector<CBlockIndex*> vToDownload;
+            NodeId staller = -1;
+            FindNextBlocksToDownload(pto->GetId(), MAX_BLOCKS_IN_TRANSIT_PER_PEER - state.nBlocksInFlight, vToDownload, staller);
+            BOOST_FOREACH (CBlockIndex* pindex, vToDownload) {
+                vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
+                MarkBlockAsInFlight_Legacy(pto->GetId(), pindex->GetBlockHash(), pindex);
+                LogPrint("net", "Requesting block %s (%d) peer=%d\n", pindex->GetBlockHash().ToString(),
+                    pindex->nHeight, pto->id);
+            }
+            if (state.nBlocksInFlight == 0 && staller != -1) {
+                if (State(staller)->nStallingSince == 0) {
+                    State(staller)->nStallingSince = nNow;
+                    LogPrint("net", "Stall started peer=%d\n", staller);
+                }
+            }
+        }
+
+        //
+        // Message: getdata (non-blocks)
+        //
+        while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
+        {
+            const CInv& inv = (*pto->mapAskFor.begin()).second;
+            if (!AlreadyHave_Legacy(inv))
+            {
+                if (fDebug)
+                    LogPrint("net", "Requesting %s peer=%d\n", inv.ToString(), pto->id);
+                vGetData.push_back(inv);
+                if (vGetData.size() >= 1000)
+                {
+                    pto->PushMessage(NetMsgType::GETDATA, vGetData);
+                    vGetData.clear();
+                }
+            } else {
+                //If we're not going to ask, don't expect a response.
+                pto->setAskFor.erase(inv.hash);
+            }
+            pto->mapAskFor.erase(pto->mapAskFor.begin());
+        }
+        if (!vGetData.empty())
+            pto->PushMessage(NetMsgType::GETDATA, vGetData);
+
+    }
+    return true;
+}
 
 bool CBlockUndo::WriteToDisk(CDiskBlockPos& pos, const uint256& hashBlock)
 {

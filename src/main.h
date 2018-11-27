@@ -126,7 +126,10 @@ static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
 
 /** Maximum length of reject messages. */
 static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
-
+static const unsigned int AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL_LEGACY = 24 * 24 * 60;
+static const unsigned int AVG_INVENTORY_BROADCAST_INTERVAL_LEGACY = 5;
+static const unsigned int AVG_ADDRESS_BROADCAST_INTERVAL_LEGACY = 30;
+static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE_LEGACY = 1000000;
 /** Enable bloom filter */
  static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
@@ -279,6 +282,14 @@ bool ProcessMessages(CNode* pfrom);
  * @param[in]   fSendTrickle    When true send the trickled data, otherwise trickle the data until true.
  */
 bool SendMessages(CNode* pto, bool fSendTrickle);
+/**
+ * Send queued protocol messages to be sent to a give node.
+ *
+ * @param[in]   pto             The node which we are sending messages to.
+ */
+bool SendMessages_Legacy(CNode* pto);
+
+
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 

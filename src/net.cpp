@@ -357,6 +357,8 @@ CCriticalSection CNode::cs_totalBytesSent;
 
 uint64_t CNode::nMaxOutboundLimit = 0;
 uint64_t CNode::nMaxOutboundTotalBytesSentInCycle = 0;
+uint64_t CNode::nMaxOutboundTimeframe = 60*60*24; //1 day
+uint64_t CNode::nMaxOutboundCycleStartTime = 0;
 
 CNode* FindNode(const CNetAddr& ip)
 {
@@ -2190,6 +2192,59 @@ void CNode::RecordBytesSent(uint64_t bytes)
 {
     LOCK(cs_totalBytesSent);
     nTotalBytesSent += bytes;
+
+    uint64_t now = GetTime();
+    if (nMaxOutboundCycleStartTime + nMaxOutboundTimeframe < now)
+    {
+        // timeframe expired, reset cycle
+        nMaxOutboundCycleStartTime = now;
+        nMaxOutboundTotalBytesSentInCycle = 0;
+    }
+
+    // TODO, exclude whitebind peers
+    nMaxOutboundTotalBytesSentInCycle += bytes;
+}
+
+void CNode::SetMaxOutboundTarget(uint64_t limit)
+{
+    LOCK(cs_totalBytesSent);
+    uint64_t recommendedMinimum = (nMaxOutboundTimeframe / 600) * MAX_BLOCK_SIZE_LEGACY;
+    nMaxOutboundLimit = limit;
+
+    if (limit > 0 && limit < recommendedMinimum)
+        LogPrintf("Max outbound target is very small (%s bytes) and will be overshot. Recommended minimum is %s bytes.\n", nMaxOutboundLimit, recommendedMinimum);
+}
+
+uint64_t CNode::GetMaxOutboundTimeframe()
+{
+    LOCK(cs_totalBytesSent);
+    return nMaxOutboundTimeframe;
+}
+
+uint64_t CNode::GetMaxOutboundTimeLeftInCycle()
+{
+    LOCK(cs_totalBytesSent);
+    if (nMaxOutboundLimit == 0)
+        return 0;
+
+    if (nMaxOutboundCycleStartTime == 0)
+        return nMaxOutboundTimeframe;
+
+    uint64_t cycleEndTime = nMaxOutboundCycleStartTime + nMaxOutboundTimeframe;
+    uint64_t now = GetTime();
+    return (cycleEndTime < now) ? 0 : cycleEndTime - GetTime();
+}
+
+void CNode::SetMaxOutboundTimeframe(uint64_t timeframe)
+{
+    LOCK(cs_totalBytesSent);
+    if (nMaxOutboundTimeframe != timeframe)
+    {
+        // reset measure-cycle in case of changing
+        // the timeframe
+        nMaxOutboundCycleStartTime = GetTime();
+    }
+    nMaxOutboundTimeframe = timeframe;
 }
 
 uint64_t CNode::GetTotalBytesRecv()
@@ -2389,6 +2444,9 @@ CNode::CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn, bool fIn
     hashContinue = 0;
     nStartingHeight = -1;
     fGetAddr = false;
+    nNextLocalAddrSend = 0;
+    nNextAddrSend = 0;
+    nNextInvSend = 0;
     fRelayTxes = false;
     filterInventoryKnown.reset();
     pfilter = new CBloomFilter();
@@ -2636,3 +2694,8 @@ void DumpBanlist()
     LogPrint("net", "Flushed %d banned node ips/subnets to banlist.dat  %dms\n",
         banmap.size(), GetTimeMillis() - nStart);
 }
+
+int64_t PoissonNextSend_Legacy(int64_t nNow, int average_interval_seconds) {
+    return nNow + (int64_t)(log1p(GetRand(1ULL << 48) * -0.0000000000000035527136788 /* -1/2^48 */) * average_interval_seconds * -1000000.0 + 0.5);
+}
+
