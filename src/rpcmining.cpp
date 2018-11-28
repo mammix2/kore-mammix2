@@ -216,7 +216,7 @@ UniValue gethashespersec(const UniValue& params, bool fHelp)
 
     if (GetTimeMillis() - nHPSTimerStart > 8000)
         return (int64_t)0;
-    return (int64_t)dHashesPerSec;
+    return (int64_t)dHashesPerMin;
 }
 #endif
 

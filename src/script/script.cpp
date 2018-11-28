@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2017-2018 The KORE developers
+// Copyright (c) 2009-2015 The KoreCore developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -141,8 +140,8 @@ const char* GetOpName(opcodetype opcode)
 
     // expanson
     case OP_NOP1                   : return "OP_NOP1";
-    case OP_NOP2                   : return "OP_NOP2";
-    case OP_NOP3                   : return "OP_NOP3";
+    case OP_CHECKLOCKTIMEVERIFY    : return "OP_CHECKLOCKTIMEVERIFY";
+    case OP_CHECKSEQUENCEVERIFY    : return "OP_CHECKSEQUENCEVERIFY";
     case OP_NOP4                   : return "OP_NOP4";
     case OP_NOP5                   : return "OP_NOP5";
     case OP_NOP6                   : return "OP_NOP6";
@@ -150,11 +149,6 @@ const char* GetOpName(opcodetype opcode)
     case OP_NOP8                   : return "OP_NOP8";
     case OP_NOP9                   : return "OP_NOP9";
     case OP_NOP10                  : return "OP_NOP10";
-#ifdef ZEROCOIN
-    // zerocoin
-    case OP_ZEROCOINMINT           : return "OP_ZEROCOINMINT";
-    case OP_ZEROCOINSPEND          : return "OP_ZEROCOINSPEND";
-#endif
 
     case OP_INVALIDOPCODE          : return "OP_INVALIDOPCODE";
 
@@ -185,7 +179,7 @@ unsigned int CScript::GetSigOpCount(bool fAccurate) const
             if (fAccurate && lastOpcode >= OP_1 && lastOpcode <= OP_16)
                 n += DecodeOP_N(lastOpcode);
             else
-                n += 20;
+                n += MAX_PUBKEYS_PER_MULTISIG;
         }
         lastOpcode = opcode;
     }
@@ -249,23 +243,6 @@ bool CScript::IsPayToScriptHash() const
             (*this)[22] == OP_EQUAL);
 }
 
-#ifdef ZEROCOIN
-bool CScript::IsZerocoinMint() const
-{
-    //fast test for Zerocoin Mint CScripts
-    return (this->size() > 0 &&
-        this->at(0) == OP_ZEROCOINMINT);
-}
-
-bool CScript::IsZerocoinSpend() const
-{
-    if (this->empty())
-        return false;
-
-    return (this->at(0) == OP_ZEROCOINSPEND);
-}
-#endif
-
 bool CScript::IsPushOnly(const_iterator pc) const
 {
     while (pc < end())
@@ -303,18 +280,10 @@ std::string CScript::ToString() const
             str += "[error]";
             return str;
         }
-        if (0 <= opcode && opcode <= OP_PUSHDATA4) {
+        if (0 <= opcode && opcode <= OP_PUSHDATA4)
             str += ValueString(vch);
-        } else {
+        else
             str += GetOpName(opcode);
-#ifdef ZEROCOIN
-            if (opcode == OP_ZEROCOINSPEND) {
-                //Zerocoinspend has no further op codes.
-                break;
-            }
-#endif
-        }
-
     }
     return str;
 }

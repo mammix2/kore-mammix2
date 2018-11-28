@@ -591,6 +591,46 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, b
     }
 }
 
+void CBudgetManager::FillBlockPayee_Legacy(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake)
+{
+    LOCK(cs);
+
+    CBlockIndex* pindexPrev = chainActive.Tip();
+    if (!pindexPrev) return;
+
+    int nHighestCount = 0;
+    CScript payee;
+    CAmount nAmount = 0;
+
+    // ------- Grab The Highest Count
+
+    std::map<uint256, CFinalizedBudget>::iterator it = mapFinalizedBudgets.begin();
+    while (it != mapFinalizedBudgets.end()) {
+        CFinalizedBudget* pfinalizedBudget = &((*it).second);
+        if (pfinalizedBudget->GetVoteCount() > nHighestCount &&
+            pindexPrev->nHeight + 1 >= pfinalizedBudget->GetBlockStart() &&
+            pindexPrev->nHeight + 1 <= pfinalizedBudget->GetBlockEnd() &&
+            pfinalizedBudget->GetPayeeAndAmount(pindexPrev->nHeight + 1, payee, nAmount)) {
+            nHighestCount = pfinalizedBudget->GetVoteCount();
+        }
+        ++it;
+    }
+
+    if (nHighestCount > 0) {
+        unsigned int i = txNew.vout.size();
+        txNew.vout.resize(i + 1);
+        //these are super blocks, so their value can be much larger than normal
+        txNew.vout[i].scriptPubKey = payee;
+        txNew.vout[i].nValue = nAmount;
+
+        CTxDestination address1;
+        ExtractDestination(payee, address1);
+        CBitcoinAddress address2(address1);
+
+        LogPrintf("CBudgetManager::FillBlockPayee - Budget payment to %s for %lld\n", address2.ToString(), nAmount);
+    }
+}
+
 CFinalizedBudget* CBudgetManager::FindFinalizedBudget(uint256 nHash)
 {
     if (mapFinalizedBudgets.count(nHash))

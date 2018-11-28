@@ -312,6 +312,18 @@ void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStak
     }
 }
 
+void FillBlockPayee_Legacy(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake)
+{
+    CBlockIndex* pindexPrev = chainActive.Tip();
+    if (!pindexPrev) return;
+
+    if (budget.IsBudgetPaymentBlock_Legacy(pindexPrev->nHeight + 1)) {
+        budget.FillBlockPayee_Legacy(txNew, nFees, fProofOfStake);
+    } else {
+        masternodePayments.FillBlockPayee_Legacy(txNew, nFees, fProofOfStake);
+    }
+}
+
 std::string GetRequiredPaymentsString(int nBlockHeight)
 {
     if (IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(nBlockHeight)) {
@@ -392,6 +404,69 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             LogPrint("masternode", "No MasterNode to pay, but blockValue is %d\n", blockValue);
         }
     }
+}
+
+void CMasternodePayments::FillBlockPayee_Legacy(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake)
+{
+    CBlockIndex* pindexPrev = chainActive.Tip();
+    if (!pindexPrev) return;
+
+    bool hasPayment = true;
+    CScript payee;
+
+    //spork
+    if (!masternodePayments.GetBlockPayee(pindexPrev->nHeight + 1, payee)) {
+        //no masternode detected
+        CMasternode* winningNode = mnodeman.GetCurrentMasterNode(1);
+        if (winningNode) {
+            payee = GetScriptForDestination(winningNode->pubKeyCollateralAddress.GetID());
+        } else {
+            LogPrintf("CreateNewBlock: Failed to detect masternode to pay\n");
+            hasPayment = false;
+        }
+    }
+    CAmount input =0;
+    CTransaction txc(txNew);
+
+    if (fProofOfStake){
+        CCoinsViewCache &view = *pcoinsTip;
+        if (!view.HaveInputs(txc)){
+           LogPrintf("TxToString () : Inputs unavailable");
+        }
+        BOOST_FOREACH(const CTxIn &txin, txc.vin)
+        {
+            const COutPoint &prevout = txin.prevout;
+            const CCoins *coins = view.AccessCoins(prevout.hash);
+            if (!coins)
+                continue;
+
+            const CTxOut& PrevOut = coins->vout[prevout.n];
+            input += PrevOut.nValue;
+        }
+    }
+
+
+    CAmount blockValue = fProofOfStake ? txc.GetValueOut() - input : GetBlockValue(pindexPrev->nHeight+ 1);
+    CAmount masternodePayment = GetMasternodePayment_Legacy(pindexPrev->nHeight, blockValue);
+
+    if (hasPayment) {
+
+        unsigned int i = txNew.vout.size();
+        txNew.vout.resize(i + 1);
+        txNew.vout[i].scriptPubKey = payee;
+        txNew.vout[i].nValue = masternodePayment;
+
+        if (fProofOfStake)
+            txNew.vout[1].nValue -= masternodePayment;
+        else
+            txNew.vout[0].nValue -= masternodePayment;
+
+        CTxDestination address1;
+        ExtractDestination(payee, address1);
+        CBitcoinAddress address2(address1);
+
+        LogPrintf("Masternode payment of %s to %s\n", FormatMoney(masternodePayment).c_str(), address2.ToString().c_str());
+    } 
 }
 
 int CMasternodePayments::GetMinMasternodePaymentsProto()

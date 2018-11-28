@@ -3947,8 +3947,7 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
 
     if (coins->nTime + Params().StakeMinAge() > block.vtx[1].nTime) // Min age requirement
         return error("CheckProofOfStake() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d \n", coins->nTime, Params().StakeMinAge(), block.vtx[1].nTime);
-        uint256 hashProofOfStake;
-        if (!CheckStakeKernelHash(pindex->pprev, block.nBits, coins, prevout, block.vtx[1].nTime, hashProofOfStake))
+        if (!CheckStakeKernelHash(pindex->pprev, block.nBits, coins, prevout, block.vtx[1].nTime))
             return state.DoS(100, error("%s: proof-of-stake hash doesn't match nBits", __func__), REJECT_INVALID, "bad-cs-proofhash");
     }
 
