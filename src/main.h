@@ -162,6 +162,7 @@ static const unsigned int DEFAULT_LIMITFREERELAY_LEGACY = 15;
 static const bool DEFAULT_RELAYPRIORITY_LEGACY = true;
 
 /** Default for -permitbaremultisig */
+static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 static const unsigned int DEFAULT_BYTES_PER_SIGOP_LEGACY = 20;
 static const bool DEFAULT_WHITELISTRELAY_LEGACY = true;
 struct BlockHasher {
@@ -183,12 +184,16 @@ extern bool fImporting;
 extern bool fReindex;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
+extern bool fAddrIndex;
 extern bool fIsBareMultisigStd;
+extern bool fRequireStandard;
+extern unsigned int nBytesPerSigOp;
 extern bool fCheckBlockIndex;
 extern unsigned int nCoinCacheSize;
 extern size_t nCoinCacheUsage;
 extern CFeeRate minRelayTxFee;
 extern bool fAlerts;
+extern bool fEnableReplacement;
 extern bool fVerifyingBlocks;
 
 extern bool fLargeWorkForkFound;
@@ -209,6 +214,15 @@ extern CBlockIndex* pindexBestHeader;
 /** Minimum disk space required - used in CheckDiskSpace() */
 static const uint64_t nMinDiskSpace = 52428800;
 
+/** Pruning-related variables and constants */
+/** True if any block files have ever been pruned. */
+extern bool fHavePruned;
+
+/** True if we're running in -prune mode. */
+extern bool fPruneMode;
+/** Number of MiB of block files that we're trying to stay below. */
+extern uint64_t nPruneTarget;
+
 /** Register a wallet to receive updates from core */
 void RegisterValidationInterface(CValidationInterface* pwalletIn);
 /** Unregister a wallet from core */
@@ -223,6 +237,16 @@ static const unsigned int MIN_BLOCKS_TO_KEEP = 500;
 
 static const signed int DEFAULT_CHECKBLOCKS = MIN_BLOCKS_TO_KEEP;
 static const unsigned int DEFAULT_CHECKLEVEL = 3;
+
+// Require that user allocate at least 550MB for block & undo files (blk???.dat and rev???.dat)
+// At 1MB per block, 288 blocks = 288MB.
+// Add 15% for Undo data = 331MB
+// Add 20% for Orphan block rate = 397MB
+// We want the low water mark after pruning to be at least 397 MB and since we prune in
+// full block file chunks, we need the high water mark which triggers the prune to be
+// one 128MB block file + added 15% undo data = 147MB greater for a total of 545MB
+// Setting the target to > than 550MB will make it likely we can respect the target.
+static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
 
 /** Register with a network node to receive its signals */
 void RegisterNodeSignals(CNodeSignals& nodeSignals);

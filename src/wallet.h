@@ -59,6 +59,15 @@ static const CAmount nHighTransactionMaxFeeWarning = 100 * nHighTransactionFeeWa
 static const unsigned int MAX_FREE_TRANSACTION_CREATE_SIZE = 1000;
 //! -custombackupthreshold default
 static const int DEFAULT_CUSTOMBACKUPTHRESHOLD = 1;
+//! Default for -sendfreetransactions
+static const bool DEFAULT_SEND_FREE_TRANSACTIONS = false;
+
+//! Default for -spendzeroconfchange
+static const bool DEFAULT_SPEND_ZEROCONF_CHANGE = true;
+
+//! -txconfirmtarget default
+static const unsigned int DEFAULT_TX_CONFIRM_TARGET = 2;
+
 
 // Zerocoin denomination which creates exactly one of each denominations:
 // 6666 = 1*5000 + 1*1000 + 1*500 + 1*100 + 1*50 + 1*10 + 1*5 + 1
@@ -668,6 +677,9 @@ public:
 
     //! Get wallet transactions that conflict with given transaction (spend same outputs)
     std::set<uint256> GetConflicts(const uint256& txid) const;
+
+    //! Verify the wallet database and perform salvage if required
+    static bool Verify(const std::string& walletFile, std::string& warningString, std::string& errorString);
 
     /**
      * Address book entry changed.
