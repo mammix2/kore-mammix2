@@ -303,8 +303,7 @@ public:
         nRejectOldSporkKey = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         // genesis for Legacy Kore - using momentum
-        const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
-	    genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
+	    genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
         // using yescript
         //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 3      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
         hashGenesisBlock = genesis.GetHash();
@@ -455,7 +454,7 @@ public:
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
         // genesis for momentum
-        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1541080950, 1237, 2500634, 64441706, 0x1f7fffff, 1, 49 * COIN);
+        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1541080950, 1237, 2500634, 64441706, 0x1f7fffff, 1, 49 * COIN);
         // genesis for yescrytR32
         //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 7 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());

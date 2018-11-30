@@ -210,7 +210,7 @@ bool CBlockTreeDB::WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos>
     return WriteBatch(batch);
 }
 
-bool CBlockTreeDB::ReadAddrIndex_Legacy(uint160 addrid, std::vector<CExtDiskTxPos> &list) {
+bool CBlockTreeDB::ReadAddrIndex(uint160 addrid, std::vector<CExtDiskTxPos> &list) {
     boost::scoped_ptr<CLevelDBIterator> pcursor(NewIterator());
 
     uint64_t lookupid;
@@ -235,7 +235,7 @@ bool CBlockTreeDB::ReadAddrIndex_Legacy(uint160 addrid, std::vector<CExtDiskTxPo
     return true;
 }
 
-bool CBlockTreeDB::AddAddrIndex_Legacy(const std::vector<std::pair<uint160, CExtDiskTxPos> > &list) {
+bool CBlockTreeDB::AddAddrIndex(const std::vector<std::pair<uint160, CExtDiskTxPos> > &list) {
     unsigned char foo[0];
     CLevelDBBatch batch(&GetObfuscateKey());
     for (std::vector<std::pair<uint160, CExtDiskTxPos> >::const_iterator it=list.begin(); it!=list.end(); it++) {

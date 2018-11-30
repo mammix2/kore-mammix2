@@ -2409,7 +2409,7 @@ bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransact
     return true;
 }
 
-bool FindTransactionsByDestination_Legacy(const CTxDestination &dest, std::set<CExtDiskTxPos> &setpos) {
+bool FindTransactionsByDestination(const CTxDestination &dest, std::set<CExtDiskTxPos> &setpos) {
     uint160 addrid;
     const CKeyID *pkeyid = boost::get<CKeyID>(&dest);
     if (pkeyid)
@@ -2426,7 +2426,7 @@ bool FindTransactionsByDestination_Legacy(const CTxDestination &dest, std::set<C
     if (!fAddrIndex)
         return false;
     std::vector<CExtDiskTxPos> vPos;
-    if (!pblocktree->ReadAddrIndex_Legacy(addrid, vPos))
+    if (!pblocktree->ReadAddrIndex(addrid, vPos))
         return false;
     setpos.insert(vPos.begin(), vPos.end());
     return true;
@@ -4138,7 +4138,7 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
             return AbortNode(state, "Failed to write transaction index");
 
     if (fAddrIndex)
-        if (!pblocktree->AddAddrIndex_Legacy(vPosAddrid))
+        if (!pblocktree->AddAddrIndex(vPosAddrid))
             return AbortNode(state, "Failed to write address index");
 
     // add this block to the view's block chain
@@ -4171,6 +4171,7 @@ enum FlushStateMode {
  * The caches and indexes are flushed if either they're too large, forceWrite is set, or
  * fast is not set and it's been a while since the last write.
  */
+/* FORK PIVX CODE
 bool static FlushStateToDisk(CValidationState& state, FlushStateMode mode)
 {
     LOCK(cs_main);
@@ -4221,118 +4222,7 @@ bool static FlushStateToDisk(CValidationState& state, FlushStateMode mode)
     }
     return true;
 }
-
-void FlushStateToDisk()
-{
-    CValidationState state;
-    FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
-}
-
-
-/**
- * BLOCK PRUNING CODE
- */
-
-/* Calculate the amount of disk space the block & undo files currently use */
-uint64_t CalculateCurrentUsage_Legacy()
-{
-    uint64_t retval = 0;
-    BOOST_FOREACH(const CBlockFileInfo &file, vinfoBlockFile) {
-        retval += file.nSize + file.nUndoSize;
-    }
-    return retval;
-}
-
-/* Prune a block file (modify associated database entries)*/
-void PruneOneBlockFile_Legacy(const int fileNumber)
-{
-    for (BlockMap::iterator it = mapBlockIndex.begin(); it != mapBlockIndex.end(); ++it) {
-        CBlockIndex* pindex = it->second;
-        if (pindex->nFile == fileNumber) {
-            pindex->nStatus &= ~BLOCK_HAVE_DATA;
-            pindex->nStatus &= ~BLOCK_HAVE_UNDO;
-            pindex->nFile = 0;
-            pindex->nDataPos = 0;
-            pindex->nUndoPos = 0;
-            setDirtyBlockIndex.insert(pindex);
-
-            // Prune from mapBlocksUnlinked -- any block we prune would have
-            // to be downloaded again in order to consider its chain, at which
-            // point it would be considered as a candidate for
-            // mapBlocksUnlinked or setBlockIndexCandidates.
-            std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> range = mapBlocksUnlinked.equal_range(pindex->pprev);
-            while (range.first != range.second) {
-                std::multimap<CBlockIndex *, CBlockIndex *>::iterator it = range.first;
-                range.first++;
-                if (it->second == pindex) {
-                    mapBlocksUnlinked.erase(it);
-                }
-            }
-        }
-    }
-
-    vinfoBlockFile[fileNumber].SetNull();
-    setDirtyFileInfo.insert(fileNumber);
-}
-
-
-void UnlinkPrunedFiles_Legacy(std::set<int>& setFilesToPrune)
-{
-    for (set<int>::iterator it = setFilesToPrune.begin(); it != setFilesToPrune.end(); ++it) {
-        CDiskBlockPos pos(*it, 0);
-        boost::filesystem::remove(GetBlockPosFilename(pos, "blk"));
-        boost::filesystem::remove(GetBlockPosFilename(pos, "rev"));
-        LogPrintf("Prune: %s deleted blk/rev (%05u)\n", __func__, *it);
-    }
-}
-
-/* Calculate the block/rev files that should be deleted to remain under target*/
-void FindFilesToPrune_Legacy(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight)
-{
-    LOCK2(cs_main, cs_LastBlockFile);
-    if (chainActive.Tip() == NULL || nPruneTarget == 0) {
-        return;
-    }
-    if ((uint64_t)chainActive.Tip()->nHeight <= nPruneAfterHeight) {
-        return;
-    }
-
-    unsigned int nLastBlockWeCanPrune = chainActive.Tip()->nHeight - MIN_BLOCKS_TO_KEEP;
-    uint64_t nCurrentUsage = CalculateCurrentUsage_Legacy();
-    // We don't check to prune until after we've allocated new space for files
-    // So we should leave a buffer under our target to account for another allocation
-    // before the next pruning.
-    uint64_t nBuffer = BLOCKFILE_CHUNK_SIZE + UNDOFILE_CHUNK_SIZE;
-    uint64_t nBytesToPrune;
-    int count=0;
-
-    if (nCurrentUsage + nBuffer >= nPruneTarget) {
-        for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
-            nBytesToPrune = vinfoBlockFile[fileNumber].nSize + vinfoBlockFile[fileNumber].nUndoSize;
-
-            if (vinfoBlockFile[fileNumber].nSize == 0)
-                continue;
-
-            if (nCurrentUsage + nBuffer < nPruneTarget)  // are we below our target?
-                break;
-
-            // don't prune files that could have a block within MIN_BLOCKS_TO_KEEP of the main chain's tip but keep scanning
-            if (vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune)
-                continue;
-
-            PruneOneBlockFile_Legacy(fileNumber);
-            // Queue up the files for removal
-            setFilesToPrune.insert(fileNumber);
-            nCurrentUsage -= nBytesToPrune;
-            count++;
-        }
-    }
-
-    LogPrint("prune", "Prune: target=%dMiB actual=%dMiB diff=%dMiB max_prune_height=%d removed %d blk/rev pairs\n",
-           nPruneTarget/1024/1024, nCurrentUsage/1024/1024,
-           ((int64_t)nPruneTarget - (int64_t)nCurrentUsage)/1024/1024,
-           nLastBlockWeCanPrune, count);
-}
+*/
 
 /**
  * Update the on-disk chain state.
@@ -4340,7 +4230,7 @@ void FindFilesToPrune_Legacy(std::set<int>& setFilesToPrune, uint64_t nPruneAfte
  * if they're too large, if it's been a while since the last write,
  * or always and in all cases if we're in prune mode and are deleting files.
  */
-bool static FlushStateToDisk_Legacy(CValidationState &state, FlushStateMode mode) {
+bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode) {
     const CChainParams& chainparams = Params();
     LOCK2(cs_main, cs_LastBlockFile);
     static int64_t nLastWrite = 0;
@@ -4350,7 +4240,7 @@ bool static FlushStateToDisk_Legacy(CValidationState &state, FlushStateMode mode
     bool fFlushForPrune = false;
     try {
     if (fPruneMode && fCheckForPruning && !fReindex) {
-        FindFilesToPrune_Legacy(setFilesToPrune, chainparams.PruneAfterHeight_Legacy());
+        FindFilesToPrune(setFilesToPrune, chainparams.PruneAfterHeight());
         fCheckForPruning = false;
         if (!setFilesToPrune.empty()) {
             fFlushForPrune = true;
@@ -4409,7 +4299,7 @@ bool static FlushStateToDisk_Legacy(CValidationState &state, FlushStateMode mode
         }
         // Finally remove any pruned files
         if (fFlushForPrune)
-            UnlinkPrunedFiles_Legacy(setFilesToPrune);
+            UnlinkPrunedFiles(setFilesToPrune);
         nLastWrite = nNow;
     }
     // Flush best chain related state. This can only be done if the blocks / block index write was also done.
@@ -4437,10 +4327,123 @@ bool static FlushStateToDisk_Legacy(CValidationState &state, FlushStateMode mode
     return true;
 }
 
-void PruneAndFlush_Legacy() {
+void FlushStateToDisk()
+{
+    CValidationState state;
+    FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
+}
+
+
+/**
+ * BLOCK PRUNING CODE
+ */
+
+/* Calculate the amount of disk space the block & undo files currently use */
+uint64_t CalculateCurrentUsage_Legacy()
+{
+    uint64_t retval = 0;
+    BOOST_FOREACH(const CBlockFileInfo &file, vinfoBlockFile) {
+        retval += file.nSize + file.nUndoSize;
+    }
+    return retval;
+}
+
+/* Prune a block file (modify associated database entries)*/
+void PruneOneBlockFile_Legacy(const int fileNumber)
+{
+    for (BlockMap::iterator it = mapBlockIndex.begin(); it != mapBlockIndex.end(); ++it) {
+        CBlockIndex* pindex = it->second;
+        if (pindex->nFile == fileNumber) {
+            pindex->nStatus &= ~BLOCK_HAVE_DATA;
+            pindex->nStatus &= ~BLOCK_HAVE_UNDO;
+            pindex->nFile = 0;
+            pindex->nDataPos = 0;
+            pindex->nUndoPos = 0;
+            setDirtyBlockIndex.insert(pindex);
+
+            // Prune from mapBlocksUnlinked -- any block we prune would have
+            // to be downloaded again in order to consider its chain, at which
+            // point it would be considered as a candidate for
+            // mapBlocksUnlinked or setBlockIndexCandidates.
+            std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> range = mapBlocksUnlinked.equal_range(pindex->pprev);
+            while (range.first != range.second) {
+                std::multimap<CBlockIndex *, CBlockIndex *>::iterator it = range.first;
+                range.first++;
+                if (it->second == pindex) {
+                    mapBlocksUnlinked.erase(it);
+                }
+            }
+        }
+    }
+
+    vinfoBlockFile[fileNumber].SetNull();
+    setDirtyFileInfo.insert(fileNumber);
+}
+
+
+void UnlinkPrunedFiles(std::set<int>& setFilesToPrune)
+{
+    for (set<int>::iterator it = setFilesToPrune.begin(); it != setFilesToPrune.end(); ++it) {
+        CDiskBlockPos pos(*it, 0);
+        boost::filesystem::remove(GetBlockPosFilename(pos, "blk"));
+        boost::filesystem::remove(GetBlockPosFilename(pos, "rev"));
+        LogPrintf("Prune: %s deleted blk/rev (%05u)\n", __func__, *it);
+    }
+}
+
+/* Calculate the block/rev files that should be deleted to remain under target*/
+void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight)
+{
+    LOCK2(cs_main, cs_LastBlockFile);
+    if (chainActive.Tip() == NULL || nPruneTarget == 0) {
+        return;
+    }
+    if ((uint64_t)chainActive.Tip()->nHeight <= nPruneAfterHeight) {
+        return;
+    }
+
+    unsigned int nLastBlockWeCanPrune = chainActive.Tip()->nHeight - MIN_BLOCKS_TO_KEEP;
+    uint64_t nCurrentUsage = CalculateCurrentUsage_Legacy();
+    // We don't check to prune until after we've allocated new space for files
+    // So we should leave a buffer under our target to account for another allocation
+    // before the next pruning.
+    uint64_t nBuffer = BLOCKFILE_CHUNK_SIZE + UNDOFILE_CHUNK_SIZE;
+    uint64_t nBytesToPrune;
+    int count=0;
+
+    if (nCurrentUsage + nBuffer >= nPruneTarget) {
+        for (int fileNumber = 0; fileNumber < nLastBlockFile; fileNumber++) {
+            nBytesToPrune = vinfoBlockFile[fileNumber].nSize + vinfoBlockFile[fileNumber].nUndoSize;
+
+            if (vinfoBlockFile[fileNumber].nSize == 0)
+                continue;
+
+            if (nCurrentUsage + nBuffer < nPruneTarget)  // are we below our target?
+                break;
+
+            // don't prune files that could have a block within MIN_BLOCKS_TO_KEEP of the main chain's tip but keep scanning
+            if (vinfoBlockFile[fileNumber].nHeightLast > nLastBlockWeCanPrune)
+                continue;
+
+            PruneOneBlockFile_Legacy(fileNumber);
+            // Queue up the files for removal
+            setFilesToPrune.insert(fileNumber);
+            nCurrentUsage -= nBytesToPrune;
+            count++;
+        }
+    }
+
+    LogPrint("prune", "Prune: target=%dMiB actual=%dMiB diff=%dMiB max_prune_height=%d removed %d blk/rev pairs\n",
+           nPruneTarget/1024/1024, nCurrentUsage/1024/1024,
+           ((int64_t)nPruneTarget - (int64_t)nCurrentUsage)/1024/1024,
+           nLastBlockWeCanPrune, count);
+}
+
+
+void PruneAndFlush() {
     CValidationState state;
     fCheckForPruning = true;
-    FlushStateToDisk_Legacy(state, FLUSH_STATE_NONE);
+    FlushStateToDisk(state, FLUSH_STATE_NONE);
 }
 
 
@@ -4607,7 +4610,7 @@ bool static DisconnectTip_Legacy(CValidationState& state)
     }
     LogPrint("bench", "- Disconnect block: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
     // Write the chain state to disk, if necessary.
-    if (!FlushStateToDisk_Legacy(state, FLUSH_STATE_IF_NEEDED))
+    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED))
         return false;
     // Resurrect mempool transactions from the disconnected block.
     std::vector<uint256> vHashUpdate;
@@ -4759,7 +4762,7 @@ bool static ConnectTip_Legacy(CValidationState& state, const CChainParams& chain
     int64_t nTime4 = GetTimeMicros(); nTimeFlush += nTime4 - nTime3;
     LogPrint("bench", "  - Flush: %.2fms [%.2fs]\n", (nTime4 - nTime3) * 0.001, nTimeFlush * 0.000001);
     // Write the chain state to disk, if necessary.
-    if (!FlushStateToDisk_Legacy(state, FLUSH_STATE_IF_NEEDED))
+    if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED))
         return false;
         
     int64_t nTime5 = GetTimeMicros(); nTimeChainState += nTime5 - nTime4;
@@ -5195,7 +5198,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
 
             pindexNewTip = chainActive.Tip();
             pindexFork = chainActive.FindFork(pindexOldTip);
-            fInitialDownload = IsInitialBlockDownload();
+            fInitialDownload = IsInitialBlockDownload_Legacy();
         }
         // When we reach this point, we switched to a new tip (stored in pindexNewTip).
 
@@ -5243,7 +5246,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
     CheckBlockIndex_Legacy();
 
     // Write changes periodically to disk, after relay.
-    if (!FlushStateToDisk_Legacy(state, FLUSH_STATE_PERIODIC)) {
+    if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
         return false;
     }
 
@@ -5319,6 +5322,7 @@ bool ReconsiderBlock(CValidationState& state, CBlockIndex* pindex)
     return true;
 }
 
+/* FORK OLD PIVX CODE
 CBlockIndex* AddToBlockIndex(const CBlock& block)
 {
     // Check for duplicate
@@ -5388,8 +5392,9 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
 
     return pindexNew;
 }
+*/
 
-CBlockIndex* AddToBlockIndex_Legacy(const CBlockHeader& block)
+CBlockIndex* AddToBlockIndex(const CBlock& block)
 {
     // Check for duplicate
     uint256 hash = block.GetHash();
@@ -5405,6 +5410,11 @@ CBlockIndex* AddToBlockIndex_Legacy(const CBlockHeader& block)
     // competitive advantage.
     pindexNew->nSequenceId = 0;
     BlockMap::iterator mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
+
+    //mark as PoS seen
+    if (pindexNew->IsProofOfStake())
+        setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
+
     pindexNew->phashBlock = &((*mi).first);
     BlockMap::iterator miPrev = mapBlockIndex.find(block.hashPrevBlock);
     if (miPrev != mapBlockIndex.end())
@@ -5412,11 +5422,43 @@ CBlockIndex* AddToBlockIndex_Legacy(const CBlockHeader& block)
         pindexNew->pprev = (*miPrev).second;
         pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
         pindexNew->BuildSkip();
+
+        //update previous block pointer
+        pindexNew->pprev->pnext = pindexNew;
+
+        // ppcoin: compute chain trust score
+        pindexNew->bnChainTrust = (pindexNew->pprev ? pindexNew->pprev->bnChainTrust : 0) + pindexNew->GetBlockTrust();
+
+        // ppcoin: compute stake entropy bit for stake modifier
+        if (!pindexNew->SetStakeEntropyBit(pindexNew->GetStakeEntropyBit()))
+            LogPrintf("AddToBlockIndex() : SetStakeEntropyBit() failed \n");
+
+        // ppcoin: record proof-of-stake hash value
+        if (pindexNew->IsProofOfStake()) {
+            if (!mapProofOfStake.count(hash))
+                LogPrintf("AddToBlockIndex() : hashProofOfStake not found in map \n");
+            pindexNew->hashProofOfStake = mapProofOfStake[hash];
+        }
+
+        // ppcoin: compute stake modifier
+        uint64_t nStakeModifier = 0;
+        bool fGeneratedStakeModifier = false;
+        if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
+            LogPrintf("AddToBlockIndex() : ComputeNextStakeModifier() failed \n");
+        pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
+        pindexNew->nStakeModifierOld = ComputeStakeModifier_Legacy(pindexNew->pprev, pindexNew->IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindexNew->GetBlockHash());
+        pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
+        if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
+            LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, boost::lexical_cast<std::string>(nStakeModifier));
     }
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);
     pindexNew->RaiseValidity(BLOCK_VALID_TREE);
     if (pindexBestHeader == NULL || pindexBestHeader->nChainWork < pindexNew->nChainWork)
         pindexBestHeader = pindexNew;
+
+    //update previous block pointer
+    if (pindexNew->nHeight)
+        pindexNew->pprev->pnext = pindexNew;
 
     setDirtyBlockIndex.insert(pindexNew);
 
@@ -5509,61 +5551,6 @@ bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAdd
         unsigned int nOldChunks = (pos.nPos + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
         unsigned int nNewChunks = (vinfoBlockFile[nFile].nSize + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
         if (nNewChunks > nOldChunks) {
-            if (CheckDiskSpace(nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos)) {
-                FILE *file = OpenBlockFile(pos);
-                if (file) {
-                    LogPrintf("Pre-allocating up to position 0x%x in blk%05u.dat\n", nNewChunks * BLOCKFILE_CHUNK_SIZE, pos.nFile);
-                    AllocateFileRange(file, pos.nPos, nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos);
-                    fclose(file);
-                }
-            }
-            else
-                return state.Error("out of disk space");
-        }
-    }
-
-    setDirtyFileInfo.insert(nFile);
-    return true;
-}
-
-bool FindBlockPos_Legacy(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int nHeight, uint64_t nTime, bool fKnown = false)
-{
-    LOCK(cs_LastBlockFile);
-
-    unsigned int nFile = fKnown ? pos.nFile : nLastBlockFile;
-    if (vinfoBlockFile.size() <= nFile) {
-        vinfoBlockFile.resize(nFile + 1);
-    }
-
-    if (!fKnown) {
-        while (vinfoBlockFile[nFile].nSize + nAddSize >= MAX_BLOCKFILE_SIZE) {
-            nFile++;
-            if (vinfoBlockFile.size() <= nFile) {
-                vinfoBlockFile.resize(nFile + 1);
-            }
-        }
-        pos.nFile = nFile;
-        pos.nPos = vinfoBlockFile[nFile].nSize;
-    }
-
-    if ((int)nFile != nLastBlockFile) {
-        if (!fKnown) {
-            LogPrintf("Leaving block file %i: %s\n", nLastBlockFile, vinfoBlockFile[nLastBlockFile].ToString());
-        }
-        FlushBlockFile(!fKnown);
-        nLastBlockFile = nFile;
-    }
-
-    vinfoBlockFile[nFile].AddBlock(nHeight, nTime);
-    if (fKnown)
-        vinfoBlockFile[nFile].nSize = std::max(pos.nPos + nAddSize, vinfoBlockFile[nFile].nSize);
-    else
-        vinfoBlockFile[nFile].nSize += nAddSize;
-
-    if (!fKnown) {
-        unsigned int nOldChunks = (pos.nPos + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
-        unsigned int nNewChunks = (vinfoBlockFile[nFile].nSize + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
-        if (nNewChunks > nOldChunks) {
             if (fPruneMode)
                 fCheckForPruning = true;
             if (CheckDiskSpace(nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos)) {
@@ -5582,6 +5569,7 @@ bool FindBlockPos_Legacy(CValidationState &state, CDiskBlockPos &pos, unsigned i
     setDirtyFileInfo.insert(nFile);
     return true;
 }
+
 
 bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigned int nAddSize)
 {
@@ -6233,7 +6221,7 @@ static bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState
             return false;
     }
     if (pindex == NULL)
-        pindex = AddToBlockIndex_Legacy(block);
+        pindex = AddToBlockIndex(block);
 
     if (ppindex)
         *ppindex = pindex;
@@ -6302,7 +6290,7 @@ static bool AcceptBlock_Legacy(const CBlock& block, CValidationState& state, CBl
     }
 
     if (fCheckForPruning)
-        FlushStateToDisk_Legacy(state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
+        FlushStateToDisk(state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
     return true;
 }
 
@@ -6744,113 +6732,6 @@ bool static LoadBlockIndexDB(string& strError)
     // Calculate nChainWork
     vector<pair<int, CBlockIndex*> > vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    for (const PAIRTYPE(uint256, CBlockIndex*) & item : mapBlockIndex) {
-        CBlockIndex* pindex = item.second;
-        vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
-    }
-    sort(vSortedByHeight.begin(), vSortedByHeight.end());
-    BOOST_FOREACH (const PAIRTYPE(int, CBlockIndex*) & item, vSortedByHeight) {
-        CBlockIndex* pindex = item.second;
-        pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
-        if (pindex->nStatus & BLOCK_HAVE_DATA) {
-            if (pindex->pprev) {
-                if (pindex->pprev->nChainTx) {
-                    pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
-                } else {
-                    pindex->nChainTx = 0;
-                    mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
-                }
-            } else {
-                pindex->nChainTx = pindex->nTx;
-            }
-        }
-        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))
-            setBlockIndexCandidates.insert(pindex);
-        if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
-            pindexBestInvalid = pindex;
-        if (pindex->pprev)
-            pindex->BuildSkip();
-        if (pindex->IsValid(BLOCK_VALID_TREE) && (pindexBestHeader == NULL || CBlockIndexWorkComparator()(pindexBestHeader, pindex)))
-            pindexBestHeader = pindex;
-    }
-
-    // Load block file info
-    pblocktree->ReadLastBlockFile(nLastBlockFile);
-    vinfoBlockFile.resize(nLastBlockFile + 1);
-    LogPrintf("%s: last block file = %i\n", __func__, nLastBlockFile);
-    for (int nFile = 0; nFile <= nLastBlockFile; nFile++) {
-        pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
-    }
-    LogPrintf("%s: last block file info: %s\n", __func__, vinfoBlockFile[nLastBlockFile].ToString());
-    for (int nFile = nLastBlockFile + 1; true; nFile++) {
-        CBlockFileInfo info;
-        if (pblocktree->ReadBlockFileInfo(nFile, info)) {
-            vinfoBlockFile.push_back(info);
-        } else {
-            break;
-        }
-    }
-
-    // Check presence of blk files
-    LogPrintf("Checking all blk files are present...\n");
-    set<int> setBlkDataFiles;
-    for (const PAIRTYPE(uint256, CBlockIndex*) & item : mapBlockIndex) {
-        CBlockIndex* pindex = item.second;
-        if (pindex->nStatus & BLOCK_HAVE_DATA) {
-            setBlkDataFiles.insert(pindex->nFile);
-        }
-    }
-    for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++) {
-        CDiskBlockPos pos(*it, 0);
-        if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION).IsNull()) {
-            return false;
-        }
-    }
-
-    //Check if the shutdown procedure was followed on last client exit
-    bool fLastShutdownWasPrepared = true;
-    pblocktree->ReadFlag("shutdown", fLastShutdownWasPrepared);
-    LogPrintf("%s: Last shutdown was prepared: %s\n", __func__, fLastShutdownWasPrepared);
-
-    // Check whether we need to continue reindexing
-    bool fReindexing = false;
-    pblocktree->ReadReindexing(fReindexing);
-    fReindex |= fReindexing;
-
-    // Check whether we have a transaction index
-    pblocktree->ReadFlag("txindex", fTxIndex);
-    LogPrintf("LoadBlockIndexDB(): transaction index %s\n", fTxIndex ? "enabled" : "disabled");
-
-    // If this is written true before the next client init, then we know the shutdown process failed
-    pblocktree->WriteFlag("shutdown", false);
-
-    // Load pointer to end of best chain
-    BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
-    if (it == mapBlockIndex.end())
-        return true;
-    chainActive.SetTip(it->second);
-
-    PruneBlockIndexCandidates();
-
-    LogPrintf("LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s progress=%f\n",
-        chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
-        DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-        Checkpoints::GuessVerificationProgress(chainActive.Tip()));
-
-    return true;
-}
-
-bool static LoadBlockIndexDB_Legacy()
-{
-    const CChainParams& chainparams = Params();
-    if (!pblocktree->LoadBlockIndexGuts())
-        return false;
-
-    boost::this_thread::interruption_point();
-
-    // Calculate nChainWork
-    vector<pair<int, CBlockIndex*> > vSortedByHeight;
-    vSortedByHeight.reserve(mapBlockIndex.size());
     BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
     {
         CBlockIndex* pindex = item.second;
@@ -6861,9 +6742,7 @@ bool static LoadBlockIndexDB_Legacy()
     {
         CBlockIndex* pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
-        // We can link the chain of blocks for which we've received transactions at some point.
-        // Pruned nodes may have deleted the block.
-        if (pindex->nTx > 0) {
+        if (pindex->nStatus & BLOCK_HAVE_DATA) {
             if (pindex->pprev) {
                 if (pindex->pprev->nChainTx) {
                     pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
@@ -6925,6 +6804,11 @@ bool static LoadBlockIndexDB_Legacy()
     if (fHavePruned)
         LogPrintf("LoadBlockIndexDB(): Block files have previously been pruned\n");
 
+    //Check if the shutdown procedure was followed on last client exit
+    bool fLastShutdownWasPrepared = true;
+    pblocktree->ReadFlag("shutdown", fLastShutdownWasPrepared);
+    LogPrintf("%s: Last shutdown was prepared: %s\n", __func__, fLastShutdownWasPrepared);
+
     // Check whether we need to continue reindexing
     bool fReindexing = false;
     pblocktree->ReadReindexing(fReindexing);
@@ -6936,6 +6820,9 @@ bool static LoadBlockIndexDB_Legacy()
 
     pblocktree->ReadFlag("addrindex", fAddrIndex);
     LogPrintf("LoadBlockIndexDB(): address index %s\n", fAddrIndex ? "enabled" : "disabled");
+
+    // If this is written true before the next client init, then we know the shutdown process failed
+    pblocktree->WriteFlag("shutdown", false);
 
     // Load pointer to end of best chain
     BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
@@ -7096,6 +6983,10 @@ bool LoadBlockIndex(string& strError)
 bool InitBlockIndex()
 {
     LOCK(cs_main);
+
+    // Initialize global variables that cannot be constructed at startup.
+    recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
+
     // Check whether we're already initialized
     if (chainActive.Genesis() != NULL)
         return true;
@@ -7103,6 +6994,8 @@ bool InitBlockIndex()
     // Use the provided setting for -txindex in the new database
     fTxIndex = GetBoolArg("-txindex", true);
     pblocktree->WriteFlag("txindex", fTxIndex);
+    fAddrIndex = GetBoolArg("-addrindex", DEFAULT_ADDRINDEX);
+    pblocktree->WriteFlag("addrindex", fAddrIndex);
     LogPrintf("Initializing databases...\n");
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
@@ -7132,6 +7025,7 @@ bool InitBlockIndex()
     return true;
 }
 
+/*
 bool InitBlockIndex_Legacy(const CChainParams& chainparams)
 {
     LOCK(cs_main);
@@ -7158,7 +7052,7 @@ bool InitBlockIndex_Legacy(const CChainParams& chainparams)
             unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
             CDiskBlockPos blockPos;
             CValidationState state;
-            if (!FindBlockPos_Legacy(state, blockPos, nBlockSize+8, 0, block.GetBlockTime()))
+            if (!FindBlockPos(state, blockPos, nBlockSize+8, 0, block.GetBlockTime()))
                 return error("LoadBlockIndex(): FindBlockPos failed");
             if (!WriteBlockToDisk(block, blockPos))
                 return error("LoadBlockIndex(): writing genesis block to disk failed");
@@ -7176,7 +7070,7 @@ bool InitBlockIndex_Legacy(const CChainParams& chainparams)
 
     return true;
 }
-
+*/
 
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
 {
@@ -9549,7 +9443,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
             if (nDoS > 0)
                 Misbehaving(pfrom->GetId(), nDoS);
         }
-        FlushStateToDisk_Legacy(state, FLUSH_STATE_PERIODIC);
+        FlushStateToDisk(state, FLUSH_STATE_PERIODIC);
     }
 
 
