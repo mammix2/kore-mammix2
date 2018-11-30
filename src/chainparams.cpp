@@ -302,10 +302,11 @@ public:
         nEnforceNewSporkKey = 1525158000; //!> Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
-        //        CreateGenesisBlock(nTime,      nNonce, nBirthdayA,  nBirthdayB,  nBits,  nVersion,  genesisReward)
-        // genesis for Kore - using momentum
-	    // genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
-        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 3      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
+        // genesis for Legacy Kore - using momentum
+        const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
+	    genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1508884606, 22      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
+        // using yescript
+        //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 3      , 12624920,   58284520,   0x201fffff, 1,  pow (7,2) * COIN);
         hashGenesisBlock = genesis.GetHash();
         LogPrintf("%s", hashGenesisBlock.ToString());
         genesis.print();
@@ -453,22 +454,25 @@ public:
         // sending rewards to this public key            
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
-        // genesis when using momentum
-        //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         // genesis for momentum
-        //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 22 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
+        genesis = CreateGenesisBlock(pszTimestamp, genesisOutputScript, 1541080950, 1237, 2500634, 64441706, 0x1f7fffff, 1, 49 * COIN);
         // genesis for yescrytR32
-        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 7 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
+        //genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 7 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n",genesis.hashMerkleRoot.ToString().c_str());
-        assert(genesis.hashMerkleRoot == uint256("0x73bf9a836ff7c2fc79445a622ce5154bfde2811c57c397d6a3909bc97390174a"));
+        // yescript32
+        // assert(genesis.hashMerkleRoot == uint256("0x73bf9a836ff7c2fc79445a622ce5154bfde2811c57c397d6a3909bc97390174a"));
+        // Legacy testnet - momentum
+        assert(genesis.hashMerkleRoot == uint256S("0x05f52634c417f226734231cbd54ad97b0ad524b59fe40add53648a3f27ccbd02"));
         // Activate only when creating a new genesis block
         if (false)
             MineNewGenesisBlock();
         hashGenesisBlock = genesis.GetHash();
         printf("hashGenesisBlock for TestNet: %s \n",hashGenesisBlock.ToString().c_str());
-        // for momentum
-        //assert(hashGenesisBlock == uint256("0x0ba6c4977e9da831f14ff9180b37e30a96e78cb3581029907eb24c55cf079fc5"));
-        assert(hashGenesisBlock == uint256("0x0d7edba948672b6444b96155b79c22fc4da6dd1014a5f3a148594c60a12def23"));
+        // for yesscript32
+        // assert(hashGenesisBlock == uint256("0x0d7edba948672b6444b96155b79c22fc4da6dd1014a5f3a148594c60a12def23"));
+        // Legacy testnet - momentum
+        assert(hashGenesisBlock == uint256S("0x000cab5a4c6dc2ada269cf1bf70a4f8e146b140514a104c36de2976328f8419d"));
+
 
         vFixedSeeds.clear();
         vSeeds.clear();
