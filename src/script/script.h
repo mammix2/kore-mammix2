@@ -187,6 +187,8 @@ enum opcodetype
 
 const char* GetOpName(opcodetype opcode);
 
+const bool GetOpFromName(string str, opcodetype &opcode);
+
 class scriptnum_error : public std::runtime_error
 {
 public:

@@ -7,14 +7,23 @@
 #include <iostream>
 #include <sstream>
 
-CSVIterator::CSVIterator(std::istream& str) : m_str(str.good() ? &str : NULL) { ++(*this); }
+CSVIterator::CSVIterator(std::istream& str) : m_str(str.good() ? &str : NULL) 
+{
+    
+    ++(*this);
+}
+CSVIterator::CSVIterator(std::istream& str, char separator) : m_str(str.good() ? &str : NULL)
+{
+    m_separator = separator;
+    ++(*this); 
+}
 CSVIterator::CSVIterator() : m_str(NULL) {}
 
 // Pre Increment
 CSVIterator& CSVIterator::operator++()
 {
     if (m_str) {
-        if (!(m_row << (*m_str))) {
+        if (!m_row.readNextRow(*m_str, m_separator)) {
             m_str = NULL;
         }
     }

@@ -8,6 +8,7 @@
 
 #include "main.h"
 #include "pow.h"
+#include "support/csviterator.h"
 #include "uint256.h"
 #ifdef ZEROCOIN
 #include "accumulators.h"
@@ -186,7 +187,6 @@ bool CCoinsViewDB::DumpUTXO(string &fileSaved, string fileBaseName)
 
     CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
     uint256 hashBlock = GetBestBlock();
-    ss << hashBlock;
     CAmount nTotalAmount = 0;
     int nTransactionOutputs = 0;
     uint64_t serializedSize = 0;
@@ -216,17 +216,34 @@ bool CCoinsViewDB::DumpUTXO(string &fileSaved, string fileBaseName)
                 ssValue >> coins;
                 uint256 txhash;
                 ssKey >> txhash;
-                ss << txhash;
-                ss << VARINT(coins.nVersion);
-                ss << (coins.fCoinBase ? 'c' : 'n');
-                ss << VARINT(coins.nHeight);
                 for (unsigned int i=0; i<coins.vout.size(); i++) {
                     const CTxOut &out = coins.vout[i];
                     if (!out.IsNull()) {
-                        myfile << out.scriptPubKey.ToString() << "," << out.nValue << "\n";
+                        stringstream scriptStream(out.scriptPubKey.ToString());
+                        for(CSVIterator loop(scriptStream, ' '); loop != CSVIterator(); ++loop)
+                        {
+                            for (int i = 0; i < (*loop).size(); i++)
+                            {
+                                myfile << (*loop)[i] << ',';
+                                ss <<  (*loop)[i];
+                            }
+                        }
+
+                        myfile << out.nValue << ',|,';
+                        ss << out.nValue;
+
+                        myfile << (coins.fCoinBase ? 'c' : 'n') << ",";
+                        ss << (coins.fCoinBase ? 'c' : 'n');
+
+                        myfile << coins.nVersion << ",";
+                        ss << VARINT(coins.nVersion);
+
+                        myfile << coins.nHeight;
+                        ss << VARINT(coins.nHeight);
+
+                        myfile << "\n";
+
                         nTransactionOutputs++;
-                        ss << VARINT(i+1);
-                        ss << out;
                         nTotalAmount += out.nValue;
                     }
                 }

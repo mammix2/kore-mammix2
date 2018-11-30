@@ -104,64 +104,9 @@ void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev, bool fProof
         pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
 }
 
-/**
- * Code to perform the SWAP
- */
-inline CMutableTransaction CreateCoinbaseTransactionForSwap(CBlockIndex * indexPrev)
+inline CBlockIndex *GetParentIndex(CBlockIndex *index)
 {
-    int nHeigth = indexPrev->nHeight + 1;
-
-    CMutableTransaction txNew;
-    txNew.vin.resize(1);
-    txNew.vin[0].prevout.SetNull();
-    txNew.vin[0].scriptSig = CScript() << nHeigth << OP_0;
-    txNew.nTime = GetAdjustedTime();
-
-    std::ifstream file("dump_8218.csv");
-    int lineCount = 0;
-
-    int transactionCount = -1;
-    if (nHeigth > 1) {
-        CBlock block;
-
-        if(!ReadBlockFromDisk(block, indexPrev))
-                throw runtime_error("Can't read block from disk");
-
-        if (block.vtx.size() == 1) {
-            transactionCount = block.vtx[0].vout.size();
-        }
-    }
-
-    for(CSVIterator loop(file); loop != CSVIterator(); ++loop)
-    {
-        if(lineCount <= transactionCount) {
-            continue;
-        }
-
-        if((*loop).size() == 2){
-            u_char* scriptText = (u_char*)((*loop)[0].c_str());
-            CScript script(scriptText, scriptText + (sizeof(u_char) * strlen((*loop)[0].c_str())));
-
-            CAmount val(strtoll((*loop)[1].c_str(), NULL, 10));
-            
-            CTxOut txOut(CAmount(val), script);
-            txNew.vout.push_back(txOut);
-
-            lineCount++;
-
-            if(txNew.GetSerializeSize(SER_NETWORK, CTransaction::CURRENT_VERSION) > MAX_BLOCK_SIZE_CURRENT){
-                txNew.vout.pop_back();
-                
-                lineCount--;
-
-                break;
-            }
-        }        
-    }
-
-    transactionCount = lineCount;
-
-    return txNew;
+    return index->pprev;
 }
 
 inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKeyIn)
@@ -173,6 +118,98 @@ inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKey
     txNew.vin[0].prevout.SetNull();    
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+
+    return txNew;
+}
+
+/**
+ * Code to perform the SWAP
+ */
+inline CMutableTransaction CreateCoinbaseTransactionForSwap(CBlockIndex *indexPrev, const CScript& scriptPubKeyIn)
+{
+    int nHeigth = indexPrev->nHeight + 1;
+
+    CMutableTransaction txNew;
+    txNew.vin.resize(1);
+    txNew.vin[0].prevout.SetNull();
+    txNew.vin[0].scriptSig = CScript() << nHeigth << OP_0;
+    txNew.nTime = GetAdjustedTime();
+
+    std::ifstream file("swap2_hex_18.csv");
+    int lineCount = 0;
+
+    int transactionCount = 0;
+    CBlockIndex *parentBlockIndex = indexPrev;
+    if (nHeigth > 1){
+        for (int i = indexPrev->nHeight; i > 0; i--) {
+            CBlock block;
+
+            if(!ReadBlockFromDisk(block, parentBlockIndex))
+                    throw runtime_error("Can't read block from disk");
+
+            if (block.vtx.size() == 1) {
+                transactionCount += block.vtx[0].vout.size();
+            }
+
+            parentBlockIndex = GetParentIndex(parentBlockIndex);
+        }
+    } else {
+        transactionCount = -1;
+    }
+
+    for(CSVIterator loop(file); loop != CSVIterator(); ++loop)
+    {
+        if(lineCount <= transactionCount) {
+            lineCount++;
+            continue;
+        }
+
+        if((*loop).size() > 1){
+            CScript script;            
+            int i = 0;
+            opcodetype o;
+
+            for (i; i < (*loop).size(); i++)
+            {                
+                if (GetOpFromName((*loop)[i], o)) {
+                    script << o;
+                } else if ((*loop)[i] == "|") {
+                    break;
+                } else {
+                    script << ParseHex((*loop)[i]);
+                }
+            }
+
+            CAmount val(strtoll((*loop)[i].c_str(), NULL, 10));
+            
+            CTxOut txOut(CAmount(val), script);
+            txNew.vout.push_back(txOut);
+
+            string b = txOut.scriptPubKey.ToString();
+            LogPrintf(":%s\n", b);
+
+            lineCount++;
+
+            if(txNew.GetSerializeSize(SER_NETWORK, CTransaction::CURRENT_VERSION) > MAX_ZEROCOIN_TX_SIZE){
+                txNew.vout.pop_back();
+                
+                lineCount--;
+
+                break;
+            }
+        } 
+        // else if (lineCount >= transactionCount) {
+        //     LogPrintf("Reached the end of swap file.\nStop the miner and change back to default block generation.");
+        //     LogPrintf("Calling .");
+        //     txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
+
+        //     break;
+        // }
+    }
+
+    if (txNew.vout.size() == 0) {
+        txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
+    }
 
     return txNew;
 }
@@ -198,12 +235,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     /**
      * ENABLE THIS ONLY FOR SWAP
      */
-    txNew = CreateCoinbaseTransactionForSwap(chainActive.Tip());
+    txNew = CreateCoinbaseTransactionForSwap(chainActive.Tip(), scriptPubKeyIn);
     /**
      * END OF SWAP CODE
      */
 
-    //txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
+    // txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
     pblock->vtx.push_back(txNew);
 
     pblocktemplate->vTxFees.push_back(-1);   // updated at end

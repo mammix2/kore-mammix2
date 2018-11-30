@@ -17,6 +17,7 @@ public:
     typedef CSVRow& reference;
 
     CSVIterator(std::istream& str);
+    CSVIterator(std::istream& str, char separator);
     CSVIterator();
 
     // Pre Increment
@@ -32,6 +33,7 @@ public:
 private:
     std::istream* m_str;
     CSVRow m_row;
+    char m_separator = ',';
 };
 
 #endif // KORE_SUPPORT_CSVITERATOR_H
