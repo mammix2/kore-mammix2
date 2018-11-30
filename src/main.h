@@ -349,6 +349,8 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats& stats);
 void Misbehaving(NodeId nodeid, int howmuch);
 /** Flush all state, indexes and buffers to disk. */
 void FlushStateToDisk();
+/** Prune block files and flush state to disk. */
+void PruneAndFlush_Legacy();
 
 
 /** (try to) add transaction to memory pool **/
