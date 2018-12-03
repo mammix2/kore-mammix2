@@ -1134,7 +1134,6 @@ addnode=hvjjqjjajii2ycix.onion
 addnode=bqr7zsfgpztd4m4q.onion
 */
 
-extern bool fTestNet;
 static const char *strMainNetOnionSeed[][1] = {
     {"ci5bvyjhizibhstq.onion"}, 
     {"iqjl3czk3vjlulka.onion"}, 
@@ -1373,7 +1372,7 @@ void ThreadOnionSeed()
     // Make this thread recognisable as the tor thread
     RenameThread("onionseed");
 
-    static const char *(*strOnionSeed)[1] = fTestNet ? strTestNetOnionSeed : strMainNetOnionSeed;
+    static const char *(*strOnionSeed)[1] = Params().NetworkID() == CBaseChainParams::TESTNET ? strTestNetOnionSeed : strMainNetOnionSeed;
 
     int found = 0;
 
