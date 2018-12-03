@@ -1071,7 +1071,7 @@ void static KoreMiner_Legacy(const CChainParams& chainparams)
                         LOCK(cs_vNodes);
                         fvNodesEmpty = vNodes.empty();
                     }
-                    if (!fvNodesEmpty && !IsInitialBlockDownload_Legacy())
+                    if (!fvNodesEmpty && !IsInitialBlockDownload())
                         break;
                     MilliSleep(1000);
                 } while (true);

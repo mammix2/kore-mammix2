@@ -89,7 +89,7 @@ bool fPruneMode = false;  // Legacy
 uint64_t nPruneTarget = 0; // Legacy
 bool fAddrIndex = false; // Legacy
 size_t nCoinCacheUsage = 5000 * 300; // Legacy
-bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED; // Legacy
+//bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED; // Legacy
 bool fRequireStandard = true; // Legacy
 unsigned int nBytesPerSigOp = DEFAULT_BYTES_PER_SIGOP_LEGACY; // Legacy
 bool fIsBareMultisigStd = true;
@@ -2206,7 +2206,7 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
         pool.RemoveStaged(allConflicting);
 
         // Store transaction in memory
-        pool.addUnchecked(hash, entry, setAncestors, !IsInitialBlockDownload_Legacy());
+        pool.addUnchecked(hash, entry, setAncestors, !IsInitialBlockDownload());
         // trim mempool and check if tx was trimmed
         if (!fOverrideMempoolLimit) {
             LimitMempoolSize_Legacy(pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_LEGACY) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY_LEGACY) * 60 * 60);
@@ -2836,6 +2836,7 @@ bool IsInitialBlockDownload()
     return state;
 }
 
+/* FORK
 bool IsInitialBlockDownload_Legacy()
 {
     const CChainParams& chainParams = Params();
@@ -2853,6 +2854,7 @@ bool IsInitialBlockDownload_Legacy()
         lockIBDState = true;
     return state;
 }
+*/
 
 bool fLargeWorkForkFound = false;
 bool fLargeWorkInvalidChainFound = false;
@@ -2901,7 +2903,7 @@ void CheckForkWarningConditions_Legacy()
     AssertLockHeld(cs_main);
     // Before we get past initial download, we cannot reliably alert about forks
     // (we assume we don't get stuck on a fork before the last checkpoint)
-    if (IsInitialBlockDownload_Legacy())
+    if (IsInitialBlockDownload())
         return;
 
     // If our best fork is no longer within 72 blocks (+/- 12 hours if no one mines it)
@@ -3076,11 +3078,7 @@ void static InvalidBlockFound(CBlockIndex* pindex, const CValidationState& state
 void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight)
 {
     // mark inputs spent
-    if (!tx.IsCoinBase() 
-#ifdef ZEROCOIN   
-    && !tx.IsZerocoinSpend()
-#endif    
-    ) {
+    if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         BOOST_FOREACH (const CTxIn& txin, tx.vin) {
             txundo.vprevout.push_back(CTxInUndo());
@@ -3953,7 +3951,7 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
 
 
     bool fScriptChecks = true;
-    if (fCheckpointsEnabled) {
+    if (Checkpoints::fEnabled) {
         CBlockIndex *pindexLastCheckpoint = Checkpoints::GetLastCheckpoint();
         if (pindexLastCheckpoint && pindexLastCheckpoint->GetAncestor(pindex->nHeight) == pindex) {
             // This block is an ancestor of a checkpoint: disable script checks
@@ -4509,7 +4507,7 @@ void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
     static bool fWarned = false;
-    if (!IsInitialBlockDownload_Legacy())
+    if (!IsInitialBlockDownload())
     {
         int nUpgraded = 0;
         const CBlockIndex* pindex = chainActive.Tip();
@@ -4769,7 +4767,7 @@ bool static ConnectTip_Legacy(CValidationState& state, const CChainParams& chain
     LogPrint("bench", "  - Writing chainstate: %.2fms [%.2fs]\n", (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
     // Remove conflicting transactions from the mempool.
     list<CTransaction> txConflicted;
-    mempool.removeForBlock(pblock->vtx, pindexNew->nHeight, txConflicted, !IsInitialBlockDownload_Legacy());
+    mempool.removeForBlock(pblock->vtx, pindexNew->nHeight, txConflicted, !IsInitialBlockDownload());
     // Update chainActive & related variables.
     UpdateTip_Legacy(pindexNew);    
     // Tell wallet about transactions that went from mempool
@@ -5040,9 +5038,7 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
     std::vector<CBlockIndex*> vpindexToConnect;
     bool fContinue = true;
     int nHeight = pindexFork ? pindexFork->nHeight : -1;
-
     while (fContinue && nHeight != pindexMostWork->nHeight) {
-        
         // Don't iterate the entire list of potential improvements toward the best tip, as we likely only need
         // a few blocks along the way.
         int nTargetHeight = std::min(nHeight + 32, pindexMostWork->nHeight);
@@ -5055,7 +5051,7 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
         }
         nHeight = nTargetHeight;
         // Connect new blocks.
-        BOOST_REVERSE_FOREACH(CBlockIndex *pindexConnect, vpindexToConnect) {
+        BOOST_REVERSE_FOREACH (CBlockIndex* pindexConnect, vpindexToConnect) {
             if (!ConnectTip_Legacy(state, chainparams, pindexConnect, pindexConnect == pindexMostWork ? pblock : NULL)) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
@@ -5077,7 +5073,7 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
                     break;
                 }
             }
-        }        
+        }
     }
 
     if (fBlocksDisconnected) {
@@ -5182,8 +5178,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
 
         CBlockIndex *pindexNewTip = NULL;
         const CBlockIndex *pindexFork;
-        bool fInitialDownload;
-        
+        bool fInitialDownload;        
         {
             LOCK(cs_main);
             CBlockIndex *pindexOldTip = chainActive.Tip();
@@ -5198,7 +5193,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
 
             pindexNewTip = chainActive.Tip();
             pindexFork = chainActive.FindFork(pindexOldTip);
-            fInitialDownload = IsInitialBlockDownload_Legacy();
+            fInitialDownload = IsInitialBlockDownload();
         }
         // When we reach this point, we switched to a new tip (stored in pindexNewTip).
 
@@ -5206,7 +5201,6 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
         // Always notify the UI if a new block tip was connected
         if (pindexFork != pindexNewTip) {
             uiInterface.NotifyBlockTip_Legacy(fInitialDownload, pindexNewTip);
-
             if (!fInitialDownload) {
                 // Find the hashes of all blocks that weren't previously in the best chain.
                 std::vector<uint256> vHashes;
@@ -5222,7 +5216,7 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
                 }
                 // Relay inventory, but don't relay old inventory during initial block download.
                 int nBlockEstimate = 0;
-                if (fCheckpointsEnabled)
+                if (Checkpoints::fEnabled)
                     nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
                 {
                     LOCK(cs_vNodes);
@@ -5236,13 +5230,11 @@ bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chain
                 }
                 // Notify external listeners about the new tip.
                 if (!vHashes.empty()) {
-                    GetMainSignals().UpdatedBlockTip(pindexNewTip);
+                GetMainSignals().UpdatedBlockTip(pindexNewTip);
                 }
             }
         }
-        
     } while(pindexMostWork != chainActive.Tip());
-    
     CheckBlockIndex_Legacy();
 
     // Write changes periodically to disk, after relay.
@@ -6214,7 +6206,7 @@ static bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState
             return state.DoS(100, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
 
         assert(pindexPrev);
-        if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, hash))
+        if (Checkpoints::fEnabled && !CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, hash))
             return error("%s: CheckIndexAgainstCheckpoint_Legacy(): %s", __func__, state.GetRejectReason().c_str());
 
         if (!ContextualCheckBlockHeader_Legacy(block, state, pindexPrev))
@@ -6609,7 +6601,7 @@ bool TestBlockValidity_Legacy(CValidationState& state, const CChainParams& chain
 {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainActive.Tip());
-    if (fCheckpointsEnabled && !CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, block.GetHash()))
+    if (Checkpoints::fEnabled && !CheckIndexAgainstCheckpoint_Legacy(pindexPrev, state, block.GetHash()))
         return error("%s: CheckIndexAgainstCheckpoint(): %s", __func__, state.GetRejectReason().c_str());
 
     CCoinsViewCache viewNew(pcoinsTip);
@@ -7189,15 +7181,15 @@ void static CheckBlockIndex()
     }
 
     // Build forward-pointing map of the entire block tree.
-    std::multimap<CBlockIndex*, CBlockIndex*> forward;
+    std::multimap<CBlockIndex*,CBlockIndex*> forward;
     for (BlockMap::iterator it = mapBlockIndex.begin(); it != mapBlockIndex.end(); it++) {
         forward.insert(std::make_pair(it->second->pprev, it->second));
     }
 
     assert(forward.size() == mapBlockIndex.size());
 
-    std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> rangeGenesis = forward.equal_range(NULL);
-    CBlockIndex* pindex = rangeGenesis.first->second;
+    std::pair<std::multimap<CBlockIndex*,CBlockIndex*>::iterator,std::multimap<CBlockIndex*,CBlockIndex*>::iterator> rangeGenesis = forward.equal_range(NULL);
+    CBlockIndex *pindex = rangeGenesis.first->second;
     rangeGenesis.first++;
     assert(rangeGenesis.first == rangeGenesis.second); // There is only one index entry with parent NULL.
 
@@ -7206,10 +7198,10 @@ void static CheckBlockIndex()
     // block being explored which are the first to have certain properties.
     size_t nNodes = 0;
     int nHeight = 0;
-    CBlockIndex* pindexFirstInvalid = NULL;         // Oldest ancestor of pindex which is invalid.
-    CBlockIndex* pindexFirstMissing = NULL;         // Oldest ancestor of pindex which does not have BLOCK_HAVE_DATA.
-    CBlockIndex* pindexFirstNotTreeValid = NULL;    // Oldest ancestor of pindex which does not have BLOCK_VALID_TREE (regardless of being valid or not).
-    CBlockIndex* pindexFirstNotChainValid = NULL;   // Oldest ancestor of pindex which does not have BLOCK_VALID_CHAIN (regardless of being valid or not).
+    CBlockIndex* pindexFirstInvalid = NULL; // Oldest ancestor of pindex which is invalid.
+    CBlockIndex* pindexFirstMissing = NULL; // Oldest ancestor of pindex which does not have BLOCK_HAVE_DATA.
+    CBlockIndex* pindexFirstNotTreeValid = NULL; // Oldest ancestor of pindex which does not have BLOCK_VALID_TREE (regardless of being valid or not).
+    CBlockIndex* pindexFirstNotChainValid = NULL; // Oldest ancestor of pindex which does not have BLOCK_VALID_CHAIN (regardless of being valid or not).
     CBlockIndex* pindexFirstNotScriptsValid = NULL; // Oldest ancestor of pindex which does not have BLOCK_VALID_SCRIPTS (regardless of being valid or not).
     while (pindex != NULL) {
         nNodes++;
@@ -7223,7 +7215,7 @@ void static CheckBlockIndex()
         if (pindex->pprev == NULL) {
             // Genesis block checks.
             assert(pindex->GetBlockHash() == Params().HashGenesisBlock()); // Genesis block's hash must match.
-            assert(pindex == chainActive.Genesis());                       // The current active chain's genesis block must be this block.
+            assert(pindex == chainActive.Genesis()); // The current active chain's genesis block must be this block.
         }
         // HAVE_DATA is equivalent to VALID_TRANSACTIONS and equivalent to nTx > 0 (we stored the number of transactions in the block)
         assert(!(pindex->nStatus & BLOCK_HAVE_DATA) == (pindex->nTx == 0));
@@ -7250,7 +7242,7 @@ void static CheckBlockIndex()
             assert(setBlockIndexCandidates.count(pindex) == 0);
         }
         // Check whether this block is in mapBlocksUnlinked.
-        std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> rangeUnlinked = mapBlocksUnlinked.equal_range(pindex->pprev);
+        std::pair<std::multimap<CBlockIndex*,CBlockIndex*>::iterator,std::multimap<CBlockIndex*,CBlockIndex*>::iterator> rangeUnlinked = mapBlocksUnlinked.equal_range(pindex->pprev);
         bool foundInUnlinked = false;
         while (rangeUnlinked.first != rangeUnlinked.second) {
             assert(rangeUnlinked.first->first == pindex->pprev);
@@ -7271,7 +7263,7 @@ void static CheckBlockIndex()
         // End: actual consistency checks.
 
         // Try descending into the first subnode.
-        std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> range = forward.equal_range(pindex);
+        std::pair<std::multimap<CBlockIndex*,CBlockIndex*>::iterator,std::multimap<CBlockIndex*,CBlockIndex*>::iterator> range = forward.equal_range(pindex);
         if (range.first != range.second) {
             // A subnode was found.
             pindex = range.first->second;
@@ -7291,7 +7283,7 @@ void static CheckBlockIndex()
             // Find our parent.
             CBlockIndex* pindexPar = pindex->pprev;
             // Find which child we just visited.
-            std::pair<std::multimap<CBlockIndex*, CBlockIndex*>::iterator, std::multimap<CBlockIndex*, CBlockIndex*>::iterator> rangePar = forward.equal_range(pindexPar);
+            std::pair<std::multimap<CBlockIndex*,CBlockIndex*>::iterator,std::multimap<CBlockIndex*,CBlockIndex*>::iterator> rangePar = forward.equal_range(pindexPar);
             while (rangePar.first->second != pindex) {
                 assert(rangePar.first != rangePar.second); // Our parent must have at least the node we're coming from as child.
                 rangePar.first++;
@@ -7314,6 +7306,7 @@ void static CheckBlockIndex()
     // Check that we actually traversed the entire map.
     assert(nNodes == forward.size());
 }
+
 
 void static CheckBlockIndex_Legacy()
 {
@@ -8914,7 +8907,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         if (!pfrom->fInbound)
         {
             // Advertise our address
-            if (fListen && !IsInitialBlockDownload_Legacy())
+            if (fListen && !IsInitialBlockDownload())
             {
                 CAddress addr = GetLocalAddress(&pfrom->addr);
                 if (addr.IsRoutable())
@@ -9215,7 +9208,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         vRecv >> locator >> hashStop;
 
         LOCK(cs_main);
-        if (IsInitialBlockDownload_Legacy() && !pfrom->fWhitelisted) {
+        if (IsInitialBlockDownload() && !pfrom->fWhitelisted) {
             LogPrint("net", "Ignoring getheaders from peer=%d because node is in initial block download\n", pfrom->id);
             return true;
         }
@@ -10333,7 +10326,7 @@ bool SendMessages_Legacy(CNode* pto)
         // Resend wallet transactions that haven't gotten in a block yet
         // Except during reindex, importing and IBD, when old wallet
         // transactions become unconfirmed and spams other nodes.
-        if (!fReindex && !fImporting && !IsInitialBlockDownload_Legacy())
+        if (!fReindex && !fImporting && !IsInitialBlockDownload())
         {
             // LICO can be without nTimeBestReceived ???
             //GetMainSignals().Broadcast(nTimeBestReceived);
@@ -10525,7 +10518,7 @@ bool SendMessages_Legacy(CNode* pto)
         // Message: getdata (blocks)
         //
         vector<CInv> vGetData;
-        if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload_Legacy()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+        if (!pto->fDisconnect && !pto->fClient && (fFetch || !IsInitialBlockDownload()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             vector<CBlockIndex*> vToDownload;
             NodeId staller = -1;
             FindNextBlocksToDownload(pto->GetId(), MAX_BLOCKS_IN_TRANSIT_PER_PEER - state.nBlocksInFlight, vToDownload, staller);

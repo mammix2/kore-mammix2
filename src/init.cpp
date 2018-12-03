@@ -761,6 +761,7 @@ bool AppInitServers(boost::thread_group& threadGroup)
  */
 bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 {
+    const CChainParams& chainparams = Params();
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
@@ -1781,8 +1782,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     uiInterface.InitMessage(_("Activating best chain..."));
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
-    if (!ActivateBestChain(state))
-        strErrors << "Failed to connect best block";
+    if (UseLegacyCode(GetnHeight(chainActive.Tip()))) {
+        if (!ActivateBestChain_Legacy(state, chainparams))
+            strErrors << "Failed to connect best block";
+    } else {
+        if (!ActivateBestChain(state))
+            strErrors << "Failed to connect best block";
+    }
 
     std::vector<boost::filesystem::path> vImportFiles;
     if (mapArgs.count("-loadblock"))

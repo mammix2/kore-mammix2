@@ -319,7 +319,7 @@ void ThreadScriptCheck();
 
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
-bool IsInitialBlockDownload_Legacy();
+// bool IsInitialBlockDownload_Legacy();
 /** Format a string that describes several potential problems detected by the core */
 std::string GetWarnings(std::string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
@@ -357,6 +357,7 @@ void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight
 void UnlinkPrunedFiles(std::set<int>& setFilesToPrune);
 
 bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
+bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chainparams, const CBlock *pblock = NULL);
 CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input);
 CAmount GetBlockValue(int nHeight);
 

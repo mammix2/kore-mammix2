@@ -25,7 +25,7 @@ namespace Checkpoints
      */
 static const double SIGCHECK_VERIFICATION_FACTOR = 5.0;
 
-bool fEnabled = true;
+bool fEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 
 bool CheckBlock(int nHeight, const uint256& hash, bool fMatchesCheckpoint)
 {
