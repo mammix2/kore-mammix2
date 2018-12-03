@@ -178,6 +178,8 @@ BITCOIN_CORE_H = \
   sporkdb.h \
   stakeinput.h \
   streams.h \
+  support/csviterator.h \
+  support/csvrow.h \
   sync.h \
   threadsafety.h \
   timedata.h \
@@ -383,6 +385,8 @@ libbitcoin_util_a_SOURCES = \
   clientversion.cpp \
   random.cpp \
   rpcprotocol.cpp \
+  support/csvrow.cpp \
+  support/csviterator.cpp \
   sync.cpp \
   uint256.cpp \
   util.cpp \

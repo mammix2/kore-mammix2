@@ -9,11 +9,15 @@
 #include "chain.h"
 #include "main.h"
 #include "pow.h"
+#include "support/csviterator.h"
 #include "uint256.h"
 #ifdef ZEROCOIN
 #include "accumulators.h"
 using namespace libzerocoin;
 #endif
+
+#include <iostream>
+#include <fstream>
 
 #include <stdint.h>
 
@@ -181,6 +185,89 @@ bool CCoinsViewDB::GetStats(CCoinsStats& stats) const
     }
     stats.hashSerialized = ss.GetHash();
     stats.nTotalAmount = nTotalAmount;
+    return true;
+}
+
+bool CCoinsViewDB::DumpUTXO(string &fileSaved, string fileBaseName)
+{
+    /* It seems that there are no "const iterators" for LevelDB.  Since we
+       only need read operations on it, use a const-cast to get around
+       that restriction.  */
+    boost::scoped_ptr<CLevelDBIterator> pcursor(const_cast<CLevelDBWrapper*>(&db)->NewIterator());
+    pcursor->SeekToFirst();
+
+    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+    uint256 hashBlock = GetBestBlock();
+    CAmount nTotalAmount = 0;
+    int nTransactionOutputs = 0;
+    uint64_t serializedSize = 0;
+
+    fileSaved = fileBaseName;
+    string nHeight;
+    ofstream myfile;
+    {    
+        LOCK(cs_main);
+    
+        fileSaved += itostr(mapBlockIndex.find(hashBlock)->second->nHeight);
+        fileSaved += ".csv";
+    }
+    myfile.open(fileSaved);
+    
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        try {
+            std::pair<char, uint256> key;
+            CCoins coins;
+            if (pcursor->GetKey(key) && key.first == DB_COINS) {
+                if (pcursor->GetValue(coins)) {
+                    for (unsigned int i = 0; i < coins.vout.size(); i++) {
+                        const CTxOut& out = coins.vout[i];
+                        if (!out.IsNull()) {
+                            stringstream scriptStream(out.scriptPubKey.ToString());
+                            for(CSVIterator loop(scriptStream, ' '); loop != CSVIterator(); ++loop)
+                            {
+                                for (int i = 0; i < (*loop).size(); i++)
+                                {
+                                    myfile << (*loop)[i] << ',';
+                                    ss <<  (*loop)[i];
+                                }
+                            }
+
+                            myfile << out.nValue << ",|,";
+                            ss << out.nValue;
+
+                            myfile << (coins.fCoinBase ? 'c' : 'n') << ',';
+                            ss << (coins.fCoinBase ? 'c' : 'n');
+
+                            myfile << coins.nVersion << ',';
+                            ss << VARINT(coins.nVersion);
+
+                            myfile << coins.nHeight;
+                            ss << VARINT(coins.nHeight);
+
+                            myfile << std::endl;
+
+                            nTransactionOutputs++;
+                            nTotalAmount += out.nValue;
+                        }
+                    }
+                    serializedSize += 32 + pcursor->GetValueSize();
+                } else {
+                    return error("CCoinsViewDB::GetStats() : unable to read value");
+                }
+            }
+            pcursor->Next();
+        } catch (std::exception& e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+
+    myfile << "Outputs: " << nTransactionOutputs << std::endl;
+    myfile << "Total Value: " << nTotalAmount << std::endl;
+    myfile << "Dumped at block: " << mapBlockIndex.find(GetBestBlock())->second->nHeight << std::endl;
+    myfile << "Hash: " << ss.GetHash().GetHex() << std::endl;
+
+    myfile.close();
     return true;
 }
 

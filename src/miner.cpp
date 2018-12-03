@@ -18,6 +18,7 @@
 #include "pow.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
+#include "support/csviterator.h"
 #include "timedata.h"
 #include "util.h"
 #include "utilmoneystr.h"
@@ -37,6 +38,7 @@
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <queue> // Legacy
+#include <fstream>
 
 using namespace std;
 
@@ -117,6 +119,116 @@ void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev, bool fProof
         pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
 }
 
+inline CBlockIndex *GetParentIndex(CBlockIndex *index)
+{
+    return index->pprev;
+}
+
+inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKeyIn)
+{
+    // Create coinbase tx
+    
+    CMutableTransaction txNew;
+    txNew.vin.resize(1);
+    txNew.vin[0].prevout.SetNull();    
+    txNew.vout.resize(1);
+    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+
+    return txNew;
+}
+
+/**
+ * Code to perform the SWAP
+ */
+inline CMutableTransaction CreateCoinbaseTransactionForSwap(CBlockIndex *indexPrev, const CScript& scriptPubKeyIn)
+{
+    int nHeigth = indexPrev->nHeight + 1;
+
+    CMutableTransaction txNew;
+    txNew.vin.resize(1);
+    txNew.vin[0].prevout.SetNull();
+    txNew.vin[0].scriptSig = CScript() << nHeigth << OP_0;
+    txNew.nTime = GetAdjustedTime();
+
+    std::ifstream file("swap2_hex_18.csv");
+    int lineCount = 0;
+
+    int transactionCount = 0;
+    CBlockIndex *parentBlockIndex = indexPrev;
+    if (nHeigth > 1){
+        for (int i = indexPrev->nHeight; i > 0; i--) {
+            CBlock block;
+
+            if(!ReadBlockFromDisk(block, parentBlockIndex))
+                    throw runtime_error("Can't read block from disk");
+
+            if (block.vtx.size() == 1) {
+                transactionCount += block.vtx[0].vout.size();
+            }
+
+            parentBlockIndex = GetParentIndex(parentBlockIndex);
+        }
+    } else {
+        transactionCount = -1;
+    }
+
+    for(CSVIterator loop(file); loop != CSVIterator(); ++loop)
+    {
+        if(lineCount <= transactionCount) {
+            lineCount++;
+            continue;
+        }
+
+        if((*loop).size() > 1){
+            CScript script;            
+            int i = 0;
+            opcodetype o;
+
+            for (i; i < (*loop).size(); i++)
+            {                
+                if (GetOpFromName((*loop)[i], o)) {
+                    script << o;
+                } else if ((*loop)[i] == "|") {
+                    break;
+                } else {
+                    script << ParseHex((*loop)[i]);
+                }
+            }
+
+            CAmount val(strtoll((*loop)[i].c_str(), NULL, 10));
+            
+            CTxOut txOut(CAmount(val), script);
+            txNew.vout.push_back(txOut);
+
+            string b = txOut.scriptPubKey.ToString();
+            LogPrintf(":%s\n", b);
+
+            lineCount++;
+
+            if(txNew.GetSerializeSize(SER_NETWORK, CTransaction::CURRENT_VERSION) > MAX_ZEROCOIN_TX_SIZE){
+                txNew.vout.pop_back();
+                
+                lineCount--;
+
+                break;
+            }
+        } 
+        // else if (lineCount >= transactionCount) {
+        //     LogPrintf("Reached the end of swap file.\nStop the miner and change back to default block generation.");
+        //     LogPrintf("Calling .");
+        //     txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
+
+        //     break;
+        // }
+    }
+
+    if (txNew.vout.size() == 0) {
+        txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
+    }
+
+    return txNew;
+}
+
 std::pair<int, std::pair<uint256, uint256> > pCheckpointCache;
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, bool fProofOfStake)
 {
@@ -133,14 +245,17 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     if (Params().MineBlocksOnDemand())
         pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
-    // Create coinbase tx
     CMutableTransaction txNew;
-    txNew.vin.resize(1);
-    txNew.vin[0].prevout.SetNull();    
-    txNew.vout.resize(1);
-    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-    // Lico added nTime
-    txNew.nTime = GetAdjustedTime();
+
+    /**
+     * ENABLE THIS ONLY FOR SWAP
+     */
+    txNew = CreateCoinbaseTransactionForSwap(chainActive.Tip(), scriptPubKeyIn);
+    /**
+     * END OF SWAP CODE
+     */
+
+    // txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
     pblock->vtx.push_back(txNew);
 
     pblocktemplate->vTxFees.push_back(-1);   // updated at end
