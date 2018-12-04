@@ -6562,8 +6562,8 @@ bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainpa
             return error("%s: AcceptBlock FAILED", __func__);
     }
 
-/*
-    if (!ActivateBestChain(state, pblock))
+
+    if (!ActivateBestChain_Legacy(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
     if (!fLiteMode) {
@@ -6583,7 +6583,7 @@ bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainpa
         if (pwalletMain->fCombineDust)
             pwalletMain->AutoCombineDust();
     }
-*/
+    
     LogPrintf("%s : ACCEPTED\n", __func__);
 
     return true;

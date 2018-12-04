@@ -638,7 +638,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeigh
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 
 // marck here the Fork Block
-static const int HEIGHT_TO_FORK = 2000;
+static const int HEIGHT_TO_FORK = 900000;
 
 /* This function will return the nHeight from an pIndex, 
   if pIndex is Null it will return the 
