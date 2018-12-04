@@ -404,6 +404,15 @@ void FinalizeNode_Legacy(NodeId nodeid) {
     }
 }
 
+bool FinalizeNode_Fork(NodeId nodeid)
+{
+    if (UseLegacyCode(chainActive.Height())) {
+        FinalizeNode_Legacy(nodeid);
+    } else {
+        FinalizeNode(nodeid);
+    }
+}
+
 // Requires cs_main.
 void MarkBlockAsReceived(const uint256& hash)
 {
@@ -642,18 +651,27 @@ void RegisterNodeSignals(CNodeSignals& nodeSignals)
 {
     nodeSignals.GetHeight.connect(&GetHeight);
     nodeSignals.ProcessMessages.connect(&ProcessMessages);
-    nodeSignals.SendMessages.connect(&SendMessages);
+    nodeSignals.SendMessages.connect(&SendMessages_Fork);
     nodeSignals.InitializeNode.connect(&InitializeNode);
-    nodeSignals.FinalizeNode.connect(&FinalizeNode);
+    nodeSignals.FinalizeNode.connect(&FinalizeNode_Fork);
 }
 
 void UnregisterNodeSignals(CNodeSignals& nodeSignals)
 {
     nodeSignals.GetHeight.disconnect(&GetHeight);
     nodeSignals.ProcessMessages.disconnect(&ProcessMessages);
-    nodeSignals.SendMessages.disconnect(&SendMessages);
+    nodeSignals.SendMessages.disconnect(&SendMessages_Fork);
     nodeSignals.InitializeNode.disconnect(&InitializeNode);
-    nodeSignals.FinalizeNode.disconnect(&FinalizeNode);
+    nodeSignals.FinalizeNode.disconnect(&FinalizeNode_Fork);
+}
+
+bool SendMessages_Fork(CNode* pto, bool fSendTrickle)
+{
+    if (UseLegacyCode(chainActive.Height())) {
+        SendMessages_Legacy(pto);
+    } else {
+        SendMessages(pto, fSendTrickle);
+    }
 }
 
 CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& locator)
@@ -6544,8 +6562,7 @@ bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainpa
             return error("%s: AcceptBlock FAILED", __func__);
     }
 
-/*
-    if (!ActivateBestChain(state, pblock))
+    if (!ActivateBestChain_Legacy(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
     if (!fLiteMode) {
@@ -6565,7 +6582,7 @@ bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainpa
         if (pwalletMain->fCombineDust)
             pwalletMain->AutoCombineDust();
     }
-*/
+    
     LogPrintf("%s : ACCEPTED\n", __func__);
 
     return true;
@@ -9932,7 +9949,14 @@ bool ProcessMessages(CNode* pfrom)
         // Process message
         bool fRet = false;
         try {
-            fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
+            if (UseLegacyCode(chainActive.Height()))
+            {
+               fRet = ProcessMessage_Legacy(pfrom, strCommand, vRecv, msg.nTime);
+            }
+            else {
+               fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
+            }
+
             boost::this_thread::interruption_point();
         } catch (std::ios_base::failure& e) {
             pfrom->PushMessage("reject", strCommand, REJECT_MALFORMED, string("error parsing message"));

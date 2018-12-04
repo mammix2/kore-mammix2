@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         { 
-            "name": "Attach to pivxd",
+            "name": "Attach to kored",
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "48246",
+            "processId": "130829",
             "MIMode": "gdb",
             "setupCommands": [
                 {

@@ -315,6 +315,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle);
  */
 bool SendMessages_Legacy(CNode* pto);
 
+// This function will be registered and when called will direct the message
+// to the right code.
+bool SendMessages_Fork(CNode* pto, bool fSendTrickle);
 
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
@@ -637,7 +640,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeigh
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 
 // marck here the Fork Block
-static const int HEIGHT_TO_FORK = 2000;
+static const int HEIGHT_TO_FORK = 900000;
 
 /* This function will return the nHeight from an pIndex, 
   if pIndex is Null it will return the 
