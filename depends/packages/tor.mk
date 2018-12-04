@@ -6,9 +6,7 @@ $(package)_sha256_hash=435a7b91aa98d8b1a0ac1f60ca30c0ff3665b18a02e570bab5fe27935
 $(package)_dependencies=zlib libevent openssl
 
 define $(package)_set_vars
-$(package)_config_opts=--disable-asciidoc
-$(package)_config_opts=--disable-tool-name-check
-$(package)_config_opts=--disable-seccomp
+$(package)_config_opts=--disable-asciidoc --disable-tool-name-check --disable-seccomp --with-openssl-dir=$(host_prefix)/etc/openssl
 endef
 
 define $(package)_config_cmds

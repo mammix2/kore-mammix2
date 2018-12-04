@@ -31,7 +31,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace std;
 
@@ -5584,10 +5583,5 @@ bool CWallet::DatabaseMint(CDeterministicMint& dMint)
 
 string CWallet::GetUniqueWalletBackupName() const
 {
-    posix_time::ptime timeLocal = posix_time::second_clock::local_time();
-    stringstream ssDateTime;
-
-
-    ssDateTime << gregorian::to_iso_extended_string(timeLocal.date()) << "-" << timeLocal.time_of_day();
-    return strprintf("wallet%s.dat%s", DateTimeStrFormat(".%Y-%m-%d-%H-%M", GetTime()));
+    return strprintf("%s", DateTimeStrFormat(".%Y-%m-%d-%H-%M", GetTime()));
 }

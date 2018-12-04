@@ -35,8 +35,10 @@
 #include "versionbits.h"
 
 #include <algorithm>
+#include <condition_variable>
 #include <exception>
 #include <map>
+#include <mutex>
 #include <set>
 #include <stdint.h>
 #include <string>
@@ -178,8 +180,8 @@ extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const std::string strMessageMagic;
 extern int64_t nTimeBestReceived;
-extern CWaitableCriticalSection csBestBlock;
-extern CConditionVariable cvBlockChange;
+extern std::mutex csBestBlock;
+extern std::condition_variable cvBlockChange;
 extern bool fImporting;
 extern bool fReindex;
 extern int nScriptCheckThreads;

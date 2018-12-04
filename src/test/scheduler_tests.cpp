@@ -11,6 +11,7 @@
 #define HAVE_WORKING_BOOST_SLEEP_FOR
 #endif
 
+#include <chrono>
 #include <boost/bind.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -36,11 +37,8 @@ static void MicroSleep(uint64_t n)
 {
 #if defined(HAVE_WORKING_BOOST_SLEEP_FOR)
     boost::this_thread::sleep_for(boost::chrono::microseconds(n));
-#elif defined(HAVE_WORKING_BOOST_SLEEP)
-    boost::this_thread::sleep(boost::posix_time::microseconds(n));
 #else
-    //should never get here
-    #error missing boost sleep implementation
+    boost::this_thread::sleep(std::chrono::milliseconds(n));
 #endif
 }
 

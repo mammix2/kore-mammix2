@@ -200,7 +200,6 @@ if test "x$enable_debug" = xyes; then
     CPPFLAGS="$CPPFLAGS -DDEBUG -DDEBUG_LOCKORDER"
     if test "x$GCC" = xyes; then
         CFLAGS="$CFLAGS -g3 -O0"
-        LIBS="-lboost_date_time-mt $LIBS"
     fi
 
     if test "x$GXX" = xyes; then
@@ -802,12 +801,11 @@ CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   #include <boost/version.hpp>
   #include <boost/thread.hpp>
-  #include <boost/date_time/posix_time/posix_time_types.hpp>
   ]],[[
   #if BOOST_VERSION <= 105600
-      boost::this_thread::sleep(boost::posix_time::milliseconds(0));
+    choke me
   #else
-   choke me
+    boost::this_thread::sleep(boost::chrono::milliseconds(0));
   #endif
   ]])],
   [boost_sleep=yes; AC_DEFINE(HAVE_WORKING_BOOST_SLEEP, 1, [Define this symbol if boost sleep works])],

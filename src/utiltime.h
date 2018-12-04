@@ -7,10 +7,13 @@
 #ifndef BITCOIN_UTILTIME_H
 #define BITCOIN_UTILTIME_H
 
+#include <chrono>
 #include <stdint.h>
 #include <string>
 
+std::chrono::high_resolution_clock::time_point GetEpochTimePoint();
 int64_t GetTime();
+int64_t GetTimeSeconds();
 int64_t GetTimeMillis();
 int64_t GetTimeMicros();
 void SetMockTime(int64_t nMockTimeIn);

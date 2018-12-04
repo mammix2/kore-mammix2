@@ -24,7 +24,7 @@ CScheduler::~CScheduler()
 #if BOOST_VERSION < 105000
 static boost::system_time toPosixTime(const boost::chrono::system_clock::time_point& t)
 {
-    return boost::posix_time::from_time_t(boost::chrono::system_clock::to_time_t(t));
+    return boost::chrono::from_time_t(boost::chrono::system_clock::to_time_t(t));
 }
 #endif
 
