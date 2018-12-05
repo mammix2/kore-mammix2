@@ -78,8 +78,8 @@ map<unsigned int, unsigned int> mapHashedBlocks;
 CChain chainActive;
 CBlockIndex* pindexBestHeader = NULL;
 int64_t nTimeBestReceived = 0;
-CWaitableCriticalSection csBestBlock;
-CConditionVariable cvBlockChange;
+std::mutex csBestBlock;
+std::condition_variable cvBlockChange;
 int nScriptCheckThreads = 0;
 bool fImporting = false;
 bool fReindex = false;
@@ -6562,7 +6562,6 @@ bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainpa
             return error("%s: AcceptBlock FAILED", __func__);
     }
 
-
     if (!ActivateBestChain_Legacy(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
@@ -9957,7 +9956,6 @@ bool ProcessMessages(CNode* pfrom)
             else {
                fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
             }
-            
 
             boost::this_thread::interruption_point();
         } catch (std::ios_base::failure& e) {
