@@ -1,4 +1,5 @@
 // Copyright (c) 2014 The Bitcoin Core developers
+// Copyright (c) 2018 The KORE developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -124,7 +125,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test)
         }
 
         // Once every 1000 iterations and at the end, verify the full cache.
-        if (insecure_rand() % 1000 == 1 || i == NUM_SIMULATION_ITERATIONS - 1) {
+        if (i % 1000 == 1 || i == NUM_SIMULATION_ITERATIONS - 1) {
             for (std::map<uint256, CCoins>::iterator it = result.begin(); it != result.end(); it++) {
                 const CCoins* coins = stack.back()->AccessCoins(it->first);
                 if (coins) {
@@ -137,7 +138,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test)
             }
         }
 
-        if (insecure_rand() % 100 == 0) {
+        if (i % 100 == 0) {
             // Every 100 iterations, change the cache stack.
             if (stack.size() > 0 && insecure_rand() % 2 == 0) {
                 stack.back()->Flush();
