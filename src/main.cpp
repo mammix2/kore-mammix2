@@ -7884,6 +7884,7 @@ void static ProcessGetData(CNode* pfrom)
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << budget.mapSeenMasternodeBudgetProposals[inv.hash];
+                        if (fDebug) LogPrintf("Send Back mprop to peer=%d\n", pfrom->id);
                         pfrom->PushMessage("mprop", ss);
                         pushed = true;
                     }
