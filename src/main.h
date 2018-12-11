@@ -634,14 +634,10 @@ public:
     ScriptError GetScriptError() const { return error; }
 };
 
-
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeight);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
-
-// marck here the Fork Block
-static const int HEIGHT_TO_FORK = 900000;
 
 /* This function will return the nHeight from an pIndex, 
   if pIndex is Null it will return the 
