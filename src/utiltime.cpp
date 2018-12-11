@@ -68,10 +68,10 @@ void MilliSleep(int64_t n)
 std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime)
 {
     time_t rawtime(nTime);
-    struct tm * timeinfo = localtime (&rawtime);
+    struct tm * timeinfo = gmtime(&rawtime);
     char buffer [80];
 
-    strftime (buffer,80,pszFormat,timeinfo);
+    strftime(buffer,80,pszFormat,timeinfo);
 
     return string(buffer);
 }
