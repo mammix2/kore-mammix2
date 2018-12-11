@@ -256,7 +256,7 @@ UniValue setaccount(const UniValue& params, bool fHelp)
             "2. \"account\"         (string, required) The account to assign the address to.\n"
 
             "\nExamples:\n" +
-            HelpExampleCli("setaccount", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" \"tabby\"") + HelpExampleRpc("setaccount", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\", \"tabby\""));
+            HelpExampleCli("setaccount", "\"KECDCAMwZvh7xncVgqmNEsasx7Tsuk8qoc\" \"tabby\"") + HelpExampleRpc("setaccount", "\"KECDCAMwZvh7xncVgqmNEsasx7Tsuk8qoc\", \"tabby\""));
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 

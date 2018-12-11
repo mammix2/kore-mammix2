@@ -177,13 +177,7 @@ public:
     uint32_t nBirthdayB;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
-    uint32_t nSequenceId;
-
-#ifdef ZEROCOIN    
-    //! zerocoin specific fields
-    std::map<libzerocoin::CoinDenomination, int64_t> mapZerocoinSupply;
-    std::vector<libzerocoin::CoinDenomination> vMintDenominationsInBlock;
-#endif    
+    uint32_t nSequenceId;  
     
     void SetNull()
     {
