@@ -1,4 +1,4 @@
-packages:=boost openssl libevent zeromq tor curl_win
+packages:=boost openssl libevent zeromq tor
 native_packages := native_ccache
 
 qt_native_packages = native_protobuf
