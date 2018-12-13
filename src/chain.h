@@ -183,6 +183,7 @@ public:
     {
         phashBlock = NULL;
         pprev = NULL;
+        pnext = NULL;
         pskip = NULL;
         nHeight = 0;
         nFile = 0;
@@ -234,12 +235,13 @@ public:
         nMoneySupply = 0;
         nFlags = 0;
         nStakeModifier = 0;
-	nStakeModifierOld = uint256();
+	    nStakeModifierOld = uint256();
         nStakeModifierChecksum = 0;
         hashProofOfStake = uint256();
 
         if (block.IsProofOfStake()) {
             SetProofOfStake();
+            SetProofOfStake_Legacy();
             prevoutStake = block.vtx[1].vin[0].prevout;
             nStakeTime = block.nTime;
         } else {
@@ -377,10 +379,16 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
-            pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
-            hashMerkleRoot.ToString(),
-            GetBlockHash().ToString());
+        if (UseLegacyCode(nHeight))
+            return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
+                pprev, nHeight, IsProofOfStake_Legacy() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
+        else
+            return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
+                pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
     }
 
     //! Check whether this block index entry is valid up to the passed validity level.

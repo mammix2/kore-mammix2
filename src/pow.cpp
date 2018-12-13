@@ -36,7 +36,7 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
         nActualSpacing = nTargetSpacing;
 
     // Retarget
-    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
+    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake_Legacy());
     arith_uint256 bnNew, bnOld;
     bnNew.SetCompact(pindexLast->nBits);
     bnOld = bnNew;
