@@ -631,7 +631,7 @@ BOOST_AUTO_TEST_CASE(script_valid)
             if (test.size() != 1) {
                 BOOST_ERROR("Bad test: " << strTest);
             }
-            continue;
+            continue; 
         }
         string scriptSigString = test[0].get_str();
         CScript scriptSig = ParseScript(scriptSigString);
