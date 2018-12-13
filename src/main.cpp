@@ -6849,6 +6849,120 @@ bool static LoadBlockIndexDB(string& strError)
     return true;
 }
 
+bool static LoadBlockIndexDB_Legacy()
+{
+    const CChainParams& chainparams = Params();
+    if (!pblocktree->LoadBlockIndexGuts_Legacy())
+        return false;
+
+    boost::this_thread::interruption_point();
+
+    // Calculate nChainWork
+    vector<pair<int, CBlockIndex*> > vSortedByHeight;
+    vSortedByHeight.reserve(mapBlockIndex.size());
+    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
+    {
+        CBlockIndex* pindex = item.second;
+        vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
+    }
+    sort(vSortedByHeight.begin(), vSortedByHeight.end());
+    BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
+    {
+        CBlockIndex* pindex = item.second;
+        pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
+        // We can link the chain of blocks for which we've received transactions at some point.
+        // Pruned nodes may have deleted the block.
+        if (pindex->nTx > 0) {
+            if (pindex->pprev) {
+                if (pindex->pprev->nChainTx) {
+                    pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
+                } else {
+                    pindex->nChainTx = 0;
+                    mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
+                }
+            } else {
+                pindex->nChainTx = pindex->nTx;
+            }
+        }
+        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))
+            setBlockIndexCandidates.insert(pindex);
+        if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
+            pindexBestInvalid = pindex;
+        if (pindex->pprev)
+            pindex->BuildSkip();
+        if (pindex->IsValid(BLOCK_VALID_TREE) && (pindexBestHeader == NULL || CBlockIndexWorkComparator()(pindexBestHeader, pindex)))
+            pindexBestHeader = pindex;
+    }
+
+    // Load block file info
+    pblocktree->ReadLastBlockFile(nLastBlockFile);
+    vinfoBlockFile.resize(nLastBlockFile + 1);
+    LogPrintf("%s: last block file = %i\n", __func__, nLastBlockFile);
+    for (int nFile = 0; nFile <= nLastBlockFile; nFile++) {
+        pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
+    }
+    LogPrintf("%s: last block file info: %s\n", __func__, vinfoBlockFile[nLastBlockFile].ToString());
+    for (int nFile = nLastBlockFile + 1; true; nFile++) {
+        CBlockFileInfo info;
+        if (pblocktree->ReadBlockFileInfo(nFile, info)) {
+            vinfoBlockFile.push_back(info);
+        } else {
+            break;
+        }
+    }
+
+    // Check presence of blk files
+    LogPrintf("Checking all blk files are present...\n");
+    set<int> setBlkDataFiles;
+    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
+    {
+        CBlockIndex* pindex = item.second;
+        if (pindex->nStatus & BLOCK_HAVE_DATA) {
+            setBlkDataFiles.insert(pindex->nFile);
+        }
+    }
+    for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++)
+    {
+        CDiskBlockPos pos(*it, 0);
+        if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION).IsNull()) {
+            return false;
+        }
+    }
+
+    // Check whether we have ever pruned block & undo files
+    pblocktree->ReadFlag("prunedblockfiles", fHavePruned);
+    if (fHavePruned)
+        LogPrintf("LoadBlockIndexDB(): Block files have previously been pruned\n");
+
+    // Check whether we need to continue reindexing
+    bool fReindexing = false;
+    pblocktree->ReadReindexing(fReindexing);
+    fReindex |= fReindexing;
+
+    // Check whether we have a transaction index
+    pblocktree->ReadFlag("txindex", fTxIndex);
+    LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
+
+    pblocktree->ReadFlag("addrindex", fAddrIndex);
+    LogPrintf("LoadBlockIndexDB(): address index %s\n", fAddrIndex ? "enabled" : "disabled");
+
+    // Load pointer to end of best chain
+    BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
+    if (it == mapBlockIndex.end())
+        return true;
+    chainActive.SetTip(it->second);
+
+    PruneBlockIndexCandidates();
+
+    LogPrintf("%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
+        chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
+        DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
+        Checkpoints::GuessVerificationProgress(chainActive.Tip()));
+
+    return true;
+}
+
+
 CVerifyDB::CVerifyDB()
 {
     uiInterface.ShowProgress(_("Verifying blocks..."), 0);
@@ -6937,15 +7051,6 @@ bool CVerifyDB::VerifyDB(CCoinsView* coinsview, int nCheckLevel, int nCheckDepth
     return true;
 }
 
-void UnloadBlockIndex()
-{
-    mapBlockIndex.clear();
-    setBlockIndexCandidates.clear();
-    chainActive.SetTip(NULL);
-    pindexBestInvalid = NULL;
-    versionbitscache.Clear();
-}
-
 void UnloadBlockIndex_Legacy()
 {
     LOCK(cs_main);
@@ -6980,11 +7085,27 @@ void UnloadBlockIndex_Legacy()
     fHavePruned = false;
 }
 
+void UnloadBlockIndex()
+{
+    mapBlockIndex.clear();
+    setBlockIndexCandidates.clear();
+    chainActive.SetTip(NULL);
+    pindexBestInvalid = NULL;
+    versionbitscache.Clear();
+    UnloadBlockIndex_Legacy();
+}
+
+
 bool LoadBlockIndex(string& strError)
 {
     // Load block index from databases
-    if (!fReindex && !LoadBlockIndexDB(strError))
-        return false;
+    if (UseLegacyCode(chainActive.Height())) {
+        if (!fReindex && !LoadBlockIndexDB_Legacy())
+            return false;
+    } else {
+        if (!fReindex && !LoadBlockIndexDB(strError))
+            return false;
+    }
     return true;
 }
 

@@ -231,16 +231,17 @@ bool CheckProofOfWork_Legacy(uint256 hash, unsigned int nBits)
 
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
 
-    // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(Params().ProofOfWorkLimit()))
-        return false;
-
     if (fDebug) {
         LogPrintf("CheckProofOfWork \n");
         LogPrintf("nBits    : %x \n", nBits);
         LogPrintf("hash    : %s \n", UintToArith256(hash).ToString().c_str());
         LogPrintf("bnTarget: %s \n", bnTarget.ToString().c_str());
     }
+    
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(Params().ProofOfWorkLimit()))
+        return false;
+
     // Check proof of work matches claimed amount
     if (UintToArith256(hash) > bnTarget)
         return false;

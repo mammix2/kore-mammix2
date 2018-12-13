@@ -425,3 +425,56 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
     LogPrintf("LoadBlockIndexGuts <-- \n");
     return true;
 }
+
+bool CBlockTreeDB::LoadBlockIndexGuts_Legacy()
+{
+    boost::scoped_ptr<CLevelDBIterator> pcursor(NewIterator());
+
+    pcursor->Seek(make_pair(DB_BLOCK_INDEX, uint256()));
+
+    // Load mapBlockIndex
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        std::pair<char, uint256> key;
+        if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
+            CDiskBlockIndex diskindex;
+            if (pcursor->GetValue(diskindex)) {
+                // Construct block index object
+                CBlockIndex* pindexNew = InsertBlockIndex(diskindex.GetBlockHash());
+                pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
+                pindexNew->nHeight        = diskindex.nHeight;
+                pindexNew->nFile          = diskindex.nFile;
+                pindexNew->nDataPos       = diskindex.nDataPos;
+                pindexNew->nUndoPos       = diskindex.nUndoPos;
+                pindexNew->nVersion       = diskindex.nVersion;
+                pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
+                pindexNew->nTime          = diskindex.nTime;
+                pindexNew->nBits          = diskindex.nBits;
+                pindexNew->nNonce         = diskindex.nNonce;
+                pindexNew->nBirthdayA     = diskindex.nBirthdayA;
+                pindexNew->nBirthdayB     = diskindex.nBirthdayB;
+                pindexNew->nStatus        = diskindex.nStatus;
+                pindexNew->nStakeModifier = diskindex.nStakeModifier;
+                pindexNew->nMoneySupply   = diskindex.nMoneySupply;
+                pindexNew->nTx            = diskindex.nTx;
+                if (fDebug) {
+                    LogPrintf("Loading Block %d\n",pindexNew->nHeight);
+                    LogPrintf("nBits    : %x \n", pindexNew->nBits);
+                    LogPrintf("hash    : %s \n", pindexNew->GetBlockHash().ToString().c_str());                    
+                }
+                if (!pindexNew->IsProofOfStake_Legacy() && (pindexNew->nStatus & BLOCK_HAVE_DATA))
+                    if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, pindexNew->nHeight))
+                        return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
+
+                pcursor->Next();
+            } else {
+                return error("LoadBlockIndex() : failed to read value");
+            }
+        } else {
+            break;
+        }
+    }
+
+    return true;
+}
+
