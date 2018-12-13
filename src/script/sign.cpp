@@ -19,6 +19,22 @@ using namespace std;
 
 typedef vector<unsigned char> valtype;
 
+TransactionSignatureCreator::TransactionSignatureCreator(const CKeyStore* keystoreIn, const CTransaction* txToIn, unsigned int nInIn, int nHashTypeIn) : BaseSignatureCreator(keystoreIn), txTo(txToIn), nIn(nInIn), nHashType(nHashTypeIn), checker(txTo, nIn) {}
+
+bool TransactionSignatureCreator::CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& address, const CScript& scriptCode) const
+{
+    CKey key;
+    if (!keystore->GetKey(address, key))
+        return false;
+
+    uint256 hash = SignatureHash(scriptCode, *txTo, nIn, nHashType);
+    if (!key.Sign(hash, vchSig))
+        return false;
+    vchSig.push_back((unsigned char)nHashType);
+    return true;
+}
+
+
 bool Sign1(const CKeyID& address, const CKeyStore& keystore, uint256 hash, int nHashType, CScript& scriptSigRet)
 {
     CKey key;
@@ -31,6 +47,15 @@ bool Sign1(const CKeyID& address, const CKeyStore& keystore, uint256 hash, int n
     vchSig.push_back((unsigned char)nHashType);
     scriptSigRet << vchSig;
 
+    return true;
+}
+
+static bool Sign1_Legacy(const CKeyID& address, const BaseSignatureCreator& creator, const CScript& scriptCode, CScript& scriptSigRet)
+{
+    vector<unsigned char> vchSig;
+    if (!creator.CreateSig(vchSig, address, scriptCode))
+        return false;
+    scriptSigRet << vchSig;
     return true;
 }
 
@@ -48,6 +73,21 @@ bool SignN(const vector<valtype>& multisigdata, const CKeyStore& keystore, uint2
     return nSigned==nRequired;
 }
 
+static bool SignN_Legacy(const vector<valtype>& multisigdata, const BaseSignatureCreator& creator, const CScript& scriptCode, CScript& scriptSigRet)
+{
+    int nSigned = 0;
+    int nRequired = multisigdata.front()[0];
+    for (unsigned int i = 1; i < multisigdata.size()-1 && nSigned < nRequired; i++)
+    {
+        const valtype& pubkey = multisigdata[i];
+        CKeyID keyID = CPubKey(pubkey).GetID();
+        if (Sign1_Legacy(keyID, creator, scriptCode, scriptSigRet))
+            ++nSigned;
+    }
+    return nSigned==nRequired;
+}
+
+
 /**
  * Sign scriptPubKey with private keys stored in keystore, given transaction hash and hash type.
  * Signatures are returned in scriptSigRet (or returns false if scriptPubKey can't be signed),
@@ -61,21 +101,13 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
 
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
-    {
-        LogPrintf("*** solver solver failed \n");
         return false;
-    }
 
     CKeyID keyID;
     switch (whichTypeRet)
     {
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
-    {
-        LogPrintf("*** null data \n");
-        return false;
-    }
-    case TX_ZEROCOINMINT:
         return false;
     case TX_PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
@@ -88,10 +120,7 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     case TX_PUBKEYHASH:
         keyID = CKeyID(uint160(vSolutions[0]));
         if (!Sign1(keyID, keystore, hash, nHashType, scriptSigRet))
-        {
-            LogPrintf("*** solver failed to sign \n");
             return false;
-        }
         else
         {
             CPubKey vch;
@@ -106,8 +135,78 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
         scriptSigRet << OP_0; // workaround CHECKMULTISIG bug
         return (SignN(vSolutions, keystore, hash, nHashType, scriptSigRet));
     }
-    LogPrintf("*** solver no case met \n");
     return false;
+}
+
+/**
+ * Sign scriptPubKey using signature made with creator.
+ * Signatures are returned in scriptSigRet (or returns false if scriptPubKey can't be signed),
+ * unless whichTypeRet is TX_SCRIPTHASH, in which case scriptSigRet is the redemption script.
+ * Returns false if scriptPubKey could not be completely satisfied.
+ */
+static bool SignStep_Legacy(const BaseSignatureCreator& creator, const CScript& scriptPubKey,
+                     CScript& scriptSigRet, txnouttype& whichTypeRet)
+{
+    scriptSigRet.clear();
+
+    vector<valtype> vSolutions;
+    if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
+        return false;
+
+    CKeyID keyID;
+    switch (whichTypeRet)
+    {
+    case TX_NONSTANDARD:
+    case TX_NULL_DATA:
+        return false;
+    case TX_PUBKEY:
+        keyID = CPubKey(vSolutions[0]).GetID();
+        return Sign1_Legacy(keyID, creator, scriptPubKey, scriptSigRet);
+
+    case TX_PUBKEYHASH:
+        keyID = CKeyID(uint160(vSolutions[0]));
+        if (!Sign1_Legacy(keyID, creator, scriptPubKey, scriptSigRet))
+            return false;
+        else
+        {
+            CPubKey vch;
+            creator.KeyStore().GetPubKey(keyID, vch);
+            scriptSigRet << ToByteVector(vch);
+        }
+        return true;
+    case TX_SCRIPTHASH:
+        return creator.KeyStore().GetCScript(uint160(vSolutions[0]), scriptSigRet);
+
+    case TX_MULTISIG:
+        scriptSigRet << OP_0; // workaround CHECKMULTISIG bug
+        return (SignN_Legacy(vSolutions, creator, scriptPubKey, scriptSigRet));
+    }
+    return false;
+}
+
+bool ProduceSignature_Legacy(const BaseSignatureCreator& creator, const CScript& fromPubKey, CScript& scriptSig)
+{
+    txnouttype whichType;
+    if (!SignStep_Legacy(creator, fromPubKey, scriptSig, whichType))
+        return false;
+
+    if (whichType == TX_SCRIPTHASH)
+    {
+        // Solver returns the subscript that need to be evaluated;
+        // the final scriptSig is the signatures from that
+        // and then the serialized subscript:
+        CScript subscript = scriptSig;
+
+        txnouttype subType;
+        bool fSolved =
+            SignStep_Legacy(creator, subscript, scriptSig, subType) && subType != TX_SCRIPTHASH;
+        // Append serialized subscript whether or not it is completely signed:
+        scriptSig << valtype(subscript.begin(), subscript.end());
+        if (!fSolved) return false;
+    }
+
+    // Test solution
+    return VerifyScript(scriptSig, fromPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker());
 }
 
 bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, int nHashType)
@@ -156,6 +255,8 @@ bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CMutab
 
     return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, nHashType);
 }
+
+
 
 static CScript PushAll(const vector<valtype>& values)
 {
@@ -279,4 +380,40 @@ CScript CombineSignatures(const CScript& scriptPubKey, const CTransaction& txTo,
     EvalScript(stack2, scriptSig2, SCRIPT_VERIFY_STRICTENC, BaseSignatureChecker());
 
     return CombineSignatures(scriptPubKey, txTo, nIn, txType, vSolutions, stack1, stack2);
+}
+
+namespace {
+/** Dummy signature checker which accepts all signatures. */
+class DummySignatureChecker : public BaseSignatureChecker
+{
+public:
+    DummySignatureChecker() {}
+
+    bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode) const
+    {
+        return true;
+    }
+};
+const DummySignatureChecker dummyChecker;
+}
+
+const BaseSignatureChecker& DummySignatureCreator::Checker() const
+{
+    return dummyChecker;
+}
+
+bool DummySignatureCreator::CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode) const
+{
+    // Create a dummy signature that is a valid DER-encoding
+    vchSig.assign(72, '\000');
+    vchSig[0] = 0x30;
+    vchSig[1] = 69;
+    vchSig[2] = 0x02;
+    vchSig[3] = 33;
+    vchSig[4] = 0x01;
+    vchSig[4 + 33] = 0x02;
+    vchSig[5 + 33] = 32;
+    vchSig[6 + 33] = 0x01;
+    vchSig[6 + 33 + 32] = SIGHASH_ALL;
+    return true;
 }

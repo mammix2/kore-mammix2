@@ -40,7 +40,6 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
     uint256 hash = wtx.GetHash();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
-#ifdef ZEROCOIN
     if (wtx.IsCoinStake()) {
         TransactionRecord sub(hash, nTime);
         CTxDestination address;
@@ -218,7 +217,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
             parts.last().involvesWatchAddress = involvesWatchAddress;
         }
     }
-#endif
+
     return parts;
 }
 
@@ -241,7 +240,6 @@ void TransactionRecord::updateStatus(const CWalletTx& wtx)
         idx);
     //status.countsForBalance = wtx.IsTrusted() && !(wtx.GetBlocksToMaturity() > 0);
     status.depth = wtx.GetDepthInMainChain();
-
     //Determine the depth of the block
     int nBlocksToMaturity = wtx.GetBlocksToMaturity();
 

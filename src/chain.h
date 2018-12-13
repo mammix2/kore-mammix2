@@ -12,14 +12,13 @@
 #include "tinyformat.h"
 #include "uint256.h"
 #include "util.h"
-#ifdef ZEROCOIN
-#include "libzerocoin/Denominations.h"
-#endif
 
 #include <vector>
 
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
+
+extern bool UseLegacyCode(int nHeight);
 
 struct CDiskBlockPos {
     int nFile;
@@ -95,7 +94,8 @@ enum BlockStatus {
 
     BLOCK_FAILED_VALID       =   32, //! stage after last reached validness failed
     BLOCK_FAILED_CHILD       =   64, //! descends from failed block
-    BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD
+    BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
+    BLOCK_PROOF_OF_STAKE     =   128, //! is proof-of-stake block
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -177,12 +177,13 @@ public:
     uint32_t nBirthdayB;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
-    uint32_t nSequenceId;  
+    uint32_t nSequenceId;
     
     void SetNull()
     {
         phashBlock = NULL;
         pprev = NULL;
+        pnext = NULL;
         pskip = NULL;
         nHeight = 0;
         nFile = 0;
@@ -191,13 +192,13 @@ public:
         nChainWork = 0;
         nTx = 0;
         nChainTx = 0;
-        nStatus = 0;	
+        nStatus = 0;
+        nStakeModifier = 0;
+        nMoneySupply = 0;
         nSequenceId = 0;
 
         nMint = 0;
-        nMoneySupply = 0;
         nFlags = 0;
-        nStakeModifier = 0;
         nStakeModifierOld = uint256();
         nStakeModifierChecksum = 0;
         prevoutStake.SetNull();
@@ -205,18 +206,11 @@ public:
 
         nVersion = 0;
         hashMerkleRoot = uint256();
-        nTime = 0;
-        nBits = 0;
-        nNonce = 0;
+        nTime          = 0;
+        nBits          = 0;
+        nNonce         = 0;
         nBirthdayA	   = 0;
         nBirthdayB	   = 0;
-#ifdef ZEROCOIN        
-        // Start supply of each denomination with 0s
-        for (auto& denom : libzerocoin::zerocoinDenomList) {
-            mapZerocoinSupply.insert(make_pair(denom, 0));
-        }
-        vMintDenominationsInBlock.clear();
-#endif        
     }
 
     CBlockIndex()
@@ -228,11 +222,11 @@ public:
     {
         SetNull();
 
-        nVersion = block.nVersion;
+        nVersion       = block.nVersion;
         hashMerkleRoot = block.hashMerkleRoot;
-        nTime = block.nTime;
-        nBits = block.nBits;
-        nNonce = block.nNonce;
+        nTime          = block.nTime;
+        nBits          = block.nBits;
+        nNonce         = block.nNonce;
         nBirthdayA     = block.nBirthdayA;
         nBirthdayB     = block.nBirthdayB;
         //Proof of Stake
@@ -241,12 +235,13 @@ public:
         nMoneySupply = 0;
         nFlags = 0;
         nStakeModifier = 0;
-	nStakeModifierOld = uint256();
+	    nStakeModifierOld = uint256();
         nStakeModifierChecksum = 0;
         hashProofOfStake = uint256();
 
         if (block.IsProofOfStake()) {
             SetProofOfStake();
+            SetProofOfStake_Legacy();
             prevoutStake = block.vtx[1].vin[0].prevout;
             nStakeTime = block.nTime;
         } else {
@@ -260,7 +255,7 @@ public:
         CDiskBlockPos ret;
         if (nStatus & BLOCK_HAVE_DATA) {
             ret.nFile = nFile;
-            ret.nPos = nDataPos;
+            ret.nPos  = nDataPos;
         }
         return ret;
     }
@@ -270,7 +265,7 @@ public:
         CDiskBlockPos ret;
         if (nStatus & BLOCK_HAVE_UNDO) {
             ret.nFile = nFile;
-            ret.nPos = nUndoPos;
+            ret.nPos  = nUndoPos;
         }
         return ret;
     }
@@ -278,24 +273,17 @@ public:
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
-        block.nVersion = nVersion;
+        block.nVersion       = nVersion;
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
         block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime = nTime;
-        block.nBits = nBits;
-        block.nNonce = nNonce;
+        block.nTime          = nTime;
+        block.nBits          = nBits;
+        block.nNonce         = nNonce;
         block.nBirthdayA     = nBirthdayA;
         block.nBirthdayB     = nBirthdayB;
         return block;
     }
-
-#ifdef ZEROCOIN
-    bool MintedDenomination(libzerocoin::CoinDenomination denom) const
-    {
-        return std::find(vMintDenominationsInBlock.begin(), vMintDenominationsInBlock.end(), denom) != vMintDenominationsInBlock.end();
-    }
-#endif
 
     uint256 GetBlockHash() const
     {
@@ -338,6 +326,21 @@ public:
         nFlags |= BLOCK_PROOF_OF_STAKE;
     }
 
+    bool IsProofOfWork_Legacy() const
+    {
+        return !IsProofOfStake_Legacy();
+    }
+
+    bool IsProofOfStake_Legacy() const
+    {
+        return (nStatus & BLOCK_PROOF_OF_STAKE);
+    }
+
+    void SetProofOfStake_Legacy()
+    {
+        nStatus |= BLOCK_PROOF_OF_STAKE;
+    }
+
     unsigned int GetStakeEntropyBit() const
     {
         unsigned int nEntropyBit = ((GetBlockHash().Get64()) & 1);
@@ -376,10 +379,16 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
-            pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
-            hashMerkleRoot.ToString(),
-            GetBlockHash().ToString());
+        if (UseLegacyCode(nHeight))
+            return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
+                pprev, nHeight, IsProofOfStake_Legacy() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
+        else
+            return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
+                pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
     }
 
     //! Check whether this block index entry is valid up to the passed validity level.
@@ -441,6 +450,8 @@ public:
 
         READWRITE(VARINT(nHeight));
         READWRITE(VARINT(nStatus));
+        READWRITE(nStakeModifier);
+        READWRITE(nMoneySupply);
         READWRITE(VARINT(nTx));
         if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
             READWRITE(VARINT(nFile));
@@ -448,24 +459,26 @@ public:
             READWRITE(VARINT(nDataPos));
         if (nStatus & BLOCK_HAVE_UNDO)
             READWRITE(VARINT(nUndoPos));
-        READWRITE(nMint);
-        READWRITE(nMoneySupply);
-        READWRITE(nFlags);
-        READWRITE(nStakeModifier);
-        READWRITE(nStakeModifierOld);
-        if (IsProofOfStake()) {
-            READWRITE(prevoutStake);
-            READWRITE(nStakeTime);
-        } else {
-            const_cast<CDiskBlockIndex*>(this)->prevoutStake.SetNull();
-            const_cast<CDiskBlockIndex*>(this)->nStakeTime = 0;
-            const_cast<CDiskBlockIndex*>(this)->hashProofOfStake = uint256();
+
+        if (!UseLegacyCode(nHeight)) {
+            READWRITE(nMint);
+            READWRITE(nFlags);
+            READWRITE(nStakeModifierOld);
+            if (IsProofOfStake()) {
+                READWRITE(prevoutStake);
+                READWRITE(nStakeTime);
+            } else {
+                const_cast<CDiskBlockIndex*>(this)->prevoutStake.SetNull();
+                const_cast<CDiskBlockIndex*>(this)->nStakeTime = 0;
+                const_cast<CDiskBlockIndex*>(this)->hashProofOfStake = uint256();
+            }
         }
 
         // block header
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
-        READWRITE(hashNext);
+        if (!UseLegacyCode(nHeight))
+            READWRITE(hashNext);
         READWRITE(hashMerkleRoot);
         READWRITE(nTime);
         READWRITE(nBits);

@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "130829",
+            "processId": "60384",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -87,6 +87,7 @@
             "request": "launch",
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/kored",
+            //"args": ["-debug", "-testnet","-par=1","-datadir=/home/kore/Documents/.kore"],
             "args": ["-debug", "-testnet","-par=1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
