@@ -97,13 +97,13 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign)
     // input is a 1-of-2 multisig (so is output):
     string prevout =
       "[{\"txid\":\"dd2888870cdc3f6e92661f6b0829667ee4bb07ed086c44205e726bbf3338f726\","
-      "\"vout\":1,\"scriptPubKey\":\"a914f5404a39a4799d8710e15db4c4512c5e06f97fed87\","
-      "\"redeemScript\":\"51210308140196125a03aac4410ade92544362dbc3a6a486edcf207a58d276efdd7a3421026f48ccec6ee60c6ad7ead41812f518eb4b1de813cadbb2bd0c2e343d0cda15f152ae\"}]";
+      "\"vout\":0,\"scriptPubKey\":\"a9147d5671f4de5e3d054859e06f20919cc3d882220287\","
+      "\"redeemScript\":\"51210204bae36e6e9b547af07af24a9fe92a7da50859c1b14bd7c866b6dedb922044a921030db56e9d026055c66b83d1e02c12ac4754f070bfbba47c86fbe5584a56d1691a52ae\"}]";
     r = CallRPC(string("createrawtransaction ")+prevout+" "+
       "{\"KJdsLBPJxKNwnnSRSHt45zE6153bYCwekg\":1}");
     string notsigned = r.get_str();
-    string privkey1 = "\"L3pWsPEtpK8v5pLB6SxTUTAS2rcqKFoc1Zv1hkQQeEMxaUdb4RDq\"";
-    string privkey2 = "\"L3pzXSSqfyXWrz8YtFGg5MPaTttw8suMUcQdfdutz7ikPkRSti8Z\"";
+    string privkey1 = "\"L3bpmFJndybG5xhpNi3ceZKgrwNj18MgU7XhUWpkF8qma9bGExGH\"";
+    string privkey2 = "\"L27e9S3JH5QxEFjW7fkJ7QAZhwMjjTyqZgdj1uxycbvf5EYjwSMw\"";
     r = CallRPC(string("signrawtransaction ")+notsigned+" "+prevout+" "+"[]");
     BOOST_CHECK(find_value(r.get_obj(), "complete").get_bool() == false);
     r = CallRPC(std::string("signrawtransaction ")+notsigned+" "+prevout+" "+"["+privkey1+","+privkey2+"]");
@@ -160,8 +160,8 @@ BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values)
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.50000000")), 50000000LL);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.89898989")), 89898989LL);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1.00000000")), 100000000LL);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.9999999")), 2099999999999990LL);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.99999999")), 2099999999999999LL);
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("10499999.9999999")), 1049999999999990LL);
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("10499999.99999999")), 1049999999999999LL);
 }
 
 BOOST_AUTO_TEST_CASE(json_parse_errors)
