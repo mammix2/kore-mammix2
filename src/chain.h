@@ -202,6 +202,7 @@ public:
         nStakeModifierOld = uint256();
         nStakeModifierChecksum = 0;
         prevoutStake.SetNull();
+        hashProofOfStake = uint256();
         nStakeTime = 0;
 
         nVersion = 0;
@@ -449,6 +450,7 @@ public:
             READWRITE(VARINT(nVersion));
 
         READWRITE(VARINT(nHeight));
+        bool useLegacyCode = UseLegacyCode(nHeight);
         READWRITE(VARINT(nStatus));
         READWRITE(nStakeModifier);
         READWRITE(nMoneySupply);
@@ -460,24 +462,26 @@ public:
         if (nStatus & BLOCK_HAVE_UNDO)
             READWRITE(VARINT(nUndoPos));
 
-        if (!UseLegacyCode(nHeight)) {
+        if (!useLegacyCode) {
             READWRITE(nMint);
             READWRITE(nFlags);
             READWRITE(nStakeModifierOld);
             if (IsProofOfStake()) {
                 READWRITE(prevoutStake);
                 READWRITE(nStakeTime);
-            } else {
+            } /* Lico they attributes are already initialized in the constructor
+            else {
                 const_cast<CDiskBlockIndex*>(this)->prevoutStake.SetNull();
                 const_cast<CDiskBlockIndex*>(this)->nStakeTime = 0;
                 const_cast<CDiskBlockIndex*>(this)->hashProofOfStake = uint256();
             }
-        }
+            */
+        } 
 
         // block header
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
-        if (!UseLegacyCode(nHeight))
+        if (!useLegacyCode)
             READWRITE(hashNext);
         READWRITE(hashMerkleRoot);
         READWRITE(nTime);
@@ -504,12 +508,13 @@ public:
 
     std::string ToString() const
     {
-        std::string str = "CDiskBlockIndex(";
-        str += CBlockIndex::ToString();
-        str += strprintf("\n                hashBlock=%s, hashPrev=%s)",
-            GetBlockHash().ToString(),
-            hashPrev.ToString());
-        return str;
+        return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, moneysupply=%d, type=%s, nStakeModifier=%x, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
+            pprev, pnext, nHeight, nMoneySupply, 
+            IsProofOfStake() ? "PoS" : "PoW", 
+            nStakeModifierOld.ToString(),
+            nVersion, nTime, nBits, nNonce, nBirthdayA, nBirthdayB,
+            hashMerkleRoot.ToString(),
+            GetBlockHash().ToString());
     }
 };
 
