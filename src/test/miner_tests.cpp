@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
     tx.vin[0].prevout.n = 0;
     tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vout[0].nValue = 4900000000LL;
+    tx.vout[0].nValue = 490000000LL;
     script = CScript() << OP_0;
     tx.vout[0].scriptPubKey = GetScriptForDestination(CScriptID(script));
     hash = tx.GetHash();
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     // double spend txn pair in mempool
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
     tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vout[0].nValue = 4900000000LL;
+    tx.vout[0].nValue = 490000000LL;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, CTxMemPoolEntry(tx, 11, GetTime(), 111.0, 11));
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vin[0].nSequence = 0;
-    tx.vout[0].nValue = 4900000000LL;
+    tx.vout[0].nValue = 490000000LL;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
     tx.nLockTime = chainActive.Tip()->nHeight+1;
     hash = tx.GetHash();
@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx2.vin[0].scriptSig = CScript() << OP_1;
     tx2.vin[0].nSequence = 0;
     tx2.vout.resize(1);
-    tx2.vout[0].nValue = 4900000000LL;
+    tx2.vout[0].nValue = 490000000LL;
     tx2.vout[0].scriptPubKey = CScript() << OP_1;
     tx2.nLockTime = chainActive.Tip()->GetMedianTimePast()+1;
     hash = tx2.GetHash();
