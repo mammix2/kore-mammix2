@@ -327,6 +327,8 @@ public:
 
 BOOST_AUTO_TEST_CASE(script_build)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     const KeyData keys;
 
     std::vector<TestBuilder> good;
