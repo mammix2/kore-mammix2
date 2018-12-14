@@ -203,16 +203,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     delete pblocktemplate;
     mempool.clear();
 
-    // subsidy changing
-    int nHeight = chainActive.Height();
-    chainActive.Tip()->nHeight = 209999;
-    BOOST_CHECK(pblocktemplate = CreateNewBlock(scriptPubKey, pwalletMain, false));
-    delete pblocktemplate;
-    chainActive.Tip()->nHeight = 210000;
-    BOOST_CHECK(pblocktemplate = CreateNewBlock(scriptPubKey, pwalletMain, false));
-    delete pblocktemplate;
-    chainActive.Tip()->nHeight = nHeight;
-
     // non-final txs in mempool
     SetMockTime(chainActive.Tip()->GetMedianTimePast()+1);
 
