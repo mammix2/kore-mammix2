@@ -18,6 +18,8 @@
 
 #include <univalue.h>
 
+// #define PRINT_SIGHASH_JSON
+
 extern UniValue read_json(const std::string& jsondata);
 
 // Old script.cpp SignatureHash function
@@ -158,6 +160,7 @@ BOOST_AUTO_TEST_CASE(sighash_test)
     }
     #if defined(PRINT_SIGHASH_JSON)
     std::cout << "]\n";
+    
     #endif
 }
 
