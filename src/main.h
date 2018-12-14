@@ -152,7 +152,7 @@ static const unsigned int REJECT_ALREADY_KNOWN = 0x101; // Legacy
 /** Transaction conflicts with a transaction already known */
 static const unsigned int REJECT_CONFLICT = 0x102; // Legacy
 
-static const bool DEFAULT_CHECKPOINTS_ENABLED = false; // Legacy
+static const bool DEFAULT_CHECKPOINTS_ENABLED = true; // Legacy
 static const bool DEFAULT_TXINDEX = true;
 static const bool DEFAULT_ADDRINDEX = true;
 /** Default for -mempoolreplacement */
