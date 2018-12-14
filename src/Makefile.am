@@ -5,7 +5,12 @@
 DIST_SUBDIRS = secp256k1 univalue
 TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel \
 	-lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
-LIBS+= -lssl -lcrypto
+LIBS+= -lssl -lcrypto -lgdi32
+
+if TARGET_WINDOWS
+LIBS+=-lgdi32
+endif
+
 
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
