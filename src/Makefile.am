@@ -5,7 +5,7 @@
 DIST_SUBDIRS = secp256k1 univalue
 TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel \
 	-lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
-LIBS+= -lssl -lcrypto -lgdi32
+LIBS+= -lssl -lcrypto
 
 if TARGET_WINDOWS
 LIBS+=-lgdi32
@@ -142,6 +142,7 @@ BITCOIN_CORE_H = \
   keystore.h \
   legacy/consensus/merkle.h \
   legacy/policy/fees.h \
+  legacy/policy/policy.h \
   leveldbwrapper.h \
   limitedmap.h \
   main.h \

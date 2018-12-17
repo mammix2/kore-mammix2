@@ -452,7 +452,7 @@ public:
         READWRITE(VARINT(nHeight));
         bool useLegacyCode = UseLegacyCode(nHeight);
         READWRITE(VARINT(nStatus));
-        READWRITE(nStakeModifier);
+        READWRITE(nStakeModifierOld);
         READWRITE(nMoneySupply);
         READWRITE(VARINT(nTx));
         if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
@@ -465,7 +465,7 @@ public:
         if (!useLegacyCode) {
             READWRITE(nMint);
             READWRITE(nFlags);
-            READWRITE(nStakeModifierOld);
+            READWRITE(nStakeModifier);
             if (IsProofOfStake()) {
                 READWRITE(prevoutStake);
                 READWRITE(nStakeTime);

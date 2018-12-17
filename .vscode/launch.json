@@ -82,7 +82,7 @@
             ]
         },      
         {
-            "name": "(gdb) Test Net",
+            "name": "(gdb) Test  Net",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/src/kored",
