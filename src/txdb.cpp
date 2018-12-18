@@ -409,7 +409,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                             return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());
                     }
                     // ppcoin: build setStakeSeen
-                    if (!useLegacyCode && pindexNew->IsProofOfStake())
+                    if (!useLegacyCode && isProofOfStake)
                         setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
 
                     pcursor->Next();

@@ -3115,7 +3115,7 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsV
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         BOOST_FOREACH(const CTxIn &txin, tx.vin) {
-            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
+            CCoinsModifier coins = inputs.ModifyCoins_Legacy(txin.prevout.hash);
             unsigned nPos = txin.prevout.n;
 
             if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull())
@@ -3141,7 +3141,7 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsV
         // lookup to be sure the coins do not already exist otherwise we do not
         // know whether to mark them fresh or not.  We want the duplicate coinbases
         // before BIP30 to still be properly overwritten.
-        inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
+        inputs.ModifyCoins_Legacy(tx.GetHash())->FromTx(tx, nHeight);
     }
 }
 
@@ -3308,6 +3308,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
 
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
+    if (UseLegacyCode(pindex->nHeight))
+        return DisconnectBlock_Legacy(block, state, pindex, view, pfClean);
     if (pindex->GetBlockHash() != view.GetBestBlock())
         LogPrintf("%s : pindex=%s view=%s\n", __func__, pindex->GetBlockHash().GetHex(), view.GetBestBlock().GetHex());
     assert(pindex->GetBlockHash() == view.GetBestBlock());
@@ -3486,11 +3488,11 @@ bool DisconnectBlock_Legacy(const CBlock& block, CValidationState& state, const 
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
         const CTransaction &tx = block.vtx[i];
         uint256 hash = tx.GetHash();
-
+        LogPrintf("tx Hash %s",hash.ToString().c_str());
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
         {
-        CCoinsModifier outs = view.ModifyNewCoins_Legacy(hash);
+        CCoinsModifier outs = view.ModifyCoins_Legacy(hash);
         outs->ClearUnspendable();
 
         CCoins outsBlock(tx, pindex->nHeight);
@@ -3679,6 +3681,8 @@ static int64_t nTimeTotal = 0;
 
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck, bool fAlreadyChecked)
 {
+    if (UseLegacyCode(pindex->nHeight))
+       return ConnectBlock(block, state, pindex, view, fJustCheck);
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
     if (!fAlreadyChecked && !CheckBlock(block, GetnHeight(pindex), state, !fJustCheck, !fJustCheck))
@@ -5602,6 +5606,8 @@ bool CheckBlockHeader_Legacy(const CBlockHeader& block, const int nHeight, CVali
 
 bool CheckBlock(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
 {
+    if (UseLegacyCode(height))
+        return CheckBlock_Legacy(block, height, state, fCheckPOW, fCheckMerkleRoot);
     // These are checks that are independent of context.
 
     // Check that the header is valid (particularly PoW).  This is mostly

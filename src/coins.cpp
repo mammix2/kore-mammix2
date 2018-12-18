@@ -126,7 +126,7 @@ bool CCoinsViewCache::GetCoins(const uint256& txid, CCoins& coins) const
     return false;
 }
 
-CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
+CCoinsModifier CCoinsViewCache::ModifyCoins_Legacy(const uint256& txid)
 {
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
@@ -146,6 +146,25 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
     // Assume that whenever ModifyCoins is called, the entry will be modified.
     ret.first->second.flags |= CCoinsCacheEntry::DIRTY;
     return CCoinsModifier(*this, ret.first, cachedCoinUsage);
+}
+
+CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
+{
+    assert(!hasModifier);
+    std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
+    if (ret.second) {
+        if (!base->GetCoins(txid, ret.first->second.coins)) {
+            // The parent view does not have this entry; mark it as fresh.
+            ret.first->second.coins.Clear();
+            ret.first->second.flags = CCoinsCacheEntry::FRESH;
+        } else if (ret.first->second.coins.IsPruned()) {
+            // The parent view only has a pruned entry for this; mark it as fresh.
+            ret.first->second.flags = CCoinsCacheEntry::FRESH;
+        }
+    }
+    // Assume that whenever ModifyCoins is called, the entry will be modified.
+    ret.first->second.flags |= CCoinsCacheEntry::DIRTY;
+    return CCoinsModifier(*this, ret.first, 0);
 }
 
 CCoinsModifier CCoinsViewCache::ModifyNewCoins_Legacy(const uint256 &txid) {
