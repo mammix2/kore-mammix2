@@ -7,7 +7,7 @@
 #ifndef BITCOIN_STREAMS_H
 #define BITCOIN_STREAMS_H
 
-#include "allocators.h"
+#include "support/allocators/zeroafterfree.h"
 #include "serialize.h"
 
 #include <algorithm>
@@ -33,7 +33,6 @@ protected:
     typedef CSerializeData vector_type;
     vector_type vch;
     unsigned int nReadPos;
-
 public:
     int nType;
     int nVersion;

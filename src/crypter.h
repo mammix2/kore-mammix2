@@ -6,7 +6,7 @@
 #ifndef BITCOIN_CRYPTER_H
 #define BITCOIN_CRYPTER_H
 
-#include "allocators.h"
+#include <openssl/crypto.h>
 #include "keystore.h"
 #include "serialize.h"
 

@@ -9,6 +9,7 @@
 #include "uint256.h"
 
 #include <assert.h>
+#include <openssl/crypto.h>
 #include <sstream>
 #include <stdint.h>
 #include <string.h>
