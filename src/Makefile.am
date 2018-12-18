@@ -7,6 +7,11 @@ TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel \
 	-lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
 LIBS+= -lssl -lcrypto
 
+if TARGET_WINDOWS
+LIBS+=-lgdi32
+endif
+
+
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
@@ -137,6 +142,7 @@ BITCOIN_CORE_H = \
   keystore.h \
   legacy/consensus/merkle.h \
   legacy/policy/fees.h \
+  legacy/policy/policy.h \
   leveldbwrapper.h \
   limitedmap.h \
   main.h \

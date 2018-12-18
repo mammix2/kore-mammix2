@@ -3115,7 +3115,7 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsV
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         BOOST_FOREACH(const CTxIn &txin, tx.vin) {
-            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
+            CCoinsModifier coins = inputs.ModifyCoins_Legacy(txin.prevout.hash);
             unsigned nPos = txin.prevout.n;
 
             if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull())
@@ -3141,7 +3141,7 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsV
         // lookup to be sure the coins do not already exist otherwise we do not
         // know whether to mark them fresh or not.  We want the duplicate coinbases
         // before BIP30 to still be properly overwritten.
-        inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
+        inputs.ModifyCoins_Legacy(tx.GetHash())->FromTx(tx, nHeight);
     }
 }
 
@@ -3308,6 +3308,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
 
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
+    if (UseLegacyCode(pindex->nHeight))
+        return DisconnectBlock_Legacy(block, state, pindex, view, pfClean);
     if (pindex->GetBlockHash() != view.GetBestBlock())
         LogPrintf("%s : pindex=%s view=%s\n", __func__, pindex->GetBlockHash().GetHex(), view.GetBestBlock().GetHex());
     assert(pindex->GetBlockHash() == view.GetBestBlock());
@@ -3486,11 +3488,11 @@ bool DisconnectBlock_Legacy(const CBlock& block, CValidationState& state, const 
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
         const CTransaction &tx = block.vtx[i];
         uint256 hash = tx.GetHash();
-
+        LogPrintf("tx Hash %s",hash.ToString().c_str());
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
         {
-        CCoinsModifier outs = view.ModifyNewCoins_Legacy(hash);
+        CCoinsModifier outs = view.ModifyCoins_Legacy(hash);
         outs->ClearUnspendable();
 
         CCoins outsBlock(tx, pindex->nHeight);
@@ -3679,6 +3681,8 @@ static int64_t nTimeTotal = 0;
 
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck, bool fAlreadyChecked)
 {
+    if (UseLegacyCode(pindex->nHeight))
+       return ConnectBlock(block, state, pindex, view, fJustCheck);
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
     if (!fAlreadyChecked && !CheckBlock(block, GetnHeight(pindex), state, !fJustCheck, !fJustCheck))
@@ -5602,6 +5606,8 @@ bool CheckBlockHeader_Legacy(const CBlockHeader& block, const int nHeight, CVali
 
 bool CheckBlock(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
 {
+    if (UseLegacyCode(height))
+        return CheckBlock_Legacy(block, height, state, fCheckPOW, fCheckMerkleRoot);
     // These are checks that are independent of context.
 
     // Check that the header is valid (particularly PoW).  This is mostly
@@ -6656,13 +6662,14 @@ CBlockIndex* InsertBlockIndex(uint256 hash)
     if (!pindexNew)
         throw runtime_error("LoadBlockIndex() : new CBlockIndex failed");
     mi = mapBlockIndex.insert(make_pair(hash, pindexNew)).first;
+    LogPrintf("Hash: %s \n", hash.ToString().c_str());
 
     pindexNew->phashBlock = &((*mi).first);
 
     return pindexNew;
 }
 
-bool static LoadBlockIndexDB(string& strError)
+bool static LoadBlockIndexDB()
 {
     if (!pblocktree->LoadBlockIndexGuts())
         return false;
@@ -6682,7 +6689,8 @@ bool static LoadBlockIndexDB(string& strError)
     {
         CBlockIndex* pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
-        if (pindex->nStatus & BLOCK_HAVE_DATA) {
+        bool check = UseLegacyCode(pindex->nHeight) ? pindex->nTx > 0 : pindex->nStatus & BLOCK_HAVE_DATA;
+        if (check) {
             if (pindex->pprev) {
                 if (pindex->pprev->nChainTx) {
                     pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
@@ -6779,120 +6787,6 @@ bool static LoadBlockIndexDB(string& strError)
 
     return true;
 }
-
-bool static LoadBlockIndexDB_Legacy()
-{
-    const CChainParams& chainparams = Params();
-    if (!pblocktree->LoadBlockIndexGuts_Legacy())
-        return false;
-
-    boost::this_thread::interruption_point();
-
-    // Calculate nChainWork
-    vector<pair<int, CBlockIndex*> > vSortedByHeight;
-    vSortedByHeight.reserve(mapBlockIndex.size());
-    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
-    {
-        CBlockIndex* pindex = item.second;
-        vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
-    }
-    sort(vSortedByHeight.begin(), vSortedByHeight.end());
-    BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
-    {
-        CBlockIndex* pindex = item.second;
-        pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
-        // We can link the chain of blocks for which we've received transactions at some point.
-        // Pruned nodes may have deleted the block.
-        if (pindex->nTx > 0) {
-            if (pindex->pprev) {
-                if (pindex->pprev->nChainTx) {
-                    pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
-                } else {
-                    pindex->nChainTx = 0;
-                    mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
-                }
-            } else {
-                pindex->nChainTx = pindex->nTx;
-            }
-        }
-        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))
-            setBlockIndexCandidates.insert(pindex);
-        if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
-            pindexBestInvalid = pindex;
-        if (pindex->pprev)
-            pindex->BuildSkip();
-        if (pindex->IsValid(BLOCK_VALID_TREE) && (pindexBestHeader == NULL || CBlockIndexWorkComparator()(pindexBestHeader, pindex)))
-            pindexBestHeader = pindex;
-    }
-
-    // Load block file info
-    pblocktree->ReadLastBlockFile(nLastBlockFile);
-    vinfoBlockFile.resize(nLastBlockFile + 1);
-    LogPrintf("%s: last block file = %i\n", __func__, nLastBlockFile);
-    for (int nFile = 0; nFile <= nLastBlockFile; nFile++) {
-        pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
-    }
-    LogPrintf("%s: last block file info: %s\n", __func__, vinfoBlockFile[nLastBlockFile].ToString());
-    for (int nFile = nLastBlockFile + 1; true; nFile++) {
-        CBlockFileInfo info;
-        if (pblocktree->ReadBlockFileInfo(nFile, info)) {
-            vinfoBlockFile.push_back(info);
-        } else {
-            break;
-        }
-    }
-
-    // Check presence of blk files
-    LogPrintf("Checking all blk files are present...\n");
-    set<int> setBlkDataFiles;
-    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
-    {
-        CBlockIndex* pindex = item.second;
-        if (pindex->nStatus & BLOCK_HAVE_DATA) {
-            setBlkDataFiles.insert(pindex->nFile);
-        }
-    }
-    for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++)
-    {
-        CDiskBlockPos pos(*it, 0);
-        if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION).IsNull()) {
-            return false;
-        }
-    }
-
-    // Check whether we have ever pruned block & undo files
-    pblocktree->ReadFlag("prunedblockfiles", fHavePruned);
-    if (fHavePruned)
-        LogPrintf("LoadBlockIndexDB(): Block files have previously been pruned\n");
-
-    // Check whether we need to continue reindexing
-    bool fReindexing = false;
-    pblocktree->ReadReindexing(fReindexing);
-    fReindex |= fReindexing;
-
-    // Check whether we have a transaction index
-    pblocktree->ReadFlag("txindex", fTxIndex);
-    LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
-
-    pblocktree->ReadFlag("addrindex", fAddrIndex);
-    LogPrintf("LoadBlockIndexDB(): address index %s\n", fAddrIndex ? "enabled" : "disabled");
-
-    // Load pointer to end of best chain
-    BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
-    if (it == mapBlockIndex.end())
-        return true;
-    chainActive.SetTip(it->second);
-
-    PruneBlockIndexCandidates();
-
-    LogPrintf("%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
-        chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
-        DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-        Checkpoints::GuessVerificationProgress(chainActive.Tip()));
-
-    return true;
-}
-
 
 CVerifyDB::CVerifyDB()
 {
@@ -7027,16 +6921,10 @@ void UnloadBlockIndex()
 }
 
 
-bool LoadBlockIndex(string& strError)
+bool LoadBlockIndex()
 {
-    // Load block index from databases
-    if (UseLegacyCode(chainActive.Height())) {
-        if (!fReindex && !LoadBlockIndexDB_Legacy())
-            return false;
-    } else {
-        if (!fReindex && !LoadBlockIndexDB(strError))
-            return false;
-    }
+    if (!fReindex && !LoadBlockIndexDB())
+        return false;
     return true;
 }
 

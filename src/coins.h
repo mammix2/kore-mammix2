@@ -156,8 +156,7 @@ public:
                 a.fCoinStake == b.fCoinStake &&
                 a.nHeight == b.nHeight &&
                 a.nVersion == b.nVersion &&
-                // Lico this is not necessary ???
-                //a.nTime == b.nTime &&
+                a.nTime == b.nTime &&
                 a.vout == b.vout;
     }
 
@@ -479,6 +478,7 @@ public:
      * allowed.
      */
     CCoinsModifier ModifyCoins(const uint256& txid);
+    CCoinsModifier ModifyCoins_Legacy(const uint256& txid);
 
     /**
      * Return a modifiable reference to a CCoins. Assumes that no entry with the given
