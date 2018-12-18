@@ -3682,7 +3682,7 @@ static int64_t nTimeTotal = 0;
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck, bool fAlreadyChecked)
 {
     if (UseLegacyCode(pindex->nHeight))
-       return ConnectBlock(block, state, pindex, view, fJustCheck);
+       return ConnectBlock_Legacy(block, state, pindex, view, fJustCheck);
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
     if (!fAlreadyChecked && !CheckBlock(block, GetnHeight(pindex), state, !fJustCheck, !fJustCheck))
