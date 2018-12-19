@@ -398,6 +398,7 @@ int secp256k1_ecdsa_sign(const secp256k1_context* ctx, secp256k1_ecdsa_signature
     } else {
         memset(signature, 0, sizeof(*signature));
     }
+
     return ret;
 }
 

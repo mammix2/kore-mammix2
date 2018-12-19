@@ -74,8 +74,8 @@ struct TestingSetup {
 #ifdef ENABLE_WALLET
         bitdb.Flush(true);
 #endif
-        // Lico, Temporary. we want to see the results !!!
-        //boost::filesystem::remove_all(pathTemp);
+        ECC_Stop();
+        boost::filesystem::remove_all(pathTemp);
     }
 };
 
