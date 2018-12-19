@@ -44,6 +44,8 @@
 #include "invalid.h"
 
 #include <sstream>
+#include <condition_variable>
+#include <mutex>
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
