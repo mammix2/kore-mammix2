@@ -246,7 +246,7 @@ public:
         pchMessageStart[2] = 0xb3;
         pchMessageStart[3] = 0x4a;
         vAlertPubKey = ParseHex("042b0fb78026380244cc458a914dae461899b121f53bc42105d134158b9773e3fdadca67ca3015dc9c4ef9b9df91f2ef05b890a15cd2d2b85930d37376b2196002");
-        nDefaultPort = 12345;//10743;
+        nDefaultPort = 19342;//10743;
         nMaxTipAge = 24 * 60 * 60;
         nPruneAfterHeight = 100000; // Legacy
         bnProofOfWorkLimit = ~uint256(0) >> 3;
@@ -287,7 +287,7 @@ public:
         nBlockFirstFraudulent         = 891737; //First block that bad serials emerged
         nBlockLastGoodCheckpoint      = 891730; //Last valid accumulator checkpoint
         nBlockEnforceInvalidUTXO      = 902850; //Start enforcing the invalid UTXO's
-        heightToFork                  = 900000; //Height to perform the fork
+        heightToFork                  = 0; //Height to perform the fork
 
         nEnforceNewSporkKey = 1525158000; //!> Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey  = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
