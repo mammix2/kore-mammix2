@@ -3413,7 +3413,7 @@ static bool ApplyTxInUndo_Legacy(const CTxInUndo& undo, CCoinsViewCache& view, c
 {
     bool fClean = true;
 
-    CCoinsModifier coins = view.ModifyNewCoins_Legacy(out.hash);
+    CCoinsModifier coins = view.ModifyCoins_Legacy(out.hash);
     if (undo.nHeight != 0) {
         // undo data contains height: this is the last output of the prevout tx being spent
         if (!coins->IsPruned())
