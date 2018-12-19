@@ -129,10 +129,9 @@ public:
             std::vector<CTxOut>().swap(vout);
     }
 
-    void ClearUnspendable()
-    {
-        BOOST_FOREACH (CTxOut& txout, vout) {
-            if (txout.scriptPubKey.IsUnspendable())
+    void ClearUnspendable() {
+        BOOST_FOREACH(CTxOut &txout, vout) {
+            if (txout.IsUnspendable())
                 txout.SetNull();
         }
         Cleanup();
