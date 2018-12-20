@@ -130,7 +130,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/src/test/test_kore",
-            "args": ["--log_level=all", "--run_test=script_tests", "--log_sink=stdout", "-t sighash_tests/sighash_from_data"],
+            "args": ["--log_level=all", "--run_test=transaction_tests/tx_valid", "--log_sink=stdout"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
