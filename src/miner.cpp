@@ -27,9 +27,6 @@
 #endif
 #include "validationinterface.h"
 #include "masternode-payments.h"
-#ifdef ZEROCOIN
-#include "accumulators.h"
-#endif
 #include "blocksignature.h"
 #include "spork.h"
 #include "invalid.h"
@@ -250,12 +247,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     /**
      * ENABLE THIS ONLY FOR SWAP
      */
-    txNew = CreateCoinbaseTransactionForSwap(chainActive.Tip(), scriptPubKeyIn);
+    // txNew = CreateCoinbaseTransactionForSwap(chainActive.Tip(), scriptPubKeyIn);
     /**
      * END OF SWAP CODE
      */
 
-    // txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
+    txNew = CreateCoinbaseTransaction(scriptPubKeyIn);
     pblock->vtx.push_back(txNew);
 
     pblocktemplate->vTxFees.push_back(-1);   // updated at end
@@ -337,7 +334,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, nHeight)){
                 continue;
             }
-                       
+            
             COrphan* porphan = NULL;
             double dPriority = 0;
             CAmount nTotalIn = 0;
@@ -415,8 +412,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         TxPriorityCompare comparer(fSortedByFee);
         std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
-
-       
+    
         while (!vecPriority.empty()) {
             // Take highest priority transaction off the priority queue:
             double dPriority = vecPriority.front().get<0>();
@@ -447,8 +443,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
             // Prioritise by fee once past the priority size or we run out of high-priority
             // transactions:
-            if (!fSortedByFee &&
-                ((nBlockSize + nTxSize >= nBlockPrioritySize) || !AllowFree(dPriority))) {
+            if (!fSortedByFee && ((nBlockSize + nTxSize >= nBlockPrioritySize) || !AllowFree(dPriority))) {
                 fSortedByFee = true;
                 comparer = TxPriorityCompare(fSortedByFee);
                 std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
@@ -1318,9 +1313,11 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
 
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++) {
-        if (UseLegacyCode(GetnHeight(chainActive.Tip())))
-          minerThreads->create_thread(boost::bind(&ThreadBitcoinMiner, pwallet));
-          else minerThreads->create_thread(boost::bind(&KoreMiner_Legacy, boost::cref(Params())));
+        if (UseLegacyCode(GetnHeight(chainActive.Tip()))) {
+            minerThreads->create_thread(boost::bind(&KoreMiner_Legacy, boost::cref(Params())));
+        } else {
+            minerThreads->create_thread(boost::bind(&ThreadBitcoinMiner, pwallet));
+        }
     }
 }
 

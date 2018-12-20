@@ -61,11 +61,10 @@ bool CheckBlockSignature(const CBlock& block)
     if (block.vchBlockSig.empty())
         return error("%s: vchBlockSig is empty!", __func__);
 
-    /** Each block is signed by the private key of the input that is staked. This can be either zKORE or normal UTXO
-     *  zKORE: Each zKORE has a keypair associated with it. The serial number is a hash of the public key.
-     *  UTXO: The public key that signs must match the public key associated with the first utxo of the coinstake tx.
+    /** Each block is signed by the private key of the input that is staked. This is normal UTXO
+     *  The public key that signs must match the public key associated with the first utxo of the coinstake tx.
      */
-    CPubKey pubkey;   
+    CPubKey pubkey;
     txnouttype whichType;
     std::vector<valtype> vSolutions;
     const CTxOut& txout = block.vtx[1].vout[1];
@@ -75,7 +74,7 @@ bool CheckBlockSignature(const CBlock& block)
         valtype& vchPubKey = vSolutions[0];
         pubkey = CPubKey(vchPubKey);
     }
-    
+
     if (!pubkey.IsValid())
         return error("%s: invalid pubkey %s", __func__, pubkey.GetHex());
 

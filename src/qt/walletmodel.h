@@ -11,8 +11,7 @@
 #include "paymentrequestplus.h"
 #include "walletmodeltransaction.h"
 
-//#include "allocators.h" /* for SecureString */
-#include "support/allocators/secure.h"
+#include "allocators.h" /* for SecureString */
 #include "swifttx.h"
 #include "wallet.h"
 

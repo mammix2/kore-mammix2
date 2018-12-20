@@ -6,9 +6,9 @@
 #include "base58.h"
 #include "hash.h"
 #include "pubkey.h"
-#include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "random.h"
 
 #include <openssl/aes.h>
 #include <openssl/sha.h>
@@ -46,15 +46,6 @@ void ComputePassfactor(std::string ownersalt, uint256 prefactor, uint256& passfa
     Hash(temp.begin(), 40, passfactor.begin()); //40 bytes is the length of prefactor + salt
     Hash(passfactor.begin(), 32, passfactor.begin());
 }
-
-/* LICO old pivx
-bool ComputePasspoint(uint256 passfactor, CPubKey& passpoint)
-{
-    //passpoint is the ec_mult of passfactor on secp256k1
-    int clen = 65;
-    return secp256k1_ec_pubkey_create(UBEGIN(passpoint), &clen, passfactor.begin(), true) != 0;
-}
-*/
 
 bool ComputePasspoint(uint256 passfactor, CPubKey& passpoint)
 {
@@ -277,7 +268,7 @@ bool BIP38_Decrypt(std::string strPassphrase, std::string strEncryptedKey, uint2
         return false;
     }
     secp256k1_context_destroy(ctx);
-    
+
     //double check that the address hash matches our final privkey
     CKey k;
     k.Set(privKey.begin(), privKey.end(), fCompressed);

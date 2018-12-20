@@ -12,6 +12,7 @@
 #include "utiltime.h"
 
 #include <boost/thread.hpp>
+#include <thread>
 
 using namespace std;
 
@@ -61,17 +62,17 @@ void MilliSleep(int64_t n)
 #if defined(HAVE_WORKING_BOOST_SLEEP_FOR)
     boost::this_thread::sleep_for(boost::chrono::milliseconds(n));
 #else
-    boost::this_thread::sleep(std::chrono::milliseconds(n));
+    this_thread::sleep_for(std::chrono::milliseconds(n));
 #endif
 }
 
 std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime)
 {
     time_t rawtime(nTime);
-    struct tm * timeinfo = localtime (&rawtime);
+    struct tm * timeinfo = gmtime(&rawtime);
     char buffer [80];
 
-    strftime (buffer,80,pszFormat,timeinfo);
+    strftime(buffer,80,pszFormat,timeinfo);
 
     return string(buffer);
 }

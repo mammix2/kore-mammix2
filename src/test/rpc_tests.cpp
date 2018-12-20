@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(rpc_rawparams)
     BOOST_CHECK_THROW(CallRPC("decoderawtransaction"), runtime_error);
     BOOST_CHECK_THROW(CallRPC("decoderawtransaction null"), runtime_error);
     BOOST_CHECK_THROW(CallRPC("decoderawtransaction DEADBEEF"), runtime_error);
-    string rawtx = "0100000001a15d57094aa7a21a28cb20b59aab8fc7d1149a3bdbcddba9c622e4f5f6a99ece010000006c493046022100f93bb0e7d8db7bd46e40132d1f8242026e045f03a0efe71bbb8e3f475e970d790221009337cd7f1f929f00cc6ff01f03729b069a7c21b59b1736ddfee5db5946c5da8c0121033b9b137ee87d5a812d6f506efdd37f0affa7ffc310711c06c7f3e097c9447c52ffffffff0100e1f505000000001976a9140389035a9225b3839e2bbf32d826a1e222031fd888ac00000000";
+    string rawtx = "010000000000000001bba8163874efcb793ef83800a1bd8c0922fac4d7a75b231d4ee627091a55f1570000000000ffffffff02d00ed717000000001976a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac00e1f505000000001976a914d818ef7432c0b0805ebea9a0738030dfe821279b88ac00000000";
     BOOST_CHECK_NO_THROW(r = CallRPC(string("decoderawtransaction ")+rawtx));
     BOOST_CHECK_EQUAL(find_value(r.get_obj(), "version").get_int(), 1);
     BOOST_CHECK_EQUAL(find_value(r.get_obj(), "locktime").get_int(), 0);
@@ -97,16 +97,16 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign)
     // input is a 1-of-2 multisig (so is output):
     string prevout =
       "[{\"txid\":\"dd2888870cdc3f6e92661f6b0829667ee4bb07ed086c44205e726bbf3338f726\","
-      "\"vout\":1,\"scriptPubKey\":\"a914f5404a39a4799d8710e15db4c4512c5e06f97fed87\","
-      "\"redeemScript\":\"5121021431a18c7039660cd9e3612a2a47dc53b69cb38ea4ad743b7df8245fd0438f8e21029bbeff390ce736bd396af43b52a1c14ed52c086b1e5585c15931f68725772bac52ae\"}]";
-    r = CallRPC(string("createrawtransaction ")+prevout+" "+
-      "{\"6ckcNMWRYgTnPcrTXCdwhDnMLwj3zwseej\":1}");
+      "\"vout\":0,\"scriptPubKey\":\"a914d535b23f6954e9d6c3ee7104599a725accc437a087\","
+      "\"redeemScript\":\"51210398f51ae996fcd5d2f4f99346c6942638f65fa16ae7f48ba6489b7510562351122102607cbf3d53efced81ecdb8676e8bd7cb1c46297b068712c4e8fef56d73c6dd1c52ae\"}]";
+    r = CallRPC(string("createrawtransaction ") + prevout + " " +
+      "{\"KJdsLBPJxKNwnnSRSHt45zE6153bYCwekg\":1}");
     string notsigned = r.get_str();
-    string privkey1 = "\"YVobcS47fr6kceZy9LzLJR8WQ6YRpUwYKoJhrnEXepebMxaSpbnn\"";
-    string privkey2 = "\"YRyMjG8hbm8jHeDMAfrzSeHq5GgAj7kuHFvJtMudCUH3sCkq1WtA\"";
-    r = CallRPC(string("signrawtransaction ")+notsigned+" "+prevout+" "+"[]");
+    string privkey1 = "\"L3Db9PfXdwEehPRc6AVTwaD7NKekAGRCAnNWU5VYLxGYMcTCeDZr\"";
+    string privkey2 = "\"KzJMorZ5c87fM4hvfbGN8rAV4i9oBGKZV57rogcymR7ZSzQNn5fJ\"";
+    r = CallRPC(string("signrawtransaction ") + notsigned + " " + prevout + " " + "[]");
     BOOST_CHECK(find_value(r.get_obj(), "complete").get_bool() == false);
-    r = CallRPC(std::string("signrawtransaction ")+notsigned+" "+prevout+" "+"["+privkey1+","+privkey2+"]");
+    r = CallRPC(std::string("signrawtransaction ") + notsigned + " " + prevout + " " + "[" + privkey1 + "," + privkey2 + "]");
     BOOST_CHECK(find_value(r.get_obj(), "complete").get_bool() == true);
 }
 
@@ -160,8 +160,8 @@ BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values)
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.50000000")), 50000000LL);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.89898989")), 89898989LL);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1.00000000")), 100000000LL);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.9999999")), 2099999999999990LL);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.99999999")), 2099999999999999LL);
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("10499999.9999999")), 1049999999999990LL);
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("10499999.99999999")), 1049999999999999LL);
 }
 
 BOOST_AUTO_TEST_CASE(json_parse_errors)

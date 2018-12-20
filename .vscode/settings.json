@@ -62,5 +62,21 @@
         "string_view": "cpp",
         "optional": "cpp",
         "*.moc": "cpp"
+    },
+    "files.exclude": {
+        "**/.deps": true,
+        "**/.dirstamp": true,
+        "**/.libs": true,
+        "**/*.a": true,
+        "**/*.cache": true,
+        "**/*.la": true,
+        "**/*.lo": true,
+        "**/*.o": true,
+        "**/*.pc": true,
+        "depends/built": true,
+        "depends/sources": true,
+        "depends/work": true,
+        "depends/x86*": true,
+        "src/**/build-aux": true
     }
 }

@@ -21,11 +21,9 @@
 #include <fstream>
 #include <secp256k1.h>
 #include <stdint.h>
-
 #include <boost/algorithm/string.hpp>
 #include <openssl/aes.h>
 #include <openssl/sha.h>
-
 #include <univalue.h>
 
 using namespace std;
