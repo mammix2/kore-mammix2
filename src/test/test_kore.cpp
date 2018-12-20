@@ -29,8 +29,10 @@ struct TestingSetup {
     CCoinsViewDB *pcoinsdbview;
     boost::filesystem::path pathTemp;
     boost::thread_group threadGroup;
+    ECCVerifyHandle globalVerifyHandle;
 
     TestingSetup() {
+        ECC_Start();
         SetupEnvironment();
         fPrintToDebugLog = true; // don't want to write to debug.log file
         fCheckBlockIndex = true;
@@ -72,8 +74,8 @@ struct TestingSetup {
 #ifdef ENABLE_WALLET
         bitdb.Flush(true);
 #endif
-        // Lico, Temporary. we want to see the results !!!
-        //boost::filesystem::remove_all(pathTemp);
+        ECC_Stop();
+        boost::filesystem::remove_all(pathTemp);
     }
 };
 

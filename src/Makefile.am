@@ -7,6 +7,10 @@ TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel \
 	-lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
 LIBS+= -lssl -lcrypto
 
+if TARGET_WINDOWS
+LIBS+=-lgdi32
+endif
+
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
@@ -113,6 +117,7 @@ BITCOIN_CORE_H = \
   compat.h \
   compat/sanity.h \
   compressor.h \
+  core_memusage.h \
   primitives/block.h \
   primitives/transaction.h \
   primitives/deterministicmint.h \
@@ -122,7 +127,6 @@ BITCOIN_CORE_H = \
   obfuscation-relay.h \
   db.h \
   eccryptoverify.h \
-  ecwrapper.h \
   hash.h \
   httprpc.h \
   httpserver.h \
@@ -134,6 +138,9 @@ BITCOIN_CORE_H = \
   swifttx.h \
   key.h \
   keystore.h \
+  legacy/consensus/merkle.h \
+  legacy/policy/fees.h \
+  legacy/policy/policy.h \
   leveldbwrapper.h \
   limitedmap.h \
   main.h \
@@ -143,6 +150,7 @@ BITCOIN_CORE_H = \
   masternode-sync.h \
   masternodeman.h \
   masternodeconfig.h \
+  memusage.h \
   merkleblock.h \
   miner.h \
   momentum.h \
@@ -174,6 +182,8 @@ BITCOIN_CORE_H = \
   sporkdb.h \
   stakeinput.h \
   streams.h \
+  support/csviterator.h \
+  support/csvrow.h \
   sync.h \
   threadsafety.h \
   timedata.h \
@@ -190,6 +200,7 @@ BITCOIN_CORE_H = \
   utiltime.h \
   validationinterface.h \
   version.h \
+  versionbits.h \
   wallet.h \
   wallet_ismine.h \
   walletdb.h \
@@ -241,6 +252,7 @@ libbitcoin_server_a_SOURCES = \
   txdb.cpp \
   txmempool.cpp \
   validationinterface.cpp \
+  versionbits.cpp \
   $(BITCOIN_CORE_H)
 
 if ENABLE_ZMQ
@@ -315,7 +327,7 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/sph_skein.h \
   crypto/sph_types.h \
   crypto/yescrypt/yescrypt.c \
-  crypto/yescrypt/yescrypt.h \  
+  crypto/yescrypt/yescrypt.h \
   crypto/yescrypt/sha256_c.h \
   crypto/yescrypt/sha256.h \
   crypto/yescrypt/sysendian.h \
@@ -342,11 +354,12 @@ libbitcoin_common_a_SOURCES = \
   core_read.cpp \
   core_write.cpp \
   eccryptoverify.cpp \
-  ecwrapper.cpp \
   hash.cpp \
   invalid.cpp \
   key.cpp \
   keystore.cpp \
+  legacy/consensus/merkle.cpp \
+  legacy/policy/fees.cpp \
   netaddress.cpp \
   netbase.cpp \
   protocol.cpp \
@@ -375,6 +388,8 @@ libbitcoin_util_a_SOURCES = \
   clientversion.cpp \
   random.cpp \
   rpcprotocol.cpp \
+  support/csvrow.cpp \
+  support/csviterator.cpp \
   sync.cpp \
   uint256.cpp \
   util.cpp \
@@ -475,7 +490,6 @@ libbitcoinconsensus_la_SOURCES = \
   crypto/sha512.cpp \
   crypto/ripemd160.cpp \
   eccryptoverify.cpp \
-  ecwrapper.cpp \
   hash.cpp \
   pubkey.cpp \
   script/script.cpp \
@@ -492,7 +506,7 @@ libbitcoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 libbitcoinconsensus_la_LIBADD = $(CRYPTO_LIBS) $(BOOST_LIBS)
 libbitcoinconsensus_la_CPPFLAGS = $(CRYPTO_CFLAGS) -I$(builddir)/obj -DBUILD_BITCOIN_INTERNAL
 if USE_LIBSECP256K1
-libbitcoinconsensus_la_LIBADD += secp256k1/libsecp256k1.la
+libbitcoinconsensus_la_LIBADD += $(LIBSECP256K1)
 endif
 endif
 

@@ -176,6 +176,136 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
     }
 }
 
+void ProcessMessageSwiftTX_Legacy(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
+{
+    if (fLiteMode) return; //disable all obfuscation/masternode related functionality
+    if (!IsSporkActive(SPORK_2_SWIFTTX)) return;
+    if (!masternodeSync.IsBlockchainSynced()) return;
+
+    if (strCommand == "ix") {
+        //LogPrintf("ProcessMessageSwiftTX::ix\n");
+        CDataStream vMsg(vRecv);
+        CTransaction tx;
+        vRecv >> tx;
+
+        CInv inv(MSG_TXLOCK_REQUEST, tx.GetHash());
+        pfrom->AddInventoryKnown(inv);
+
+        if (mapTxLockReq.count(tx.GetHash()) || mapTxLockReqRejected.count(tx.GetHash())) {
+            return;
+        }
+
+        if (!IsIXTXValid(tx)) {
+            return;
+        }
+
+        BOOST_FOREACH (const CTxOut o, tx.vout) {
+            // IX supports normal scripts and unspendable scripts (used in DS collateral and Budget collateral).
+            // TODO: Look into other script types that are normal and can be included
+            if (!o.scriptPubKey.IsNormalPaymentScript() && !o.scriptPubKey.IsUnspendable()) {
+                LogPrintf("ProcessMessageSwiftTX::ix - Invalid Script %s\n", tx.ToString().c_str());
+                return;
+            }
+        }
+
+        int nBlockHeight = CreateNewLock(tx);
+
+        bool fMissingInputs = false;
+        CValidationState state;
+
+        bool fAccepted = false;
+        {
+            LOCK(cs_main);
+            fAccepted = AcceptToMemoryPool(mempool, state, tx, true, &fMissingInputs);
+        }
+        if (fAccepted) {
+            RelayInv(inv);
+
+            DoConsensusVote(tx, nBlockHeight);
+
+            mapTxLockReq.insert(make_pair(tx.GetHash(), tx));
+
+            LogPrintf("ProcessMessageSwiftTX::ix - Transaction Lock Request: %s %s : accepted %s\n",
+                pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(),
+                tx.GetHash().ToString().c_str());
+
+            return;
+
+        } else {
+            mapTxLockReqRejected.insert(make_pair(tx.GetHash(), tx));
+
+            // can we get the conflicting transaction as proof?
+
+            LogPrintf("ProcessMessageSwiftTX::ix - Transaction Lock Request: %s %s : rejected %s\n",
+                pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(),
+                tx.GetHash().ToString().c_str());
+
+            BOOST_FOREACH (const CTxIn& in, tx.vin) {
+                if (!mapLockedInputs.count(in.prevout)) {
+                    mapLockedInputs.insert(make_pair(in.prevout, tx.GetHash()));
+                }
+            }
+
+            // resolve conflicts
+            std::map<uint256, CTransactionLock>::iterator i = mapTxLocks.find(tx.GetHash());
+            if (i != mapTxLocks.end()) {
+                //we only care if we have a complete tx lock
+                if ((*i).second.CountSignatures() >= SWIFTTX_SIGNATURES_REQUIRED) {
+                    if (!CheckForConflictingLocks(tx)) {
+                        LogPrintf("ProcessMessageSwiftTX::ix - Found Existing Complete IX Lock\n");
+
+                        //reprocess the last 15 blocks
+                        ReprocessBlocks(15);
+                        mapTxLockReq.insert(make_pair(tx.GetHash(), tx));
+                    }
+                }
+            }
+
+            return;
+        }
+    } else if (strCommand == "txlvote") //SwiftTX Lock Consensus Votes
+    {
+        CConsensusVote ctx;
+        vRecv >> ctx;
+
+        CInv inv(MSG_TXLOCK_VOTE, ctx.GetHash());
+        pfrom->AddInventoryKnown(inv);
+
+        if (mapTxLockVote.count(ctx.GetHash())) {
+            return;
+        }
+
+        mapTxLockVote.insert(make_pair(ctx.GetHash(), ctx));
+
+        if (ProcessConsensusVote(pfrom, ctx)) {
+            //Spam/Dos protection
+            /*
+                Masternodes will sometimes propagate votes before the transaction is known to the client.
+                This tracks those messages and allows it at the same rate of the rest of the network, if
+                a peer violates it, it will simply be ignored
+            */
+            if (!mapTxLockReq.count(ctx.txHash) && !mapTxLockReqRejected.count(ctx.txHash)) {
+                if (!mapUnknownVotes.count(ctx.vinMasternode.prevout.hash)) {
+                    mapUnknownVotes[ctx.vinMasternode.prevout.hash] = GetTime() + (60 * 10);
+                }
+
+                if (mapUnknownVotes[ctx.vinMasternode.prevout.hash] > GetTime() &&
+                    mapUnknownVotes[ctx.vinMasternode.prevout.hash] - GetAverageVoteTime() > 60 * 10) {
+                    LogPrintf("ProcessMessageSwiftTX::ix - masternode is spamming transaction votes: %s %s\n",
+                        ctx.vinMasternode.ToString().c_str(),
+                        ctx.txHash.ToString().c_str());
+                    return;
+                } else {
+                    mapUnknownVotes[ctx.vinMasternode.prevout.hash] = GetTime() + (60 * 10);
+                }
+            }
+            RelayInv(inv);
+        }
+
+        return;
+    }
+}
+
 bool IsIXTXValid(const CTransaction& txCollateral)
 {
     if (txCollateral.vout.size() < 1) return false;

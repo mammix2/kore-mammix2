@@ -13,9 +13,7 @@
 #include "primitives/block.h"
 #include "protocol.h"
 #include "uint256.h"
-#ifdef ZEROCOIN
-#include "libzerocoin/Params.h"
-#endif
+
 #include <vector>
 
 typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
@@ -45,6 +43,27 @@ public:
 
         MAX_BASE58_TYPES
     };
+
+    enum DeploymentPos {
+        DEPLOYMENT_TESTDUMMY,
+        DEPLOYMENT_CSV, // Deployment of BIP68, BIP112, and BIP113.
+        // NOTE: Also add new deployments to VersionBitsDeploymentInfo in versionbits.cpp
+        MAX_VERSION_BITS_DEPLOYMENTS
+    };
+
+    struct BIP9Deployment {
+        /** Bit position to select the particular bit in nVersion. */
+        int bit;
+        /** Start MedianTime for version bits miner confirmation. Can be a date in the past */
+        int64_t nStartTime;
+        /** Timeout/expiry MedianTime for the deployment attempt. */
+        int64_t nTimeout;
+    };
+
+    typedef BIP9Deployment vDeployments_type[MAX_VERSION_BITS_DEPLOYMENTS];
+
+    // mark the Fork Block here
+    const int HeigthToFork() const { return heightToFork; };
 
     const uint256& HashGenesisBlock() const { return hashGenesisBlock; }
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
@@ -90,12 +109,19 @@ public:
     CAmount MaxMoneyOut() const { return nMaxMoneyOut; }
     /** The masternode count that we will allow the see-saw reward payments to be off by */
     int MasternodeCountDrift() const { return nMasternodeCountDrift; }
+    int64_t MaxTipAge() const { return nMaxTipAge; }
+    uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }    
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
     const std::vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
     const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
+
+    uint32_t RuleChangeActivationThreshold() const { return nRuleChangeActivationThreshold;}
+    uint32_t MinerConfirmationWindow() const { return nMinerConfirmationWindow;}
+
+    const CChainParams::vDeployments_type & GetVDeployments() const { return vDeployments;}
     const std::vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
     virtual const Checkpoints::CCheckpointData& Checkpoints() const = 0;
     int PoolMaxTransactions() const { return nPoolMaxTransactions; }
@@ -122,43 +148,22 @@ public:
     int64_t MasternodeFinalizationWindow() const { return nMasternodeFinalizationWindow; }
         
     CBaseChainParams::Network NetworkID() const { return networkID; }
-
-#ifdef ZEROCOIN
-    /** Zerocoin **/
-    std::string Zerocoin_Modulus() const { return zerocoinModulus; }
-    libzerocoin::ZerocoinParams* Zerocoin_Params(bool useModulusV1) const;
-    int Zerocoin_MaxSpendsPerTransaction() const { return nMaxZerocoinSpendsPerTransaction; }
-    CAmount Zerocoin_MintFee() const { return nMinZerocoinMintFee; }
-    int Zerocoin_MintRequiredConfirmations() const { return nMintRequiredConfirmations; }
-    int Zerocoin_RequiredAccumulation() const { return nRequiredAccumulation; }
-    int Zerocoin_DefaultSpendSecurity() const { return nDefaultSecurityLevel; }
-    int Zerocoin_HeaderVersion() const { return nZerocoinHeaderVersion; }
-    int Zerocoin_RequiredStakeDepth() const { return nZerocoinRequiredStakeDepth; }
-
-    /** Height or Time Based Activations **/
-     
-    int Zerocoin_StartHeight() const { return nZerocoinStartHeight; }
-    int Zerocoin_Block_EnforceSerialRange() const { return nBlockEnforceSerialRange; }
-    int Zerocoin_Block_RecalculateAccumulators() const { return nBlockRecalculateAccumulators; }
-    int Zerocoin_Block_FirstFraudulent() const { return nBlockFirstFraudulent; }
-    int Zerocoin_Block_LastGoodCheckpoint() const { return nBlockLastGoodCheckpoint; }
-    int Zerocoin_StartTime() const { return nZerocoinStartTime; }
-    
-    int Zerocoin_Block_V2_Start() const { return nBlockZerocoinV2; }
-    CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; };
-#endif
-   int LAST_POW_BLOCK() const { return nLastPOWBlock; }
-   int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
-   int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
+    int LAST_POW_BLOCK() const { return nLastPOWBlock; }
+    int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
+    int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
 
 protected:
     CChainParams() {}
+
+    int heightToFork;
 
     uint256 hashGenesisBlock;
     MessageStartChars pchMessageStart;
     //! Raw pub key bytes for the broadcast alert signing key.
     std::vector<unsigned char> vAlertPubKey;
     int nDefaultPort;
+    long nMaxTipAge;    
+    uint64_t nPruneAfterHeight; // Legacy    
     uint256 bnProofOfWorkLimit;
     uint256 bnProofOfStakeLimit;
     int nMaxReorganizationDepth;
@@ -183,6 +188,9 @@ protected:
     int nMinerThreads;
     std::vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
+    uint32_t nRuleChangeActivationThreshold;
+    uint32_t nMinerConfirmationWindow;
+    vDeployments_type vDeployments;
     CBaseChainParams::Network networkID;
     std::string strNetworkID;
     std::string strDevFundPubKey;
@@ -202,21 +210,7 @@ protected:
     std::string strObfuscationPoolDummyAddress;
     int64_t nStartMasternodePayments;
     int64_t nBudgetVoteUpdate;
-    void  MineNewGenesisBlock();
-#ifdef ZEROCOIN    
-    std::string zerocoinModulus;
-    int nMaxZerocoinSpendsPerTransaction;
-    CAmount nMinZerocoinMintFee;
-    CAmount nInvalidAmountFiltered;
-    int nMintRequiredConfirmations;
-    int nRequiredAccumulation;
-    int nDefaultSecurityLevel;
-    int nZerocoinHeaderVersion;
-    int nZerocoinStartHeight;
-    int nZerocoinStartTime;
-    int nZerocoinRequiredStakeDepth;
-    int nBlockZerocoinV2;    
-#endif
+    void  MineNewGenesisBlock_Legacy();
     int64_t nBudgetFeeConfirmations;
     int64_t nMasternodeMinConfirmations;
     int64_t nMasternodeMinMNPSeconds;
@@ -228,7 +222,6 @@ protected:
     int64_t nMasternodeCoinScore;   
     int64_t nMasternodeBudgetPaymentCycle;
     int64_t nMasternodeFinalizationWindow;
-
 
     int nBlockEnforceSerialRange;
     int nBlockRecalculateAccumulators;
@@ -254,6 +247,7 @@ public:
     virtual void setDefaultConsistencyChecks(bool aDefaultConsistencyChecks) = 0;
     virtual void setAllowMinDifficultyBlocks(bool aAllowMinDifficultyBlocks) = 0;
     virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
+    virtual void setHeightToFork(int aHeightToFork) = 0;
 };
 
 

@@ -103,7 +103,8 @@ static bool SelectBlockFromCandidates(
         uint256 hashProof;
         if(fModifierV2)
             hashProof = pindex->GetBlockHash();
-        else
+        else // Lico, here it is not necessary to use _Legacy, because it will only be used 
+             // in the new code
             hashProof = pindex->IsProofOfStake() ? 0 : pindex->GetBlockHash();
 
         CDataStream ss(SER_GETHASH, 0);
@@ -368,7 +369,7 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
 
     // Read block header
     CBlock blockprev;
-    if (!ReadBlockFromDisk(blockprev, pindex->GetBlockPos()))
+    if (!ReadBlockFromDisk(blockprev, pindex->GetBlockPos(), pindex->nHeight))
         return error("CheckProofOfStake(): INFO: failed to find block");
 
     uint256 bnTargetPerCoinDay;

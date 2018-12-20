@@ -177,9 +177,8 @@ UniValue mempoolToJSON(bool fVerbose = false)
     if (fVerbose) {
         LOCK(mempool.cs);
         UniValue o(UniValue::VOBJ);
-        BOOST_FOREACH (const PAIRTYPE(uint256, CTxMemPoolEntry) & entry, mempool.mapTx) {
-            const uint256& hash = entry.first;
-            const CTxMemPoolEntry& e = entry.second;
+        BOOST_FOREACH (const CTxMemPoolEntry & e, mempool.mapTx) {
+            const uint256& hash = e.GetTx().GetHash();;
             UniValue info(UniValue::VOBJ);
             info.push_back(Pair("size", (int)e.GetTxSize()));
             info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
@@ -451,6 +450,29 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
         ret.push_back(Pair("bytes_serialized", (int64_t)stats.nSerializedSize));
         ret.push_back(Pair("hash_serialized", stats.hashSerialized.GetHex()));
         ret.push_back(Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
+    }
+    return ret;
+}
+
+UniValue dumptxoutset(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "dumptxoutset\n"
+            "\nDump the unspent transaction output set to a file \"dump_$BLOCKHEIGTH.csv\".\n"
+            "Note this call may take some time.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("dumptxoutset", "")
+            + HelpExampleRpc("dumptxoutset", "")
+        );
+
+    UniValue ret(UniValue::VOBJ);
+
+    FlushStateToDisk();
+    string fileSaved;
+    string fileName = params.size() > 0 ? params[0].get_str() : NULL;
+    if (pcoinsTip->DumpUTXO(fileSaved, fileName)) {
+        ret.push_back(Pair("File exported to: ", fileSaved));
     }
     return ret;
 }

@@ -25,7 +25,7 @@ namespace Checkpoints
      */
 static const double SIGCHECK_VERIFICATION_FACTOR = 5.0;
 
-bool fEnabled = true;
+bool fEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 
 bool CheckBlock(int nHeight, const uint256& hash, bool fMatchesCheckpoint)
 {
@@ -79,6 +79,8 @@ int GetTotalBlocksEstimate()
         return 0;
 
     const MapCheckpoints& checkpoints = *Params().Checkpoints().mapCheckpoints;
+    if (checkpoints.empty())
+        return 0;
 
     return checkpoints.rbegin()->first;
 }

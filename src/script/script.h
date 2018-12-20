@@ -187,6 +187,8 @@ enum opcodetype
 
 const char* GetOpName(opcodetype opcode);
 
+const bool GetOpFromName(string str, opcodetype &opcode);
+
 class scriptnum_error : public std::runtime_error
 {
 public:
@@ -375,8 +377,12 @@ private:
     int64_t m_value;
 };
 
+// LICO, instead of getting prevector from Legacy, trying
+// to use the same as current code;
+typedef std::vector<unsigned char> CScriptBase;
+
 /** Serialized script, used inside transaction inputs and outputs */
-class CScript : public std::vector<unsigned char>
+class CScript : public CScriptBase
 {
 protected:
     CScript& push_int64(int64_t n)
@@ -471,13 +477,12 @@ public:
         assert(!"Warning: Pushing a CScript onto a CScript with << is probably not intended, use + to concatenate!");
         return *this;
     }
-
+    
     CScript& operator<<(const CPubKey& key)
     {
         std::vector<unsigned char> vchKey = key.Raw();
         return (*this) << vchKey;
     }
-
 
     bool GetOp(iterator& pc, opcodetype& opcodeRet, std::vector<unsigned char>& vchRet)
     {
@@ -641,6 +646,15 @@ public:
         // The default std::vector::clear() does not release memory.
         std::vector<unsigned char>().swap(*this);
     }
+};
+
+class CReserveScript
+{
+public:
+    CScript reserveScript;
+    virtual void KeepScript() {}
+    CReserveScript() {}
+    virtual ~CReserveScript() {}
 };
 
 #endif // BITCOIN_SCRIPT_SCRIPT_H

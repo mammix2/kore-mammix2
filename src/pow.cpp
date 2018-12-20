@@ -36,7 +36,7 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
         nActualSpacing = nTargetSpacing;
 
     // Retarget
-    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
+    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake_Legacy());
     arith_uint256 bnNew, bnOld;
     bnNew.SetCompact(pindexLast->nBits);
     bnOld = bnNew;
@@ -79,8 +79,8 @@ unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBl
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
     // Lico
-    // if FORK_condition
-    //return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
+    if (UseLegacyCode(pindexLast->nHeight))
+      return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
 
     /* current difficulty formula, kore - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;
@@ -188,10 +188,11 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 }
 
 
-bool CheckProofOfWork(uint256 hash, unsigned int nBits)
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, const int nHeight)
 {
     // Lico FORK
-    // return CheckProofOfWork_Legacy(hash, nBits);
+     if (UseLegacyCode(nHeight))
+       return CheckProofOfWork_Legacy(hash, nBits);
     bool fNegative;
     bool fOverflow;
     uint256 bnTarget;
@@ -230,16 +231,17 @@ bool CheckProofOfWork_Legacy(uint256 hash, unsigned int nBits)
 
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
 
-    // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(Params().ProofOfWorkLimit()))
-        return false;
-
     if (fDebug) {
         LogPrintf("CheckProofOfWork \n");
         LogPrintf("nBits    : %x \n", nBits);
         LogPrintf("hash    : %s \n", UintToArith256(hash).ToString().c_str());
         LogPrintf("bnTarget: %s \n", bnTarget.ToString().c_str());
     }
+    
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(Params().ProofOfWorkLimit()))
+        return false;
+
     // Check proof of work matches claimed amount
     if (UintToArith256(hash) > bnTarget)
         return false;

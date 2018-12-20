@@ -15,6 +15,47 @@
 #include <arpa/inet.h>
 #endif
 
+namespace NetMsgType {
+const char *VERSION="version";
+const char *VERACK="verack";
+const char *ADDR="addr";
+const char *INV="inv";
+const char *GETDATA="getdata";
+const char *MERKLEBLOCK="merkleblock";
+const char *GETBLOCKS="getblocks";
+const char *GETHEADERS="getheaders";
+const char *TX="tx";
+const char *HEADERS="headers";
+const char *BLOCK="block";
+const char *GETADDR="getaddr";
+const char *MEMPOOL="mempool";
+const char *PING="ping";
+const char *PONG="pong";
+const char *ALERT="alert";
+const char *NOTFOUND="notfound";
+const char *FILTERLOAD="filterload";
+const char *FILTERADD="filteradd";
+const char *FILTERCLEAR="filterclear";
+const char *REJECT="reject";
+const char *SENDHEADERS="sendheaders";
+const char *TXLOCKREQUEST="tx lock request";
+const char *TXLOCKVOTE="tx lock vote";
+const char *SPORK="spork";
+const char *MNWINNER="mn winner";
+const char *MNSCANERROR="mn scan error";
+const char *MNBUDGETVOTE="mn budget vote";
+const char *MNBUDGETPROPOSAL="mn budget proposal";
+const char *MNBUDGETFINALIZED="mn budget finalized";
+const char *MNBUDGETFINALIZEDVOTE="mn budget finalized vote";
+const char *QUORUM="mn quorum";
+const char *ANNOUNCE="mn announce";
+const char *MNPING="mn ping";
+const char *DSTX="dstx";
+const char *SSC="ssc";
+const char *MNVS="mnvs";
+};
+
+
 static const char* ppszTypeName[] =
     {
         "ERROR",

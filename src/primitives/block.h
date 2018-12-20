@@ -75,9 +75,9 @@ public:
     }
 
     uint256 GetHash() const;
-    uint256 GetHash_Legacy();
 	
     //uint256 GetVerifiedHash() const;
+    uint256 CalculateBestBirthdayHash();
 
     uint256 GetMidHash() const;
     int64_t GetBlockTime() const
@@ -85,8 +85,6 @@ public:
         return (int64_t)nTime;
     }
 
-private:
-    uint256 CalculateBestBirthdayHash();
 };
 
 
@@ -102,6 +100,7 @@ public:
     // memory only
     mutable CScript payee;
     mutable std::vector<uint256> vMerkleTree;
+    mutable bool fChecked;
 
     CBlock()
     {
@@ -129,6 +128,7 @@ public:
         CBlockHeader::SetNull();
         vtx.clear();
         vMerkleTree.clear();
+	    fChecked = false;
         payee = CScript();
         vchBlockSig.clear();
     }

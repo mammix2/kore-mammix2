@@ -6,9 +6,10 @@
 #ifndef BITCOIN_CRYPTER_H
 #define BITCOIN_CRYPTER_H
 
-#include "allocators.h"
 #include "keystore.h"
 #include "serialize.h"
+
+#include <openssl/crypto.h>
 
 class uint256;
 

@@ -16,15 +16,14 @@
 #include "utiltime.h"
 #include "wallet.h"
 
+#include <chrono>
+#include <iomanip>
 #include <fstream>
 #include <secp256k1.h>
 #include <stdint.h>
-
 #include <boost/algorithm/string.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <openssl/aes.h>
 #include <openssl/sha.h>
-
 #include <univalue.h>
 
 using namespace std;
@@ -38,16 +37,17 @@ std::string static EncodeDumpTime(int64_t nTime)
 
 int64_t static DecodeDumpTime(const std::string& str)
 {
-    static const boost::posix_time::ptime epoch = boost::posix_time::from_time_t(0);
-    static const std::locale loc(std::locale::classic(),
-        new boost::posix_time::time_input_facet("%Y-%m-%dT%H:%M:%SZ"));
-    std::istringstream iss(str);
-    iss.imbue(loc);
-    boost::posix_time::ptime ptime(boost::date_time::not_a_date_time);
-    iss >> ptime;
-    if (ptime.is_not_a_date_time())
+    std::tm t = {};
+    std::istringstream ss(str);
+    
+    if (ss >> std::get_time(&t, "%Y-%m-%dT%H:%M:%SZ"))
+    {
+        return std::mktime(&t);
+    }
+    else
+    {
         return 0;
-    return (ptime - epoch).total_seconds();
+    }
 }
 
 std::string static EncodeDumpString(const std::string& str)

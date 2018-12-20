@@ -810,7 +810,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 if (i != mAskedUsForMasternodeList.end()) {
                     int64_t t = (*i).second;
                     if (GetTime() < t) {
-                        Misbehaving(pfrom->GetId(), 34);
+                        Misbehaving(pfrom->GetId(), 1);
                         LogPrint("masternode","dseg - peer already asked me for the list\n");
                         return;
                     }
@@ -999,7 +999,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         if (fAcceptable) {
             if (GetInputAge(vin) < Params().MasternodeMinConfirmations()) {
                 LogPrint("masternode","dsee - Input must have least %d confirmations\n", Params().MasternodeMinConfirmations());
-                Misbehaving(pfrom->GetId(), 20);
+                Misbehaving(pfrom->GetId(), 2);
                 return;
             }
 

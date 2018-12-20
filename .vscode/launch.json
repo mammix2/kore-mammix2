@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         { 
-            "name": "Attach to pivxd",
+            "name": "Attach to kored",
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "111916",
+            "processId": "3974",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -42,6 +42,7 @@
             "name": "(gdb) Daemon - Single",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/kored",
             "args": ["-testnet","-debug","-par=1"],
             "stopAtEntry": true,
@@ -85,7 +86,9 @@
             "name": "(gdb) Test Net",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/kored",
+            //"args": ["-debug", "-testnet","-par=1","-datadir=/home/kore/Documents/.kore"],
             "args": ["-debug", "-testnet","-par=1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -128,8 +131,10 @@
             "name": "(gdb) Launch Tests",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/test/test_kore",
-            "args": ["--log_level=all", "--run_test=script_tests", "--log_sink=stdout", "-t sighash_tests/sighash_from_data"],
+            "args": ["--log_level=test_suite", "--run_test=transaction_tests/tx_valid"],
+            "args": ["--log_level=test_suite", "--log_sink=stdout"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

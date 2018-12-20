@@ -8,6 +8,7 @@
 #include "amount.h"
 #include "base58.h"
 #include "chainparams.h"
+#include "validationinterface.h"
 #include "core_io.h"
 #include "init.h"
 #include "main.h"
@@ -21,13 +22,20 @@
 #include "wallet.h"
 #endif
 
+#include <chrono>
+#include <mutex>
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
 
 #include <univalue.h>
+#include <condition_variable>
 
 using namespace std;
+
+
+extern mutex csBestBlock;
+extern condition_variable cvBlockChange;
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
@@ -178,7 +186,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
                 LOCK(cs_main);
                 IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
             }
-            while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits)) {
+            while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, chainActive.Height())) {
                 // Yes, there is a chance every nonce could fail to satisfy the -regtest
                 // target -- 1 in 2^(2^32). That ain't gonna happen.
                 ++pblock->nNonce;
@@ -216,7 +224,7 @@ UniValue gethashespersec(const UniValue& params, bool fHelp)
 
     if (GetTimeMillis() - nHPSTimerStart > 8000)
         return (int64_t)0;
-    return (int64_t)dHashesPerSec;
+    return (int64_t)dHashesPerMin;
 }
 #endif
 
@@ -445,7 +453,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     if (!lpval.isNull()) {
         // Wait to respond until either the best block changes, OR a minute has passed and there are more transactions
         uint256 hashWatchedChain;
-        boost::system_time checktxtime;
+        std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::milliseconds> checktxtime;
         unsigned int nTransactionsUpdatedLastLP;
 
         if (lpval.isStr()) {
@@ -463,15 +471,15 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         // Release the wallet and main lock while waiting
         LEAVE_CRITICAL_SECTION(cs_main);
         {
-            checktxtime = boost::get_system_time() + boost::posix_time::minutes(1);
+            checktxtime = std::chrono::time_point_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now()) + chrono::minutes(1);
 
-            boost::unique_lock<boost::mutex> lock(csBestBlock);
+            std::unique_lock<std::mutex> lock(csBestBlock);
             while (chainActive.Tip()->GetBlockHash() == hashWatchedChain && IsRPCRunning()) {
-                if (!cvBlockChange.timed_wait(lock, checktxtime)) {
+                if (cvBlockChange.wait_until(lock, checktxtime) != cv_status::timeout) {
                     // Timeout: Check transactions for update
                     if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLastLP)
                         break;
-                    checktxtime += boost::posix_time::seconds(10);
+                    checktxtime += chrono::seconds(10);
                 }
             }
         }
