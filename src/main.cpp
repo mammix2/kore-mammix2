@@ -4472,7 +4472,7 @@ void PruneAndFlush() {
 
 bool UseLegacyCode(int nHeight)
 {
-    return nHeight < HEIGHT_TO_FORK;
+    return nHeight < Params().HeigthToFork();
 }
 
 /** Update chainActive and related internal data structures. */

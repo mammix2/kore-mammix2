@@ -16,7 +16,6 @@
 #include <QByteArray>
 #include <QList>
 #include <QString>
-#include <openssl/ssl.h>
 
 //
 // Wraps dumb protocol buffer paymentRequest

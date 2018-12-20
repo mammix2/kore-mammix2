@@ -3,7 +3,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 DIST_SUBDIRS = secp256k1 univalue
-TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel -lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
+TOR_LIBS=  -ltor -lor -lor-ctime -lor-crypto -lor-event -lor-trunnel \
+	-lcurve25519_donna -led25519_donna -led25519_ref10 -lkeccak-tiny
 LIBS+= -lssl -lcrypto
 
 if TARGET_WINDOWS
@@ -98,6 +99,7 @@ BITCOIN_CORE_H = \
   activemasternode.h \
   addrman.h \
   alert.h \
+  allocators.h \
   amount.h \
   arith_uint256.h \
   base58.h \
@@ -126,7 +128,6 @@ BITCOIN_CORE_H = \
   obfuscation-relay.h \
   db.h \
   eccryptoverify.h \
-  ecwrapper.h \
   hash.h \
   httprpc.h \
   httpserver.h \
@@ -182,11 +183,7 @@ BITCOIN_CORE_H = \
   sporkdb.h \
   stakeinput.h \
   streams.h \
-  support/allocators/secure.h \
-  support/allocators/zeroafterfree.h \
-  support/cleanse.h \
-  support/csviterator.h \  
-  support/pagelocker.h \
+  support/csviterator.h \
   support/csvrow.h \
   sync.h \
   threadsafety.h \
@@ -344,6 +341,7 @@ crypto_libbitcoin_crypto_a_SOURCES = \
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
+  allocators.cpp \
   arith_uint256.cpp \
   amount.cpp \
   base58.cpp \
@@ -357,7 +355,6 @@ libbitcoin_common_a_SOURCES = \
   core_read.cpp \
   core_write.cpp \
   eccryptoverify.cpp \
-  ecwrapper.cpp \
   hash.cpp \
   invalid.cpp \
   key.cpp \
@@ -384,7 +381,7 @@ libbitcoin_common_a_SOURCES = \
 libbitcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_util_a_SOURCES = \
-  support/pagelocker.cpp \
+  allocators.cpp \
   compat/strnlen.cpp \
   compat/glibc_sanity.cpp \
   compat/glibcxx_sanity.cpp \
@@ -392,7 +389,6 @@ libbitcoin_util_a_SOURCES = \
   clientversion.cpp \
   random.cpp \
   rpcprotocol.cpp \
-  support/cleanse.cpp \
   support/csvrow.cpp \
   support/csviterator.cpp \
   sync.cpp \
@@ -495,7 +491,6 @@ libbitcoinconsensus_la_SOURCES = \
   crypto/sha512.cpp \
   crypto/ripemd160.cpp \
   eccryptoverify.cpp \
-  ecwrapper.cpp \
   hash.cpp \
   pubkey.cpp \
   script/script.cpp \
@@ -510,8 +505,10 @@ endif
 
 libbitcoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 libbitcoinconsensus_la_LIBADD = $(CRYPTO_LIBS) $(BOOST_LIBS)
-libbitcoinconsensus_la_CPPFLAGS = $(CRYPTO_CFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+libbitcoinconsensus_la_CPPFLAGS = $(CRYPTO_CFLAGS) -I$(builddir)/obj -DBUILD_BITCOIN_INTERNAL
+if USE_LIBSECP256K1
 libbitcoinconsensus_la_LIBADD += $(LIBSECP256K1)
+endif
 endif
 
 CLEANFILES = $(EXTRA_LIBRARIES)

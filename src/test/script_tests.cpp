@@ -327,6 +327,8 @@ public:
 
 BOOST_AUTO_TEST_CASE(script_build)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     const KeyData keys;
 
     std::vector<TestBuilder> good;
@@ -631,7 +633,7 @@ BOOST_AUTO_TEST_CASE(script_valid)
             if (test.size() != 1) {
                 BOOST_ERROR("Bad test: " << strTest);
             }
-            continue;
+            continue; 
         }
         string scriptSigString = test[0].get_str();
         CScript scriptSig = ParseScript(scriptSigString);

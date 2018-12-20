@@ -12,7 +12,6 @@
 
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
-#include <secp256k1_schnorr.h>
 
 static secp256k1_context* secp256k1_context_sign = NULL;
 
@@ -143,8 +142,7 @@ bool CKey::SetPrivKey(const CPrivKey &privkey, bool fCompressedIn) {
 
 uint256 CKey::GetPrivKey_256()
 {
-    void* key = &vch;
-    uint256* key_256 = (uint256*)key;
+    uint256* key_256 = (uint256*)vch;
 
     return *key_256;
 }

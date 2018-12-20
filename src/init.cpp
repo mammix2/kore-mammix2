@@ -1096,6 +1096,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
+
     // Initialize elliptic curve code
     ECC_Start();
     globalVerifyHandle.reset(new ECCVerifyHandle());
@@ -1301,9 +1302,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     std::vector<string> uacomments;
     BOOST_FOREACH(string cmt, mapMultiArgs["-uacomment"])
     {
-        if (cmt != SanitizeString(cmt, SAFE_CHARS_UA_COMMENT))
+        if (cmt != SanitizeString(cmt))
             return InitError(strprintf(_("User Agent comment (%s) contains unsafe characters."), cmt));
-        uacomments.push_back(SanitizeString(cmt, SAFE_CHARS_UA_COMMENT));
+        uacomments.push_back(SanitizeString(cmt));
     }
     strSubVersion = FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
     if (strSubVersion.size() > MAX_SUBVERSION_LENGTH) {
