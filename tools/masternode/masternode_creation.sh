@@ -1,8 +1,9 @@
 #!/bin/sh
+set -e
 
 masternode_coins_amount=500
 coin=kore
-
+echo " how many parameters $#"
 if [ $# -lt 3 ]
 then
 echo "#############################################################################"
@@ -27,7 +28,8 @@ echo "##   3) you should have $masternode_coins_amount COINS in this wallet"
 echo "##   4) Make sure the kored is running at your masternode, you need the masternode"
 echo "##       onion address and it needs to be up to lock the coins."
 echo "##"
-echo "## PLEASE install jq from here https://stedolan.github.io/jq/"
+echo "## PLEASE install jq from here https://stedolan.github.io/jq/", in this folder
+echo "##        make sure it is named as jq"
 echo "#############################################################################"
 echo "#############################################################################"
 
@@ -71,15 +73,16 @@ fi
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
 then
   masternode_port=11743
-  control_wallet="$user_dir/.$coin/testnet4/masternode.conf"
-  # needs to be the same as nMasternode_Min_Confirmations
+  control_wallet="$user_dir/.$coin/testnet3/masternode.conf"
+  control_wallet_onion=`cat $user_dir/.$coin/testnet3/tor/onion/hostname`
+  # needs to be the same as nMasternodeMinConfirmations
   txConfirmations=6
 else
   masternode_port=10743
   control_wallet="$user_dir/.$coin/masternode.conf"
+  control_wallet_onion=`cat $user_dir/.$coin/tor/onion/hostname`
   txConfirmations=15
 fi
-
 echo "## "
 echo "## Parameters used"
 echo "##   network: $network"
@@ -99,11 +102,12 @@ echo "Creating masternode account"
 command="$dir/kore-cli $cli_args getaccountaddress $masternode_name"
 echo "  command: $command"
 masternode_account=`$command`
-
+echo "  account created: $masternode_account"
 echo "Sending $masternode_coins_amount to $masternode_account"
 command="$dir/kore-cli $cli_args sendtoaddress $masternode_account $masternode_coins_amount"
-masternode_tx=`$command`
 echo "  command: $command"
+masternode_tx=`$command`
+echo "send result: $masternode_tx"
 
 echo "Generating masternode Private Key"
 command="$dir/kore-cli $cli_args masternode genkey"
@@ -113,6 +117,7 @@ masternode_private_key=`$command`
 echo "Generating $masternode_conf_file file"
 echo "server=1" > $masternode_conf_file
 echo "daemon=1" >> $masternode_conf_file
+echo "addnode=$control_wallet_onion" >> $masternode_conf_file
 if [ $# -eq 5 ]
 then
 echo "rpcuser=$masternode_user"  >> $masternode_conf_file
@@ -150,8 +155,9 @@ echo "##########################################################################
 echo "## Let's wait for the Confirmations"
 echo "##########################################################################"
 command="$dir/kore-cli $cli_args gettransaction $masternode_tx"
-
+echo " Sending command: $command"
 confirmations=`$command | jq .confirmations`
+echo "Confirmations $confirmations"
 while [ $confirmations -lt $txConfirmations ]
 do
   echo " Waiting for $txConfirmations confirmations, so far we have $confirmations"
