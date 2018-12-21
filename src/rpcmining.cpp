@@ -29,13 +29,10 @@
 #include <boost/assign/list_of.hpp>
 
 #include <univalue.h>
-#include <condition_variable>
 
 using namespace std;
 
 
-extern mutex csBestBlock;
-extern condition_variable cvBlockChange;
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
