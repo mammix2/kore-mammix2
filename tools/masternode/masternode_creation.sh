@@ -29,7 +29,8 @@ echo "##   4) Make sure the kored is running at your masternode, you need the ma
 echo "##       onion address and it needs to be up to lock the coins."
 echo "##"
 echo "## PLEASE install jq from here https://stedolan.github.io/jq/", in this folder
-echo "##        make sure it is named as jq"
+echo "##        make sure it is named as jq. Ubuntu you can install like this:"
+echo "##        sudo apt-get jq"
 echo "#############################################################################"
 echo "#############################################################################"
 
@@ -147,9 +148,9 @@ echo "#######################################################################"
 echo "##  Updating this wallet masternode.conf file: $control_wallet #"
 new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
 echo "## $new_masternode"
-echo  $new_masternode >> $control_wallet
+echo "$new_masternode" >> $control_wallet
 echo "## The following is the control wallet masternode.conf "  >> $masternode_conf_file
-masternode_activation_command=`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx
+masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx"
 echo "## command to activate this masternode: $masternode_activation_command" >> $masternode_conf_file
 echo "## $new_masternode"   >> $masternode_conf_file
 
@@ -181,5 +182,5 @@ echo "##      $masternode_conf_file"
 echo "##   2. Restart your masternode"
 echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."
 echo "##   4. Activate your masternode with the command:"
-echo "##    $masternode_activation_command
+echo "##    $masternode_activation_command"
 echo "##########################################################################"
