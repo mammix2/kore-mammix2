@@ -146,19 +146,19 @@ void CMasternodeSync::GetNextAsset()
         break;
     case (MASTERNODE_SYNC_SPORKS):
         LogPrintf("----- CMasternodeSync::GetNextAsset ----\n");
-        LogPrintf("====> MASTERNODE_SYNC_INITIAL \n");
+        LogPrintf("====> MASTERNODE_SYNC_SPORKS \n");
         LogPrintf("\n");
         RequestedMasternodeAssets = MASTERNODE_SYNC_LIST;
         break;
     case (MASTERNODE_SYNC_LIST):
         LogPrintf("----- CMasternodeSync::GetNextAsset ----\n");
-        LogPrintf("====> MASTERNODE_SYNC_INITIAL \n");
+        LogPrintf("====> MASTERNODE_SYNC_LIST \n");
         LogPrintf("\n");
         RequestedMasternodeAssets = MASTERNODE_SYNC_MNW;
         break;
     case (MASTERNODE_SYNC_MNW):
         LogPrintf("----- CMasternodeSync::GetNextAsset ----\n");
-        LogPrintf("====> MASTERNODE_SYNC_INITIAL \n");
+        LogPrintf("====> MASTERNODE_SYNC_MNW \n");
         LogPrintf("\n");
         RequestedMasternodeAssets = MASTERNODE_SYNC_BUDGET;
         break;

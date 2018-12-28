@@ -1841,7 +1841,10 @@ void static ThreadStakeMinter()
     LogPrintf("ThreadStakeMinter started\n");
     CWallet* pwallet = pwalletMain;
     try {
-        BitcoinMiner(pwallet, true);
+        if (UseLegacyCode(GetnHeight(chainActive.Tip())))
+          KoreMiner_Legacy();
+        else BitcoinMiner(pwallet, true);
+
         boost::this_thread::interruption_point();
     } catch (std::exception& e) {
         LogPrintf("ThreadStakeMinter() exception \n");

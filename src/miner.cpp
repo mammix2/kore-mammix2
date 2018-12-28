@@ -1136,9 +1136,10 @@ bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainpar
     return true;
 }
 
-void static KoreMiner_Legacy(const CChainParams& chainparams)
+void KoreMiner_Legacy()
 {
     LogPrintf("KoreMiner started\n");
+    const CChainParams& chainparams = Params();
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("kore-miner");
 
@@ -1314,7 +1315,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++) {
         if (UseLegacyCode(GetnHeight(chainActive.Tip()))) {
-            minerThreads->create_thread(boost::bind(&KoreMiner_Legacy, boost::cref(Params())));
+            minerThreads->create_thread(boost::bind(&KoreMiner_Legacy));
         } else {
             minerThreads->create_thread(boost::bind(&ThreadBitcoinMiner, pwallet));
         }
