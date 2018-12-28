@@ -202,6 +202,7 @@ void CObfuscationPool::ProcessMessageObfuscation(CNode* pfrom, std::string& strC
 
             CValidationState state;
             CMutableTransaction tx;
+            tx.nTime = GetAdjustedTime();
 
             BOOST_FOREACH (const CTxOut o, out) {
                 nValueOut += o.nValue;
@@ -1163,6 +1164,7 @@ void CObfuscationPool::SendObfuscationDenominate(std::vector<CTxIn>& vin, std::v
 
         CValidationState state;
         CMutableTransaction tx;
+        tx.nTime = GetAdjustedTime();
 
         BOOST_FOREACH (const CTxOut& o, vout) {
             nValueOut += o.nValue;
@@ -1783,7 +1785,6 @@ bool CObfuscationPool::CreateDenominated(CAmount nTotalValue)
     if (!pwalletMain->HasCollateralInputs()) {
         CRecipient recipient = {scriptCollateral, OBFUSCATION_COLLATERAL * 4, false};
         vecSend.push_back(recipient);
-
         nValueLeft -= OBFUSCATION_COLLATERAL * 4;
     }
 
@@ -1800,7 +1801,6 @@ bool CObfuscationPool::CreateDenominated(CAmount nTotalValue)
             scriptDenom = GetScriptForDestination(vchPubKey.GetID());
             // TODO: do not keep reservekeyDenom here
             reservekeyDenom.KeepKey();
-
             CRecipient recipient = {scriptDenom, v, false};
             vecSend.push_back(recipient);
 

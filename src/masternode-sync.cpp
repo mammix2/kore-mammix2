@@ -138,16 +138,28 @@ void CMasternodeSync::GetNextAsset()
     switch (RequestedMasternodeAssets) {
     case (MASTERNODE_SYNC_INITIAL):
     case (MASTERNODE_SYNC_FAILED): // should never be used here actually, use Reset() instead
+        LogPrintf("----- CMasternodeSync::GetNextAsset ----\n");
+        LogPrintf("====> MASTERNODE_SYNC_INITIAL \n");
+        LogPrintf("\n");
         ClearFulfilledRequest();
         RequestedMasternodeAssets = MASTERNODE_SYNC_SPORKS;
         break;
     case (MASTERNODE_SYNC_SPORKS):
+        LogPrintf("----- CMasternodeSync::GetNextAsset ----\n");
+        LogPrintf("====> MASTERNODE_SYNC_INITIAL \n");
+        LogPrintf("\n");
         RequestedMasternodeAssets = MASTERNODE_SYNC_LIST;
         break;
     case (MASTERNODE_SYNC_LIST):
+        LogPrintf("----- CMasternodeSync::GetNextAsset ----\n");
+        LogPrintf("====> MASTERNODE_SYNC_INITIAL \n");
+        LogPrintf("\n");
         RequestedMasternodeAssets = MASTERNODE_SYNC_MNW;
         break;
     case (MASTERNODE_SYNC_MNW):
+        LogPrintf("----- CMasternodeSync::GetNextAsset ----\n");
+        LogPrintf("====> MASTERNODE_SYNC_INITIAL \n");
+        LogPrintf("\n");
         RequestedMasternodeAssets = MASTERNODE_SYNC_BUDGET;
         break;
     case (MASTERNODE_SYNC_BUDGET):

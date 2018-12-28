@@ -132,7 +132,7 @@ static void CheckBlockIndex_Legacy();
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "DarkNet Signed Message:\n";
+const string strMessageMagic = "Kore Signed Message:\n";
 
 // Internal stuff
 namespace
@@ -7914,6 +7914,7 @@ void static ProcessGetData(CNode* pfrom)
 bool fRequestedSporksIDB = false;
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
+    LogPrintf("ProcessMessage \n");
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes) command: %s peer=%d\n", SanitizeString(strCommand), vRecv.size(), strCommand, pfrom->id);
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0) {
@@ -8770,6 +8771,7 @@ bool CanDirectFetch()
 
 bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
+    LogPrintf("ProcessMessage_Legacy \n");
     const CChainParams& chainparams = Params();
     
     RandAddSeedPerfmon();
@@ -9048,7 +9050,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
             boost::this_thread::interruption_point();
             pfrom->AddInventoryKnown(inv);
 
-            bool fAlreadyHave = AlreadyHave(inv);
+            bool fAlreadyHave = AlreadyHave_Legacy(inv);
             LogPrint("net", "got inv: %s  %s peer=%d\n", inv.ToString(), fAlreadyHave ? "have" : "new", pfrom->id);
 
             if (inv.type == MSG_BLOCK) {
@@ -9787,11 +9789,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
         
         ProcessMessageSwiftTX_Legacy(pfrom, strCommand, vRecv);        
         ProcessSpork(pfrom, strCommand, vRecv);
-        masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
-
-        // Ignore unknown commands for extensibility
-        LogPrint("net", "Unknown command \"%s\" from peer=%d\n", SanitizeString(strCommand), pfrom->id);
-        
+        masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);        
     }
     
     return true;
