@@ -63,6 +63,7 @@ masternode_onion_address=$3
 masternode_user=$control_wallet_user
 masternode_password=$control_wallet_password
 masternode_conf_file=`pwd`/$masternode_name.conf
+readme=`pwd`/$masternode_name.readme
 
 if [ $# -eq 5 ]
 then
@@ -171,16 +172,17 @@ echo ""
 echo " COOL ! We got at least $txConfirmations confirmations"
 echo ""
 
-echo ""
-echo "##########################################################################"
-echo "## Congratulations !!!"
-echo "## your Masternode is ready to be started !!!             "
-echo "## "
-echo "## Now you need to perform the following steps"
-echo "##   1. Change your masternode $coin.conf with the parameters found here:"
-echo "##      $masternode_conf_file"
-echo "##   2. Restart your masternode"
-echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."
-echo "##   4. Activate your masternode with the command:"
-echo "##    $masternode_activation_command"
-echo "##########################################################################"
+echo "Congratulations !!! Your Masternode is ready to be started."  >> $readme
+echo "Please, now follow instruction at $readme"
+echo "##########################################################################" >> $readme
+echo "## Congratulations !!!"  >> $readme
+echo "## your Masternode is ready to be started !!!             "  >> $readme
+echo "## " >> $readme
+echo "## Now you need to perform the following steps"  >> $readme
+echo "##   1. Change your masternode $coin.conf with the parameters found here:"  >> $readme
+echo "##      $masternode_conf_file"  >> $readme
+echo "##   2. Restart your masternode"  >> $readme
+echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."  >> $readme
+echo "##   4. Activate your masternode with the command:"  >> $readme
+echo "##    $masternode_activation_command"  >> $readme
+echo "##########################################################################"  >> $readme
