@@ -151,8 +151,8 @@ new_masternode="$masternode_name $masternode_onion_address:$masternode_port $mas
 echo "## $new_masternode"
 echo "$new_masternode" >> $control_wallet
 masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx"
-echo -e "## command to activate this masternode: $masternode_activation_command" >> $masternode_conf_file
-echo "## The following is the control wallet masternode.conf "  >> $masternode_conf_file
+echo "## command to activate this masternode: $masternode_activation_command" >> $masternode_conf_file
+echo "## The following is the masternode entry at masternode.conf "  >> $masternode_conf_file
 echo "## $new_masternode"   >> $masternode_conf_file
 
 echo "##########################################################################"
@@ -183,9 +183,9 @@ echo "##   1. Change your masternode $coin.conf with the parameters found here:"
 echo "##      $masternode_conf_file"  >> $readme
 echo "##   2. Restart your masternode"  >> $readme
 echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."  >> $readme
-echo "##   4. Make sure your masternode has connections and is in sync."
-echo "##        kore-cli -testnet mnsync status"
-echo "##        ** IsBlockchainSynced should be true"
+echo "##   4. Make sure your masternode has connections and is in sync."  >> $readme
+echo "##        kore-cli -testnet mnsync status"   >> $readme
+echo "##        ** IsBlockchainSynced should be true"   >> $readme
 echo "##   5. Activate your masternode. Make sure your mastenode is in sync."  >> $readme
 echo "##    $masternode_activation_command"  >> $readme
 echo "##   6. Check if the masternode status"   >> $readme
