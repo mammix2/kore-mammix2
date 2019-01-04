@@ -6475,11 +6475,11 @@ bool static IsCanonicalBlockSignature_Legacy(const CBlock* pblock)
 bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainparams, const CNode* pfrom, const CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp)
 {
 
-    if (fDebug) LogPrintf("ProcessNewBlock starts\n");
+    if (fDebug) LogPrintf("ProcessNewBlock_Legacy starts\n");
 
     if (!IsCanonicalBlockSignature_Legacy(pblock)) {
         if (pfrom && pfrom->nVersion >= CANONICAL_BLOCK_SIG_VERSION)
-            return state.DoS(100, error("ProcessNewBlock(): bad block signature encoding"),  REJECT_INVALID, "bad-block-signature-encoding");
+            return state.DoS(100, error("ProcessNewBlock_Legacy(): bad block signature encoding"),  REJECT_INVALID, "bad-block-signature-encoding");
         return false;
     }
 

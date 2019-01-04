@@ -765,7 +765,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
 
-        if (fDebug) LogPrintf("CreateNewBlock(): total size %u txs: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nFees, nBlockSigOps);
+        if (fDebug) LogPrintf("CreateNewBlock_Legacy(): total size %u txs: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nFees, nBlockSigOps);
 
         pblock->vtx[0] = CreateCoinbaseTransaction_Legacy(scriptPubKeyIn, nFees, nHeight, fProofOfStake);
 
@@ -782,7 +782,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
         if (!fProofOfStake)
             UpdateTime(pblock, pindexPrev, fProofOfStake);
 
-        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
+        pblock->nBits          = GetNextWorkRequired_Legacy(pindexPrev, pblock, fProofOfStake);
         pblock->nNonce         = 0;
         
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
@@ -1158,7 +1158,7 @@ void KoreMiner_Legacy()
             throw std::runtime_error("No coinbase script available (mining requires a wallet)");
         }
 
-        while (true) {
+        while (!ShutdownRequested()) {
             if (chainparams.MiningRequiresPeers()) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.

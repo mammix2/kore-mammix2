@@ -583,6 +583,8 @@ public:
         }
     }
 
+    void GetScriptForMining(boost::shared_ptr<CReserveScript> &script);
+
     unsigned int GetKeyPoolSize()
     {
         AssertLockHeld(cs_wallet); // setKeyPool
@@ -646,7 +648,7 @@ public:
 
 
 /** A key allocated from the key pool. */
-class CReserveKey
+class CReserveKey : public CReserveScript
 {
 protected:
     CWallet* pwallet;
