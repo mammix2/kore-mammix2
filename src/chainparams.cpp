@@ -287,7 +287,7 @@ public:
         nBlockFirstFraudulent         = 891737; //First block that bad serials emerged
         nBlockLastGoodCheckpoint      = 891730; //Last valid accumulator checkpoint
         nBlockEnforceInvalidUTXO      = 902850; //Start enforcing the invalid UTXO's
-        heightToFork                  = 0; //Height to perform the fork
+        heightToFork                  = 900000; //Height to perform the fork
 
         nEnforceNewSporkKey = 1525158000; //!> Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey  = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
@@ -409,7 +409,7 @@ public:
         nBlockEnforceInvalidUTXO      = 9902850;    //Start enforcing the invalid UTXO's
         nEnforceNewSporkKey           = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey            = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
-        heightToFork                  = 900000;     //Height to perform the fork
+        heightToFork                  = 58205;     //Height to perform the fork
 
         // sending rewards to this public key
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
