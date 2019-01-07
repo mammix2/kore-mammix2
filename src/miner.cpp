@@ -895,10 +895,14 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    while (!ShutdownRequested() && !UseLegacyCode(GetnHeight(chainActive.Tip()))) {
-        // it will wait only if  shutdown=false and useLegacy=false
-        if (fDebug) 
-          LogPrintf("This thread is waiting for the Fork to happen !!!");
+    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()))) {
+        // while nobody requested to shutdown and we should use the legacy code
+        // this thread should wait
+        if (fDebug) {
+          LogPrintf("This thread is waiting for the Fork to happen.\n");
+          LogPrintf("Current nHeight: %d \n", GetnHeight(chainActive.Tip()));
+          LogPrintf("Height to Fork : %d \n", Params().HeigthToFork());
+        }
         MilliSleep(5000);
     }
 
