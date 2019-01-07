@@ -895,7 +895,14 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    while (fGenerateBitcoins || fProofOfStake) {
+    while (!ShutdownRequested() && !UseLegacyCode(GetnHeight(chainActive.Tip()))) {
+        // it will wait only if  shutdown=false and useLegacy=false
+        if (fDebug) 
+          LogPrintf("This thread is waiting for the Fork to happen !!!");
+        MilliSleep(5000);
+    }
+
+    while (!ShutdownRequested() && (fGenerateBitcoins || fProofOfStake)) {
         boost::this_thread::interruption_point();
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
@@ -1158,7 +1165,8 @@ void KoreMiner_Legacy()
             throw std::runtime_error("No coinbase script available (mining requires a wallet)");
         }
 
-        while (!ShutdownRequested()) {
+        // This thread should exit, if it has reached the Fork Height
+        while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()))) {
             if (chainparams.MiningRequiresPeers()) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
