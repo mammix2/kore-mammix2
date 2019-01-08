@@ -903,7 +903,8 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
           LogPrintf("Current nHeight: %d \n", GetnHeight(chainActive.Tip()));
           LogPrintf("Height to Fork : %d \n", Params().HeigthToFork());
         }
-        MilliSleep(5000);
+        // check every minute
+        MilliSleep(60000);
     }
 
     while (!ShutdownRequested() && (fGenerateBitcoins || fProofOfStake)) {
@@ -1149,10 +1150,10 @@ bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainpar
 
 void KoreMiner_Legacy()
 {
-    LogPrintf("KoreMiner started\n");
+    LogPrintf("KoreMiner_Legacy started\n");
     const CChainParams& chainparams = Params();
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("kore-miner");
+    RenameThread("kore-miner-legacy");
 
     unsigned int nExtraNonce = 0;
 
@@ -1298,7 +1299,7 @@ void KoreMiner_Legacy()
         LogPrintf("KoreMiner runtime error: %s\n", e.what());
         return;
     }
-    
+    LogPrintf("KoreMiner_Legacy Exiting.\n");
 }
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
