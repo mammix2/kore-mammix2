@@ -409,7 +409,7 @@ public:
         nBlockEnforceInvalidUTXO      = 9902850;    //Start enforcing the invalid UTXO's
         nEnforceNewSporkKey           = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey            = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
-        heightToFork                  = 58230;     //Height to perform the fork
+        heightToFork                  = 59000;     //Height to perform the fork
 
         // sending rewards to this public key
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
