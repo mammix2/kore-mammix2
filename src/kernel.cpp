@@ -152,8 +152,9 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
         fGeneratedStakeModifier = true;
         return true; // genesis block's modifier is 0
     }
-    if (pindexPrev->nHeight == 0) {
+    if (pindexPrev->nHeight == 0 || pindexPrev->nHeight == Params().HeigthToFork()) {
         //Give a stake modifier to the first block
+        // Lets give a stake modifier to the first block after the fork as well
         fGeneratedStakeModifier = true;
         nStakeModifier = uint64_t("stakemodifier");
         return true;
