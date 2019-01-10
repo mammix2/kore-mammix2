@@ -4475,6 +4475,11 @@ bool UseLegacyCode(int nHeight)
     return nHeight < Params().HeigthToFork();
 }
 
+bool IsLastBlockBeforeFork(int nHeight)
+{
+    return nHeight == Params().HeigthToFork()-1;
+}
+
 /** Update chainActive and related internal data structures. */
 void static UpdateTip(CBlockIndex* pindexNew)
 {

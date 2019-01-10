@@ -646,6 +646,7 @@ int GetnHeight(const CBlockIndex* pIndex);
 
 /* Check if it is necessary to use the new code or old code */
 bool UseLegacyCode(int nHeight);
+bool IsLastBlockBeforeFork(int nHeight);
 
 /** Functions for validating blocks and updating the block tree */
 

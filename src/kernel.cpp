@@ -152,9 +152,9 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
         fGeneratedStakeModifier = true;
         return true; // genesis block's modifier is 0
     }
-    if (pindexPrev->nHeight == 0 || pindexPrev->nHeight == Params().HeigthToFork()) {
+    if (pindexPrev->nHeight == 0 || IsLastBlockBeforeFork(pindexPrev->nHeight)) {
         //Give a stake modifier to the first block
-        // Lets give a stake modifier to the first block after the fork as well
+        // Lets give a stake modifier to the last block
         fGeneratedStakeModifier = true;
         nStakeModifier = uint64_t("stakemodifier");
         return true;
@@ -246,6 +246,12 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
     if (!mapBlockIndex.count(hashBlockFrom))
         return error("GetKernelStakeModifier() : block not indexed");
     const CBlockIndex* pindexFrom = mapBlockIndex[hashBlockFrom];
+    // Lets check if the block is from befor fork, if so we need to change it
+    if (UseLegacyCode(pindexFrom->nHeight)) {
+        // let-s jump to the last block before fork, we have no stakemodifier before
+        pindexFrom = chainActive[Params().HeigthToFork()-1];
+    }
+
     nStakeModifierHeight = pindexFrom->nHeight;
     nStakeModifierTime = pindexFrom->GetBlockTime();
     int64_t nStakeModifierSelectionInterval = GetStakeModifierSelectionInterval(pindexFrom->nHeight);
