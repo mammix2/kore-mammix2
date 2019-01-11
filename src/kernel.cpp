@@ -60,7 +60,9 @@ static int64_t GetStakeModifierSelectionIntervalSection(int nSection)
 static int64_t GetStakeModifierSelectionInterval(int nHeight)
 {
     int64_t nSelectionInterval = 0;
-    int block = nHeight < 64 ? 5 : nHeight;
+    // Calculate based in the fork, so the first 64 blocks will generate 5
+    // this function should only be called after fork, so nHeight is bigger than Params().HeigthToFork()
+    int block = nHeight - Params().HeigthToFork() < 64 ? 5 : nHeight;
     for (int nSection = 0; nSection < min(64, block); nSection++) {
         nSelectionInterval += GetStakeModifierSelectionIntervalSection(nSection);
     }
