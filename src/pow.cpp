@@ -111,6 +111,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
         if (nActualSpacing < 0)
             nActualSpacing = 1;
+        int64_t nMyBlockSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
 
         // ppcoin: target change every block
         // ppcoin: retarget with exponential moving toward target spacing
@@ -118,7 +119,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         bnNew.SetCompact(pindexLast->nBits);
 
         int64_t nInterval = nTargetTimespan / nTargetSpacing;
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nMyBlockSpacing);
         bnNew /= ((nInterval + 1) * nTargetSpacing);
 
         if (bnNew <= 0 || bnNew > bnTargetLimit)
