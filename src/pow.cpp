@@ -120,8 +120,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
         int64_t nInterval = nTargetTimespan / nTargetSpacing;
         int64_t pastDueSpacing = nMyBlockSpacing-nActualSpacing > 0 ? nMyBlockSpacing-nActualSpacing : 0;
+        int64_t howManyDue = pastDueSpacing / nTargetSpacing;
         
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + pastDueSpacing*pastDueSpacing);
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + pow(pastDueSpacing,howManyDue));
         bnNew /= ((nInterval + 1) * nTargetSpacing);
 
         if (bnNew <= 0 || bnNew > bnTargetLimit)
