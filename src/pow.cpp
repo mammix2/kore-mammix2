@@ -119,7 +119,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         bnNew.SetCompact(pindexLast->nBits);
 
         int64_t nInterval = nTargetTimespan / nTargetSpacing;
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nMyBlockSpacing);
+        int64_t pastDueSpacing = nMyBlockSpacing-nActualSpacing > 0 ? nMyBlockSpacing-nActualSpacing : 0;
+        
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + pastDueSpacing*pastDueSpacing);
         bnNew /= ((nInterval + 1) * nTargetSpacing);
 
         if (bnNew <= 0 || bnNew > bnTargetLimit)
