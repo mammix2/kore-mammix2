@@ -3624,6 +3624,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (!fKernelFound)
         return false;
 
+    // before signing it is necessary to update the nTime
+    txNew.nTime = nTxNewTime;
     // Sign for KORE
     int nIn = 0;
     for (CTxIn txIn : txNew.vin) {

@@ -789,7 +789,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 
         CValidationState state;
-        if (!fProofOfStake && !TestBlockValidity_Legacy(state, chainparams, *pblock, pindexPrev, true, true)) {
+        if (!fProofOfStake && !TestBlockValidity_Legacy(state, chainparams, *pblock, pindexPrev, false, false)) {
             throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s", __func__, FormatStateMessage_Legacy(state)));
         }
         
