@@ -248,6 +248,7 @@ public:
     virtual void setAllowMinDifficultyBlocks(bool aAllowMinDifficultyBlocks) = 0;
     virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
     virtual void setHeightToFork(int aHeightToFork) = 0;
+    virtual void setLastPOW(int aLastPOW) = 0;
 };
 
 
