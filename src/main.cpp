@@ -2611,7 +2611,7 @@ CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input)
 
 int64_t GetBlockValue(int nHeight)
 {
-    if (Params().NetworkID() == CBaseChainParams::TESTNET) {
+    if (Params().NetworkID() == CBaseChainParams::TESTNET || Params().NetworkID() == CBaseChainParams::UNITTEST) {
         if (nHeight >= 0 && nHeight < 500)
             return 10000 * COIN;
     }
@@ -2838,6 +2838,11 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
     // return GetMasternodePayment_Legacy(int nHeight, int64_t blockValue)
 
     return GetSeeSaw(blockValue, nMasternodeCount, nHeight);
+}
+
+int GetBestPeerHeight_Legacy()
+{
+    return std::max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate());
 }
 
 bool IsInitialBlockDownload()

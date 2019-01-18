@@ -14,6 +14,8 @@ class COutPoint;
 class uint256;
 class CTransaction;
 
+extern const int STAKE_TIMESTAMP_MASK_LEGACY;
+
 static const int STAKE_MIN_CONFIRMATIONS = 25;
 static const int STAKE_MIN_AGE = 4 * 60 * 60;
 

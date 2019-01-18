@@ -1149,6 +1149,136 @@ bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainpar
     return true;
 }
 
+// attempt to generate suitable proof-of-stake
+bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
+{
+    
+    // if we are trying to sign
+    //    something except proof-of-stake block template
+    if (!pblock->vtx[0].vout[0].IsEmpty()){
+    	LogPrintf("something except proof-of-stake block\n");
+    	return false;
+    }
+
+    // if we are trying to sign
+    //    a complete proof-of-stake block
+    if (pblock->IsProofOfStake()){
+    	LogPrintf("trying to sign a complete proof-of-stake block\n");
+    	return true;
+    }
+
+    static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // startup timestamp
+
+    CKey key;
+    CMutableTransaction txCoinStake;
+    txCoinStake.nTime = GetAdjustedTime();
+    txCoinStake.nTime &= ~STAKE_TIMESTAMP_MASK_LEGACY;
+    CAmount nFees = 0;
+
+    int64_t nSearchTime = txCoinStake.nTime; // search to current time
+
+    //LogPrintf("SearchTime = %d \n", nSearchTime);
+    //LogPrintf("nLastCoinStakeSearchTime = %d \n", nLastCoinStakeSearchTime);
+
+    if (nSearchTime >= nLastCoinStakeSearchTime)
+    {
+        int64_t nSearchInterval =  1 ;
+        if (pwallet->CreateCoinStake_Legacy(*pwallet, pblock->nBits, nSearchInterval, nFees, txCoinStake, key))
+        {
+            if (txCoinStake.nTime >= pindexBestHeader->GetMedianTimePast()+1)
+            {
+                // make sure coinstake would meet timestamp protocol
+                //    as it would be the same as the block timestamp
+                pblock->nTime = txCoinStake.nTime = pblock->vtx[0].nTime;
+
+                // we have to make sure that we have no future timestamps in
+                //    our transactions set
+                for (vector<CTransaction>::iterator it = pblock->vtx.begin(); it != pblock->vtx.end();)
+                    if (it->nTime > pblock->nTime) { it = pblock->vtx.erase(it); } else { ++it; }
+
+                pblock->vtx.insert(pblock->vtx.begin() + 1, txCoinStake);
+                pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+
+                // append a signature to our block
+                return key.Sign(pblock->GetHash(), pblock->vchBlockSig);
+            }
+        }
+        nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
+        nLastCoinStakeSearchTime = nSearchTime;
+    }
+    return false;
+}
+
+void ThreadStakeMinter_Legacy(CWallet* pwallet)
+{
+
+    LogPrintf("StakeMiner Legacy started\n");
+    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    RenameThread("stake-miner-legacy");
+
+    const CChainParams& chainparams = Params();
+    boost::shared_ptr<CReserveScript> coinstakeScript;
+    GetMainSignals().ScriptForMining(coinstakeScript);
+
+    if (!coinstakeScript || coinstakeScript->reserveScript.empty())
+        throw std::runtime_error("No coinstake script available (staking requires a wallet)");
+
+    bool fTryToSync = true;
+    
+    while (true)
+    {
+        boost::this_thread::interruption_point();
+    
+        while (pwallet->IsLocked())
+        {
+            // nLastCoinStakeSearchInterval = 0;
+            MilliSleep(2000);
+            boost::this_thread::interruption_point();
+        }
+        
+        while (vNodes.empty() || IsInitialBlockDownload())
+        {
+			fTryToSync = true;
+            // nLastCoinStakeSearchInterval = 0;
+            MilliSleep(2000);
+            boost::this_thread::interruption_point();
+        }
+
+		if (fTryToSync)
+		{
+			fTryToSync = false;
+			if (vNodes.size() < 3 || nChainHeight < GetBestPeerHeight_Legacy())
+			{
+				MilliSleep(60000);
+				continue;
+			}
+		}
+
+        if (nChainHeight < GetBestPeerHeight_Legacy() - 1)
+        {
+            MilliSleep(2000);
+            continue;
+        }
+
+        //
+        // Create new block
+        //
+        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, coinstakeScript->reserveScript, pwallet, true));
+        if (!pblocktemplate.get())
+             return;
+
+        CBlock *pblock = &pblocktemplate->block;
+        if(SignBlock_Legacy(pwallet, pblock))
+        {
+            SetThreadPriority(THREAD_PRIORITY_NORMAL);
+            ProcessBlockFound_Legacy(pblock, chainparams);
+            SetThreadPriority(THREAD_PRIORITY_LOWEST);
+        }
+
+        MilliSleep(500);
+    }
+}
+
 void KoreMiner_Legacy()
 {
     LogPrintf("KoreMiner_Legacy started\n");

@@ -26,12 +26,15 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads);
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, bool fProofOfStake);
 CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CScript& scriptPubKeyIn, CWallet* pwallet, bool fProofOfStake);
 CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfStake);
+bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainparams);
+bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 void IncrementExtraNonce_Legacy(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 /** Check mined block */
 void UpdateTime(CBlockHeader* block, const CBlockIndex* pindexPrev, bool fProofOfStake=false);
 
+void ThreadStakeMinter_Legacy(CWallet* pwallet);
 void BitcoinMiner(CWallet* pwallet, bool fProofOfStake);
 void KoreMiner_Legacy();
 

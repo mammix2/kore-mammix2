@@ -12,6 +12,8 @@
 // of transaction confirmation. To meet kernel protocol, the txout
 // must hash with a future stake modifier to generate the proof.
 
+const int STAKE_TIMESTAMP_MASK_LEGACY = 15;
+
 uint256 ComputeStakeModifier_Legacy(const CBlockIndex* pindexPrev, const uint256& kernel)
 {
     if (!pindexPrev)

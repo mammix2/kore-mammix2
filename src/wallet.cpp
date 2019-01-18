@@ -3480,9 +3480,6 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, bool fProofOfStake, CKey& key)
 {
-
-    // FORK
-    // return CreateCoinStake_Legacy(keystore, nBits,  nSearchInterval, txNew, key);
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
     //int64_t nCombineThreshold = 0;
@@ -3639,7 +3636,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     return true;
 }
 
-bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, CKey& key)
+bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, int64_t nFees, CMutableTransaction& txNew, CKey& key)
 {
     CBlockIndex* pindexPrev = pindexBestHeader;
     txNew.vin.clear();

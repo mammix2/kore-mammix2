@@ -201,6 +201,8 @@ extern bool fVerifyingBlocks;
 extern bool fLargeWorkForkFound;
 extern bool fLargeWorkInvalidChainFound;
 
+extern int nChainHeight;
+
 extern int64_t nLastCoinStakeSearchInterval;
 extern int64_t nLastCoinStakeSearchTime;
 extern int64_t nReserveBalance;
@@ -321,6 +323,8 @@ bool SendMessages_Fork(CNode* pto, bool fSendTrickle);
 
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
+
+int GetBestPeerHeight_Legacy();
 
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();

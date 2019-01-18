@@ -561,6 +561,8 @@ public:
         fAllowMinDifficultyBlocks = false;
         fMineBlocksOnDemand       = true;
         fSkipProofOfWorkCheck     = true;
+        nMaturity                 = 0;
+        nStakeMinAge = 0;
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const

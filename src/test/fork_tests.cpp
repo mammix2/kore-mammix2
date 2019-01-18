@@ -12,32 +12,233 @@
 #include "arith_uint256.h"
 #include "legacy/consensus/merkle.h"
 #include "validationinterface.h"
+#include "blocksignature.h"
+#include "wallet.h"
 
 #include <boost/test/unit_test.hpp>
-
 
 BOOST_AUTO_TEST_SUITE(fork_tests)
 
 
-void GenerateLegacyBlocks(int totalBlocks)
+void LogBlockFound(int blockNumber, CBlock* pblock, unsigned int nExtraNonce)
+{
+    cout << "Block === " << blockNumber << " === " << endl;
+    cout << pblock->ToString().c_str();
+    cout << "{" << pblock->nTime << ", ";
+    cout << pblock->vtx[0].nTime << " , ";
+    cout << pblock->nBits << " , ";
+    cout << pblock->nNonce << " , ";
+    cout << nExtraNonce << " , ";
+    cout << pblock->nBirthdayA << " , ";
+    cout << pblock->nBirthdayB << " , ";
+    cout << "uint256(\"" << pblock->GetHash().ToString().c_str() << "\") , ";
+    cout << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") },";
+    cout << " // " << blockNumber << endl;
+}
+
+void ScanForWalletTransactions(CWallet* pwallet)
+{
+    pwallet->nTimeFirstKey = chainActive[0]->nTime;
+    //pwallet->fFileBacked = true;
+    //CBlockIndex* genesisBlock = chainActive[0];
+    //pwallet->ScanForWalletTransactions(genesisBlock, true);
+}
+
+void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofOfStake)
+{
+    CReserveKey reservekey(pwallet);
+
+    bool fGenerateBitcoins = false;
+    bool fMintableCoins = false;
+    int nMintableLastCheck = 0;
+
+    // Each thread has its own key and counter
+    unsigned int nExtraNonce = 0;
+    //ScanForWalletTransactions(pwallet);
+
+    for (int j = startBlock; j < endBlock; j++) {
+        if (fProofOfStake) {
+            //control the amount of times the client will check for mintable coins
+            if ((GetTime() - nMintableLastCheck > Params().ClientMintibleCoinsInterval()))
+            {
+                nMintableLastCheck = GetTime();
+                fMintableCoins = pwallet->MintableCoins();
+            }
+
+            while (pwallet->IsLocked() || !fMintableCoins || 
+                  (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) )
+            {
+                nLastCoinStakeSearchInterval = 0;
+                // Do a separate 1 minute check here to ensure fMintableCoins is updated
+                if (!fMintableCoins) {
+                    if (GetTime() - nMintableLastCheck > Params().EnsureMintibleCoinsInterval()) // 1 minute check time
+                    {
+                        nMintableLastCheck = GetTime();
+                        fMintableCoins = pwallet->MintableCoins();
+                    }
+                }
+
+                MilliSleep(5000);
+                boost::this_thread::interruption_point();
+
+                if (!fGenerateBitcoins && !fProofOfStake) {
+                    cout << "BitcoinMiner Going out of Loop !!!" << endl;
+                    continue;
+                }
+            }
+
+            if (mapHashedBlocks.count(chainActive.Tip()->nHeight)) //search our map of hashed blocks, see if bestblock has been hashed yet
+            {
+                if (GetTime() - mapHashedBlocks[chainActive.Tip()->nHeight] < max(pwallet->nHashInterval, (unsigned int)1)) // wait half of the nHashDrift with max wait of 3 minutes
+                {
+                    MilliSleep(5000);
+                    cout << "BitcoinMiner Going out of Loop !!!" << endl;
+                    continue;
+                }
+            }
+        }
+
+        //
+        // Create new block
+        //
+        cout << "KOREMiner: Creating new Block " << endl;
+        if (fDebug) {
+            LogPrintf("vNodes Empty  ? %s \n", vNodes.empty() ? "true" : "false");
+            LogPrintf("Wallet Locked ? %s \n", pwallet->IsLocked() ? "true" : "false");
+            LogPrintf("Is there Mintable Coins ? %s \n", fMintableCoins ? "true" : "false");
+            LogPrintf("Do we have Balance ? %s \n", pwallet->GetBalance() > 0 ? "true" : "false");
+            LogPrintf("Balance is Greater than reserved one ? %s \n", nReserveBalance >= pwallet->GetBalance() ? "true" : "false");
+        }
+        unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
+        CBlockIndex* pindexPrev = chainActive.Tip();
+        if (!pindexPrev) {
+            continue;
+        }
+
+        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet, fProofOfStake));
+        if (!pblocktemplate.get())
+            continue;
+
+        CBlock* pblock = &pblocktemplate->block;
+        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+
+        //Stake miner main
+        if (fProofOfStake) {
+            cout << "CPUMiner : proof-of-stake block found " << pblock->GetHash().ToString() << endl;
+            if (!SignBlock(*pblock, *pwallet)) {
+                cout << "BitcoinMiner(): Signing new block with UTXO key failed" << endl;
+                continue;
+            }
+
+            cout << "CPUMiner : proof-of-stake block was signed " << pblock->GetHash().ToString() << endl;
+            ProcessBlockFound(pblock, *pwallet, reservekey);
+            continue;
+        }
+
+        //
+        // Search
+        //
+        int64_t nStart = GetTime();
+        uint256 hashTarget = uint256().SetCompact(pblock->nBits);
+        cout << "target: " << hashTarget.GetHex() << endl;
+        while (true) {
+            unsigned int nHashesDone = 0;
+
+            uint256 hash;
+            
+            cout << "nbits : " << pblock->nBits << endl;
+            while (true) {
+                hash = pblock->GetHash();
+                cout << "pblock.nBirthdayA: " << pblock->nBirthdayA << endl;
+                cout << "pblock.nBirthdayB: " << pblock->nBirthdayB << endl;
+                cout << "hash             : " << hash.ToString() << endl;
+                cout << "hashTarget       : " << hashTarget.ToString() << endl;
+
+                if (hash <= hashTarget) {
+                    // Found a solution
+                    cout << "BitcoinMiner:" << endl;
+                    cout << "proof-of-work found  "<< endl;
+                    cout << "hash  : " << hash.GetHex() << endl;
+                    cout << "target: " << hashTarget.GetHex() << endl;
+                    LogBlockFound(j, pblock, nExtraNonce);
+                    ProcessBlockFound(pblock, *pwallet, reservekey);
+
+                    // In regression test mode, stop mining after a block is found. This
+                    // allows developers to controllably generate a block on demand.
+                    if (Params().MineBlocksOnDemand())
+                        throw boost::thread_interrupted();
+                    break;
+                }                
+                pblock->nNonce += 1;                
+                nHashesDone += 1;
+                cout << "Looking for a solution with nounce " << pblock->nNonce << " hashesDone : " << nHashesDone << endl;
+                if ((pblock->nNonce & 0xFF) == 0)
+                    break;
+            }
+
+            // Meter hashes/sec
+            static int64_t nHashCounter;
+            if (nHPSTimerStart == 0) {
+                nHPSTimerStart = GetTimeMillis();
+                nHashCounter = 0;
+            } else
+                nHashCounter += nHashesDone;
+            if (GetTimeMillis() - nHPSTimerStart > 4000) {
+                static CCriticalSection cs;
+                {
+                    LOCK(cs);
+                    if (GetTimeMillis() - nHPSTimerStart > 4000) {
+                        dHashesPerMin = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
+                        nHPSTimerStart = GetTimeMillis();
+                        nHashCounter = 0;
+                        static int64_t nLogTime;
+                        if (GetTime() - nLogTime > 30 * 60) {
+                            nLogTime = GetTime();
+                            cout << "hashmeter %6.0f khash/s " << dHashesPerMin / 1000.0 << endl;
+                        }
+                    }
+                }
+            }
+
+            // Check for stop or if block needs to be rebuilt
+            boost::this_thread::interruption_point();
+            // Regtest mode doesn't require peers
+            if (vNodes.empty() && Params().MiningRequiresPeers())
+                break;
+            if (pblock->nNonce >= 0xffff0000)
+                break;
+            if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+                break;
+            if (pindexPrev != chainActive.Tip())
+                break;
+
+            // Update nTime every few seconds
+            UpdateTime(pblock, pindexPrev, fProofOfStake);
+            if (Params().AllowMinDifficultyBlocks()) {
+                // Changing pblock->nTime can change work required on testnet:
+                hashTarget.SetCompact(pblock->nBits);
+            }
+        }
+    }
+}
+
+void GenerateLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript & scriptPubKey, bool fProofOfStake)
 {
     const CChainParams& chainparams = Params();
     unsigned int nExtraNonce = 0;
+    //ScanForWalletTransactions(pwallet);
 
-    boost::shared_ptr<CReserveScript> coinbaseScript;
-    GetMainSignals().ScriptForMining(coinbaseScript);
-
-    for (int j = 1; j < totalBlocks+1; j++) {
+    for (int j = startBlock; j < endBlock; j++) {
         bool foundBlock = false;
         //
         // Create new block
         //
         CBlockIndex* pindexPrev = chainActive.Tip();
 
-        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, coinbaseScript->reserveScript, NULL, true));
+        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, NULL, fProofOfStake));
 
         if (!pblocktemplate.get()) {
-            LogPrintf("Error in KoreMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
+            cout << "Error in KoreMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread" << endl;
             return;
         }
         CBlock* pblock = &pblocktemplate->block;
@@ -61,24 +262,18 @@ void GenerateLegacyBlocks(int totalBlocks)
                 pblock->nNonce = pblock->nNonce + 1;
                 testHash = pblock->CalculateBestBirthdayHash();
                 nHashesDone++;
-
+                cout << "proof-of-work found  "<< endl;
+                cout << "testHash  : " << UintToArith256(testHash).ToString() << endl;
+                cout << "target    : " << hashTarget.GetHex() << endl;
                 if (UintToArith256(testHash) < hashTarget) {
                     // Found a solution
                     nNonceFound = pblock->nNonce;
                     // Found a solution
                     assert(testHash == pblock->GetHash());
                     // We have our data, lets print them
-                    cout << "Found Block === " << j << " === " << endl;
-                    cout << "nTime         : " << pblock->nTime << endl;
-                    cout << "nNonce        : " << pblock->nNonce << endl;
-                    cout << "nExtraNonce   : " << nExtraNonce << endl;
-                    cout << "nBirthdayA    : " << pblock->nBirthdayA << endl;
-                    cout << "nBirthdayB    : " << pblock->nBirthdayB << endl;
-                    cout << "nBits         : " << pblock->nBits << endl;
-                    cout << "Hash          : " << pblock->GetHash().ToString().c_str() << endl;
-                    cout << "hashMerkleRoot: " << pblock->hashMerkleRoot.ToString().c_str()  << endl;
-
+                    LogBlockFound(j, pblock, nExtraNonce);
                     foundBlock = true;
+                    ProcessBlockFound_Legacy(pblock, chainparams);
                     break;
                 }
             }
@@ -89,134 +284,77 @@ void GenerateLegacyBlocks(int totalBlocks)
     }
 }
 
-/*
+
 BOOST_AUTO_TEST_CASE(generate_chain)
 {
-    // we want to generate 5 pow and 5 pos blocks
-    int oldLastPOW = Params().LAST_POW_BLOCK();
-    ModifiableParams()->setLastPOW(5);
+    int oldHeightToFork = Params().HeigthToFork();
+    ModifiableParams()->setHeightToFork(3);
+    
+    ScanForWalletTransactions(pwalletMain);
+    CReserveKey reservekey(pwalletMain);
+    CPubKey pubkey;
+    reservekey.GetReservedKey(pubkey);
 
-    GenerateLegacyBlocks(2);
+    CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
-    // Lets put it back
-    ModifiableParams()->setLastPOW(5);
-}
-*/
+    // generate 5 pow blocks
+    GenerateLegacyBlocks(1,2, pwalletMain, scriptPubKey, false);
+    cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
+    // generate 5 pos blocks
+    GenerateLegacyBlocks(2,3, pwalletMain, scriptPubKey, true);
+    cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
 
-/*
-Found Block === 1 ===
-nTime         : 1547646047
-nNonce        : 1
-nExtraNonce   : 1
-nBirthdayA    : 0
-nBirthdayB    : 0
-nBits         : 538968063
-Hash          : 04ebab8f214e8d513484082f2ed45e200d1afca8d151a76c6b4d5cce8a4c1bbe
-hashMerkleRoot: ad92624f705b94d24d96297649b1b914b5eaae7087b1f999d5b9096a696587e7
-Found Block === 2 ===
-nTime         : 1547646190
-nNonce        : 7
-nExtraNonce   : 2
-nBirthdayA    : 13152152
-nBirthdayB    : 62639306
-nBits         : 538968063
-Hash          : 022233dddaa2969b168511becedfb7f3f7966488796fcdd06d44e88f3b409f74
-hashMerkleRoot: 3ae2e6a06efd375e345ef77bdd594b3c04851e29f93d2eceb7a6822a0317be24
-Found Block === 3 ===
-nTime         : 1547646332
-nNonce        : 7
-nExtraNonce   : 3
-nBirthdayA    : 14758381
-nBirthdayB    : 34298591
-nBits         : 538968063
-Hash          : 0dd1953ac4dab1a15490bbc499cc4c554c766cc9bebecf636388f5b7b71650ae
-hashMerkleRoot: 3b51ee61b673f867532a59a741d4bc2ec446e6dfcddea505ead7b74cac9344bf
-Found Block === 4 ===
-nTime         : 1547646352
-nNonce        : 1
-nExtraNonce   : 4
-nBirthdayA    : 20802262
-nBirthdayB    : 38093666
-nBits         : 538968063
-Hash          : 09eda99b7d7a7ec8d08808320cd9894e99c16abd65b4e9ddfa7f25586e2a3b2e
-hashMerkleRoot: 0239ce261590c070ca54f9583c96d9731326a1374e10fff4f3d371be38b956ab
-Found Block === 5 ===
-nTime         : 1547646460
-nNonce        : 5
-nExtraNonce   : 5
-nBirthdayA    : 43998604
-nBirthdayB    : 51531886
-nBits         : 538968063
-Hash          : 0027fa0c8be02d439910f4253a95c9cf5d2b4302bb639cf7eb1cff663aab6f60
-hashMerkleRoot: 8344a51d783d0b8627e4cf46bf393a4aaf24ea47b52abc341136f18b45e71243
-Found Block === 6 ===
-nTime         : 1547646563
-nNonce        : 5
-nExtraNonce   : 6
-nBirthdayA    : 0
-nBirthdayB    : 0
-nBits         : 538968063
-Hash          : 15737b540cf7dc2409af6b259095fef6b4a1a274bcd3555cf7e13a98b1e1e095
-hashMerkleRoot: 3dc14788d0d91d165bcb8bf01792b74117e900636d3c51f072d6a93f438731cc
-Found Block === 7 ===
-nTime         : 1547646583
-nNonce        : 1
-nExtraNonce   : 7
-nBirthdayA    : 24376095
-nBirthdayB    : 34997369
-nBits         : 538968063
-Hash          : 0988f98068970832a3c5a9f3bfc22840fd471d05e6fe7b491ed6b271e31a1238
-hashMerkleRoot: 41fa0be1ad94c227394a9a573819f4863588e83c1535ab156c8206222a9de978
-Found Block === 8 ===
-nTime         : 1547646687
-nNonce        : 5
-nExtraNonce   : 8
-nBirthdayA    : 0
-nBirthdayB    : 0
-nBits         : 538968063
-Hash          : 03a99f32061e45a97911a76dd9ce5ce93fa0c77847aa7b2190497ab10797cc4b
-hashMerkleRoot: 059f1858317e180f041f323e01737505f6e9f597ca5d0ef96a486b33998d574b
-Found Block === 9 ===
-nTime         : 1547646853
-nNonce        : 8
-nExtraNonce   : 9
-nBirthdayA    : 4229335
-nBirthdayB    : 17397782
-nBits         : 538968063
-Hash          : 0af6b2789b0794c1e5283e09633829c3fb40418c0008fa87d789b8caf2fce04d
-hashMerkleRoot: 1581ac41dd69b4a43ab18e6cddf23e2c5d3e5dea311f9ce0acedd19d7c55d911
-Found Block === 10 ===
-nTime         : 1547646915
-nNonce        : 3
-nExtraNonce   : 10
-nBirthdayA    : 6218908
-nBirthdayB    : 32475497
-nBits         : 538968063
-Hash          : 060865272ed246a3e3f31881155409f30a52d50296e4e51fda3e0db0aa18e7e8
-hashMerkleRoot: 2d3b478aa298da6894ed8f2854f95045af1053f5df10cce7fca9073ec48cdb5a
-*/
+    // here the fork will happen, lets check pos
+    GenerateBlocks(3,5, pwalletMain, true);
+    cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
 
-static
-struct {
-    unsigned int nTime;
-    unsigned char extranonce;
+    ModifiableParams()->setHeightToFork(oldHeightToFork);}
+
+typedef struct {
+    uint32_t nTime;
+    uint32_t transactionTime;
+    uint32_t nBits;
     unsigned int nonce;
+    unsigned int extranonce;
     uint32_t nBirthdayA;
     uint32_t nBirthdayB;
     uint256 hash;
     uint256 hashMerkleRoot;
-} blockinfo[] = {
-    {1547646047, 1, 1, 0, 0, uint256("04ebab8f214e8d513484082f2ed45e200d1afca8d151a76c6b4d5cce8a4c1bbe"), uint256("ad92624f705b94d24d96297649b1b914b5eaae7087b1f999d5b9096a696587e7")}, // 1
-    {1547646190, 2, 7, 13152152, 62639306, uint256("022233dddaa2969b168511becedfb7f3f7966488796fcdd06d44e88f3b409f74"), uint256("3ae2e6a06efd375e345ef77bdd594b3c04851e29f93d2eceb7a6822a0317be24")}, // 2
-    {1547646332, 3, 7, 14758381, 34298591, uint256("0dd1953ac4dab1a15490bbc499cc4c554c766cc9bebecf636388f5b7b71650ae"), uint256("3b51ee61b673f867532a59a741d4bc2ec446e6dfcddea505ead7b74cac9344bf")}, // 3
-    {1547646352, 4, 1, 20802262, 38093666, uint256("09eda99b7d7a7ec8d08808320cd9894e99c16abd65b4e9ddfa7f25586e2a3b2e"), uint256("0239ce261590c070ca54f9583c96d9731326a1374e10fff4f3d371be38b956ab")}, // 4
-    {1547646460, 5, 5, 43998604, 51531886, uint256("0027fa0c8be02d439910f4253a95c9cf5d2b4302bb639cf7eb1cff663aab6f60"), uint256("8344a51d783d0b8627e4cf46bf393a4aaf24ea47b52abc341136f18b45e71243")}, // 5
-    {1547646563, 6, 5, 0, 0, uint256("15737b540cf7dc2409af6b259095fef6b4a1a274bcd3555cf7e13a98b1e1e095"), uint256("3dc14788d0d91d165bcb8bf01792b74117e900636d3c51f072d6a93f438731cc")}, // 6
-    {1547646583, 7, 1, 24376095, 34997369, uint256("0988f98068970832a3c5a9f3bfc22840fd471d05e6fe7b491ed6b271e31a1238"), uint256("41fa0be1ad94c227394a9a573819f4863588e83c1535ab156c8206222a9de978")}, // 7
-    {1547646687, 8, 5, 0, 0, uint256("03a99f32061e45a97911a76dd9ce5ce93fa0c77847aa7b2190497ab10797cc4b"), uint256("059f1858317e180f041f323e01737505f6e9f597ca5d0ef96a486b33998d574b")}, // 8
-    {1547646853, 9, 8, 4229335, 17397782, uint256("0af6b2789b0794c1e5283e09633829c3fb40418c0008fa87d789b8caf2fce04d"), uint256("1581ac41dd69b4a43ab18e6cddf23e2c5d3e5dea311f9ce0acedd19d7c55d911")}, // 9
-    {1547646915, 10, 3, 6218908, 32475497, uint256("060865272ed246a3e3f31881155409f30a52d50296e4e51fda3e0db0aa18e7e8"), uint256("2d3b478aa298da6894ed8f2854f95045af1053f5df10cce7fca9073ec48cdb5a")}  // 10
+} blockinfo_t;
+static blockinfo_t blockinfo[] = 
+{
+    {1547752107, 1547752061 , 538968063 , 3 , 1 , 13515173 , 46200744 , uint256("06dcd72b5b7fa5dc76dfef3d1eb753f58fc2536be68398bb812f5ca04ee5932d") , uint256("e5d190ca67264337967d3adca2dc07fa0e7905b739e8823a33ebbe60bfb0dfdf") }, // 1
+    {1547752152, 1547752129 , 538968063 , 2 , 1 , 33389340 , 40260916 , uint256("091ad906bdafc871cd147722af3313a0a15472f7e51b6f4ac4a73daa364e8d81") , uint256("5145866200779930b8dd49a1392973e0dea417466fc2cc0086f69fda43f5d528") }, // 2
 };
+/*
+{
+    {1547646047,538968063, 1, 1, 0, 0, uint256("04ebab8f214e8d513484082f2ed45e200d1afca8d151a76c6b4d5cce8a4c1bbe"), uint256("ad92624f705b94d24d96297649b1b914b5eaae7087b1f999d5b9096a696587e7")}, // 1
+    {1547646190,538968063, 2, 7, 13152152, 62639306, uint256("022233dddaa2969b168511becedfb7f3f7966488796fcdd06d44e88f3b409f74"), uint256("3ae2e6a06efd375e345ef77bdd594b3c04851e29f93d2eceb7a6822a0317be24")}, // 2
+    {1547646332,538968063, 3, 7, 14758381, 34298591, uint256("0dd1953ac4dab1a15490bbc499cc4c554c766cc9bebecf636388f5b7b71650ae"), uint256("3b51ee61b673f867532a59a741d4bc2ec446e6dfcddea505ead7b74cac9344bf")}, // 3
+    {1547646352,538968063, 4, 1, 20802262, 38093666, uint256("09eda99b7d7a7ec8d08808320cd9894e99c16abd65b4e9ddfa7f25586e2a3b2e"), uint256("0239ce261590c070ca54f9583c96d9731326a1374e10fff4f3d371be38b956ab")}, // 4
+    {1547646460,538968063, 5, 5, 43998604, 51531886, uint256("0027fa0c8be02d439910f4253a95c9cf5d2b4302bb639cf7eb1cff663aab6f60"), uint256("8344a51d783d0b8627e4cf46bf393a4aaf24ea47b52abc341136f18b45e71243")}, // 5
+    {1547646563,538968063, 6, 5, 0, 0, uint256("15737b540cf7dc2409af6b259095fef6b4a1a274bcd3555cf7e13a98b1e1e095"), uint256("3dc14788d0d91d165bcb8bf01792b74117e900636d3c51f072d6a93f438731cc")}, // 6
+    {1547646583,538968063, 7, 1, 24376095, 34997369, uint256("0988f98068970832a3c5a9f3bfc22840fd471d05e6fe7b491ed6b271e31a1238"), uint256("41fa0be1ad94c227394a9a573819f4863588e83c1535ab156c8206222a9de978")}, // 7
+    {1547646687,538968063, 8, 5, 0, 0, uint256("03a99f32061e45a97911a76dd9ce5ce93fa0c77847aa7b2190497ab10797cc4b"), uint256("059f1858317e180f041f323e01737505f6e9f597ca5d0ef96a486b33998d574b")}, // 8
+    {1547646853,538968063, 9, 8, 4229335, 17397782, uint256("0af6b2789b0794c1e5283e09633829c3fb40418c0008fa87d789b8caf2fce04d"), uint256("1581ac41dd69b4a43ab18e6cddf23e2c5d3e5dea311f9ce0acedd19d7c55d911")}, // 9
+    {1547646915,538968063, 10, 3, 6218908, 32475497, uint256("060865272ed246a3e3f31881155409f30a52d50296e4e51fda3e0db0aa18e7e8"), uint256("2d3b478aa298da6894ed8f2854f95045af1053f5df10cce7fca9073ec48cdb5a")}  // 10
+};
+*/
+
+void create_transaction(CBlock *pblock, const CBlockIndex* pindexPrev, const blockinfo_t blockinfo[], int i)
+{
+    // This method simulates the transaction creation, similar to IncrementExtraNonce_Legacy
+    unsigned int nHeight = pindexPrev->nHeight+1; // Height first in coinbase required for block.version=2
+    CMutableTransaction txCoinbase(pblock->vtx[0]);
+    txCoinbase.vin[0].scriptSig = (CScript() << nHeight << CScriptNum(blockinfo[i].extranonce)) + COINBASE_FLAGS;
+    assert(txCoinbase.vin[0].scriptSig.size() <= 100);
+    // lets update the time in order to simulate the creation
+    txCoinbase.nTime = blockinfo[i].transactionTime;
+    pblock->vtx[0] = txCoinbase;
+    pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+
+}
+
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
 BOOST_AUTO_TEST_CASE(basic_fork)
 {
@@ -230,42 +368,26 @@ BOOST_AUTO_TEST_CASE(basic_fork)
 
     CScript scriptPubKey = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
     CBlockTemplate *pblocktemplate;
-    CMutableTransaction tx,tx2;
-    CScript script;
-    uint256 hash;
 
     LOCK(cs_main);
     Checkpoints::fEnabled = false;
     const CChainParams& chainparams = Params();
 
+    CBlockIndex* pindexPrev = chainActive.Tip();
+
     // Simple block creation, nothing special yet:
     BOOST_CHECK(pblocktemplate = CreateNewBlock_Legacy(chainparams, scriptPubKey, pwalletMain, false));
 
-    // We can't make transactions until we have inputs
-    // Therefore, load 100 blocks :)
+    // lets create 5 pow blocks
     std::vector<CTransaction*>txFirst;
     for (unsigned int i = 0; i < 5; ++i)
     {
         CBlock *pblock = &pblocktemplate->block; // pointer for convenience
         pblock->nVersion = 1;
         pblock->nTime = blockinfo[i].nTime;
-        /*
-        CMutableTransaction txCoinbase(pblock->vtx[0]);
-        txCoinbase.vin[0].scriptSig = CScript();
-        // using -1 because we have the value after it was used
-        txCoinbase.vin[0].scriptSig.push_back(blockinfo[i].extranonce-1);
-        txCoinbase.vin[0].scriptSig.push_back(chainActive.Height());
-        txCoinbase.vout[0].scriptPubKey = CScript();
-        pblock->vtx[0] = CTransaction(txCoinbase);
-        if (txFirst.size() < 2)
-            txFirst.push_back(new CTransaction(pblock->vtx[0]));
-        pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
-        */
-        CBlockIndex* pindexPrev = chainActive.Tip();
-        // using -1 because we have the value after it was used
-        unsigned int extranonce = blockinfo[i].extranonce - 1;
-        IncrementExtraNonce_Legacy(pblock, pindexPrev, extranonce);
-
+        pblock->nBits = blockinfo[i].nBits;
+        // Lets create the transaction
+        create_transaction(pblock, pindexPrev, blockinfo, i);
         pblock->nNonce = blockinfo[i].nonce;
         pblock->nBirthdayA = blockinfo[i].nBirthdayA;
         pblock->nBirthdayB = blockinfo[i].nBirthdayB;
@@ -273,17 +395,22 @@ BOOST_AUTO_TEST_CASE(basic_fork)
         cout << "Found Block === " << i+1 << " === " << endl;
         cout << "nTime         : " << pblock->nTime << endl;
         cout << "nNonce        : " << pblock->nNonce << endl;
-        cout << "extranonce    : " << extranonce << endl;
+        cout << "extranonce    : " << blockinfo[i].extranonce << endl;
         cout << "nBirthdayA    : " << pblock->nBirthdayA << endl;
         cout << "nBirthdayB    : " << pblock->nBirthdayB << endl;
         cout << "nBits         : " << pblock->nBits << endl;
         cout << "Hash          : " << pblock->GetHash().ToString().c_str() << endl;
         cout << "hashMerkleRoot: " << pblock->hashMerkleRoot.ToString().c_str()  << endl;
+        cout << "New Block values" << endl;
+        cout << pblock->ToString() << endl;
         BOOST_CHECK(pblock->GetHash()==blockinfo[i].hash);
         BOOST_CHECK(pblock->hashMerkleRoot == blockinfo[i].hashMerkleRoot);
         BOOST_CHECK(ProcessNewBlock_Legacy(state, chainparams, NULL, pblock, true, NULL));
         BOOST_CHECK(state.IsValid());
+        // if we have added a new block the chainActive should be correct
+        BOOST_CHECK(pindexPrev != chainActive.Tip());
         pblock->hashPrevBlock = pblock->GetHash();
+        pindexPrev = chainActive.Tip();
     }
     delete pblocktemplate;
 
