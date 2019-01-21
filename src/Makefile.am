@@ -127,7 +127,6 @@ BITCOIN_CORE_H = \
   obfuscation.h \
   obfuscation-relay.h \
   db.h \
-  eccryptoverify.h \
   hash.h \
   httprpc.h \
   httpserver.h \
@@ -354,7 +353,6 @@ libbitcoin_common_a_SOURCES = \
   primitives/transaction.cpp \
   core_read.cpp \
   core_write.cpp \
-  eccryptoverify.cpp \
   hash.cpp \
   invalid.cpp \
   key.cpp \
@@ -490,7 +488,6 @@ libbitcoinconsensus_la_SOURCES = \
   crypto/sha256.cpp \
   crypto/sha512.cpp \
   crypto/ripemd160.cpp \
-  eccryptoverify.cpp \
   hash.cpp \
   pubkey.cpp \
   script/script.cpp \

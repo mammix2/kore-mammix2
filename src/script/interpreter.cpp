@@ -10,7 +10,6 @@
 #include "crypto/ripemd160.h"
 #include "crypto/sha1.h"
 #include "crypto/sha256.h"
-#include "eccryptoverify.h"
 #include "pubkey.h"
 #include "script/script.h"
 #include "uint256.h"
@@ -61,7 +60,7 @@ bool CastToBool(const valtype& vch)
 static inline void popstack(vector<valtype>& stack)
 {
     if (stack.empty())
-        throw runtime_error("popstack() : stack empty");
+        throw runtime_error("popstack(): stack empty");
     stack.pop_back();
 }
 
@@ -172,7 +171,7 @@ bool IsLowDERSignature(const valtype &vchSig, ScriptError* serror, bool haveHash
     // If the S value is above the order of the curve divided by two, its
     // complement modulo the order could have been used instead, which is
     // one byte shorter when encoded correctly.
-    if (!eccrypto::CheckSignatureElement(S, nLenS, true))
+    if (!CPubKey::CheckSignatureElement(S, nLenS, true))
         return set_error(serror, SCRIPT_ERR_SIG_HIGH_S);
 
     return true;
@@ -1054,9 +1053,8 @@ public:
                 itBegin = it;
             }
         }
-        if (itBegin != scriptCode.end()) {
+        if (itBegin != scriptCode.end())
             s.write((char*)&itBegin[0], it-itBegin);
-        }
     }
 
     /** Serialize an input of txTo */
@@ -1070,7 +1068,7 @@ public:
         // Serialize the script
         if (nInput != nIn)
             // Blank out other inputs' signatures
-            ::Serialize(s, CScript(), nType, nVersion);
+            ::Serialize(s, CScriptBase(), nType, nVersion);
         else
             SerializeScriptCode(s, nType, nVersion);
         // Serialize the nSequence
@@ -1084,13 +1082,11 @@ public:
     /** Serialize an output of txTo */
     template<typename S>
     void SerializeOutput(S &s, unsigned int nOutput, int nType, int nVersion) const {
-        if (fHashSingle && nOutput != nIn) {
+        if (fHashSingle && nOutput != nIn)
             // Do not lock-in the txout payee at other indices as txin
             ::Serialize(s, CTxOut(), nType, nVersion);
-        }
-        else {
+        else
             ::Serialize(s, txTo.vout[nOutput], nType, nVersion);
-        }
     }
 
     /** Serialize txTo */
@@ -1100,13 +1096,12 @@ public:
         ::Serialize(s, txTo.nVersion, nType, nVersion);
         // Serialize nTime
         ::Serialize(s, txTo.nTime, nType, nVersion);
-       
         // Serialize vin
         unsigned int nInputs = fAnyoneCanPay ? 1 : txTo.vin.size();
         ::WriteCompactSize(s, nInputs);
         for (unsigned int nInput = 0; nInput < nInputs; nInput++)
              SerializeInput(s, nInput, nType, nVersion);
-        // Serialize vout                
+        // Serialize vout
         unsigned int nOutputs = fHashNone ? 0 : (fHashSingle ? nIn+1 : txTo.vout.size());
         ::WriteCompactSize(s, nOutputs);
         for (unsigned int nOutput = 0; nOutput < nOutputs; nOutput++)
@@ -1118,18 +1113,26 @@ public:
 
 } // anon namespace
 
+
+#include <iostream>
 uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
+    cout << "SignatureHash" << endl;
+    cout << "scriptCode: " << scriptCode.ToString().c_str() << endl;
+    cout << "txTo: " << txTo.ToString().c_str() << endl;
+    cout << "nIn: " << nIn << endl;
+    cout << "nHashType: " << nHashType << endl;
+    static const uint256 one(uint256S("0000000000000000000000000000000000000000000000000000000000000001"));
     if (nIn >= txTo.vin.size()) {
         //  nIn out of range
-        return 1;
+        return one;
     }
 
     // Check for invalid use of SIGHASH_SINGLE
     if ((nHashType & 0x1f) == SIGHASH_SINGLE) {
         if (nIn >= txTo.vout.size()) {
             //  nOut out of range
-            return 1;
+            return one;
         }
     }
 
@@ -1139,7 +1142,6 @@ uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsig
     // Serialize and hash
     CHashWriter ss(SER_GETHASH, 0);
     ss << txTmp << nHashType;
-
     return ss.GetHash();
 }
 
@@ -1251,8 +1253,15 @@ bool TransactionSignatureChecker::CheckSequence(const CScriptNum& nSequence) con
     return true;
 }
 
+#include <iostream> // Lico, to be removed!!!
+
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
 {
+    // Lico - to be removed
+    cout << "VerifyScript" << endl;
+    cout << "ScriptSig    :(" << scriptSig.ToString().c_str() << ")" << endl;
+    cout << "ScriptPubKey :(" << scriptPubKey.ToString().c_str()<< ")" << endl;
+    cout << "Flags: " << flags << endl;
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
 
     if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {

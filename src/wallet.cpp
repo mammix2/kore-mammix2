@@ -3806,7 +3806,7 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBi
     int nIn = 0;
     BOOST_FOREACH(const CWalletTx* pcoin, vwtxPrev)
     {
-        if (!SignSignature(*this, *pcoin, txNew, nIn++, SIGHASH_ALL))
+        if (!SignSignature_Legacy(*this, *pcoin, txNew, nIn++, SIGHASH_ALL))
             return error("CreateCoinStake : failed to sign coinstake");
     }
 

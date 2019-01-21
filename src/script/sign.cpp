@@ -6,9 +6,9 @@
 
 #include "script/sign.h"
 
-#include "primitives/transaction.h"
 #include "key.h"
 #include "keystore.h"
+#include "primitives/transaction.h"
 #include "script/standard.h"
 #include "uint256.h"
 #include "util.h"
@@ -209,6 +209,27 @@ bool ProduceSignature_Legacy(const BaseSignatureCreator& creator, const CScript&
     return VerifyScript(scriptSig, fromPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, creator.Checker());
 }
 
+bool SignSignature_Legacy(const CKeyStore &keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, int nHashType)
+{
+    assert(nIn < txTo.vin.size());
+    CTxIn& txin = txTo.vin[nIn];
+
+    CTransaction txToConst(txTo);
+    TransactionSignatureCreator creator(&keystore, &txToConst, nIn, nHashType);
+
+    return ProduceSignature_Legacy(creator, fromPubKey, txin.scriptSig);
+}
+
+bool SignSignature_Legacy(const CKeyStore &keystore, const CTransaction& txFrom, CMutableTransaction& txTo, unsigned int nIn, int nHashType)
+{
+    assert(nIn < txTo.vin.size());
+    CTxIn& txin = txTo.vin[nIn];
+    assert(txin.prevout.n < txFrom.vout.size());
+    const CTxOut& txout = txFrom.vout[txin.prevout.n];
+
+    return SignSignature_Legacy(keystore, txout.scriptPubKey, txTo, nIn, nHashType);
+}
+
 bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, int nHashType)
 {
     assert(nIn < txTo.vin.size());
@@ -255,8 +276,6 @@ bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CMutab
 
     return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, nHashType);
 }
-
-
 
 static CScript PushAll(const vector<valtype>& values)
 {
@@ -329,7 +348,6 @@ static CScript CombineSignatures(const CScript& scriptPubKey, const CTransaction
     {
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
-    case TX_ZEROCOINMINT:
         // Don't know anything about this, assume bigger one is correct:
         if (sigs1.size() >= sigs2.size())
             return PushAll(sigs1);

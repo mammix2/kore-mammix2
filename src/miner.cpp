@@ -1225,7 +1225,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
 
     bool fTryToSync = true;
     
-    while (true)
+    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip())))
     {
         boost::this_thread::interruption_point();
     

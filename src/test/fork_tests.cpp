@@ -20,11 +20,12 @@
 BOOST_AUTO_TEST_SUITE(fork_tests)
 
 
-void LogBlockFound(int blockNumber, CBlock* pblock, unsigned int nExtraNonce)
+void LogBlockFound(int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake)
 {
     cout << "Block === " << blockNumber << " === " << endl;
     cout << pblock->ToString().c_str();
-    cout << "{" << pblock->nTime << ", ";
+    cout << "{" << fProofOfStake << ", ";
+    cout << pblock->nTime << ", ";
     cout << pblock->vtx[0].nTime << " , ";
     cout << pblock->nBits << " , ";
     cout << pblock->nNonce << " , ";
@@ -39,9 +40,9 @@ void LogBlockFound(int blockNumber, CBlock* pblock, unsigned int nExtraNonce)
 void ScanForWalletTransactions(CWallet* pwallet)
 {
     pwallet->nTimeFirstKey = chainActive[0]->nTime;
-    //pwallet->fFileBacked = true;
-    //CBlockIndex* genesisBlock = chainActive[0];
-    //pwallet->ScanForWalletTransactions(genesisBlock, true);
+    // pwallet->fFileBacked = true;
+    // CBlockIndex* genesisBlock = chainActive[0];
+    // pwallet->ScanForWalletTransactions(genesisBlock, true);
 }
 
 void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofOfStake)
@@ -160,7 +161,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
                     cout << "proof-of-work found  "<< endl;
                     cout << "hash  : " << hash.GetHex() << endl;
                     cout << "target: " << hashTarget.GetHex() << endl;
-                    LogBlockFound(j, pblock, nExtraNonce);
+                    LogBlockFound(j, pblock, nExtraNonce, fProofOfStake);
                     ProcessBlockFound(pblock, *pwallet, reservekey);
 
                     // In regression test mode, stop mining after a block is found. This
@@ -222,7 +223,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
     }
 }
 
-void GenerateLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript & scriptPubKey, bool fProofOfStake)
+void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript & scriptPubKey)
 {
     const CChainParams& chainparams = Params();
     unsigned int nExtraNonce = 0;
@@ -235,7 +236,7 @@ void GenerateLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScrip
         //
         CBlockIndex* pindexPrev = chainActive.Tip();
 
-        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, NULL, fProofOfStake));
+        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, NULL, false));
 
         if (!pblocktemplate.get()) {
             cout << "Error in KoreMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread" << endl;
@@ -271,7 +272,7 @@ void GenerateLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScrip
                     // Found a solution
                     assert(testHash == pblock->GetHash());
                     // We have our data, lets print them
-                    LogBlockFound(j, pblock, nExtraNonce);
+                    LogBlockFound(j, pblock, nExtraNonce, false);
                     foundBlock = true;
                     ProcessBlockFound_Legacy(pblock, chainparams);
                     break;
@@ -285,6 +286,28 @@ void GenerateLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScrip
 }
 
 
+void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey)
+{
+    const CChainParams& chainparams = Params();
+
+    for (int j = startBlock; j < endBlock; j++) {
+        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, pwallet, true));
+        if (!pblocktemplate.get())
+            return;        
+        CBlock *pblock = &pblocktemplate->block;
+        cout << "Block before signed" << endl;
+        cout << pblock->ToString() << endl;
+        if(SignBlock_Legacy(pwallet, pblock))
+        {
+            cout << "Block after signed" << endl;
+            cout << pblock->ToString() << endl;
+            ProcessBlockFound_Legacy(pblock, chainparams);
+            // we dont have extranounce for pos
+            LogBlockFound(j, pblock, 0, true);
+        }
+    }
+}
+
 BOOST_AUTO_TEST_CASE(generate_chain)
 {
     int oldHeightToFork = Params().HeigthToFork();
@@ -297,11 +320,12 @@ BOOST_AUTO_TEST_CASE(generate_chain)
 
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
-    // generate 5 pow blocks
-    GenerateLegacyBlocks(1,2, pwalletMain, scriptPubKey, false);
+    // generate 1 pow blocks
+    GeneratePOWLegacyBlocks(1,2, pwalletMain, scriptPubKey);
     cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
-    // generate 5 pos blocks
-    GenerateLegacyBlocks(2,3, pwalletMain, scriptPubKey, true);
+    // generate 1 pos blocks
+    GeneratePOSLegacyBlocks(2,3, pwalletMain, scriptPubKey);
+    //ScanForWalletTransactions(pwalletMain);
     cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
 
     // here the fork will happen, lets check pos

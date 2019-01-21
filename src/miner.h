@@ -26,6 +26,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads);
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, bool fProofOfStake);
 CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CScript& scriptPubKeyIn, CWallet* pwallet, bool fProofOfStake);
 CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet, bool fProofOfStake);
+bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock);
 bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainparams);
 bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 /** Modify the extranonce in a block */

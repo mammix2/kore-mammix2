@@ -94,7 +94,7 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
         return false;
 
     // Maturity requirement
-    if (pindexPrev->nHeight - pIndex->nHeight < STAKE_MIN_CONFIRMATIONS)
+    if (pindexPrev->nHeight - pIndex->nHeight < Params().COINBASE_MATURITY())
         return false;
 
     if (pBlockTime)
