@@ -1117,11 +1117,11 @@ public:
 #include <iostream>
 uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
-    cout << "SignatureHash" << endl;
-    cout << "scriptCode: " << scriptCode.ToString().c_str() << endl;
-    cout << "txTo: " << txTo.ToString().c_str() << endl;
-    cout << "nIn: " << nIn << endl;
-    cout << "nHashType: " << nHashType << endl;
+    //cout << "SignatureHash" << endl;
+    //cout << "scriptCode: " << scriptCode.ToString().c_str() << endl;
+    //cout << "txTo: " << txTo.ToString().c_str() << endl;
+    //cout << "nIn: " << nIn << endl;
+    //cout << "nHashType: " << nHashType << endl;
     static const uint256 one(uint256S("0000000000000000000000000000000000000000000000000000000000000001"));
     if (nIn >= txTo.vin.size()) {
         //  nIn out of range
@@ -1142,7 +1142,10 @@ uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsig
     // Serialize and hash
     CHashWriter ss(SER_GETHASH, 0);
     ss << txTmp << nHashType;
-    return ss.GetHash();
+    // Lico only for debugging
+    uint256 hash = ss.GetHash();
+    //cout << "hash: " << hash.ToString().c_str() << endl;
+    return hash;
 }
 
 bool TransactionSignatureChecker::VerifySignature(const std::vector<unsigned char>& vchSig, const CPubKey& pubkey, const uint256& sighash) const
@@ -1163,7 +1166,7 @@ bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn
     int nHashType = vchSig.back();
     vchSig.pop_back();
 
-    uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType);
+    uint256 sighash = SignatureHash(scriptCode, *txTo, nIn, nHashType);    
 
     if (!VerifySignature(vchSig, pubkey, sighash))
         return false;
@@ -1253,6 +1256,14 @@ bool TransactionSignatureChecker::CheckSequence(const CScriptNum& nSequence) con
     return true;
 }
 
+std::string TransactionSignatureChecker::ToString() const
+{
+    std::stringstream s; 
+    s << "nIn: " << nIn << endl;
+    s << txTo->ToString();
+    
+    return s.str();
+}
 #include <iostream> // Lico, to be removed!!!
 
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
@@ -1262,6 +1273,7 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigne
     cout << "ScriptSig    :(" << scriptSig.ToString().c_str() << ")" << endl;
     cout << "ScriptPubKey :(" << scriptPubKey.ToString().c_str()<< ")" << endl;
     cout << "Flags: " << flags << endl;
+    cout << "Checker: " << checker.ToString() << endl;
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
 
     if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {

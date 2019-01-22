@@ -1149,6 +1149,8 @@ bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainpar
     return true;
 }
 
+#include <iostream>
+
 // attempt to generate suitable proof-of-stake
 bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
 {
@@ -1184,7 +1186,9 @@ bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
     {
         int64_t nSearchInterval =  1 ;
         if (pwallet->CreateCoinStake_Legacy(*pwallet, pblock->nBits, nSearchInterval, nFees, txCoinStake, key))
-        {
+        {            
+            cout << "CoinStake Created " << endl;
+            cout << txCoinStake.ToString().c_str() << endl;
             if (txCoinStake.nTime >= pindexBestHeader->GetMedianTimePast()+1)
             {
                 // make sure coinstake would meet timestamp protocol

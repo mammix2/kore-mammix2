@@ -14,6 +14,7 @@
 #include "validationinterface.h"
 #include "blocksignature.h"
 #include "wallet.h"
+#include "pos.h" // Lico remove these includes
 
 #include <boost/test/unit_test.hpp>
 
@@ -295,15 +296,16 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
         if (!pblocktemplate.get())
             return;        
         CBlock *pblock = &pblocktemplate->block;
-        cout << "Block before signed" << endl;
-        cout << pblock->ToString() << endl;
         if(SignBlock_Legacy(pwallet, pblock))
         {
-            cout << "Block after signed" << endl;
-            cout << pblock->ToString() << endl;
-            ProcessBlockFound_Legacy(pblock, chainparams);
+            // Lico it is failing here, I believe because the scriptSig is now at the block
+            // and it will be checked !
+            CValidationState state;
+            CheckProofOfStake_Legacy(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, state);
+
+//            ProcessBlockFound_Legacy(pblock, chainparams);
             // we dont have extranounce for pos
-            LogBlockFound(j, pblock, 0, true);
+//            LogBlockFound(j, pblock, 0, true);
         }
     }
 }

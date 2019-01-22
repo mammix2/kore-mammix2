@@ -134,6 +134,7 @@ bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, u
     if (!VerifySignature(prevtx, tx, 0, SCRIPT_VERIFY_NONE, 0))
        return state.DoS(100, error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString()));
 
+
     CBlockIndex* pIndex = NULL;
     BlockMap::iterator iter = mapBlockIndex.find(hashBlock);
     if (iter != mapBlockIndex.end()) 

@@ -110,6 +110,8 @@ public:
          return false;
     }
 
+    virtual std::string ToString() const {  std::stringstream s; return s.str();};    
+
     virtual ~BaseSignatureChecker() {}
 };
 
@@ -127,6 +129,8 @@ public:
     bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode) const;
     bool CheckLockTime(const CScriptNum& nLockTime) const;
     bool CheckSequence(const CScriptNum& nSequence) const;
+    std::string ToString() const;    
+
 };
 
 class MutableTransactionSignatureChecker : public TransactionSignatureChecker
