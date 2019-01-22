@@ -1179,21 +1179,21 @@ bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
 
     int64_t nSearchTime = txCoinStake.nTime; // search to current time
 
-    //LogPrintf("SearchTime = %d \n", nSearchTime);
-    //LogPrintf("nLastCoinStakeSearchTime = %d \n", nLastCoinStakeSearchTime);
+    cout << "SearchTime               = " << nSearchTime << endl;
+    cout << "nLastCoinStakeSearchTime = " << nLastCoinStakeSearchTime << endl;
 
     if (nSearchTime >= nLastCoinStakeSearchTime)
     {
         int64_t nSearchInterval =  1 ;
         if (pwallet->CreateCoinStake_Legacy(*pwallet, pblock->nBits, nSearchInterval, nFees, txCoinStake, key))
         {            
-            cout << "CoinStake Created " << endl;
-            cout << txCoinStake.ToString().c_str() << endl;
             if (txCoinStake.nTime >= pindexBestHeader->GetMedianTimePast()+1)
             {
                 // make sure coinstake would meet timestamp protocol
                 //    as it would be the same as the block timestamp
                 pblock->nTime = txCoinStake.nTime = pblock->vtx[0].nTime;
+                //pblock->nTime = txCoinStake.nTime;
+                //pblock->vtx[0].nTime = txCoinStake.nTime;
 
                 // we have to make sure that we have no future timestamps in
                 //    our transactions set

@@ -1143,9 +1143,10 @@ uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsig
     CHashWriter ss(SER_GETHASH, 0);
     ss << txTmp << nHashType;
     // Lico only for debugging
-    uint256 hash = ss.GetHash();
-    //cout << "hash: " << hash.ToString().c_str() << endl;
-    return hash;
+    // uint256 hash = ss.GetHash();
+    // cout << "hash: " << hash.ToString().c_str() << endl;
+    // return hash;
+    return ss.GetHash();
 }
 
 bool TransactionSignatureChecker::VerifySignature(const std::vector<unsigned char>& vchSig, const CPubKey& pubkey, const uint256& sighash) const
@@ -1269,11 +1270,11 @@ std::string TransactionSignatureChecker::ToString() const
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
 {
     // Lico - to be removed
-    cout << "VerifyScript" << endl;
-    cout << "ScriptSig    :(" << scriptSig.ToString().c_str() << ")" << endl;
-    cout << "ScriptPubKey :(" << scriptPubKey.ToString().c_str()<< ")" << endl;
-    cout << "Flags: " << flags << endl;
-    cout << "Checker: " << checker.ToString() << endl;
+    //cout << "VerifyScript" << endl;
+    //cout << "ScriptSig    :(" << scriptSig.ToString().c_str() << ")" << endl;
+    //cout << "ScriptPubKey :(" << scriptPubKey.ToString().c_str()<< ")" << endl;
+    //cout << "Flags: " << flags << endl;
+    //cout << "Checker: " << checker.ToString() << endl;
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
 
     if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {
