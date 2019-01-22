@@ -263,6 +263,7 @@ public:
         nPastBlocksMin = 24;
         nPastBlocksMax = 24;
         nStakeMinAge = 4 * 60 * 60;
+        nStakeMinConfirmations = 25;
         nModifier = MODIFIER_INTERVAL_TESTNET;
         nClientMintibleCoinsInterval = 5 * 60;
         nClientMintibleCoinsInterval = 1 * 60;
@@ -383,6 +384,7 @@ public:
         nPastBlocksMin = 64;
         nPastBlocksMax = 64;
         nStakeMinAge = 30 * 60; // It will stake after 30 minutes
+        nStakeMinConfirmations = 25;
         nModifier = MODIFIER_INTERVAL_TESTNET;
         nClientMintibleCoinsInterval = 10; // Every 10 seconds
         nClientMintibleCoinsInterval += 2;  // Additional 2 seconds
@@ -580,6 +582,7 @@ public:
     virtual void setAllowMinDifficultyBlocks(bool afAllowMinDifficultyBlocks) { fAllowMinDifficultyBlocks = afAllowMinDifficultyBlocks; }
     virtual void setSkipProofOfWorkCheck(bool afSkipProofOfWorkCheck) { fSkipProofOfWorkCheck = afSkipProofOfWorkCheck; }
     virtual void setHeightToFork(int aHeightToFork) { heightToFork = aHeightToFork; };
+    virtual void setStakeMinConfirmations(int aStakeMinConfirmations) { nStakeMinConfirmations = aStakeMinConfirmations;};
     virtual void setLastPOW(int aLastPOW) { nLastPOWBlock = aLastPOW; };
 };
 static CUnitTestParams unitTestParams;

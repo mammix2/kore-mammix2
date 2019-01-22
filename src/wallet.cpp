@@ -3636,8 +3636,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     return true;
 }
 
-bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, int64_t nFees, CMutableTransaction& txNew, CKey& key)
+bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, int64_t nSearchInterval, int64_t nFees, CMutableTransaction& txNew, CKey& key)
 {
+    unsigned int nBits = pblock->nBits;
     CBlockIndex* pindexPrev = pindexBestHeader;
     txNew.vin.clear();
     txNew.vout.clear();
@@ -3801,6 +3802,11 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBi
     //Masternode and general budget payments
     // last two parameters are not used for legacy.
     FillBlockPayee(txNew, 0, true,true, true);
+
+    // make sure coinstake would meet timestamp protocol
+    if (txNew.nTime >= pindexBestHeader->GetMedianTimePast()+1)
+      pblock->nTime = txNew.nTime = pblock->vtx[0].nTime;
+      else return error("CreateCoinStake : failed to update coinstake time");
 
     // Sign
     int nIn = 0;

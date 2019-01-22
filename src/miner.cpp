@@ -1185,15 +1185,13 @@ bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
     if (nSearchTime >= nLastCoinStakeSearchTime)
     {
         int64_t nSearchInterval =  1 ;
-        if (pwallet->CreateCoinStake_Legacy(*pwallet, pblock->nBits, nSearchInterval, nFees, txCoinStake, key))
+        if (pwallet->CreateCoinStake_Legacy(*pwallet, pblock, nSearchInterval, nFees, txCoinStake, key))
         {            
-            if (txCoinStake.nTime >= pindexBestHeader->GetMedianTimePast()+1)
-            {
+            //if (txCoinStake.nTime >= pindexBestHeader->GetMedianTimePast()+1)
+            //{
                 // make sure coinstake would meet timestamp protocol
                 //    as it would be the same as the block timestamp
-                pblock->nTime = txCoinStake.nTime = pblock->vtx[0].nTime;
-                //pblock->nTime = txCoinStake.nTime;
-                //pblock->vtx[0].nTime = txCoinStake.nTime;
+                //pblock->nTime = txCoinStake.nTime = pblock->vtx[0].nTime;
 
                 // we have to make sure that we have no future timestamps in
                 //    our transactions set
@@ -1205,7 +1203,7 @@ bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
 
                 // append a signature to our block
                 return key.Sign(pblock->GetHash(), pblock->vchBlockSig);
-            }
+            //}
         }
         nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
         nLastCoinStakeSearchTime = nSearchTime;

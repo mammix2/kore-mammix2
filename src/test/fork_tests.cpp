@@ -287,9 +287,24 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
 }
 
 
+void InitializeLastCoinStakeSearchTime(CWallet* pwallet, CScript& scriptPubKey)
+{
+    const CChainParams& chainparams = Params();
+
+    // this is just to initialize nLastCoinStakeSearchTime
+    unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, pwallet, true));
+    if (!pblocktemplate.get())
+      return;        
+    CBlock *pblock = &pblocktemplate->block;
+    SignBlock_Legacy(pwallet, pblock);
+    MilliSleep(30000);
+}
+
 void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey)
 {
     const CChainParams& chainparams = Params();
+        
+    InitializeLastCoinStakeSearchTime(pwallet, scriptPubKey);
 
     for (int j = startBlock; j < endBlock; j++) {
         unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, pwallet, true));
@@ -301,12 +316,12 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
             if (ProcessBlockFound_Legacy(pblock, chainparams)) {
                 // we dont have extranounce for pos
                 LogBlockFound(j, pblock, 0, true);
+                // Let's wait to generate the nextBlock
+                MilliSleep(Params().TargetSpacing()*1000);
             } else {
                 cout << "NOT ABLE TO PROCESS BLOCK :" << j << endl;
             }
-        } else {
-            MilliSleep(30000);
-        }
+        } 
     }
 }
 
@@ -314,6 +329,8 @@ BOOST_AUTO_TEST_CASE(generate_chain)
 {
     int oldHeightToFork = Params().HeigthToFork();
     ModifiableParams()->setHeightToFork(3);
+    // we dont need any blocks to confirm.
+    ModifiableParams()->setStakeMinConfirmations(0); 
     
     ScanForWalletTransactions(pwalletMain);
     CReserveKey reservekey(pwalletMain);
@@ -326,7 +343,7 @@ BOOST_AUTO_TEST_CASE(generate_chain)
     GeneratePOWLegacyBlocks(1,2, pwalletMain, scriptPubKey);
     cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
     // generate 1 pos blocks
-    GeneratePOSLegacyBlocks(2,20, pwalletMain, scriptPubKey);
+    GeneratePOSLegacyBlocks(2,4, pwalletMain, scriptPubKey);
     //ScanForWalletTransactions(pwalletMain);
     cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
 

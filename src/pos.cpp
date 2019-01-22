@@ -146,7 +146,7 @@ bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, u
        return fDebug? error("CheckProofOfStake(): *** ReadBlockFromDisk failed at %d, hash=%s \n", pindexPrev->nHeight, pindexPrev->GetBlockHash().ToString()) : false;
 
     // Min age requirement
-    if (pindexPrev->nHeight - pIndex->nHeight < STAKE_MIN_CONFIRMATIONS)
+    if (pindexPrev->nHeight - pIndex->nHeight < Params().StakeMinConfirmations())
        return state.DoS(100, error("%s: tried to stake at depth %d \n", __func__, pindexPrev->nHeight - pIndex->nHeight), REJECT_INVALID, "bad-cs-premature");
 
     if (prevtx.nTime + Params().StakeMinAge() > tx.nTime) // Min age requirement

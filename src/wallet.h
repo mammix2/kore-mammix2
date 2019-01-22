@@ -460,7 +460,7 @@ public:
     bool CreateCollateralTransaction(CMutableTransaction& txCollateral, std::string& strReason);
     bool ConvertList(std::vector<CTxIn> vCoins, std::vector<int64_t>& vecAmounts);
     bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, bool fProofOfStake, CKey& key);
-    bool CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, int64_t nFees, CMutableTransaction& txNew, CKey& key);
+    bool CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, int64_t nSearchInterval, int64_t nFees, CMutableTransaction& txNew, CKey& key);
     bool MultiSend();
     void AutoCombineDust();
 #ifdef ZEROCOIN    
