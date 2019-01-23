@@ -1265,16 +1265,16 @@ std::string TransactionSignatureChecker::ToString() const
     
     return s.str();
 }
-#include <iostream> // Lico, to be removed!!!
+//#include <iostream> // Lico, to be removed!!!
 
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
 {
     // Lico - to be removed
-    cout << "VerifyScript" << endl;
-    cout << "ScriptSig    :(" << scriptSig.ToString().c_str() << ")" << endl;
-    cout << "ScriptPubKey :(" << scriptPubKey.ToString().c_str()<< ")" << endl;
-    cout << "Flags: " << flags << endl;
-    cout << "Checker: " << checker.ToString() << endl;
+    //cout << "VerifyScript" << endl;
+    //cout << "ScriptSig    :(" << scriptSig.ToString().c_str() << ")" << endl;
+    //cout << "ScriptPubKey :(" << scriptPubKey.ToString().c_str()<< ")" << endl;
+    //cout << "Flags: " << flags << endl;
+    //cout << "Checker: " << checker.ToString() << endl;
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
 
     if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {

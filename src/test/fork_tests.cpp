@@ -21,9 +21,8 @@
 BOOST_AUTO_TEST_SUITE(fork_tests)
 
 
-void LogBlockFound(int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake)
+void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake)
 {
-    cout << "Block === " << blockNumber << " === " << endl;
     cout << pblock->ToString().c_str();
     cout << "{" << fProofOfStake << ", ";
     cout << pblock->nTime << ", ";
@@ -34,8 +33,9 @@ void LogBlockFound(int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bo
     cout << pblock->nBirthdayA << " , ";
     cout << pblock->nBirthdayB << " , ";
     cout << "uint256(\"" << pblock->GetHash().ToString().c_str() << "\") , ";
-    cout << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") },";
-    cout << " // " << blockNumber << endl;
+    cout << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") , ";
+    cout << pwalletMain->GetBalance() << "\") },";
+    cout << " // " << "Block === " << blockNumber << " === " << endl;
 }
 
 void ScanForWalletTransactions(CWallet* pwallet)
@@ -84,7 +84,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
                 boost::this_thread::interruption_point();
 
                 if (!fGenerateBitcoins && !fProofOfStake) {
-                    cout << "BitcoinMiner Going out of Loop !!!" << endl;
+                    //cout << "BitcoinMiner Going out of Loop !!!" << endl;
                     continue;
                 }
             }
@@ -94,7 +94,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
                 if (GetTime() - mapHashedBlocks[chainActive.Tip()->nHeight] < max(pwallet->nHashInterval, (unsigned int)1)) // wait half of the nHashDrift with max wait of 3 minutes
                 {
                     MilliSleep(5000);
-                    cout << "BitcoinMiner Going out of Loop !!!" << endl;
+                    //cout << "BitcoinMiner Going out of Loop !!!" << endl;
                     continue;
                 }
             }
@@ -103,7 +103,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
         //
         // Create new block
         //
-        cout << "KOREMiner: Creating new Block " << endl;
+        //cout << "KOREMiner: Creating new Block " << endl;
         if (fDebug) {
             LogPrintf("vNodes Empty  ? %s \n", vNodes.empty() ? "true" : "false");
             LogPrintf("Wallet Locked ? %s \n", pwallet->IsLocked() ? "true" : "false");
@@ -126,14 +126,15 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
 
         //Stake miner main
         if (fProofOfStake) {
-            cout << "CPUMiner : proof-of-stake block found " << pblock->GetHash().ToString() << endl;
+            //cout << "CPUMiner : proof-of-stake block found " << pblock->GetHash().ToString() << endl;
             if (!SignBlock(*pblock, *pwallet)) {
-                cout << "BitcoinMiner(): Signing new block with UTXO key failed" << endl;
+                //cout << "BitcoinMiner(): Signing new block with UTXO key failed" << endl;
                 continue;
             }
 
-            cout << "CPUMiner : proof-of-stake block was signed " << pblock->GetHash().ToString() << endl;
+            //cout << "CPUMiner : proof-of-stake block was signed " << pblock->GetHash().ToString() << endl;
             ProcessBlockFound(pblock, *pwallet, reservekey);
+            LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake);
             continue;
         }
 
@@ -142,38 +143,38 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
         //
         int64_t nStart = GetTime();
         uint256 hashTarget = uint256().SetCompact(pblock->nBits);
-        cout << "target: " << hashTarget.GetHex() << endl;
+        //cout << "target: " << hashTarget.GetHex() << endl;
         while (true) {
             unsigned int nHashesDone = 0;
 
             uint256 hash;
             
-            cout << "nbits : " << pblock->nBits << endl;
+            //cout << "nbits : " << pblock->nBits << endl;
             while (true) {
                 hash = pblock->GetHash();
-                cout << "pblock.nBirthdayA: " << pblock->nBirthdayA << endl;
-                cout << "pblock.nBirthdayB: " << pblock->nBirthdayB << endl;
-                cout << "hash             : " << hash.ToString() << endl;
-                cout << "hashTarget       : " << hashTarget.ToString() << endl;
+                //cout << "pblock.nBirthdayA: " << pblock->nBirthdayA << endl;
+                //cout << "pblock.nBirthdayB: " << pblock->nBirthdayB << endl;
+                //cout << "hash             : " << hash.ToString() << endl;
+                //cout << "hashTarget       : " << hashTarget.ToString() << endl;
 
                 if (hash <= hashTarget) {
                     // Found a solution
-                    cout << "BitcoinMiner:" << endl;
-                    cout << "proof-of-work found  "<< endl;
-                    cout << "hash  : " << hash.GetHex() << endl;
-                    cout << "target: " << hashTarget.GetHex() << endl;
-                    LogBlockFound(j, pblock, nExtraNonce, fProofOfStake);
+                    //cout << "BitcoinMiner:" << endl;
+                    //cout << "proof-of-work found  "<< endl;
+                    //cout << "hash  : " << hash.GetHex() << endl;
+                    //cout << "target: " << hashTarget.GetHex() << endl;
                     ProcessBlockFound(pblock, *pwallet, reservekey);
+                    LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake);
 
                     // In regression test mode, stop mining after a block is found. This
                     // allows developers to controllably generate a block on demand.
-                    if (Params().MineBlocksOnDemand())
-                        throw boost::thread_interrupted();
+                    // if (Params().MineBlocksOnDemand())
+                    //    throw boost::thread_interrupted();
                     break;
                 }                
                 pblock->nNonce += 1;                
                 nHashesDone += 1;
-                cout << "Looking for a solution with nounce " << pblock->nNonce << " hashesDone : " << nHashesDone << endl;
+                //cout << "Looking for a solution with nounce " << pblock->nNonce << " hashesDone : " << nHashesDone << endl;
                 if ((pblock->nNonce & 0xFF) == 0)
                     break;
             }
@@ -196,7 +197,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, bool fProofO
                         static int64_t nLogTime;
                         if (GetTime() - nLogTime > 30 * 60) {
                             nLogTime = GetTime();
-                            cout << "hashmeter %6.0f khash/s " << dHashesPerMin / 1000.0 << endl;
+                            //cout << "hashmeter %6.0f khash/s " << dHashesPerMin / 1000.0 << endl;
                         }
                     }
                 }
@@ -240,7 +241,7 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
         unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, NULL, false));
 
         if (!pblocktemplate.get()) {
-            cout << "Error in KoreMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread" << endl;
+            //cout << "Error in KoreMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread" << endl;
             return;
         }
         CBlock* pblock = &pblocktemplate->block;
@@ -264,18 +265,19 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
                 pblock->nNonce = pblock->nNonce + 1;
                 testHash = pblock->CalculateBestBirthdayHash();
                 nHashesDone++;
-                cout << "proof-of-work found  "<< endl;
-                cout << "testHash  : " << UintToArith256(testHash).ToString() << endl;
-                cout << "target    : " << hashTarget.GetHex() << endl;
+                //cout << "proof-of-work found  "<< endl;
+                //cout << "testHash  : " << UintToArith256(testHash).ToString() << endl;
+                //cout << "target    : " << hashTarget.GetHex() << endl;
                 if (UintToArith256(testHash) < hashTarget) {
                     // Found a solution
                     nNonceFound = pblock->nNonce;
                     // Found a solution
                     assert(testHash == pblock->GetHash());
-                    // We have our data, lets print them
-                    LogBlockFound(j, pblock, nExtraNonce, false);
                     foundBlock = true;
                     ProcessBlockFound_Legacy(pblock, chainparams);
+                    // We have our data, lets print them
+                    LogBlockFound(pwallet, j, pblock, nExtraNonce, false);
+
                     break;
                 }
             }
@@ -315,11 +317,11 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
         {
             if (ProcessBlockFound_Legacy(pblock, chainparams)) {
                 // we dont have extranounce for pos
-                LogBlockFound(j, pblock, 0, true);
+                LogBlockFound(pwallet, j, pblock, 0, true);
                 // Let's wait to generate the nextBlock
                 MilliSleep(Params().TargetSpacing()*1000);
             } else {
-                cout << "NOT ABLE TO PROCESS BLOCK :" << j << endl;
+                //cout << "NOT ABLE TO PROCESS BLOCK :" << j << endl;
             }
         } 
     }
@@ -327,8 +329,9 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
 
 BOOST_AUTO_TEST_CASE(generate_chain)
 {
+    Checkpoints::fEnabled = false;
     int oldHeightToFork = Params().HeigthToFork();
-    ModifiableParams()->setHeightToFork(3);
+    ModifiableParams()->setHeightToFork(11);
     // we dont need any blocks to confirm.
     ModifiableParams()->setStakeMinConfirmations(0); 
     
@@ -339,17 +342,16 @@ BOOST_AUTO_TEST_CASE(generate_chain)
 
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
-    // generate 1 pow blocks
-    GeneratePOWLegacyBlocks(1,2, pwalletMain, scriptPubKey);
-    cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
-    // generate 1 pos blocks
-    GeneratePOSLegacyBlocks(2,4, pwalletMain, scriptPubKey);
+    // generate 5 pow blocks
+    GeneratePOWLegacyBlocks(1,6, pwalletMain, scriptPubKey);
+    // generate 5 pos blocks
+    GeneratePOSLegacyBlocks(6,11, pwalletMain, scriptPubKey);
     //ScanForWalletTransactions(pwalletMain);
-    cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
 
-    // here the fork will happen, lets check pos
-    //GenerateBlocks(3,5, pwalletMain, true);
-    cout << "My Local Balance : " << pwalletMain->GetBalance() << endl;
+    // here the fork will happen, lets check pow
+    GenerateBlocks(11,16, pwalletMain, false);
+
+    GenerateBlocks(16,21, pwalletMain, true);
 
     ModifiableParams()->setHeightToFork(oldHeightToFork);}
 
@@ -363,6 +365,7 @@ typedef struct {
     uint32_t nBirthdayB;
     uint256 hash;
     uint256 hashMerkleRoot;
+    CAmount balance;
 } blockinfo_t;
 static blockinfo_t blockinfo[] = 
 {

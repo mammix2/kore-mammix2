@@ -1179,8 +1179,8 @@ bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
 
     int64_t nSearchTime = txCoinStake.nTime; // search to current time
 
-    cout << "SearchTime               = " << nSearchTime << endl;
-    cout << "nLastCoinStakeSearchTime = " << nLastCoinStakeSearchTime << endl;
+    //cout << "SearchTime               = " << nSearchTime << endl;
+    //cout << "nLastCoinStakeSearchTime = " << nLastCoinStakeSearchTime << endl;
 
     if (nSearchTime >= nLastCoinStakeSearchTime)
     {
