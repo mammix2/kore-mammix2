@@ -22,18 +22,18 @@ public:
     virtual CAmount GetValue() = 0;
     virtual bool CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake) = 0;
     virtual bool GetModifier(uint64_t& nStakeModifier) = 0;
-    virtual bool IsZKORE() = 0;
     virtual CDataStream GetUniqueness() = 0;
+    virtual int GetPosition() = 0;
 };
 
 
-class CkoreStake : public CStakeInput
+class CKoreStake : public CStakeInput
 {
 private:
     CTransaction txFrom;
     unsigned int nPosition;
 public:
-    CkoreStake()
+    CKoreStake()
     {
         this->pindexFrom = nullptr;
     }
@@ -47,7 +47,7 @@ public:
     CDataStream GetUniqueness() override;
     bool CreateTxIn(CWallet* pwallet, CTxIn& txIn, uint256 hashTxOut = 0) override;
     bool CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake) override;
-    bool IsZKORE() override { return false; }
+    virtual int GetPosition() override;
 };
 
 

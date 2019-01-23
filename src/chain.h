@@ -158,9 +158,9 @@ public:
     // proof-of-stake specific fields
     uint256 GetBlockTrust() const;
     uint64_t nStakeModifier;             // hash modifier for proof-of-stake
-    uint256 nStakeModifierOld; // Old wat to calculate PoS
+    uint256 nStakeModifierOld;           // Old way to calculate PoS
     
-    unsigned int nStakeModifierChecksum; // checksum of index; in-memeory only
+    unsigned int nStakeModifierChecksum; // checksum of index; in-memory only
     COutPoint prevoutStake;
     unsigned int nStakeTime;
     uint256 hashProofOfStake;

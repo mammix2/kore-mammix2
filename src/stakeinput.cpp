@@ -8,31 +8,31 @@
 #include "wallet.h"
 
 //!KORE Stake
-bool CkoreStake::SetInput(CTransaction txPrev, unsigned int n)
+bool CKoreStake::SetInput(CTransaction txPrev, unsigned int n)
 {
     this->txFrom = txPrev;
     this->nPosition = n;
     return true;
 }
 
-bool CkoreStake::GetTxFrom(CTransaction& tx)
+bool CKoreStake::GetTxFrom(CTransaction& tx)
 {
     tx = txFrom;
     return true;
 }
 
-bool CkoreStake::CreateTxIn(CWallet* pwallet, CTxIn& txIn, uint256 hashTxOut)
+bool CKoreStake::CreateTxIn(CWallet* pwallet, CTxIn& txIn, uint256 hashTxOut)
 {
     txIn = CTxIn(txFrom.GetHash(), nPosition);
     return true;
 }
 
-CAmount CkoreStake::GetValue()
+CAmount CKoreStake::GetValue()
 {
     return txFrom.vout[nPosition].nValue;
 }
 
-bool CkoreStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake)
+bool CKoreStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake)
 {
     vector<valtype> vSolutions;
     txnouttype whichType;
@@ -66,7 +66,7 @@ bool CkoreStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool split
     return true;
 }
 
-bool CkoreStake::GetModifier(uint64_t& nStakeModifier)
+bool CKoreStake::GetModifier(uint64_t& nStakeModifier)
 {
     int nStakeModifierHeight = 0;
     int64_t nStakeModifierTime = 0;
@@ -75,12 +75,12 @@ bool CkoreStake::GetModifier(uint64_t& nStakeModifier)
         return error("%s: failed to get index from", __func__);
 
     if (!GetKernelStakeModifier(pindexFrom->GetBlockHash(), nStakeModifier, nStakeModifierHeight, nStakeModifierTime, false))
-        return error("CheckStakeKernelHash(): failed to get kernel stake modifier \n");
+        return error("GetModifier(): failed to get kernel stake modifier \n");
 
     return true;
 }
 
-CDataStream CkoreStake::GetUniqueness()
+CDataStream CKoreStake::GetUniqueness()
 {
     //The unique identifier for a KORE stake is the outpoint
     CDataStream ss(SER_NETWORK, 0);
@@ -89,7 +89,7 @@ CDataStream CkoreStake::GetUniqueness()
 }
 
 //The block that the UTXO was added to the chain
-CBlockIndex* CkoreStake::GetIndexFrom()
+CBlockIndex* CKoreStake::GetIndexFrom()
 {
     uint256 hashBlock = 0;
     CTransaction tx;
@@ -105,4 +105,8 @@ CBlockIndex* CkoreStake::GetIndexFrom()
     }
 
     return pindexFrom;
+}
+
+int CKoreStake::GetPosition() {
+    return nPosition;
 }
