@@ -17,6 +17,9 @@
 #include "utiltime.h"
 
 #include <boost/test/unit_test.hpp>
+#include <boost/thread.hpp>
+#include <boost/tuple/tuple.hpp>
+
 
 BOOST_AUTO_TEST_SUITE(fork_tests)
 
@@ -327,6 +330,7 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
     }
 }
 
+/*
 BOOST_AUTO_TEST_CASE(generate_chain)
 {
     Checkpoints::fEnabled = false;
@@ -334,6 +338,8 @@ BOOST_AUTO_TEST_CASE(generate_chain)
     ModifiableParams()->setHeightToFork(11);
     // we dont need any blocks to confirm.
     ModifiableParams()->setStakeMinConfirmations(0); 
+    ModifiableParams()->setEnableBigRewards(true);
+
     
     ScanForWalletTransactions(pwalletMain);
     CReserveKey reservekey(pwalletMain);
@@ -353,7 +359,14 @@ BOOST_AUTO_TEST_CASE(generate_chain)
 
     GenerateBlocks(16,21, pwalletMain, true);
 
-    ModifiableParams()->setHeightToFork(oldHeightToFork);}
+    ModifiableParams()->setHeightToFork(oldHeightToFork);
+    ModifiableParams()->setEnableBigRewards(true);
+    
+    }
+
+
+*/
+
 
 typedef struct {
     uint32_t nTime;
@@ -387,6 +400,7 @@ void create_transaction(CBlock *pblock, const CBlockIndex* pindexPrev, const blo
 
 }
 
+/*
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
 BOOST_AUTO_TEST_CASE(basic_fork)
 {
@@ -395,6 +409,7 @@ BOOST_AUTO_TEST_CASE(basic_fork)
     int oldLastPOW = Params().LAST_POW_BLOCK();
     ModifiableParams()->setHeightToFork(10);
     ModifiableParams()->setLastPOW(5);
+    ModifiableParams()->setEnableBigRewards(true);
     
     // Lets create 5 pow blocks than 5 pos than we fork
 
@@ -450,7 +465,9 @@ BOOST_AUTO_TEST_CASE(basic_fork)
     // Leaving old values
     ModifiableParams()->setHeightToFork(oldHeightToFork);
     ModifiableParams()->setLastPOW(oldLastPOW);
+    ModifiableParams()->setEnableBigRewards(false);
 }
 
+*/
 BOOST_AUTO_TEST_SUITE_END()
 

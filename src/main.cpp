@@ -2611,7 +2611,9 @@ CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input)
 
 int64_t GetBlockValue(int nHeight)
 {
-    if (Params().NetworkID() == CBaseChainParams::TESTNET || Params().NetworkID() == CBaseChainParams::UNITTEST) {
+    //if (Params().NetworkID() == CBaseChainParams::TESTNET /* || Params().NetworkID() == CBaseChainParams::UNITTEST */) 
+    if (Params().EnableBigRewards())
+    {
         if (nHeight >= 0 && nHeight < 500)
             return 10000 * COIN;
     }

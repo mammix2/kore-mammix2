@@ -152,6 +152,7 @@ public:
     int LAST_POW_BLOCK() const { return nLastPOWBlock; }
     int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
     int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
+    bool EnableBigRewards() const { return fEnableBigReward;}
 
 protected:
     CChainParams() {}
@@ -205,6 +206,7 @@ protected:
     bool fMineBlocksOnDemand;
     bool fSkipProofOfWorkCheck;
     bool fHeadersFirstSyncingActive;
+    bool fEnableBigReward;
     int nPoolMaxTransactions;
     std::string strSporkKey;
     int64_t nEnforceNewSporkKey;
@@ -252,6 +254,7 @@ public:
     virtual void setHeightToFork(int aHeightToFork) = 0;
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) = 0;
     virtual void setLastPOW(int aLastPOW) = 0;
+    virtual void setEnableBigRewards(bool bigRewards) = 0;
 };
 
 

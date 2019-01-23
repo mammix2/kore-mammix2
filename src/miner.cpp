@@ -130,7 +130,6 @@ inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKey
     txNew.vin[0].prevout.SetNull();    
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-    txNew.nTime = GetAdjustedTime();    
 
     return txNew;
 }
