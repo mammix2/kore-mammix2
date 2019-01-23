@@ -14,6 +14,7 @@
 #include "masternode-sync.h"
 #include "legacy/consensus/merkle.h"
 #include "net.h"
+#include "pob.h"
 #include "pos.h"
 #include "pow.h"
 #include "primitives/block.h"
@@ -258,20 +259,23 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     pblocktemplate->vTxFees.push_back(-1);   // updated at end
     pblocktemplate->vTxSigOps.push_back(-1); // updated at end
 
-    // ppcoin: if coinstake available add coinstake tx
-    static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // only initialized at startup
 
+    // ppcoin: if coinstake available add coinstake tx
     if (fProofOfStake) {
         boost::this_thread::interruption_point();
+        static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // only initialized at startup
+
+        bool fStakeFound = false;
+        unsigned int nTxNewTime = 0;
+        CKey key;
+        CMutableTransaction txCoinStake;
+
         pblock->nTime = GetAdjustedTime();
         CBlockIndex* pindexPrev = chainActive.Tip();
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
-        CMutableTransaction txCoinStake;
+        pblock->nBits = GetNextTarget1(pindexPrev, pblock);
         int64_t nSearchTime = pblock->nTime; // search to current time
-        bool fStakeFound = false;
+        
         if (nSearchTime >= nLastCoinStakeSearchTime) {
-            unsigned int nTxNewTime = 0;
-            CKey key;
             if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime - nLastCoinStakeSearchTime, txCoinStake, nTxNewTime, fProofOfStake, key)) {
                 pblock->nTime = nTxNewTime;
                 pblock->vtx[0].vout[0].SetEmpty();
@@ -498,7 +502,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         if (!fProofOfStake) {
             //Masternode and general budget payments
-            FillBlockPayee(txNew, nFees, fProofOfStake, false,false);
+            FillBlockPayee(txNew, nFees, fProofOfStake, false);
 
             //Make payee
             if (txNew.vout.size() > 1) {
@@ -519,7 +523,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         pblock->hashPrevBlock = pindexPrev->GetBlockHash();
         if (!fProofOfStake)
             UpdateTime(pblock, pindexPrev, fProofOfStake);
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
+        pblock->nBits = GetNextTarget1(pindexPrev, pblock);
         pblock->nNonce = 0;
 
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
@@ -899,15 +903,15 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         boost::this_thread::interruption_point();
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
-            if ((GetTime() - nMintableLastCheck > Params().ClientMintibleCoinsInterval()))
+            if ((GetTime() - nMintableLastCheck > Params().ClientMintableCoinsInterval()))
             {
                 nMintableLastCheck = GetTime();
                 fMintableCoins = pwallet->MintableCoins();
             }
 
-            while (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins || 
-                  (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) || 
-                  ! (masternodeSync.IsSynced() && (mnodeman.CountEnabled() == mnodeman.size()) && mnodeman.CountEnabled() >1 ))
+            while (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins ||
+                (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) ||
+                !(masternodeSync.IsSynced() && mnodeman.CountEnabled() == mnodeman.size() && mnodeman.CountEnabled() >1 ))
             {
                 if (fDebug) {
                     LogPrintf("***************************************************************\n");
@@ -926,20 +930,22 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                     LogPrintf("***************************************************************\n");
                     LogPrintf("***************************************************************\n");
                 }
-                nLastCoinStakeSearchInterval = 0;
-                // Do a separate 1 minute check here to ensure fMintableCoins is updated
-                if (!fMintableCoins) {
-                    if (GetTime() - nMintableLastCheck > Params().EnsureMintibleCoinsInterval()) // 1 minute check time
-                    {
-                        nMintableLastCheck = GetTime();
-                        fMintableCoins = pwallet->MintableCoins();
-                    }
-                }
+                
                 MilliSleep(5000);
                 boost::this_thread::interruption_point();
                 if (!fGenerateBitcoins && !fProofOfStake) {
                     LogPrintf("BitcoinMiner Going out of Loop !!! \n");
                     continue;
+                }
+
+                nLastCoinStakeSearchInterval = 0;
+                // Do a separate 1 minute check here to ensure fMintableCoins is updated
+                if (!fMintableCoins) {
+                    if (GetTime() - nMintableLastCheck > Params().EnsureMintableCoinsInterval()) // 1 minute check time
+                    {
+                        nMintableLastCheck = GetTime();
+                        fMintableCoins = pwallet->MintableCoins();
+                    }
                 }
             }
 
@@ -948,8 +954,11 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 if (GetTime() - mapHashedBlocks[chainActive.Tip()->nHeight] < max(pwallet->nHashInterval, (unsigned int)1)) // wait half of the nHashDrift with max wait of 3 minutes
                 {
                     MilliSleep(5000);
-                    LogPrintf("BitcoinMiner Going out of Loop !!! \n");
-                    continue;
+                    boost::this_thread::interruption_point();
+                    if (!fGenerateBitcoins && !fProofOfStake) {
+                        LogPrintf("BitcoinMiner Going out of Loop !!! \n");
+                        continue;
+                    }
                 }
             }
         }

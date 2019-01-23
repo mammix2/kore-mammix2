@@ -9,6 +9,7 @@
 #include "masternode-sync.h"
 #include "masternodeman.h"
 #include "obfuscation.h"
+#include "pob.h"
 #include "spork.h"
 #include "sync.h"
 #include "util.h"
@@ -300,7 +301,7 @@ bool IsBlockPayeeValid_Legacy(const CBlock& block, int nBlockHeight)
 }
 
 
-void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake, bool fZKOREStake, bool stakeSplitted)
+void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake, bool stakeSplitted)
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (!pindexPrev) return;
@@ -308,7 +309,7 @@ void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStak
     if (IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(pindexPrev->nHeight + 1)) {
         budget.FillBlockPayee(txNew, nFees, fProofOfStake);
     } else {
-        masternodePayments.FillBlockPayee(txNew, nFees, fProofOfStake, fZKOREStake, stakeSplitted);
+        masternodePayments.FillBlockPayee(txNew, nFees, fProofOfStake, stakeSplitted);
     }
 }
 
@@ -333,7 +334,7 @@ std::string GetRequiredPaymentsString(int nBlockHeight)
     }
 }
 
-void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake, bool fZKOREStake, bool stakeSplitted)
+void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake, bool stakeSplitted)
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (!pindexPrev) return;
@@ -353,7 +354,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
         }
     }
 
-    CAmount blockValue = GetBlockValue(pindexPrev->nHeight);
+    CAmount blockValue = GetBlockReward1(pindexPrev);
     // 10% is for development, need to subtract the 10%
     if (fProofOfStake) blockValue *=  0.9;
     CAmount masternodePayment = GetMasternodePayment(pindexPrev->nHeight, blockValue, 0);
@@ -372,16 +373,17 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             txNew.vout[i].nValue = masternodePayment;
             //subtract mn payment from the stake reward
             if (stakeSplitted)
-              {
+            {
                 CAmount total = txNew.vout[1].nValue * 2;
                 total -= masternodePayment;
                 // remember vout[0] must be null for POS
                 txNew.vout[1].nValue = total/2;
                 txNew.vout[2].nValue = total/2;
-              }
-              else {
+            }
+            else 
+            {
                 txNew.vout[1].nValue -= masternodePayment;
-              }
+            }
         } else {
             txNew.vout.resize(2);
             txNew.vout[1].scriptPubKey = payee;

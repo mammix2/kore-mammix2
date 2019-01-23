@@ -97,13 +97,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return Params().ProofOfWorkLimit().GetCompact();
     }
 
-    if (pindexLast->nHeight > Params().LAST_POW_BLOCK() || !fProofOfStake) {
-        //uint256 bnTargetLimit = (~uint256(0) >> 24);
+    if (pindexLast->nHeight > Params().LAST_POW_BLOCK() || fProofOfStake) {
         uint256 bnTargetLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
         int64_t nTargetSpacing = Params().TargetSpacing();
         int64_t nTargetTimespan = Params().TargetTimespan();
-        //int64_t nTargetSpacing = 60;
-        //int64_t nTargetTimespan = 60 * 40;
 
         int64_t nActualSpacing = 0;
         if (pindexLast->nHeight != 0)
@@ -112,13 +109,16 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         if (nActualSpacing < 0)
             nActualSpacing = 1;
 
+        int64_t nNewSpacing = 0;
+        nNewSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
+
         // ppcoin: target change every block
         // ppcoin: retarget with exponential moving toward target spacing
         uint256 bnNew;
         bnNew.SetCompact(pindexLast->nBits);
 
         int64_t nInterval = nTargetTimespan / nTargetSpacing;
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nNewSpacing);
         bnNew /= ((nInterval + 1) * nTargetSpacing);
 
         if (bnNew <= 0 || bnNew > bnTargetLimit)
@@ -155,6 +155,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         }
         BlockReading = BlockReading->pprev;
     }
+
+    int64_t Diff = (pblock->nTime - BlockLastSolved->GetBlockTime());
+    nActualTimespan += Diff;
 
     uint256 bnNew(PastDifficultyAverage);
 

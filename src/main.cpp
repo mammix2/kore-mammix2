@@ -26,6 +26,7 @@
 #include "merkleblock.h"
 #include "net.h"
 #include "obfuscation.h"
+#include "pob.h"
 #include "pow.h"
 #include "pos.h" // Old from Kore, will be deprecated
 #include "spork.h"
@@ -2611,7 +2612,7 @@ CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input)
 
 int64_t GetBlockValue(int nHeight)
 {
-    if (Params().NetworkID() == CBaseChainParams::TESTNET) {
+    if (Params().NetworkID() == CBaseChainParams::TESTNET || Params().NetworkID() == CBaseChainParams::UNITTEST) {
         if (nHeight >= 0 && nHeight < 500)
             return 10000 * COIN;
     }
@@ -2825,7 +2826,7 @@ CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue)
 }
 
 
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZKOREStake)
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount)
 {
     int64_t ret = 0;
 
@@ -3813,7 +3814,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs - 1), nTimeConnect * 0.000001);
 
     //PoW phase redistributed fees to miner. PoS stage destroys fees.
-    CAmount nExpectedMint = GetBlockValue(pindex->pprev->nHeight);
+    CAmount nExpectedMint = GetBlockReward1(pindex->pprev);
     if (block.IsProofOfWork())
         nExpectedMint += nFees;
 
@@ -3964,7 +3965,7 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
             return state.DoS(100, error("%s: kernel input unavailable", __func__), REJECT_INVALID, "bad-cs-kernel");
 
         // Check proof-of-stake min confirmations
-        if (pindex->nHeight - coins->nHeight < STAKE_MIN_CONFIRMATIONS)
+        if (pindex->nHeight - coins->nHeight < Params().StakeMinAge())
             return state.DoS(100, error("%s: tried to stake at depth %d", __func__, pindex->nHeight - coins->nHeight), REJECT_INVALID, "bad-cs-premature");
 
     if (coins->nTime + Params().StakeMinAge() > block.vtx[1].nTime) // Min age requirement

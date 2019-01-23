@@ -280,23 +280,21 @@ bool stakeTargetHit(uint256 hashProofOfStake, int64_t nValueIn, uint256 bnTarget
 }
 
 bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t nStakeModifier, const uint256& bnTarget,
-                unsigned int nTimeBlockFrom, unsigned int& nTimeTx, uint256& hashProofOfStake)
+                unsigned int nTimeBlockFrom, unsigned int& nTimeTx)
 {
     CDataStream ss(SER_GETHASH, 0);
     ss << nStakeModifier << nTimeBlockFrom << ssUniqueID << nTimeTx;
-    hashProofOfStake = Hash(ss.begin(), ss.end());
-    //LogPrintf("%s: modifier:%d nTimeBlockFrom:%d nTimeTx:%d hash:%s\n", __func__, nStakeModifier, nTimeBlockFrom, nTimeTx, hashProofOfStake.GetHex());
-
-    return stakeTargetHit(hashProofOfStake, nValueIn, bnTarget);
+    
+    return stakeTargetHit(Hash(ss.begin(), ss.end()), nValueIn, bnTarget);
 }
 
-bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockFrom, unsigned int& nTimeTx, uint256& hashProofOfStake)
+bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockFrom, unsigned int& nTimeTx, CAmount stakeableBalance)
 {
     if (nTimeTx < nTimeBlockFrom)
-        return error("CheckStakeKernelHash() : nTime violation");
+        return error("Stake() : nTime violation");
 
     if (nTimeBlockFrom + Params().StakeMinAge() > nTimeTx) // Min age requirement
-        return error("CheckStakeKernelHash() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d",
+        return error("Stake() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d",
                      nTimeBlockFrom, Params().StakeMinAge(), nTimeTx);
 
     //grab difficulty
@@ -313,7 +311,6 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
     int nHeightStart = chainActive.Height();
     int nHashDrift = 45;
     CDataStream ssUniqueID = stakeInput->GetUniqueness();
-    CAmount nValueIn = stakeInput->GetValue();
     for (int i = 0; i < nHashDrift; i++) //iterate the hashing
     {
         //new block came in, move on
@@ -324,11 +321,11 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
         nTryTime = nTimeTx + nHashDrift - i;
 
         // if stake hash does not meet the target then continue to next iteration
-        if (!CheckStake(ssUniqueID, nValueIn, nStakeModifier, bnTargetPerCoinDay, nTimeBlockFrom, nTryTime, hashProofOfStake))
+        if (!CheckStake(ssUniqueID, stakeableBalance, nStakeModifier, bnTargetPerCoinDay, nTimeBlockFrom, nTryTime))
             continue;
 
         fSuccess = true; // if we make it this far then we have successfully created a stake hash
-        //LogPrintf("%s: hashproof=%s\n", __func__, hashProofOfStake.GetHex());
+
         nTimeTx = nTryTime;
         break;
     }
@@ -359,7 +356,7 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
         return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
 
     //Construct the stakeinput object
-    CkoreStake* koreInput = new CkoreStake();
+    CKoreStake* koreInput = new CKoreStake();
     koreInput->SetInput(txPrev, txin.prevout.n);
     stake = std::unique_ptr<CStakeInput>(koreInput);
 
@@ -382,9 +379,9 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
     unsigned int nBlockFromTime = blockprev.nTime;
     unsigned int nTxTime = block.nTime;
     if (!CheckStake(stake->GetUniqueness(), stake->GetValue(), nStakeModifier, bnTargetPerCoinDay, nBlockFromTime,
-                    nTxTime, hashProofOfStake)) {
-        return error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s, hashProof=%s \n",
-                     tx.GetHash().GetHex(), hashProofOfStake.GetHex());
+                    nTxTime)) {
+        return error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s \n",
+                     tx.GetHash().GetHex());
     }
 
     return true;

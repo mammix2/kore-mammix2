@@ -14,9 +14,6 @@ class COutPoint;
 class uint256;
 class CTransaction;
 
-static const int STAKE_MIN_CONFIRMATIONS = 25;
-static const int STAKE_MIN_AGE = 4 * 60 * 60;
-
 bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx);
 
 bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime);                          

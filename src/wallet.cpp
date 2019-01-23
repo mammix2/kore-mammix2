@@ -14,6 +14,7 @@
 #include "kernel.h"
 #include "masternode-budget.h"
 #include "net.h"
+#include "pob.h"
 #include "primitives/transaction.h"
 #include "script/script.h"
 #include "script/sign.h"
@@ -49,7 +50,7 @@ int64_t nStartupTime = GetTime(); //!< Client startup time for use with automint
 
 bool CWallet::SplitStake(CAmount stake) const
 {
-    return stake / 2 > (CAmount)(nStakeSplitThreshold * COIN);
+    return stake / 2 > (CAmount)(min(nStakeSplitThreshold, (uint64_t)5000) * COIN);
 }
 
 static CAmount GetStakeCombineThreshold_Legacy() { return 980 * COIN; }
@@ -121,6 +122,7 @@ CPubKey CWallet::GenerateNewKey()
 
 bool CWallet::AddKeyPubKey(const CKey& secret, const CPubKey& pubkey)
 {
+    LOCK(cs_wallet);
     AssertLockHeld(cs_wallet); // mapKeyMetadata
     if (!CCryptoKeyStore::AddKeyPubKey(secret, pubkey))
         return false;
@@ -1818,6 +1820,7 @@ CAmount CWallet::GetBalance() const
     CAmount nTotal = 0;
     {
         LOCK2(cs_main, cs_wallet);
+
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
             const CWalletTx* pcoin = &(*it).second;
 
@@ -1864,24 +1867,6 @@ CAmount CWallet::GetLockedCoins() const
 
     return nTotal;
 }
-
-#ifdef ZEROCOIN
-// Get a Map pairing the Denominations with the amount of Zerocoin for each Denomination
-std::map<libzerocoin::CoinDenomination, CAmount> CWallet::GetMyZerocoinDistribution() const
-{
-    std::map<libzerocoin::CoinDenomination, CAmount> spread;
-    for (const auto& denom : libzerocoin::zerocoinDenomList)
-        spread.insert(std::pair<libzerocoin::CoinDenomination, CAmount>(denom, 0));
-    {
-        LOCK(cs_wallet);
-        set<CMintMeta> setMints = zkoreTracker->ListMints(true, true, true);
-        for (auto& mint : setMints)
-            spread.at(mint.denom)++;
-    }
-    return spread;
-}
-#endif
-
 
 CAmount CWallet::GetAnonymizableBalance() const
 {
@@ -2129,14 +2114,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 } else {
                     found = true;
                 }
-                if (!found) continue;
-
-#ifdef ZEROCOIN
-                if (nCoinType == STAKABLE_COINS) {
-                    if (pcoin->vout[i].IsZerocoinMint())
-                        continue;
-                }
-#endif                
+                if (!found) continue;         
 
                 isminetype mine = IsMine(pcoin->vout[i]);
                 if (IsSpent(wtxid, i))
@@ -2246,7 +2224,7 @@ bool less_then_denom(const COutput& out1, const COutput& out2)
     return (!found1 && found2);
 }
 
-bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInputs, CAmount nTargetAmount)
+bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInputs, CAmount nTargetAmount, map<string, CAmount>& stakeableBalance)
 {
     //Add KORE
     vector<COutput> vCoins;
@@ -2258,15 +2236,8 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
             if (nAmountSelected + out.tx->vout[out.i].nValue > nTargetAmount)
                 continue;
 
-            //if zerocoinspend, then use the block time
-            int64_t nTxTime = out.tx->GetTxTime();
-#ifdef ZEROCOIN            
-            if (out.tx->IsZerocoinSpend()) {
-                if (!out.tx->IsInMainChain())
-                    continue;
-                nTxTime = mapBlockIndex.at(out.tx->hashBlock)->GetBlockTime();
-            }
-#endif            
+            //use the block time
+            int64_t nTxTime = out.tx->GetTxTime();         
 
             //check for min age
             if (GetAdjustedTime() - nTxTime < Params().StakeMinAge())
@@ -2279,9 +2250,15 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
             //add to our stake set
             nAmountSelected += out.tx->vout[out.i].nValue;
 
-            std::unique_ptr<CkoreStake> input(new CkoreStake());
+            std::unique_ptr<CKoreStake> input(new CKoreStake());
             input->SetInput((CTransaction) *out.tx, out.i);
             listInputs.emplace_back(std::move(input));
+
+            string pubkeyScriptString = out.tx->vout[out.i].scriptPubKey.ToString();
+            if(!stakeableBalance[pubkeyScriptString])
+                stakeableBalance.emplace(pubkeyScriptString, out.tx->vout[out.i].nValue);
+            else
+                stakeableBalance[pubkeyScriptString] += out.tx->vout[out.i].nValue;
         }
     }
 
@@ -2291,9 +2268,7 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
 bool CWallet::MintableCoins()
 {
     CAmount nBalance = GetBalance();
-    //CAmount nZkoreBalance = GetZerocoinBalance(false);
 
-    // Regular KORE
     if (nBalance > 0) {
         if (mapArgs.count("-reservebalance") && !ParseMoney(mapArgs["-reservebalance"], nReserveBalance))
             return error("%s : invalid reserve balance amount", __func__);
@@ -3480,14 +3455,14 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, bool fProofOfStake, CKey& key)
 {
-
-    // FORK
-    // return CreateCoinStake_Legacy(keystore, nBits,  nSearchInterval, txNew, key);
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
-    //int64_t nCombineThreshold = 0;
+    int64_t nCombineThreshold = 5000 * COIN;
     txNew.vin.clear();
     txNew.vout.clear();
+
+    // Create lock transaction
+    CMutableTransaction txLock;
 
     // Mark coin stake transaction
     CScript scriptEmpty;
@@ -3506,9 +3481,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // Initialize as static and don't update the set on every run of CreateCoinStake() in order to lighten resource use
     static int nLastStakeSetUpdate = 0;
     static list<std::unique_ptr<CStakeInput> > listInputs;
+    static map<string, CAmount> stakeableBalance;
     if (GetTime() - nLastStakeSetUpdate > nStakeSetUpdateTime) {
         listInputs.clear();
-        if (!SelectStakeCoins(listInputs, nBalance - nReserveBalance))
+        stakeableBalance.clear();
+        if (!SelectStakeCoins(listInputs, min(nBalance - nReserveBalance, nCombineThreshold), stakeableBalance))
             return false;
 
         nLastStakeSetUpdate = GetTime();
@@ -3522,8 +3499,13 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     CAmount nCredit;
     CScript scriptPubKeyKernel;
+    static int nMaxStakeSearchInterval = 60;
     bool fKernelFound = false;
     for (std::unique_ptr<CStakeInput>& stakeInput : listInputs) {
+        // If we're looking for a stake for too long just give up, it might be a new block around.
+        if (nSearchInterval > nMaxStakeSearchInterval)
+            return false;
+
         nCredit = 0;
         // Make sure the wallet is unlocked and shutdown hasn't been requested
         if (IsLocked() || ShutdownRequested())
@@ -3536,13 +3518,18 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             continue;
         }
 
+        // Set the address balance to the maximum of the combine threshold
+        CTransaction tx;
+        stakeInput->GetTxFrom(tx);
+        string publickeyScriptString = tx.vout[stakeInput->GetPosition()].scriptPubKey.ToString();
+        CAmount addressBalance = stakeableBalance[publickeyScriptString];
+
         // Read block header
         CBlockHeader block = pindex->GetBlockHeader();
-        uint256 hashProofOfStake = 0;
         nTxNewTime = GetAdjustedTime();
 
-        //iterates each utxo inside of CheckStakeKernelHash()
-        if (Stake(stakeInput.get(), nBits, block.GetBlockTime(), nTxNewTime, hashProofOfStake)) {
+        // Send the address stakeable balance to ease the difficulty
+        if (Stake(stakeInput.get(), nBits, block.GetBlockTime(), nTxNewTime, addressBalance)) {
             LOCK(cs_main);
             //Double check that this will pass time requirements
             if (nTxNewTime <= chainActive.Tip()->GetMedianTimePast()) {
@@ -3551,40 +3538,18 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             }
 
             // Found a kernel
-            //LogPrintf("CreateCoinStake : kernel found\n");
-            nCredit = stakeInput->GetValue();
+            LogPrintf("CreateCoinStake : kernel found\n");
 
             // Calculate reward
             CAmount nReward;
-            nReward = GetBlockValue(chainActive.Height() + 1);
+            nReward = GetBlockReward1(chainActive.Tip());
 
-            // Create the output transaction(s)
-            vector<CTxOut> vout;
-            bool stakeSplitted = SplitStake(nCredit+nReward);
-            if (!stakeInput->CreateTxOuts(this, vout, stakeSplitted)) {
-                LogPrintf("%s : failed to get scriptPubKey\n", __func__);
-                continue;
-            }
-            txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
-            
+            // Update the coinbase transaction
+            txNew.vout[0].nValue = nReward * 0.9;
+
             // 10% dev Fund
-            CAmount devsubsidy = nReward * 0.1;
-            //LogPrintf(" Reward: %d Credit: %d Dev: %d\n", FormatMoney(nReward), FormatMoney(nCredit), FormatMoney(devsubsidy));
-
-            nCredit += nReward - devsubsidy;
-            
-            // depending how much is the amount it is necessary to break it into two.
-            // Set output amount
-            if (stakeSplitted) {
-                txNew.vout[1].nValue = nCredit / 2;
-                txNew.vout[2].nValue = nCredit - txNew.vout[1].nValue;
-            } else {
-                txNew.vout[1].nValue = nCredit;
-            }
-            //if (fDebug) LogPrintf("CreateCoinStake txNew: %s \n", txNew.ToString());
-
-            // lets add the dev fund if possible, need to add after FillBlockPayee
-            // because 
+            CAmount devsubsidy = nReward - txNew.vout[0].nValue;
+            // Add the dev fund
             if (devsubsidy > 0) {
                 // here it is necessary to check if the amount was diviced by 2 or not
                 int pos = txNew.vout.size();
@@ -3593,27 +3558,67 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 txNew.vout[pos].scriptPubKey = CScript() << ParseHex(Params().DevFundPubKey()) << OP_CHECKSIG;
             }
          
-            //LogPrintf("CreateCoinStake : before FillBlockPayee txNew: %s\n", txNew.ToString());
-            //Masternode payment
-            FillBlockPayee(txNew, 0, fProofOfStake, stakeInput->IsZKORE(), stakeSplitted);
-            //LogPrintf("CreateCoinStake : after FillBlockPayee txNew: %s\n", txNew.ToString());
+            // Masternode payment
+            FillBlockPayee(txNew, 0, fProofOfStake, false);
 
-            uint256 hashTxOut = txNew.GetHash();
+            // Add stake to lock tx
+            uint256 hashTxOut = txLock.GetHash();
             CTxIn in;
             if (!stakeInput->CreateTxIn(this, in, hashTxOut)) {
                 LogPrintf("%s : failed to create TxIn\n", __func__);
-                txNew.vin.clear();
-                txNew.vout.clear();
+                txLock.vin.clear();
+                txLock.vout.clear();
                 continue;
             }
-            txNew.vin.emplace_back(in);
-            //LogPrintf("CreateCoinStake : emplace_back: %s\n", txNew.ToString());
+            txLock.vin.emplace_back(in);
+
+            // Add any other coin that belongs to the same address until the threshold is met
+            CAmount nBalance = stakeInput->GetValue();
+            for (std::unique_ptr<CStakeInput>& otherStakeInput : listInputs) {
+                if(nBalance > nCombineThreshold) {
+                    break;
+                } else if (otherStakeInput == stakeInput || otherStakeInput->GetValue() + nBalance > nCombineThreshold) {
+                    continue;
+                }
+                
+                hashTxOut = txLock.GetHash();
+                if (!otherStakeInput->CreateTxIn(this, in, hashTxOut)) {
+                    LogPrintf("%s : failed to create TxIn\n", __func__);
+                    txLock.vin.clear();
+                    txLock.vout.clear();
+                    continue;
+                }
+                
+                nBalance += otherStakeInput->GetValue();
+
+                txLock.vin.emplace_back(in);                
+            }
+
+            // Create the output transaction(s)            
+            vector<CTxOut> vout;
+            bool stakeSplitted = SplitStake(nBalance);
+            if (!stakeInput->CreateTxOuts(this, vout, stakeSplitted)) {
+                LogPrintf("%s : failed to get scriptPubKey\n", __func__);
+                continue;
+            }
+            txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
             
-            // Limit size
+            // If the amount is too big it is necessary to break it into two.
+            if (stakeSplitted) {
+                txNew.vout[0].nValue = nCredit / 2;
+                txNew.vout[1].nValue = nCredit - txNew.vout[1].nValue;
+            } else {
+                txNew.vout[0].nValue = nCredit;
+            }
+                        
+            // Limit size for the coinbase tx
             unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
             if (nBytes >= MAX_STANDARD_TX_SIZE)
                 return error("CreateCoinStake : exceeded coinstake size limit");
-
+            // And for the lock tx
+            nBytes = ::GetSerializeSize(txLock, SER_NETWORK, PROTOCOL_VERSION);
+            if (nBytes >= MAX_STANDARD_TX_SIZE)
+                return error("CreateCoinStake : exceeded coinstake size limit");
 
             fKernelFound = true;
             break;
@@ -3626,9 +3631,12 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     // Sign for KORE
     int nIn = 0;
-    for (CTxIn txIn : txNew.vin) {
+    txNew.nTime = nTxNewTime;
+    txLock.nTime = nTxNewTime;
+
+    for (CTxIn txIn : txLock.vin) {
         const CWalletTx* wtx = GetWalletTx(txIn.prevout.hash);
-        if (!SignSignature(*this, *wtx, txNew, nIn++))
+        if (!SignSignature(*this, *wtx, txLock, nIn++))
             return error("CreateCoinStake : failed to sign coinstake");
     }
 
@@ -3799,9 +3807,9 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBi
         txNew.vout[2].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;;        
 	}
 
-    //Masternode and general budget payments
-    // last two parameters are not used for legacy.
-    FillBlockPayee(txNew, 0, true,true, true);
+    // Masternode and general budget payments
+    // last parameter is not used for legacy.
+    FillBlockPayee(txNew, 0, true, true);
 
     // Sign
     int nIn = 0;
@@ -4747,113 +4755,6 @@ bool CWallet::GetDestData(const CTxDestination& dest, const std::string& key, st
     }
     return false;
 }
-
-#ifdef ZEROCOIN
-// CWallet::AutoZeromint() gets called with each new incoming block
-void CWallet::AutoZeromint()
-{
-    // Don't bother Autominting if Zerocoin Protocol isn't active
-    if (GetAdjustedTime() > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE)) return;
-
-    // Wait until blockchain + masternodes are fully synced and wallet is unlocked.
-    if (!masternodeSync.IsSynced() || IsLocked()){
-        // Re-adjust startup time in case syncing needs a long time.
-        nStartupTime = GetAdjustedTime();
-        return;
-    }
-
-    // After sync wait even more to reduce load when wallet was just started
-    int64_t nWaitTime = GetAdjustedTime() - nStartupTime;
-    if (nWaitTime < AUTOMINT_DELAY){
-        LogPrint("zero", "CWallet::AutoZeromint(): time since sync-completion or last Automint (%ld sec) < default waiting time (%ld sec). Waiting again...\n", nWaitTime, AUTOMINT_DELAY);
-        return;
-    }
-
-    CAmount nZerocoinBalance = GetZerocoinBalance(false); //false includes both pending and mature zerocoins. Need total balance for this so nothing is overminted.
-    CAmount nBalance = GetUnlockedCoins(); // We only consider unlocked coins, this also excludes masternode-vins
-                                           // from being accidentally minted
-    CAmount nMintAmount = 0;
-    CAmount nToMintAmount = 0;
-
-    // zKORE are integers > 0, so we can't mint 10% of 9 KORE
-    if (nBalance < 10){
-        LogPrint("zero", "CWallet::AutoZeromint(): available balance (%ld) too small for minting zKORE\n", nBalance);
-        return;
-    }
-
-    // Percentage of zKORE we already have
-    double dPercentage = 100 * (double)nZerocoinBalance / (double)(nZerocoinBalance + nBalance);
-
-    // Check if minting is actually needed
-    if(dPercentage >= nObfuscationRounds){
-        LogPrint("zero", "CWallet::AutoZeromint() @block %ld: percentage of existing zKORE (%lf%%) already >= configured percentage (%d%%). No minting needed...\n",
-                  chainActive.Tip()->nHeight, dPercentage, nObfuscationRounds);
-        return;
-    }
-
-    // zKORE amount needed for the target percentage
-    nToMintAmount = ((nZerocoinBalance + nBalance) * nObfuscationRounds / 100);
-
-    // zKORE amount missing from target (must be minted)
-    nToMintAmount = (nToMintAmount - nZerocoinBalance) / COIN;
-
-    // Use the biggest denomination smaller than the needed zKORE We'll only mint exact denomination to make minting faster.
-    // Exception: for big amounts use 6666 (6666 = 1*5000 + 1*1000 + 1*500 + 1*100 + 1*50 + 1*10 + 1*5 + 1) to create all
-    // possible denominations to avoid having 5000 denominations only.
-    // If a preferred denomination is used (means nPreferredDenom != 0) do nothing until we have enough KORE to mint this denomination
-
-    if (nPreferredDenom > 0){
-        if (nToMintAmount >= nPreferredDenom)
-            nToMintAmount = nPreferredDenom;  // Enough coins => mint preferred denomination
-        else
-            nToMintAmount = 0;                // Not enough coins => do nothing and wait for more coins
-    }
-
-    if (nToMintAmount >= ZQ_6666){
-        nMintAmount = ZQ_6666;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_FIVE_THOUSAND){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_FIVE_THOUSAND;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_ONE_THOUSAND){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_ONE_THOUSAND;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_FIVE_HUNDRED){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_FIVE_HUNDRED;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_ONE_HUNDRED){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_ONE_HUNDRED;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_FIFTY){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_FIFTY;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_TEN){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_TEN;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_FIVE){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_FIVE;
-    } else if (nToMintAmount >= libzerocoin::CoinDenomination::ZQ_ONE){
-        nMintAmount = libzerocoin::CoinDenomination::ZQ_ONE;
-    } else {
-        nMintAmount = 0;
-    }
-
-    if (nMintAmount > 0){
-    CWalletTx wtx;
-        vector<CDeterministicMint> vDMints;
-        string strError = pwalletMain->MintZerocoin(nMintAmount*COIN, wtx, vDMints);
-
-        // Return if something went wrong during minting
-        if (strError != ""){
-            LogPrintf("CWallet::AutoZeromint(): auto minting failed with error: %s\n", strError);
-            return;
-        }
-        nZerocoinBalance = GetZerocoinBalance(false);
-        nBalance = GetUnlockedCoins();
-        dPercentage = 100 * (double)nZerocoinBalance / (double)(nZerocoinBalance + nBalance);
-        LogPrintf("CWallet::AutoZeromint() @ block %ld: successfully minted %ld zKORE. Current percentage of zKORE: %lf%%\n",
-                  chainActive.Tip()->nHeight, nMintAmount, dPercentage);
-        // Re-adjust startup time to delay next Automint for 5 minutes
-        nStartupTime = GetAdjustedTime();
-    }
-    else {
-        LogPrintf("CWallet::AutoZeromint(): Nothing minted because either not enough funds available or the requested denomination size (%d) is not yet reached.\n", nPreferredDenom);
-    }
-}
-#endif
 
 void CWallet::AutoCombineDust()
 {

@@ -332,7 +332,7 @@ bool DisconnectBlocksAndReprocess(int blocks);
 // ***TODO***
 double ConvertBitsToDouble(unsigned int nBits);
 CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue);
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZKOREStake=false);
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
 
 /**

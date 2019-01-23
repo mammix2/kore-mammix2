@@ -159,6 +159,7 @@ BITCOIN_CORE_H = \
   net.h \
   netaddress.h \
   noui.h \
+  pob.h \
   pos.h \
   pow.h \
   protocol.h \
@@ -234,6 +235,7 @@ libbitcoin_server_a_SOURCES = \
   miner.cpp \
   net.cpp \
   noui.cpp \
+  pob.cpp \
   pos.cpp \
   pow.cpp \
   rest.cpp \

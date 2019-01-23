@@ -263,9 +263,10 @@ public:
         nPastBlocksMin = 24;
         nPastBlocksMax = 24;
         nStakeMinAge = 4 * 60 * 60;
+        nStakeMinConfirmations = 25;
         nModifier = MODIFIER_INTERVAL_TESTNET;
-        nClientMintibleCoinsInterval = 5 * 60;
-        nClientMintibleCoinsInterval = 1 * 60;
+        nClientMintableCoinsInterval = 5 * 60;
+        nEnsureMintableCoinsInterval = 1 * 60;
         nMaturity = 25;
         nMasternodeCountDrift = 20; // ONLY KORE
         nMaxMoneyOut = MAX_MONEY;
@@ -383,9 +384,11 @@ public:
         nPastBlocksMin = 64;
         nPastBlocksMax = 64;
         nStakeMinAge = 30 * 60; // It will stake after 30 minutes
+        nStakeMinConfirmations = 25;
         nModifier = MODIFIER_INTERVAL_TESTNET;
-        nClientMintibleCoinsInterval = 10; // Every 10 seconds
-        nClientMintibleCoinsInterval += 2;  // Additional 2 seconds
+        nClientMintableCoinsInterval = 10; // Every 10 seconds
+        nClientMintableCoinsInterval += 2;  // Additional 2 seconds
+        nEnsureMintableCoinsInterval = 5;
         fSkipProofOfWorkCheck = false;
         bnProofOfWorkLimit  = ~uint256(0) >> 3;
         bnProofOfStakeLimit = ~uint256(0) >> 4;
@@ -556,6 +559,14 @@ public:
         vFixedSeeds.clear(); //! Unit test mode doesn't have any fixed seeds.
         vSeeds.clear();      //! Unit test mode doesn't have any DNS seeds.
 
+        nTargetTimespan = 0;             // consensus.nTargetTimespan one hour
+        nTargetSpacing  = 1;             // consensus.nTargetSpacing 1 minutes
+        nPastBlocksMin  = 32;
+        nPastBlocksMax  = 128;
+        nMaturity = 1;
+        nStakeMinAge = 1;
+        nStakeMinConfirmations = 25;
+
         fMiningRequiresPeers      = false;
         fDefaultConsistencyChecks = true;
         fAllowMinDifficultyBlocks = false;
@@ -578,6 +589,7 @@ public:
     virtual void setAllowMinDifficultyBlocks(bool afAllowMinDifficultyBlocks) { fAllowMinDifficultyBlocks = afAllowMinDifficultyBlocks; }
     virtual void setSkipProofOfWorkCheck(bool afSkipProofOfWorkCheck) { fSkipProofOfWorkCheck = afSkipProofOfWorkCheck; }
     virtual void setHeightToFork(int aHeightToFork) { heightToFork = aHeightToFork; };
+    virtual void setLastPowBlock(int aLastPOWBlock) { nLastPOWBlock = aLastPOWBlock; };
 };
 static CUnitTestParams unitTestParams;
 
