@@ -1381,7 +1381,9 @@ void TorThread()
     bridge obfs4 34.207.17.234:9443 5376E7D45629B310C551CC692B8A708E67F946DE cert=RdeLCwFKDvWVx/8cB1gujdfrp7DG+j116DhlNG6rNkSruaJUibvMq5FpTU/iQ+rwTmK7bQ iat-mode=0
 
     */
-   /*
+   
+   bool obfs4 = GetBoolArg("-obfs4proxy", false);
+   if (obfs4) {
 #ifdef WIN32
     if (stat("obfs4proxy.exe", &sb) == 0 && sb.st_mode & S_IXUSR) {
         clientTransportPlugin = "obfs4 exec obfs4proxy.exe";
@@ -1393,7 +1395,7 @@ void TorThread()
         clientTransportPlugin = "obfs4 exec /usr/bin/obfs4proxy -enableLogging=true -logLevel DEBUG managed";
     }
 #endif
-*/
+   }
 
     // set up command line arguments for tor
     std::vector<std::string> tor_args;
