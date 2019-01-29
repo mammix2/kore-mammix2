@@ -16,6 +16,7 @@ protected:
 
 public:
     virtual ~CStakeInput(){};
+    virtual CScript GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey) = 0;
     virtual CBlockIndex* GetIndexFrom() = 0;
     virtual bool CreateTxIn(CWallet* pwallet, CTxIn& txIn, uint256 hashTxOut = 0) = 0;
     virtual bool GetTxFrom(CTransaction& tx) = 0;
@@ -32,12 +33,14 @@ class CKoreStake : public CStakeInput
 private:
     CTransaction txFrom;
     unsigned int nPosition;
+
 public:
     CKoreStake()
     {
         this->pindexFrom = nullptr;
     }
 
+    CScript GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey) override;
     bool SetInput(CTransaction txPrev, unsigned int n);
 
     CBlockIndex* GetIndexFrom() override;
@@ -47,7 +50,7 @@ public:
     CDataStream GetUniqueness() override;
     bool CreateTxIn(CWallet* pwallet, CTxIn& txIn, uint256 hashTxOut = 0) override;
     bool CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake) override;
-    virtual int GetPosition() override;
+    int GetPosition() override;
 };
 
 

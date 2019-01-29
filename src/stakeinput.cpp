@@ -8,6 +8,33 @@
 #include "wallet.h"
 
 //!KORE Stake
+CScript CKoreStake::GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey)
+{
+    vector<valtype> vSolutions;
+    txnouttype whichType;
+    CScript scriptPubKeyKernel = txFrom.vout[nPosition].scriptPubKey;
+    if (!Solver(scriptPubKeyKernel, whichType, vSolutions)) {
+        LogPrintf("CreateCoinStake : failed to parse kernel\n");
+        return false;
+    }
+
+    if (whichType != TX_PUBKEY && whichType != TX_PUBKEYHASH)
+        return false; // only support pay to public key and pay to address
+
+    if (whichType == TX_PUBKEYHASH) // pay to address type
+    {
+        //convert to pay to public key type
+        CKey key;
+        if (!pwallet->GetKey(uint160(vSolutions[0]), key))
+            return false;
+
+        scriptPubKey << key.GetPubKey() << OP_CHECKSIG;
+    } else
+        scriptPubKey = scriptPubKeyKernel;
+
+    return scriptPubKey;
+}
+
 bool CKoreStake::SetInput(CTransaction txPrev, unsigned int n)
 {
     this->txFrom = txPrev;
@@ -34,28 +61,8 @@ CAmount CKoreStake::GetValue()
 
 bool CKoreStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake)
 {
-    vector<valtype> vSolutions;
-    txnouttype whichType;
-    CScript scriptPubKeyKernel = txFrom.vout[nPosition].scriptPubKey;
-    if (!Solver(scriptPubKeyKernel, whichType, vSolutions)) {
-        LogPrintf("CreateCoinStake : failed to parse kernel\n");
-        return false;
-    }
-
-    if (whichType != TX_PUBKEY && whichType != TX_PUBKEYHASH)
-        return false; // only support pay to public key and pay to address
-
     CScript scriptPubKey;
-    if (whichType == TX_PUBKEYHASH) // pay to address type
-    {
-        //convert to pay to public key type
-        CKey key;
-        if (!pwallet->GetKey(uint160(vSolutions[0]), key))
-            return false;
-
-        scriptPubKey << key.GetPubKey() << OP_CHECKSIG;
-    } else
-        scriptPubKey = scriptPubKeyKernel;
+    GetPubKeyScript(pwallet, scriptPubKey);
 
     vout.emplace_back(CTxOut(0, scriptPubKey));
 

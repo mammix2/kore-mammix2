@@ -27,14 +27,27 @@ CAmount GetBlockReward1(CBlockIndex* pindexPrev)
         else
             return (12000000 * COIN) - pindexPrev->nMoneySupply;
     } else {
-        if ((Params().NetworkID() == CBaseChainParams::TESTNET || Params().NetworkID() == CBaseChainParams::UNITTEST) 
-            && pindexPrev->nHeight >= 0 && pindexPrev->nHeight < 500) {
-            
+        if ((Params().NetworkID() == CBaseChainParams::TESTNET || Params().NetworkID() == CBaseChainParams::UNITTEST) && pindexPrev->nHeight >= 0 && pindexPrev->nHeight < 500) {
             return 10000 * COIN;
         }
-        
-        return 5 * COIN;        
+
+        return 5 * COIN;
     }
+}
+
+CAmount GetMinterReward(CAmount blockValue, CAmount stakedBalance, CBlockIndex* pindexPrev)
+{
+    static double k1 = 8.00011e-13;
+    static double k2 = 1.17928e-58;
+
+    stakedBalance = max(stakedBalance, 5000 * COIN);
+    
+    return blockValue * (0.05 + (k1 * (float)stakedBalance) + (k2 * pow((float)stakedBalance, 2) * (float)pindexPrev->nMoneySupply));
+}
+
+CAmount GetMasternodePayment1(CAmount blockValue, CAmount stakedBalance, CBlockIndex* pindexPrev)
+{
+    return blockValue - GetMinterReward(blockValue, stakedBalance, pindexPrev);
 }
 
 // BlackCoin kernel protocol v3

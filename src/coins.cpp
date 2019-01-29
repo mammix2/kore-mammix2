@@ -286,13 +286,7 @@ const CTxOut& CCoinsViewCache::GetOutputFor(const CTxIn& input) const
 CAmount CCoinsViewCache::GetValueIn(const CTransaction& tx) const
 {
     if (tx.IsCoinBase())
-        return 0;
-
-#ifdef ZEROCOIN
-    //todo are there any security precautions to take here?
-    if (tx.IsZerocoinSpend())
-        return tx.GetZerocoinSpent();
-#endif        
+        return 0;     
 
     CAmount nResult = 0;
     for (unsigned int i = 0; i < tx.vin.size(); i++)

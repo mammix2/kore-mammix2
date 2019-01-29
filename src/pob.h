@@ -20,6 +20,10 @@ class uint256;
 
 CAmount GetBlockReward1(CBlockIndex* pindexPrev);
 
+CAmount GetMinterReward(CAmount blockValue, CAmount stakedBalance, CBlockIndex* pindexPrev);
+
+CAmount GetMasternodePayment1(CAmount blockValue, CAmount stakedBalance, CBlockIndex* pindexPrev);
+
 bool CheckStakeKernelHash1(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx);
 
 bool CheckKernel1(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime);

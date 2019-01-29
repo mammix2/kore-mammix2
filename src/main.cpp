@@ -5672,6 +5672,19 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
         for (unsigned int i = 2; i < block.vtx.size(); i++)
             if (block.vtx[i].IsCoinStake())
                 return state.DoS(100, error("CheckBlock() : more than one coinstake"));
+        
+        // Third transaction must lock coins from same pubkey
+        if(block.vtx[2].nLockTime == 0)
+            return state.DoS(100, error("CheckBlock() : third tx is not locking"));
+        CPubKey pubKey = block.vtx[2].vin[0].prevPubKey;
+        for (unsigned int i = 1; i < block.vtx[2].vin.size(); i++)
+            if(block.vtx[2].vin[i].prevPubKey != pubKey)
+                return state.DoS(100, error("CheckBlock() : more than one pubkey on lock"));
+        for (unsigned int i = 0; i < block.vtx[2].vout.size(); i++) {
+            uint160 pubKeyID;
+            if(ExtractDestination(block.vtx[2].vout[i].scriptPubKey, pubKeyID) != pubKey.GetID())
+                return state.DoS(100, error("CheckBlock() : more than one pubkey on lock"));
+        }
     }
 
     // ----------- swiftTX transaction scanning -----------

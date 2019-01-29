@@ -167,8 +167,11 @@ void StartPreMineAndWalletAllocation()
     wallets[0].strWalletFile = "wallet_0.dat";
     CWalletDB walletDB(wallets[0].strWalletFile, "crw");
 
-    wallets[0].NewKeyPool();
-    wallets[0].AddKeyPubKey(key, pubKey);
+    //wallets[0].NewKeyPool();
+    {
+        LOCK(wallets[0].cs_wallet);
+        wallets[0].AddKeyPubKey(key, pubKey);
+    }
     wallets[0].SetDefaultKey(pubKey);
     wallets[0].nTimeFirstKey = actualBlock->nTime;
     wallets[0].fFileBacked = true;
@@ -241,8 +244,10 @@ void StartPreMineAndWalletAllocation()
 
 BOOST_AUTO_TEST_CASE(CheckProofOfBalance_percentages)
 {
-    LOCK(cs_main);
-    Checkpoints::fEnabled = false;
+    {
+        LOCK(cs_main);
+        Checkpoints::fEnabled = false;
+    }
 
     CBlockIndex* genesisBlock = chainActive.Genesis();
 

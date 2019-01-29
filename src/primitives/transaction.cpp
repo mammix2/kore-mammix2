@@ -52,13 +52,8 @@ std::string CTxIn::ToString() const
     std::string str;
     str += "CTxIn(";
     str += prevout.ToString();
-    if (prevout.IsNull())
-#ifdef ZEROCOIN    
-        if(scriptSig.IsZerocoinSpend())
-            str += strprintf(", zerocoinspend %s...", HexStr(scriptSig).substr(0, 25));
-        else
-#endif        
-            str += strprintf(", coinbase %s", HexStr(scriptSig));
+    if (prevout.IsNull())   
+        str += strprintf(", coinbase %s", HexStr(scriptSig));
     else
         str += strprintf(", scriptSig=%s", HexStr(scriptSig).substr(0, 24));
     if (nSequence != SEQUENCE_FINAL)
@@ -145,12 +140,17 @@ bool CTransaction::IsCoinStake() const
     // ppcoin: the coin stake transaction is marked with the first output empty
     if (vin[0].prevout.IsNull())
         return false;
-    //if (fDebug) {
-    //    LogPrintf("IsCoinStake: vin.size() > 0 ? %s \n", vin.size() > 0 ? "true" : "false");
-    //    LogPrintf("IsCoinStake: vout.size() >= 2 ? %s \n", vout.size() >= 2 ? "true" : "false");
-    //    LogPrintf("IsCoinStake: vout[0].IsEmpty() ? %s \n", vout[0].IsEmpty() ? "true" : "false");
-    // }
+    
     return (vin.size() > 0 && vout.size() >= 2 && vout[0].IsEmpty());
+}
+
+bool CTransaction::IsCoinNewStake() const
+{
+    // Must have nLockTime
+    if (nLockTime == 0)
+        return false;    
+
+    return (vin.size() > 0 && vout.size() >= 3 && vout[0].IsEmpty());
 }
 
 CAmount CTransaction::GetValueOut() const
@@ -170,20 +170,6 @@ CAmount CTransaction::GetValueOut() const
     return nValueOut;
 }
 
-#ifdef ZEROCOIN
-CAmount CTransaction::GetZerocoinMinted() const
-{
-    for (const CTxOut txOut : vout) {
-        if(!txOut.scriptPubKey.IsZerocoinMint())
-            continue;
-
-        return txOut.nValue;
-    }
-
-    return  CAmount(0);
-}
-#endif
-
 bool CTransaction::UsesUTXO(const COutPoint out)
 {
     for (const CTxIn in : vin) {
@@ -202,34 +188,6 @@ std::list<COutPoint> CTransaction::GetOutPoints() const
         listOutPoints.emplace_back(COutPoint(txHash, i));
     return listOutPoints;
 }
-
-#ifdef ZEROCOIN
-CAmount CTransaction::GetZerocoinSpent() const
-{
-    if(!IsZerocoinSpend())
-        return 0;
-
-    CAmount nValueOut = 0;
-    for (const CTxIn txin : vin) {
-        if(!txin.scriptSig.IsZerocoinSpend())
-            continue;
-
-        nValueOut += txin.nSequence * COIN;
-    }
-
-    return nValueOut;
-}
-
-int CTransaction::GetZerocoinMintCount() const
-{
-    int nCount = 0;
-    for (const CTxOut out : vout) {
-        if (out.scriptPubKey.IsZerocoinMint())
-            nCount++;
-    }
-    return nCount;
-}
-#endif
 
 double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSize) const
 {

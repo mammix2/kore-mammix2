@@ -122,7 +122,6 @@ CPubKey CWallet::GenerateNewKey()
 
 bool CWallet::AddKeyPubKey(const CKey& secret, const CPubKey& pubkey)
 {
-    LOCK(cs_wallet);
     AssertLockHeld(cs_wallet); // mapKeyMetadata
     if (!CCryptoKeyStore::AddKeyPubKey(secret, pubkey))
         return false;
@@ -2226,7 +2225,6 @@ bool less_then_denom(const COutput& out1, const COutput& out2)
 
 bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInputs, CAmount nTargetAmount, map<string, CAmount>& stakeableBalance)
 {
-    //Add KORE
     vector<COutput> vCoins;
     AvailableCoins(vCoins, true, NULL, false, STAKABLE_COINS);
     CAmount nAmountSelected = 0;
@@ -2247,6 +2245,10 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
             if (out.nDepth < (out.tx->IsCoinStake() ? Params().COINBASE_MATURITY() : 10))
                 continue;
 
+            uint160 destination;
+            if(!ExtractDestination(out.tx->vout[out.i].scriptPubKey, destination))
+                continue;
+
             //add to our stake set
             nAmountSelected += out.tx->vout[out.i].nValue;
 
@@ -2254,11 +2256,11 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
             input->SetInput((CTransaction) *out.tx, out.i);
             listInputs.emplace_back(std::move(input));
 
-            string pubkeyScriptString = out.tx->vout[out.i].scriptPubKey.ToString();
-            if(!stakeableBalance[pubkeyScriptString])
-                stakeableBalance.emplace(pubkeyScriptString, out.tx->vout[out.i].nValue);
-            else
-                stakeableBalance[pubkeyScriptString] += out.tx->vout[out.i].nValue;
+            
+            //if(!stakeableBalance[destination])
+            //    stakeableBalance.emplace(destination, out.tx->vout[out.i].nValue);
+            // else
+                stakeableBalance[destination.ToString()] += out.tx->vout[out.i].nValue;
         }
     }
 
@@ -3453,16 +3455,15 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
 }
 
 // ppcoin: create coin stake transaction
-bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, unsigned int& nTxNewTime, bool fProofOfStake, CKey& key)
+bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, CMutableTransaction& txLock, unsigned int& nTxNewTime, bool fProofOfStake, CKey& key)
 {
     // The following split & combine thresholds are important to security
     // Should not be adjusted if you don't understand the consequences
     int64_t nCombineThreshold = 5000 * COIN;
     txNew.vin.clear();
     txNew.vout.clear();
-
-    // Create lock transaction
-    CMutableTransaction txLock;
+    txLock.vin.clear();
+    txLock.vout.clear();
 
     // Mark coin stake transaction
     CScript scriptEmpty;
@@ -3521,8 +3522,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         // Set the address balance to the maximum of the combine threshold
         CTransaction tx;
         stakeInput->GetTxFrom(tx);
-        string publickeyScriptString = tx.vout[stakeInput->GetPosition()].scriptPubKey.ToString();
-        CAmount addressBalance = stakeableBalance[publickeyScriptString];
+        uint160 destination;
+        ExtractDestination(tx.vout[stakeInput->GetPosition()].scriptPubKey, destination);
+        CAmount addressBalance = stakeableBalance[destination.ToString()];
 
         // Read block header
         CBlockHeader block = pindex->GetBlockHeader();
@@ -3544,11 +3546,84 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             CAmount nReward;
             nReward = GetBlockReward1(chainActive.Tip());
 
-            // Update the coinbase transaction
-            txNew.vout[0].nValue = nReward * 0.9;
-
             // 10% dev Fund
-            CAmount devsubsidy = nReward - txNew.vout[0].nValue;
+            CAmount devsubsidy = nReward * 0.1;
+
+            // Add stake to new tx
+            uint256 hashTxOut = txNew.GetHash();
+            CTxIn in;
+            if (!stakeInput->CreateTxIn(this, in, hashTxOut)) {
+                LogPrintf("%s : failed to create TxIn\n", __func__);
+                txNew.vin.clear();
+                txNew.vout.clear();
+                continue;
+            }
+            txNew.vin.emplace_back(in);
+
+            // Select any other coin that belongs to the same pubkey until the max tx count is met
+            uint txInCount = 0;
+            CAmount nBalance = stakeInput->GetValue();
+            for (std::unique_ptr<CStakeInput>& otherStakeInput : listInputs) {
+                if (otherStakeInput == stakeInput)
+                    continue;
+                else if(txInCount > 10)
+                    break;
+                
+                CScript scriptPubKey;
+                uint160 otherDestination;
+                ExtractDestination(otherStakeInput->GetScriptPubKey(this, scriptPubKey), otherDestination);
+                if(otherDestination != destination)
+                    continue;
+                
+                hashTxOut = txNew.GetHash();
+                if (!otherStakeInput->CreateTxIn(this, in, hashTxOut)) {
+                    LogPrintf("%s : failed to create TxIn\n", __func__);
+                    txNew.vin.clear();
+                    txNew.vout.clear();
+                    break;
+                }
+                
+                nBalance += otherStakeInput->GetValue();
+
+                txNew.vin.emplace_back(in);
+                txInCount++;
+            }
+
+            // Minter credit
+            CAmount nCredit = nReward - devsubsidy;
+            nCredit *= GetMinterReward(nCredit, min(nBalance, 5000 * COIN), pindexBestHeader);
+
+            // Create reward output and update the coinbase transaction
+            vector<CTxOut> vout;
+            if (!stakeInput->CreateTxOuts(this, vout, false)) {
+                LogPrintf("%s : failed to get scriptPubKey\n", __func__);
+                txNew.vin.clear();
+                txNew.vout.clear();
+                break;
+            }
+            txNew.vout.emplace_back(vout[0]);
+            txNew.vout[1].nValue = nCredit;
+            
+            // Create output for the locking transaction and update its value
+            vector<CTxOut> vout;
+            if (!stakeInput->CreateTxOuts(this, vout, false)) {
+                LogPrintf("%s : failed to get scriptPubKey\n", __func__);
+                txNew.vin.clear();
+                txNew.vout.clear();
+                break;
+            }
+            txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
+
+            // If the amount is too big it is necessary to break it into two.
+            if (SplitStake(nBalance + nCredit)) {
+                // Lock output gets max amount of coins
+                txNew.vout[2].nValue = 5000 * COIN;
+                // First transaction gets reward + excess coins
+                txNew.vout[1].nValue = nBalance + nCredit - txNew.vout[2].nValue;
+            } else {
+                txNew.vout[2].nValue = nBalance + nCredit;
+            }
+            
             // Add the dev fund
             if (devsubsidy > 0) {
                 // here it is necessary to check if the amount was diviced by 2 or not
@@ -3561,56 +3636,15 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Masternode payment
             FillBlockPayee(txNew, 0, fProofOfStake, false);
 
-            // Add stake to lock tx
-            uint256 hashTxOut = txLock.GetHash();
-            CTxIn in;
-            if (!stakeInput->CreateTxIn(this, in, hashTxOut)) {
-                LogPrintf("%s : failed to create TxIn\n", __func__);
-                txLock.vin.clear();
-                txLock.vout.clear();
-                continue;
-            }
-            txLock.vin.emplace_back(in);
-
-            // Add any other coin that belongs to the same address until the threshold is met
-            CAmount nBalance = stakeInput->GetValue();
-            for (std::unique_ptr<CStakeInput>& otherStakeInput : listInputs) {
-                if(nBalance > nCombineThreshold) {
-                    break;
-                } else if (otherStakeInput == stakeInput || otherStakeInput->GetValue() + nBalance > nCombineThreshold) {
-                    continue;
-                }
-                
-                hashTxOut = txLock.GetHash();
-                if (!otherStakeInput->CreateTxIn(this, in, hashTxOut)) {
-                    LogPrintf("%s : failed to create TxIn\n", __func__);
-                    txLock.vin.clear();
-                    txLock.vout.clear();
-                    continue;
-                }
-                
-                nBalance += otherStakeInput->GetValue();
-
-                txLock.vin.emplace_back(in);                
-            }
-
             // Create the output transaction(s)            
-            vector<CTxOut> vout;
+            vout.clear();
             bool stakeSplitted = SplitStake(nBalance);
             if (!stakeInput->CreateTxOuts(this, vout, stakeSplitted)) {
                 LogPrintf("%s : failed to get scriptPubKey\n", __func__);
                 continue;
             }
-            txNew.vout.insert(txNew.vout.end(), vout.begin(), vout.end());
-            
-            // If the amount is too big it is necessary to break it into two.
-            if (stakeSplitted) {
-                txNew.vout[0].nValue = nCredit / 2;
-                txNew.vout[1].nValue = nCredit - txNew.vout[1].nValue;
-            } else {
-                txNew.vout[0].nValue = nCredit;
-            }
-                        
+            txLock.vout.insert(txLock.vout.end(), vout.begin(), vout.end());
+                                                
             // Limit size for the coinbase tx
             unsigned int nBytes = ::GetSerializeSize(txNew, SER_NETWORK, PROTOCOL_VERSION);
             if (nBytes >= MAX_STANDARD_TX_SIZE)
@@ -3633,6 +3667,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     int nIn = 0;
     txNew.nTime = nTxNewTime;
     txLock.nTime = nTxNewTime;
+    txLock.nLockTime = nTxNewTime + (1 * 60 * 24); // Lock the coin for 1 day
 
     for (CTxIn txIn : txLock.vin) {
         const CWalletTx* wtx = GetWalletTx(txIn.prevout.hash);
