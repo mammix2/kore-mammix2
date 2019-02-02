@@ -314,11 +314,15 @@ public:
 
     bool IsProofOfWork() const
     {
+        if (UseLegacyCode(nHeight))
+          return IsProofOfWork_Legacy();
         return !(nFlags & BLOCK_PROOF_OF_STAKE);
     }
 
     bool IsProofOfStake() const
     {
+        if (UseLegacyCode(nHeight))
+          return IsProofOfStake_Legacy();
         return (nFlags & BLOCK_PROOF_OF_STAKE);
     }
 

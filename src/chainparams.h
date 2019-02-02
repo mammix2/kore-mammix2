@@ -93,8 +93,8 @@ public:
     bool SkipProofOfWorkCheck() const { return fSkipProofOfWorkCheck; }
     /** Make standard checks */
     bool RequireStandard() const { return fRequireStandard; }
-    int64_t TargetTimespan() const { return nTargetTimespan; }
-    int64_t TargetSpacing() const { return nTargetSpacing; }
+    uint TargetTimespan() const { return nTargetTimespan; }
+    uint TargetSpacing() const { return nTargetSpacing; }
     int64_t StakeTargetSpacing() const {return nStakeTargetSpacing;}
     int64_t DifficultyAdjustmentInterval() const { return nTargetTimespan / nTargetSpacing; }
     int64_t PastBlocksMin() const { return nPastBlocksMin; }
@@ -173,8 +173,8 @@ protected:
     int nEnforceBlockUpgradeMajority;
     int nRejectBlockOutdatedMajority;
     int nToCheckBlockUpgradeMajority;
-    int64_t nTargetTimespan;
-    int64_t nTargetSpacing;
+    uint nTargetTimespan;
+    uint nTargetSpacing;
     int64_t nStakeTargetSpacing;
     int64_t nPastBlocksMin; // used when calculating the NextWorkRequired 
     int64_t nPastBlocksMax;
@@ -255,6 +255,8 @@ public:
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) = 0;
     virtual void setLastPOW(int aLastPOW) = 0;
     virtual void setEnableBigRewards(bool bigRewards) = 0;
+    virtual void setTargetTimespan(uint aTargetTimespan) = 0;
+    virtual void setTargetSpacing(uint aTargetSpacing) = 0;
 };
 
 

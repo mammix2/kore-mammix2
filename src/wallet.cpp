@@ -1818,11 +1818,13 @@ CAmount CWallet::GetBalance() const
     CAmount nTotal = 0;
     {
         LOCK2(cs_main, cs_wallet);
+        //cout << "GetBalance - Mapwallet Size : " << mapWallet.size() << endl;
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
             const CWalletTx* pcoin = &(*it).second;
-
+            //cout << "Coin Hash: " << (*it).first.ToString() << endl;
             if (pcoin->IsTrusted())
                 nTotal += pcoin->GetAvailableCredit();
+            //cout << "nTotal :" << nTotal << endl;
         }
     }
 
@@ -2131,16 +2133,9 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 }
                 if (!found) continue;
 
-#ifdef ZEROCOIN
-                if (nCoinType == STAKABLE_COINS) {
-                    if (pcoin->vout[i].IsZerocoinMint())
-                        continue;
-                }
-#endif                
-
-                isminetype mine = IsMine(pcoin->vout[i]);
                 if (IsSpent(wtxid, i))
                     continue;
+                isminetype mine = IsMine(pcoin->vout[i]);
                 if (mine == ISMINE_NO)
                     continue;
 
@@ -2162,7 +2157,6 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                     fIsSpendable = true;
                 if ((mine & ISMINE_MULTISIG) != ISMINE_NO)
                     fIsSpendable = true;
-
                 vCoins.emplace_back(COutput(pcoin, i, nDepth, fIsSpendable));
             }
         }
@@ -2260,20 +2254,13 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
 
             //if zerocoinspend, then use the block time
             int64_t nTxTime = out.tx->GetTxTime();
-#ifdef ZEROCOIN            
-            if (out.tx->IsZerocoinSpend()) {
-                if (!out.tx->IsInMainChain())
-                    continue;
-                nTxTime = mapBlockIndex.at(out.tx->hashBlock)->GetBlockTime();
-            }
-#endif            
-
+           
             //check for min age
             if (GetAdjustedTime() - nTxTime < Params().StakeMinAge())
                 continue;
 
             //check that it is matured
-            if (out.nDepth < (out.tx->IsCoinStake() ? Params().COINBASE_MATURITY() : 10))
+            if (out.nDepth < (out.tx->IsCoinStake() || out.tx->IsCoinBase() ? Params().COINBASE_MATURITY() : 10))
                 continue;
 
             //add to our stake set
@@ -3514,7 +3501,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (listInputs.empty())
         return false;
 
-    if (GetAdjustedTime() - chainActive.Tip()->GetBlockTime() < 60)
+    // let wait a bit, in order to not flood the chain with blocks
+    if (GetAdjustedTime() - chainActive.Tip()->GetBlockTime() < std::min(Params().TargetSpacing(), Params().TargetSpacing()-10))
         MilliSleep(10000);
 
     CAmount nCredit;

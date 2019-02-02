@@ -75,16 +75,23 @@ bool CkoreStake::GetModifier(uint64_t& nStakeModifier)
         return error("%s: failed to get index from", __func__);
 
     if (!GetKernelStakeModifier(pindexFrom->GetBlockHash(), nStakeModifier, nStakeModifierHeight, nStakeModifierTime, false))
-        return error("CheckStakeKernelHash(): failed to get kernel stake modifier \n");
+        return error("GetKernelStakeModifier(): failed to get kernel stake modifier \n");
 
     return true;
+}
+
+uint256 CkoreStake::GetOldModifier(bool isProofOfStake)
+{
+    // Lico, we could also, return the old modifier it the current one was not able
+    // to find it.
+    return isProofOfStake ? pindexFrom->nStakeModifierOld : chainActive.Tip()->nStakeModifierOld;
 }
 
 CDataStream CkoreStake::GetUniqueness()
 {
     //The unique identifier for a KORE stake is the outpoint
     CDataStream ss(SER_NETWORK, 0);
-    ss << nPosition << txFrom.GetHash();
+    ss << txFrom.GetHash() << nPosition;
     return ss;
 }
 

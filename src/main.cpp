@@ -3694,7 +3694,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
        return ConnectBlock_Legacy(block, state, pindex, view, fJustCheck);
     AssertLockHeld(cs_main);
     // Check it again in case a previous version let a bad block in
-    if (!fAlreadyChecked && !CheckBlock(block, GetnHeight(pindex), state, !fJustCheck, !fJustCheck))
+    if (!fAlreadyChecked && !CheckBlock(block, pindex->nHeight, state, !fJustCheck, !fJustCheck))
         return false;
 
     // verify that the view's current state corresponds to the previous block
@@ -5401,13 +5401,12 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
             pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
             if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
                 LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, boost::lexical_cast<std::string>(nStakeModifier));
-        }
+        } 
     }
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);
     pindexNew->RaiseValidity(BLOCK_VALID_TREE);
     if (pindexBestHeader == NULL || pindexBestHeader->nChainWork < pindexNew->nChainWork)
         pindexBestHeader = pindexNew;
-
     if (!UseLegacyCode(pindexNew->nHeight)) {
         //update previous block pointer
         if (pindexNew->nHeight)
@@ -6414,7 +6413,8 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
 {
     // Preliminary checks
     int64_t nStartTime = GetTimeMillis();
-    bool checked = CheckBlock(*pblock, GetnHeight(chainActive.Tip()) ,state);
+    // we will be processing the next tip block
+    bool checked = CheckBlock(*pblock, GetnHeight(chainActive.Tip()) + 1 ,state);
     
     if (!CheckBlockSignature(*pblock))
         return error("ProcessNewBlock() : bad proof-of-stake block signature");

@@ -264,7 +264,8 @@ public:
         nPastBlocksMax = 24;
         nStakeMinAge = 4 * 60 * 60;
         nStakeMinConfirmations = 25;
-        nModifier = MODIFIER_INTERVAL_TESTNET;
+        nModifier = 180; //  Modifier interval: time to elapse before new modifier is computed
+        // Set to 3-hour for production network and 20-minute for test network
         nClientMintibleCoinsInterval = 5 * 60;
         nClientMintibleCoinsInterval = 1 * 60;
         nMaturity = 25;
@@ -386,7 +387,7 @@ public:
         nPastBlocksMax = 64;
         nStakeMinAge = 30 * 60; // It will stake after 30 minutes
         nStakeMinConfirmations = 25;
-        nModifier = MODIFIER_INTERVAL_TESTNET;
+        nModifier = 20; // Modifier interval: time to elapse before new modifier is computed
         nClientMintibleCoinsInterval = 10; // Every 10 seconds
         nClientMintibleCoinsInterval += 2;  // Additional 2 seconds
         fSkipProofOfWorkCheck = false;
@@ -565,8 +566,13 @@ public:
         fAllowMinDifficultyBlocks = false;
         fMineBlocksOnDemand       = true;
         fSkipProofOfWorkCheck     = true;
-        nMaturity                 = 0;
-        nStakeMinAge              = 0;
+        //nTargetTimespan = 1;             // consensus.nTargetTimespan one hour
+        nTargetSpacing  = 30;             // consensus.nTargetSpacing 1 minutes
+        nPastBlocksMin  = 32;
+        nPastBlocksMax  = 128;
+        nMaturity       = 0;
+        nStakeMinAge    = 0;
+        nModifier       = 60;   // Modifier interval: time to elapse before new modifier is computed
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
@@ -587,6 +593,13 @@ public:
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) { nStakeMinConfirmations = aStakeMinConfirmations;};
     virtual void setLastPOW(int aLastPOW) { nLastPOWBlock = aLastPOW; };
     virtual void setEnableBigRewards(bool afBigRewards) { fEnableBigReward = afBigRewards; };
+    virtual void setTargetTimespan(uint aTargetTimespan) { nTargetTimespan = aTargetTimespan; };
+    virtual void setTargetSpacing(uint aTargetSpacing) 
+    { 
+        // PoS may fail to create new Blocks, if we try to set this to less than 10
+        nTargetSpacing = (aTargetSpacing < 10) ? 10 : aTargetSpacing;
+    };
+
 };
 static CUnitTestParams unitTestParams;
 
