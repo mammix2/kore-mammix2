@@ -283,7 +283,6 @@ public:
 
         /** Height or Time Based Activations **/
         nLastPOWBlock                 = 1000;
-        nModifierUpdateBlock          = 615800;
         nBlockEnforceSerialRange      = 895400; //Enforce serial range starting this block
         nBlockRecalculateAccumulators = 908000; //Trigger a recalculation of accumulators
         nBlockFirstFraudulent         = 891737; //First block that bad serials emerged
@@ -405,7 +404,6 @@ public:
         nLastPOWBlock                 = 1000;
         nMaturity                     = 1;          // will mature in the next block.
         nMasternodeCountDrift         = 4;
-        nModifierUpdateBlock          = 51197;      //approx Mon, 17 Apr 2017 04:00:00 GMT
         nBlockEnforceSerialRange      = 1;          //Enforce serial range starting this block
         nBlockRecalculateAccumulators = 9908000;    //Trigger a recalculation of accumulators
         nBlockFirstFraudulent         = 9891737;    //First block that bad serials emerged

@@ -151,7 +151,6 @@ public:
     CBaseChainParams::Network NetworkID() const { return networkID; }
     int LAST_POW_BLOCK() const { return nLastPOWBlock; }
     int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
-    int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
     bool EnableBigRewards() const { return fEnableBigReward;}
 
 protected:
@@ -186,7 +185,6 @@ protected:
     int nLastPOWBlock;
     int nMasternodeCountDrift;
     int nMaturity;
-    int nModifierUpdateBlock;
     CAmount nMaxMoneyOut;
     int nMinerThreads;
     std::vector<CDNSSeedData> vSeeds;
