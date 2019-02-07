@@ -2247,6 +2247,8 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
     AvailableCoins(vCoins, true, NULL, false, STAKABLE_COINS);
     CAmount nAmountSelected = 0;
     if (GetBoolArg("-korestake", true)) {
+        //cout << "SelectStakeCoins -->" << endl;
+        if(fDebug) LogPrintf("SelectStakeCoins -->");
         for (const COutput &out : vCoins) {
             //make sure not to outrun target amount
             if (nAmountSelected + out.tx->vout[out.i].nValue > nTargetAmount)
@@ -2260,16 +2262,20 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
                 continue;
 
             //check that it is matured
-            if (out.nDepth < (out.tx->IsCoinStake() || out.tx->IsCoinBase() ? Params().COINBASE_MATURITY() : 10))
+            if (out.nDepth < (out.tx->IsCoinStake() ? Params().StakeMinConfirmations() : out.tx->IsCoinBase() ? Params().COINBASE_MATURITY() : 10))
                 continue;
 
             //add to our stake set
             nAmountSelected += out.tx->vout[out.i].nValue;
 
             std::unique_ptr<CkoreStake> input(new CkoreStake());
+            //cout << "SelectStakeCoins : " << out.nDepth << endl;
             input->SetInput((CTransaction) *out.tx, out.i);
+            if(fDebug) LogPrintf("SelectStakeCoin from : %d", input->GetIndexFrom()->nHeight);
             listInputs.emplace_back(std::move(input));
         }
+        //cout << "SelectStakeCoins <--" << endl;
+        if(fDebug) LogPrintf("SelectStakeCoins <--");
     }
 
     return true;
@@ -3501,8 +3507,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (listInputs.empty())
         return false;
 
-    // let wait a bit, in order to not flood the chain with blocks
-    if (GetAdjustedTime() - chainActive.Tip()->GetBlockTime() < std::min(Params().TargetSpacing(), Params().TargetSpacing()-10))
+    // lets wait a bit, in order to not flood the chain with blocks
+    if ((Params().NetworkID() != CBaseChainParams::UNITTEST) && (GetAdjustedTime() - chainActive.Tip()->GetBlockTime() < std::min(Params().TargetSpacing(), Params().TargetSpacing()-10)))
         MilliSleep(10000);
 
     CAmount nCredit;

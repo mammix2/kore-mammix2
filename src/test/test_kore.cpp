@@ -36,6 +36,7 @@ struct TestingSetup {
         SetupEnvironment();
         fPrintToDebugLog = true; // don't want to write to debug.log file
         fCheckBlockIndex = true;
+        fDebug = true;
         SelectParams(CBaseChainParams::UNITTEST);
         noui_connect();
 #ifdef ENABLE_WALLET

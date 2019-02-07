@@ -5373,7 +5373,7 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
         pindexNew->pprev = (*miPrev).second;
         pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
         pindexNew->BuildSkip();
-        if (!UseLegacyCode(pindexNew->nHeight)) {
+        //if (!UseLegacyCode(pindexNew->nHeight)) {
             //update previous block pointer
             pindexNew->pprev->pnext = pindexNew;
 
@@ -5397,25 +5397,29 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
             if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
                 LogPrintf("AddToBlockIndex() : ComputeNextStakeModifier() failed \n");
             pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
-            pindexNew->nStakeModifierOld = ComputeStakeModifier_Legacy(pindexNew->pprev, block.IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindexNew->GetBlockHash());
+            // lets only compute the oldModifier here after the fork, because before fork it is already
+            // calculated
+            if (!UseLegacyCode(pindexNew->nHeight))
+              pindexNew->nStakeModifierOld = ComputeStakeModifier_Legacy(pindexNew->pprev, block.IsProofOfStake() ? block.vtx[1].vin[0].prevout.hash : pindexNew->GetBlockHash());
             pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
             if (!CheckStakeModifierCheckpoints(pindexNew->nHeight, pindexNew->nStakeModifierChecksum))
                 LogPrintf("AddToBlockIndex() : Rejected by stake modifier checkpoint height=%d, modifier=%s \n", pindexNew->nHeight, boost::lexical_cast<std::string>(nStakeModifier));
-        } 
+        //} 
     }
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);
     pindexNew->RaiseValidity(BLOCK_VALID_TREE);
     if (pindexBestHeader == NULL || pindexBestHeader->nChainWork < pindexNew->nChainWork)
         pindexBestHeader = pindexNew;
-    if (!UseLegacyCode(pindexNew->nHeight)) {
+    //if (!UseLegacyCode(pindexNew->nHeight)) {
         //update previous block pointer
         if (pindexNew->nHeight)
             pindexNew->pprev->pnext = pindexNew;
 
+        // Lico, seems this is not used for anything
         //mark as PoS seen
-        if (pindexNew->IsProofOfStake())
-            setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
-    }
+        //if (pindexNew->IsProofOfStake())
+        //    setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
+    //}
     setDirtyBlockIndex.insert(pindexNew);
 
     return pindexNew;
@@ -6496,7 +6500,7 @@ bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainpa
     }
 
     // Preliminary checks
-    bool checked = CheckBlock_Legacy(*pblock, GetnHeight(chainActive.Tip()), state);
+    bool checked = CheckBlock_Legacy(*pblock, GetnHeight(chainActive.Tip())+1, state);
 
     {
         LOCK(cs_main);

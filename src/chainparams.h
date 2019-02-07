@@ -95,13 +95,16 @@ public:
     bool RequireStandard() const { return fRequireStandard; }
     uint TargetTimespan() const { return nTargetTimespan; }
     uint TargetSpacing() const { return nTargetSpacing; }
+    // minimum spacing is maturity - 1
     int64_t StakeTargetSpacing() const {return nStakeTargetSpacing;}
+    int GetMaxStakeModifierInterval() const { return std::min(nStakeMinConfirmations, 64U); }
     int64_t DifficultyAdjustmentInterval() const { return nTargetTimespan / nTargetSpacing; }
     int64_t PastBlocksMin() const { return nPastBlocksMin; }
     int64_t PastBlocksMax() const { return nPastBlocksMax; }
     unsigned int StakeMinAge() const {return nStakeMinAge;}
+    // minimum Stake confirmations is 2 !!!
     unsigned int StakeMinConfirmations() const {return nStakeMinConfirmations;}
-    unsigned int GetModifier() const {return nModifier;}
+    unsigned int GetModifierInterval() const {return nModifierInterval;}
     int64_t ClientMintibleCoinsInterval() const { return nClientMintibleCoinsInterval; }
     int64_t EnsureMintibleCoinsInterval() const { return nEnsureMintibleCoinsInterval; }
     
@@ -179,7 +182,7 @@ protected:
     int64_t nPastBlocksMax;
     unsigned int nStakeMinAge;
     unsigned int nStakeMinConfirmations;
-    unsigned int nModifier;
+    unsigned int nModifierInterval;
     int64_t nClientMintibleCoinsInterval; // PoS mining
     int64_t nEnsureMintibleCoinsInterval;
     int nLastPOWBlock;
@@ -251,6 +254,9 @@ public:
     virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
     virtual void setHeightToFork(int aHeightToFork) = 0;
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) = 0;
+    virtual void setStakeMinAge(int aStakeMinAge) = 0;
+    virtual void setStakeModifierInterval(int aStakeModifier) = 0;
+    virtual void setCoinbaseMaturity(int aCoinbaseMaturity) = 0;
     virtual void setLastPOW(int aLastPOW) = 0;
     virtual void setEnableBigRewards(bool bigRewards) = 0;
     virtual void setTargetTimespan(uint aTargetTimespan) = 0;

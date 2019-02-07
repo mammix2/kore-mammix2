@@ -15,14 +15,6 @@
 
 using namespace std;
 
-// Modifier interval: time to elapse before new modifier is computed
-// Set to 3-hour for production network and 20-minute for test network
-unsigned int nModifierInterval;
-//int nStakeTargetSpacing = 60;
-unsigned int getIntervalVersion()
-{
-    return Params().GetModifier();
-}
 
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
@@ -51,21 +43,18 @@ static bool GetLastStakeModifier(const CBlockIndex* pindex, uint64_t& nStakeModi
 // Get selection interval section (in seconds)
 static int64_t GetStakeModifierSelectionIntervalSection(int nSection)
 {
-    assert(nSection >= 0 && nSection < 64);
-    int64_t a = getIntervalVersion() * 63 / (63 + ((63 - nSection) * (MODIFIER_INTERVAL_RATIO - 1)));
-    return a;
+    int nminimum = Params().GetMaxStakeModifierInterval() - 1;
+    assert(nSection >= 0 && nSection < Params().GetMaxStakeModifierInterval());
+    return Params().GetModifierInterval() * nminimum / (nminimum + ((nminimum - nSection) * (MODIFIER_INTERVAL_RATIO - 1)));
 }
 
 // Get stake modifier selection interval (in seconds)
 static int64_t GetStakeModifierSelectionInterval(int nHeight)
 {
-    int64_t nSelectionInterval = 0;    
-    // Calculate based in the fork, so the first 64 blocks will generate 0
-    int block = nHeight - Params().HeigthToFork() < 64 ? 0 : nHeight - 64;
-    //for (int nSection = 0; nSection < min(64, block); nSection++) {
-    for (int nSection = 0; nSection < 64; nSection++) {
+    int64_t nSelectionInterval = 0;
+    for (int nSection = 0; nSection < Params().GetMaxStakeModifierInterval(); nSection++) {
         nSelectionInterval += GetStakeModifierSelectionIntervalSection(nSection);
-    }    
+    }
     return nSelectionInterval;
 }
 
@@ -162,7 +151,8 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
         fGeneratedStakeModifier = true;
         return true; // genesis block's modifier is 0
     }
-    if (pindexPrev->nHeight == 0 || IsLastBlockBeforeFork(pindexPrev->nHeight)) {
+    if (pindexPrev->nHeight == 0 ) //|| IsLastBlockBeforeFork(pindexPrev->nHeight)) 
+    {
         //Give a stake modifier to the first block
         // Lets give a stake modifier to the last block
         fGeneratedStakeModifier = true;
@@ -179,14 +169,22 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
     if (GetBoolArg("-printstakemodifier", false))
         LogPrintf("ComputeNextStakeModifier: prev modifier= %s time=%s\n", boost::lexical_cast<std::string>(nStakeModifier).c_str(), DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nModifierTime).c_str());
 
-    if (nModifierTime / getIntervalVersion() >= pindexPrev->GetBlockTime() / getIntervalVersion())
+    // Checks if it is already time to generate a new Modifier
+    /*
+    cout << "ComputeNextStakeModifier Time to generate new modifier ? " << (Params().GetModifierInterval() > pindexPrev->GetBlockTime() - nModifierTime ? "False" : "True") << endl;
+    cout << "ComputeNextStakeModifier Block height      : " << pindexPrev->nHeight << endl;
+    cout << "ComputeNextStakeModifier Block Time        : " << pindexPrev->GetBlockTime() << endl;
+    cout << "ComputeNextStakeModifier Last Modifier Time     : " << nModifierTime << endl;
+    cout << "ComputeNextStakeModifier Modifier Interval      : " << Params().GetModifierInterval() << endl;
+    */
+    if (  Params().GetModifierInterval() > pindexPrev->GetBlockTime() - nModifierTime )
         return true;
 
     // Sort candidate blocks by timestamp
     vector<pair<int64_t, uint256> > vSortedByTimestamp;
-    vSortedByTimestamp.reserve(64 * getIntervalVersion() / Params().StakeTargetSpacing());
+    vSortedByTimestamp.reserve(Params().GetMaxStakeModifierInterval() * Params().GetModifierInterval() / Params().StakeTargetSpacing());
     int64_t nSelectionInterval = GetStakeModifierSelectionInterval(pindexPrev->nHeight);
-    int64_t nSelectionIntervalStart = (pindexPrev->GetBlockTime() / getIntervalVersion()) * getIntervalVersion() - nSelectionInterval;
+    int64_t nSelectionIntervalStart = pindexPrev->GetBlockTime() - nSelectionInterval;
     const CBlockIndex* pindex = pindexPrev;
 
     while (pindex && pindex->GetBlockTime() >= nSelectionIntervalStart) {
@@ -202,7 +200,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
     uint64_t nStakeModifierNew = 0;
     int64_t nSelectionIntervalStop = nSelectionIntervalStart;
     map<uint256, const CBlockIndex*> mapSelectedBlocks;
-    for (int nRound = 0; nRound < min(64, (int)vSortedByTimestamp.size()); nRound++) {
+    for (int nRound = 0; nRound < min(Params().GetMaxStakeModifierInterval(), (int)vSortedByTimestamp.size()); nRound++) {
         // add an interval section to the current selection round
         nSelectionIntervalStop += GetStakeModifierSelectionIntervalSection(nRound);
 
@@ -244,6 +242,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
     }
 
     nStakeModifier = nStakeModifierNew;
+    //cout << "ComputeNextStakeModifier - newModifier : " << nStakeModifier << endl;
     fGeneratedStakeModifier = true;
     return true;
 }
@@ -256,11 +255,6 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
     if (!mapBlockIndex.count(hashBlockFrom))
         return error("GetKernelStakeModifier() : block not indexed");
     const CBlockIndex* pindexFrom = mapBlockIndex[hashBlockFrom];
-    // Lets check if the block is from befor fork, if so we need to change it
-    if (UseLegacyCode(pindexFrom->nHeight)) {
-        // let-s jump to the last block before fork, we have no stakemodifier before
-        pindexFrom = chainActive[Params().HeigthToFork()-1];
-    }
 
     nStakeModifierHeight = pindexFrom->nHeight;
     nStakeModifierTime = pindexFrom->GetBlockTime();
@@ -270,13 +264,20 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
     CBlockIndex* pindexNext = chainActive[pindexFrom->nHeight + 1];
 
     // loop to find the stake modifier later by a selection interval
-    //cout << "StakeModifierInterval: " << nStakeModifierSelectionInterval << endl;
-    //cout << "target Time          : " << nTargetTime << endl;
-    //cout << "nStakeModifierTime   : " << nStakeModifierTime << " nStakeModifierHeight : " << nStakeModifierHeight << " block: " << pindex->nHeight << endl;
+    
+    //cout << "GetKernelStakeModifier coin from             : " << pindexFrom->nHeight << endl;
+    //cout << "GetKernelStakeModifier StakeModifierInterval : " << nStakeModifierSelectionInterval << endl;
+    //cout << "GetKernelStakeModifier target Time           : " << nTargetTime << endl;
+    if(fDebug) { 
+        LogPrintf("GetKernelStakeModifier coin from             : %d \n", pindexFrom->nHeight);
+        LogPrintf("GetKernelStakeModifier StakeModifierInterval : %d \n", nStakeModifierSelectionInterval);
+        LogPrintf("GetKernelStakeModifier target Time           : %u \n", nTargetTime);
+    }
     while (nStakeModifierTime < nTargetTime) {
         if (!pindexNext) {
-            // we could not find a modifier, we need more time
-            //cout << "We could not find a modifier, we need more time !!!" << endl;
+            // there is no more modifier generated, this situation should
+            // never happen! Check your configuration
+            if (fDebug) LogPrintf("Should never happen, there is no next !!! \n");
             return error("Null pindexNext\n");
         }
 
@@ -286,7 +287,8 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
             nStakeModifierHeight = pindex->nHeight;
             nStakeModifierTime = pindex->GetBlockTime();
         }
-        //cout << "nStakeModifierTime   : " << nStakeModifierTime << " nStakeModifierHeight : " << nStakeModifierHeight << " block: " << pindex->nHeight << endl;
+        //cout << "GetKernelStakeModifier nStakeModifierTime    : " << nStakeModifierTime << " nStakeModifierHeight : " << nStakeModifierHeight << " block: " << pindex->nHeight << endl;
+        if (fDebug) LogPrintf("GetKernelStakeModifier nStakeModifierTime           : %u  nStakeModifierHeight : %d block: %d \n", nStakeModifierTime, nStakeModifierHeight, pindex->nHeight);
     }
     nStakeModifier = pindex->nStakeModifier;
     return true;
@@ -296,12 +298,10 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
 bool stakeTargetHit(uint256 hashProofOfStake, int64_t nValueIn, uint256 bnTarget)
 {
     //get the stake weight - weight is equal to coin amount
-    // Lico, should we figure a magic number here ?
-    // for now leaving as old Kore
-    //uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
+    uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
 
     // Now check if proof-of-stake hash meets target protocol
-    return hashProofOfStake / uint256(nValueIn) < bnTarget;
+    return hashProofOfStake / bnCoinDayWeight < bnTarget;
 }
 
 bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint256 &nStakeModifier, const uint256& bnTarget,
@@ -321,7 +321,12 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
     if (nTimeTx < nTimeBlockFrom)
         return error("Stake() : nTime violation");
 
-    if (nTimeBlockFrom + Params().StakeMinAge() > nTimeTx) // Min age requirement
+    // Maturity requirement
+    if (chainActive.Height() - stakeInput->GetIndexFrom()->nHeight < Params().StakeMinConfirmations())
+      return error("Stake(): maturity violation");
+
+    // Min age requirement
+    if (nTimeBlockFrom + Params().StakeMinAge() > nTimeTx) 
         return error("Stake() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d",
                      nTimeBlockFrom, Params().StakeMinAge(), nTimeTx);
 
@@ -329,12 +334,10 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
     uint256 bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
-    // Lico Trying to use Kore way
     //grab stake modifier
-    //uint64_t nStakeModifier = 0;
-    //if (!stakeInput->GetModifier(nStakeModifier))
-    //    return error("failed to get kernel stake modifier");
-    uint256 oldStakeModifier = stakeInput->GetOldModifier(true);
+    uint64_t nStakeModifier = 0;
+    if (!stakeInput->GetModifier(nStakeModifier))
+        return error("failed to get kernel stake modifier");
 
     bool fSuccess = false;
     unsigned int nTryTime = 0;
@@ -352,7 +355,7 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
         nTryTime = nTimeTx + i;
 
         // if stake hash does not meet the target then continue to next iteration
-        if (!CheckStake(ssUniqueID, nValueIn, oldStakeModifier, bnTargetPerCoinDay, nTimeBlockFrom, nTryTime, hashProofOfStake))
+        if (!CheckStake(ssUniqueID, nValueIn, nStakeModifier, bnTargetPerCoinDay, nTimeBlockFrom, nTryTime, hashProofOfStake))
             continue;
 
         fSuccess = true; // if we make it this far then we have successfully created a stake hash
@@ -403,15 +406,13 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
     uint256 bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(block.nBits);
 
-    // Lico Trying to use Kore way
-    //uint64_t nStakeModifier = 0;
-    //if (!stake->GetModifier(nStakeModifier))
-    //    return error("%s failed to get modifier for stake input\n", __func__);
-    uint256 oldStakeModifier = stake->GetOldModifier(block.IsProofOfStake());
+    uint64_t nStakeModifier = 0;
+    if (!stake->GetModifier(nStakeModifier))
+        return error("%s failed to get modifier for stake input\n", __func__);
 
     unsigned int nBlockFromTime = blockprev.nTime;
     unsigned int nTxTime = block.nTime;
-    if (!CheckStake(stake->GetUniqueness(), stake->GetValue(), oldStakeModifier, bnTargetPerCoinDay, nBlockFromTime,
+    if (!CheckStake(stake->GetUniqueness(), stake->GetValue(), nStakeModifier, bnTargetPerCoinDay, nBlockFromTime,
                     nTxTime, hashProofOfStake)) {
         return error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s, hashProof=%s \n",
                      tx.GetHash().GetHex(), hashProofOfStake.GetHex());

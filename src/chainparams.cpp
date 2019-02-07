@@ -257,18 +257,23 @@ public:
         nRejectBlockOutdatedMajority = 950;  // consensus.nMajorityRejectBlockOutdated = 950;
         nToCheckBlockUpgradeMajority = 1000; // consensus.nMajorityWindow = 1000;
         nMinerThreads = 0;
+        // Follow this rules in order to get the correct stake modifier
+        // confirmations    : minimum is 3
+        // remember that the miminum spacing is 10 !!!
+        // nMaturity = nStakeMinConfirmations = confirmations
+        // spacing          : [confirmations-1, max(confirmations-1, value)]
+        // modifierInterval : [spacing, spacing)]
+        // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
+        nMaturity = nStakeMinConfirmations = 25;
         nTargetTimespan = 1 * 60;
-        nTargetSpacing = 1 * 60;
-        nStakeTargetSpacing = 60; // stake every 1 hour
+        nTargetSpacing = 1 * 60;  // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
+        nStakeTargetSpacing = 60; // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
+        nModifierInterval = nStakeTargetSpacing;  // should be the same as nStakeMinConfirmations
+        nStakeMinAge = 4 * 60 * 60; 
         nPastBlocksMin = 24;
         nPastBlocksMax = 24;
-        nStakeMinAge = 4 * 60 * 60;
-        nStakeMinConfirmations = 25;
-        nModifier = 180; //  Modifier interval: time to elapse before new modifier is computed
-        // Set to 3-hour for production network and 20-minute for test network
         nClientMintibleCoinsInterval = 5 * 60;
         nClientMintibleCoinsInterval = 1 * 60;
-        nMaturity = 25;
         nMasternodeCountDrift = 20; // ONLY KORE
         nMaxMoneyOut = MAX_MONEY;
         nRuleChangeActivationThreshold = 1916; // 95% of 2016
@@ -378,15 +383,21 @@ public:
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
-        nMinerThreads = 0;
-        nTargetTimespan = 1 * 60; // KORE: 1 minute
-        nTargetSpacing  = 1 * 30; // KORE: 30 seconds
-        nStakeTargetSpacing = 10; // Stake every 10 minutes
+        nMinerThreads                = 0;
+        // Follow this rules in order to get the correct stake modifier
+        // confirmations    : 3
+        // remember that the miminum spacing is 10 !!!
+        // nMaturity = nStakeMinConfirmations = confirmations
+        // spacing          : [confirmations-1, max(confirmations-1, value)]
+        // modifierInterval : [spacing, spacing)]
+        // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
+        nMaturity                    = nStakeMinConfirmations       = 25;        
+        nTargetTimespan              = 1 * 60; // KORE: 1 minute
+        nTargetSpacing               = nStakeTargetSpacing          = 60;
+        nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
+        nStakeMinAge                 = 30 * 60; // It will stake after 30 minutes
         nPastBlocksMin = 64;
         nPastBlocksMax = 64;
-        nStakeMinAge = 30 * 60; // It will stake after 30 minutes
-        nStakeMinConfirmations = 25;
-        nModifier = 20; // Modifier interval: time to elapse before new modifier is computed
         nClientMintibleCoinsInterval = 10; // Every 10 seconds
         nClientMintibleCoinsInterval += 2;  // Additional 2 seconds
         fSkipProofOfWorkCheck = false;
@@ -402,7 +413,6 @@ public:
         vDeployments[DEPLOYMENT_CSV].nTimeout   = 1493596800; // May 1st, 2017
 
         nLastPOWBlock                 = 1000;
-        nMaturity                     = 1;          // will mature in the next block.
         nMasternodeCountDrift         = 4;
         nBlockEnforceSerialRange      = 1;          //Enforce serial range starting this block
         nBlockRecalculateAccumulators = 9908000;    //Trigger a recalculation of accumulators
@@ -564,13 +574,21 @@ public:
         fAllowMinDifficultyBlocks = false;
         fMineBlocksOnDemand       = true;
         fSkipProofOfWorkCheck     = true;
-        //nTargetTimespan = 1;             // consensus.nTargetTimespan one hour
-        nTargetSpacing  = 30;             // consensus.nTargetSpacing 1 minutes
-        nPastBlocksMin  = 32;
-        nPastBlocksMax  = 128;
-        nMaturity       = 0;
-        nStakeMinAge    = 0;
-        nModifier       = 60;   // Modifier interval: time to elapse before new modifier is computed
+        // Follow this rules in order to get the correct stake modifier
+        // confirmations    : 3
+        // remember that the miminum spacing is 10 !!!
+        // nMaturity = nStakeMinConfirmations = confirmations
+        // spacing          : [confirmations-1, max(confirmations-1, value)]
+        // modifierInterval : [spacing, spacing)]
+        // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
+        nMaturity              = nStakeMinConfirmations = 3;        
+        nTargetTimespan        = 1;  
+        nTargetSpacing         = 10; 
+        nStakeTargetSpacing    = 10; 
+        nModifierInterval      = nStakeTargetSpacing;
+        nStakeMinAge           = 0; 
+        nPastBlocksMin         = 32;
+        nPastBlocksMax         = 128;
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
@@ -589,13 +607,16 @@ public:
     virtual void setSkipProofOfWorkCheck(bool afSkipProofOfWorkCheck) { fSkipProofOfWorkCheck = afSkipProofOfWorkCheck; }
     virtual void setHeightToFork(int aHeightToFork) { heightToFork = aHeightToFork; };
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) { nStakeMinConfirmations = aStakeMinConfirmations;};
+    virtual void setStakeMinAge(int aStakeMinAge) { nStakeMinAge = aStakeMinAge; }
+    virtual void setStakeModifierInterval(int aStakeModifier) { nModifierInterval = aStakeModifier;}
+    virtual void setCoinbaseMaturity(int aCoinbaseMaturity) {nMaturity = aCoinbaseMaturity; }
     virtual void setLastPOW(int aLastPOW) { nLastPOWBlock = aLastPOW; };
     virtual void setEnableBigRewards(bool afBigRewards) { fEnableBigReward = afBigRewards; };
     virtual void setTargetTimespan(uint aTargetTimespan) { nTargetTimespan = aTargetTimespan; };
     virtual void setTargetSpacing(uint aTargetSpacing) 
     { 
         // PoS may fail to create new Blocks, if we try to set this to less than 10
-        nTargetSpacing = (aTargetSpacing < 10) ? 10 : aTargetSpacing;
+        nTargetSpacing = aTargetSpacing;
     };
 
 };
