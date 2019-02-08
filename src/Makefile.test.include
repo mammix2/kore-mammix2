@@ -48,7 +48,10 @@ BITCOIN_TESTS =\
   test/compress_tests.cpp \
   test/crypto_tests.cpp \
   test/DoS_tests.cpp \
-  test/fork_tests.cpp \
+  test/fork_afterwords.cpp \
+  test/fork_kore.cpp \
+  test/fork_testnet.cpp \
+  test/generate_blockinfo.cpp \
   test/getarg_tests.cpp \
   test/hash_tests.cpp \
   test/key_tests.cpp \
@@ -70,6 +73,7 @@ BITCOIN_TESTS =\
   test/sigopcount_tests.cpp \
   test/skiplist_tests.cpp \
   test/test_kore.cpp \
+  test/tests_util.cpp \
   test/timedata_tests.cpp \
   test/torcontrol_tests.cpp \
   test/transaction_tests.cpp \

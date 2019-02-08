@@ -1,94 +1,26 @@
-// Copyright (c) 2011-2014 The Bitcoin Core developers
-// Copyright (c) 2016 The KORE developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include "arith_uint256.h"
 #include "blocksignature.h"
-#include "init.h"
 #include "legacy/consensus/merkle.h"
 #include "main.h"
 #include "miner.h"
+#include "primitives/block.h"
 #include "pubkey.h"
+#include "tests_util.h"
 #include "uint256.h"
 #include "util.h"
 #include "utiltime.h"
 #include "validationinterface.h"
 #include "wallet.h"
 
+
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
 
 
-BOOST_AUTO_TEST_SUITE(fork_tests)
-
-
-static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
-
-CScript GenerateSamePubKeyScript4Wallet(CWallet* pwallet)
-{
-    CBitcoinSecret bsecret;
-    bsecret.SetString(strSecret);
-    CKey key = bsecret.GetKey();
-    CPubKey pubKey = key.GetPubKey();
-    CKeyID keyID = pubKey.GetID();
-    CScript scriptPubKey = GetScriptForDestination(keyID);
-
-    //pwallet->NewKeyPool();
-    LOCK(pwallet->cs_wallet);
-    pwallet->AddKeyPubKey(key, pubKey);
-    pwallet->SetDefaultKey(pubKey);
-
-    return scriptPubKey;
-}
-
-void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake)
-{
-    /*
-    cout << pblock->ToString().c_str();    
-    cout << "{" << fProofOfStake << ", ";
-    cout << pblock->nTime << ", ";
-    cout << pblock->vtx[0].nTime << " , ";
-    cout << pblock->nBits << " , ";
-    cout << pblock->nNonce << " , ";
-    cout << nExtraNonce << " , ";
-    cout << pblock->nBirthdayA << " , ";
-    cout << pblock->nBirthdayB << " , ";
-    cout << "uint256(\"" << pblock->GetHash().ToString().c_str() << "\") , ";
-    cout << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") , ";
-    cout << pwallet->GetBalance() << " },";
-    cout << " // " << "Block " << blockNumber << endl;
-*/
-
-    if (fDebug) {
-        LogPrintf("Block %d %s \n",blockNumber, (pblock->IsProofOfStake() ? " (PoS) " : " (PoW) "));
-        LogPrintf(" nTime               : %u \n", pblock->nTime);
-        LogPrintf(" hash                : %s \n", pblock->GetHash().ToString().c_str());
-        LogPrintf(" StakeModifier       : %u \n", chainActive.Tip()->nStakeModifier);
-        LogPrintf(" OldStakeModifier    : %s \n", chainActive.Tip()->nStakeModifierOld.ToString());
-        LogPrintf(" Modifier Generated? : %s \n", (chainActive.Tip()->GeneratedStakeModifier() ? "True" : "False"));
-        LogPrintf(" Balance             : %d \n", pwallet->GetBalance() );
-        LogPrintf(" Unconfirmed Balance : %d \n", pwallet->GetUnconfirmedBalance());
-        LogPrintf(" Immature  Balance   : %d \n",pwallet->GetImmatureBalance());
-        LogPrintf(" ---- ");
-    }
-}
-
-typedef struct {
-    bool fProofOfStake;
-    uint32_t nTime;
-    uint32_t transactionTime;
-    uint32_t nBits;
-    unsigned int nonce;
-    unsigned int extranonce;
-    uint32_t nBirthdayA;
-    uint32_t nBirthdayB;
-    uint256 hash;
-    uint256 hashMerkleRoot;
-    CAmount balance;
-} blockinfo_t;
-static blockinfo_t blockinfo[] =
+blockinfo_t blockinfo[] =
     {
         //created with maturity=3
         {0, 1549485673, 1549485569, 538968063, 6, 1, 18753111, 52202898, uint256("03340b7345872e71782044ff3ad56e470d1720d777f3cc7c74ef446dd5bdbc53"), uint256("fb9450c8f3c4aecf1379b59a3044a849dce0c4706f69c7daade65435ff68cb02"), 0},               // Block 1
@@ -190,8 +122,78 @@ static blockinfo_t blockinfo[] =
         {0, 1549498450, 1549498419, 538968063, 2, 1, 0, 0, uint256("13da1da1fbc83bc55a39558eba7a5fb258f535e9c740d054d9dec46a37a8a442"), uint256("92488b46f6ae70caaa0ebd97138cb53893c7457c38e3ae20264c53ab1c3a6aa6"), 84600000000000},                // Block 97
         {0, 1549498481, 1549498481, 538968063, 1, 1, 0, 0, uint256("0b60c231cea876d763cae9d4ce99be8b1f156095a91e3f967fc91550066f4ae9"), uint256("061824c074b3263f9249399fa3ab38e21b04b5bce86eb62b33fa9e334e129898"), 85500000000000},                // Block 98
         {0, 1549498666, 1549498512, 538968063, 6, 1, 0, 0, uint256("10c749e21e22e5b1d43fa5eae295c3c6e484e496e0a2731fba0a4b94046e2615"), uint256("d78a7940de6d5aa0ff0ffaf232c4d8b409f02dc1afce40e94bac55438116359a"), 86400000000000},                // Block 99
-        {0, 1549498850, 1549498697, 538968063, 6, 1, 0, 0, uint256("01a8b5dc5a8d26fa9aa0572e5f1c3132ffd2ed39e1625730228d46a22b003756"), uint256("049c70cf5867b1d2c96ebabc0bf3e4980808b60678d379466b416266949c4e53"), 87300000000000},                // Block 100
+        {0, 1549498850, 1549498697, 538968063, 6, 1, 0, 0, uint256("01a8b5dc5a8d26fa9aa0572e5f1c3132ffd2ed39e1625730228d46a22b003756"), uint256("049c70cf5867b1d2c96ebabc0bf3e4980808b60678d379466b416266949c4e53"), 87300000000000}                // Block 100
 };
+
+
+void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake)
+{
+    /*
+    cout << pblock->ToString().c_str();    
+    cout << "{" << fProofOfStake << ", ";
+    cout << pblock->nTime << ", ";
+    cout << pblock->vtx[0].nTime << " , ";
+    cout << pblock->nBits << " , ";
+    cout << pblock->nNonce << " , ";
+    cout << nExtraNonce << " , ";
+    cout << pblock->nBirthdayA << " , ";
+    cout << pblock->nBirthdayB << " , ";
+    cout << "uint256(\"" << pblock->GetHash().ToString().c_str() << "\") , ";
+    cout << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") , ";
+    cout << pwallet->GetBalance() << " },";
+    cout << " // " << "Block " << blockNumber << endl;
+    */
+
+    if (fDebug) {
+        LogPrintf("Block %d %s \n",blockNumber, (pblock->IsProofOfStake() ? " (PoS) " : " (PoW) "));
+        LogPrintf(" nTime               : %u \n", pblock->nTime);
+        LogPrintf(" hash                : %s \n", pblock->GetHash().ToString().c_str());
+        LogPrintf(" StakeModifier       : %u \n", chainActive.Tip()->nStakeModifier);
+        LogPrintf(" OldStakeModifier    : %s \n", chainActive.Tip()->nStakeModifierOld.ToString());
+        LogPrintf(" Modifier Generated? : %s \n", (chainActive.Tip()->GeneratedStakeModifier() ? "True" : "False"));
+        LogPrintf(" Balance             : %d \n", pwallet->GetBalance() );
+        LogPrintf(" Unconfirmed Balance : %d \n", pwallet->GetUnconfirmedBalance());
+        LogPrintf(" Immature  Balance   : %d \n",pwallet->GetImmatureBalance());
+        LogPrintf(" ---- \n");
+    }
+}
+
+void InitializeLastCoinStakeSearchTime(CWallet* pwallet, CScript& scriptPubKey)
+{
+    const CChainParams& chainparams = Params();
+
+    // this is just to initialize nLastCoinStakeSearchTime
+    unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, pwallet, true));
+    if (!pblocktemplate.get())
+        return;
+    CBlock* pblock = &pblocktemplate->block;
+    SignBlock_Legacy(pwallet, pblock);
+    MilliSleep(30000);
+}
+
+
+CScript GenerateSamePubKeyScript4Wallet( const string & secret, CWallet* pwallet )
+{
+    CBitcoinSecret bsecret;
+    bsecret.SetString(secret);
+    CKey key = bsecret.GetKey();
+    CPubKey pubKey = key.GetPubKey();
+    CKeyID keyID = pubKey.GetID();
+    CScript scriptPubKey = GetScriptForDestination(keyID);
+
+    //pwallet->NewKeyPool();
+    LOCK(pwallet->cs_wallet);
+    pwallet->AddKeyPubKey(key, pubKey);
+    pwallet->SetDefaultKey(pubKey);
+
+    if(fDebug) { 
+        LogPrintf("pub key used      : %s \n", scriptPubKey.ToString()); 
+        LogPrintf("pub key used (hex): %x \n", HexStr(scriptPubKey)); 
+    }
+
+    return scriptPubKey;
+}
+
 
 void ScanForWalletTransactions(CWallet* pwallet)
 {
@@ -450,22 +452,11 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
         // lets check if the block was created and if the balance is correct
         CAmount bValue = GetBlockValue(chainActive.Tip()->nHeight);
         // 10% to dev fund, we don't have masternode
+        if(fDebug) {
+            LogPrintf("Checking balance is %s \n", (pwallet->GetBalance() + pwallet->GetImmatureBalance() + pwallet->GetUnconfirmedBalance() == oldBalance + bValue * 0.9 ? "OK" : "NOK"));
+        }
         BOOST_CHECK(pwallet->GetBalance() + pwallet->GetImmatureBalance() + pwallet->GetUnconfirmedBalance() == oldBalance + bValue * 0.9);
     }
-}
-
-
-void InitializeLastCoinStakeSearchTime(CWallet* pwallet, CScript& scriptPubKey)
-{
-    const CChainParams& chainparams = Params();
-
-    // this is just to initialize nLastCoinStakeSearchTime
-    unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, pwallet, true));
-    if (!pblocktemplate.get())
-        return;
-    CBlock* pblock = &pblocktemplate->block;
-    SignBlock_Legacy(pwallet, pblock);
-    MilliSleep(30000);
 }
 
 void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey)
@@ -492,7 +483,6 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
     }
 }
 
-
 void Create_Transaction(CBlock* pblock, const CBlockIndex* pindexPrev, const blockinfo_t blockinfo[], int i)
 {
     // This method simulates the transaction creation, similar to IncrementExtraNonce_Legacy
@@ -518,7 +508,6 @@ void Create_NewTransaction(CBlock* pblock, const CBlockIndex* pindexPrev, const 
     pblock->vtx[0] = txCoinbase;
     pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 }
-
 
 void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blockInfo, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake)
 {
@@ -585,7 +574,6 @@ void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
     }
 }
 
-
 void createNewBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blockInfo, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake)
 {
     CBlockTemplate* pblocktemplate;
@@ -644,251 +632,3 @@ void createNewBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
         pindexPrev = chainActive.Tip();
     }
 }
-
-/*
-  This TEST CASE SHOULD BE USED ONLY WHEN YOU WANT TO CREATE DATA TO BLOCK INFO
-BOOST_AUTO_TEST_CASE(generate_old_pow)
-{
-    Checkpoints::fEnabled = false;
-    int64_t oldTargetTimespan = Params().TargetTimespan();
-    int64_t oldTargetSpacing = Params().TargetSpacing();
-    int oldHeightToFork = Params().HeigthToFork();
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
-    int oldStakeMinAge = Params().StakeMinAge();
-    int oldModifier = Params().GetModifierInterval();
-    int minConfirmations = 11;
-    ModifiableParams()->setHeightToFork(999);
-    ModifiableParams()->setStakeMinConfirmations(minConfirmations);
-    ModifiableParams()->setCoinbaseMaturity(minConfirmations);
-    ModifiableParams()->setTargetSpacing(minConfirmations-1);
-    ModifiableParams()->setStakeModifierInterval(minConfirmations-1);
-    ModifiableParams()->setStakeMinAge(0);      
-    ModifiableParams()->setTargetTimespan(1);
-    ModifiableParams()->setEnableBigRewards(true);
-
-    
-    ScanForWalletTransactions(pwalletMain);
-    CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(pwalletMain);
-    cout << "pub key used      : " << scriptPubKey.ToString() << endl;
-    cout << "pub key used (hex): " << HexStr(scriptPubKey) << endl;
-
-    int totalOldPow = 2;
-    // generate old pow blocks
-    GeneratePOWLegacyBlocks(1,totalOldPow+1, pwalletMain, scriptPubKey);
- 
-    // Leaving old values
-    Checkpoints::fEnabled = true;
-    ModifiableParams()->setHeightToFork(oldHeightToFork);
-    ModifiableParams()->setEnableBigRewards(false);
-    ModifiableParams()->setCoinbaseMaturity(oldCoinBaseMaturity);
-    ModifiableParams()->setStakeMinAge(oldStakeMinAge);
-    ModifiableParams()->setStakeModifierInterval(oldModifier);
-    ModifiableParams()->setStakeMinConfirmations(oldStakeMinConfirmations);
-    ModifiableParams()->setTargetTimespan(oldTargetTimespan);
-    ModifiableParams()->setTargetSpacing(oldTargetSpacing);
-}
-*/
-
-BOOST_AUTO_TEST_CASE(after_fork)
-{
-    Checkpoints::fEnabled = false;
-    int64_t oldTargetTimespan = Params().TargetTimespan();
-    int64_t oldTargetSpacing = Params().TargetSpacing();
-    int oldHeightToFork = Params().HeigthToFork();
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
-    int oldStakeMinAge = Params().StakeMinAge();
-    int oldModifier = Params().GetModifierInterval();
-    // confirmations    : 3
-    // remember that the miminum spacing is 10 !!!
-    // spacing          : [confirmations-1, max(confirmations-1, value)]
-    // modifierInterval : [spacing, spacing)]
-    // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-    int minConfirmations = 3;
-    ModifiableParams()->setHeightToFork(0);
-    ModifiableParams()->setStakeMinConfirmations(minConfirmations - 1);
-    ModifiableParams()->setCoinbaseMaturity(minConfirmations - 1);
-    ModifiableParams()->setTargetSpacing(minConfirmations - 1);
-    ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
-    //ModifiableParams()->setTargetSpacing(10);
-    //ModifiableParams()->setStakeModifierInterval(10);
-    ModifiableParams()->setStakeMinAge(0);
-    ModifiableParams()->setTargetTimespan(1);
-    ModifiableParams()->setEnableBigRewards(true);
-
-    ScanForWalletTransactions(pwalletMain);
-    CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(pwalletMain);
-    //cout << "pub key used      : " << scriptPubKey.ToString() << endl;
-    //cout << "pub key used (hex): " << HexStr(scriptPubKey) << endl;
-
-    // generate pow blocks, so we can stake
-    GenerateBlocks(1, minConfirmations + 2, pwalletMain, scriptPubKey, false);
-
-    // we are just checking if we are able to generate PoS blocks after fork
-    // lets exercise more than 64 blocks, this way we will see if the max
-    // modifierinterval is working, it gets max(64 blocks)
-    GenerateBlocks(minConfirmations + 2, minConfirmations + 2 + 100, pwalletMain, scriptPubKey, true);
-
-    // Leaving old values
-    Checkpoints::fEnabled = true;
-    ModifiableParams()->setHeightToFork(oldHeightToFork);
-    ModifiableParams()->setEnableBigRewards(false);
-    ModifiableParams()->setCoinbaseMaturity(oldCoinBaseMaturity);
-    ModifiableParams()->setStakeMinAge(oldStakeMinAge);
-    ModifiableParams()->setStakeModifierInterval(oldModifier);
-    ModifiableParams()->setStakeMinConfirmations(oldStakeMinConfirmations);
-    ModifiableParams()->setTargetTimespan(oldTargetTimespan);
-    ModifiableParams()->setTargetSpacing(oldTargetSpacing);
-}
-
-BOOST_AUTO_TEST_CASE(fork_kore)
-{
-    Checkpoints::fEnabled = false;
-    int64_t oldTargetTimespan = Params().TargetTimespan();
-    int64_t oldTargetSpacing = Params().TargetSpacing();
-    int oldHeightToFork = Params().HeigthToFork();
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
-    int oldStakeMinAge = Params().StakeMinAge();
-    int oldModifier = Params().GetModifierInterval();
-    // confirmations    : 3
-    // remember that the miminum spacing is 10 !!!
-    // spacing          : [confirmations-1, max(confirmations-1, value)]
-    // modifierInterval : [spacing, spacing)]
-    // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-    int minConfirmations = 3;
-    ModifiableParams()->setHeightToFork(9);
-    ModifiableParams()->setStakeMinConfirmations(minConfirmations);
-    ModifiableParams()->setTargetSpacing(minConfirmations - 1);
-    ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
-    ModifiableParams()->setCoinbaseMaturity(minConfirmations); // can be any value ?
-    ModifiableParams()->setStakeMinAge(0);                     // can be any value ?
-    ModifiableParams()->setTargetTimespan(1);
-    ModifiableParams()->setEnableBigRewards(true);
-
-
-    ScanForWalletTransactions(pwalletMain);
-    CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(pwalletMain);
-    cout << "pub key used      : " << scriptPubKey.ToString() << endl;
-    cout << "pub key used (hex): " << HexStr(scriptPubKey) << endl;
-
-    // generate 4 pow blocks
-    GeneratePOWLegacyBlocks(1, minConfirmations + 2, pwalletMain, scriptPubKey);
-    // generate 4 pos blocks
-    GeneratePOSLegacyBlocks(minConfirmations + 2, 9, pwalletMain, scriptPubKey);
-
-    GenerateBlocks(9, 100, pwalletMain, scriptPubKey, true);
-
-    // Leaving old values
-    Checkpoints::fEnabled = true;
-    ModifiableParams()->setHeightToFork(oldHeightToFork);
-    ModifiableParams()->setEnableBigRewards(false);
-    ModifiableParams()->setCoinbaseMaturity(oldCoinBaseMaturity);
-    ModifiableParams()->setStakeMinAge(oldStakeMinAge);
-    ModifiableParams()->setStakeModifierInterval(oldModifier);
-    ModifiableParams()->setStakeMinConfirmations(oldStakeMinConfirmations);
-    ModifiableParams()->setTargetTimespan(oldTargetTimespan);
-    ModifiableParams()->setTargetSpacing(oldTargetSpacing);
-}
-
-BOOST_AUTO_TEST_CASE(testnet)
-{
-    Checkpoints::fEnabled = false;
-    int64_t oldTargetTimespan = Params().TargetTimespan();
-    int64_t oldTargetSpacing = Params().TargetSpacing();
-    int oldHeightToFork = Params().HeigthToFork();
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
-    int oldStakeMinAge = Params().StakeMinAge();
-    int oldModifier = Params().GetModifierInterval();
-    // confirmations    : 3
-    // remember that the miminum spacing is 10 !!!
-    // spacing          : [confirmations-1, max(confirmations-1, value)]
-    // modifierInterval : [spacing, spacing)]
-    // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-    int minConfirmations = 25;
-    ModifiableParams()->setHeightToFork(minConfirmations + 2);
-    ModifiableParams()->setStakeMinConfirmations(minConfirmations);
-    ModifiableParams()->setCoinbaseMaturity(minConfirmations);
-    ModifiableParams()->setTargetSpacing(minConfirmations - 1);
-    ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
-    ModifiableParams()->setStakeMinAge(0);
-    ModifiableParams()->setTargetTimespan(1);
-    ModifiableParams()->setEnableBigRewards(true);
-
-    ScanForWalletTransactions(pwalletMain);
-    CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(pwalletMain);
-    cout << "pub key used      : " << scriptPubKey.ToString() << endl;
-    cout << "pub key used (hex): " << HexStr(scriptPubKey) << endl;
-
-    // recreate old pow blocks
-    CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false);
-
-    // lets generate pow blocks
-    int pow = minConfirmations + 2 + Params().StakeMinConfirmations() + 10;
-    GenerateBlocks(minConfirmations + 2, pow, pwalletMain, scriptPubKey, false);
-
-    // lets generate enought block and have 10 POS blocks confirmed
-    GenerateBlocks(pow, pow + Params().StakeMinConfirmations() + 10, pwalletMain, scriptPubKey, true);
-
-    // Leaving old values
-    Checkpoints::fEnabled = true;
-    ModifiableParams()->setHeightToFork(oldHeightToFork);
-    ModifiableParams()->setEnableBigRewards(false);
-    ModifiableParams()->setCoinbaseMaturity(oldCoinBaseMaturity);
-    ModifiableParams()->setStakeMinAge(oldStakeMinAge);
-    ModifiableParams()->setStakeModifierInterval(oldModifier);
-    ModifiableParams()->setStakeMinConfirmations(oldStakeMinConfirmations);
-    ModifiableParams()->setTargetTimespan(oldTargetTimespan);
-    ModifiableParams()->setTargetSpacing(oldTargetSpacing);
-}
-
-/*
-  This testcase is commented out, because we can't regenerate
-  PoS block, once they rely on current time stamps !!!
-  However it could be used as example for other
-BOOST_AUTO_TEST_CASE(basic_fork)
-{
-    SelectParams(CBaseChainParams::UNITTEST);
-    ScanForWalletTransactions(pwalletMain);
-    Checkpoints::fEnabled = false;
-    int oldHeightToFork = Params().HeigthToFork();
-    ModifiableParams()->setHeightToFork(11);
-    // we dont need any blocks to confirm.
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    ModifiableParams()->setStakeMinConfirmations(0); 
-    ModifiableParams()->setEnableBigRewards(true);
-
-    CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(pwalletMain);
-    cout << "pub key used: " << scriptPubKey.ToString() << endl;
-
-    
-    // Lets create 5 pow blocks than 5 pos than we fork
-
-    // when running the generate testcase, dont forget to update this pubkey with
-    // the correct pubkey.
-    // in order to get the correct pubkey, get the pub and remove the first and last bytes
-    //CScript scriptPubKey = CScript() << ParseHex("042127dbde8ca144d3ade8ed19baec87a20b6f64c1f1dfda9ff48373c447e924931e0322eb92f0293bc2540b8e869a2b0587ab3e5de14346dc330abb27641b7395") << OP_CHECKSIG;
-    //cout << "PubKey : " << scriptPubKey.ToString() << endl;
-
-    LOCK(cs_main);
-
-    // lets create 5 old pow blocks from blockinfo
-    CreateOldBlocksFromBlockInfo(1,6, blockinfo[0], pwalletMain, scriptPubKey, false);
-
-    InitializeLastCoinStakeSearchTime(pwalletMain, scriptPubKey);
-    CreateOldBlocksFromBlockInfo(6,11, blockinfo[0], pwalletMain, scriptPubKey, true);
-
-    createNewBlocksFromBlockInfo(11,16, blockinfo[0], pwalletMain, scriptPubKey, false);
-    createNewBlocksFromBlockInfo(16,21, blockinfo[0], pwalletMain, scriptPubKey, true);
-
-    // Leaving old values
-    Checkpoints::fEnabled = true;
-    ModifiableParams()->setHeightToFork(oldHeightToFork);
-    ModifiableParams()->setEnableBigRewards(false);
-    ModifiableParams()->setStakeMinConfirmations(oldStakeMinConfirmations);
-}
-*/
-
-BOOST_AUTO_TEST_SUITE_END()
