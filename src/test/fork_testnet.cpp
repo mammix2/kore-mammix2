@@ -27,13 +27,21 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     // modifierInterval : [spacing, spacing)]
     // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
     int minConfirmations = 25;
+    int nStakeMinConfirmations       = minConfirmations;        
+    int nMaturity                    = minConfirmations;
+    int nTargetTimespan              = 1 * 60; // KORE: 1 minute
+    int nStakeTargetSpacing          = 60;
+    int nTargetSpacing               = nStakeTargetSpacing;
+    int nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
+    int nStakeMinAge                 = 30 * 60; // It will stake after 30 minutes
+
     ModifiableParams()->setHeightToFork(minConfirmations + 2);
-    ModifiableParams()->setStakeMinConfirmations(minConfirmations);
-    ModifiableParams()->setCoinbaseMaturity(minConfirmations);
-    ModifiableParams()->setTargetSpacing(minConfirmations - 1);
-    ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
-    ModifiableParams()->setStakeMinAge(0);
-    ModifiableParams()->setTargetTimespan(1);
+    ModifiableParams()->setStakeMinConfirmations(nStakeMinConfirmations);
+    ModifiableParams()->setCoinbaseMaturity(nMaturity);
+    ModifiableParams()->setTargetSpacing(nTargetSpacing);
+    ModifiableParams()->setStakeModifierInterval(nModifierInterval);
+    ModifiableParams()->setStakeMinAge(nStakeMinAge);
+    ModifiableParams()->setTargetTimespan(nTargetTimespan);
     ModifiableParams()->setEnableBigRewards(true);
 
     ScanForWalletTransactions(pwalletMain);
@@ -42,7 +50,7 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     // recreate old pow blocks
     CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false);
 
-    // lets generate pow blocks
+    // lets generate new pow blocks
     int pow = minConfirmations + 2 + Params().StakeMinConfirmations() + 10;
     GenerateBlocks(minConfirmations + 2, pow, pwalletMain, scriptPubKey, false);
 

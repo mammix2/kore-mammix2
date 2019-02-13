@@ -107,6 +107,7 @@ KORE-Qt.app
 Makefile.test
 kore-qt_test
 src/test/buildenv.py
+src/test/delete-me
 
 # Resources cpp
 qrc_*.cpp

@@ -265,9 +265,9 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
 
     // loop to find the stake modifier later by a selection interval
     
-    //cout << "GetKernelStakeModifier coin from             : " << pindexFrom->nHeight << endl;
-    //cout << "GetKernelStakeModifier StakeModifierInterval : " << nStakeModifierSelectionInterval << endl;
-    //cout << "GetKernelStakeModifier target Time           : " << nTargetTime << endl;
+    cout << "GetKernelStakeModifier coin from             : " << pindexFrom->nHeight << endl;
+    cout << "GetKernelStakeModifier StakeModifierInterval : " << nStakeModifierSelectionInterval << endl;
+    cout << "GetKernelStakeModifier target Time           : " << nTargetTime << endl;
     if(fDebug) { 
         LogPrintf("GetKernelStakeModifier coin from             : %d \n", pindexFrom->nHeight);
         LogPrintf("GetKernelStakeModifier StakeModifierInterval : %d \n", nStakeModifierSelectionInterval);
@@ -287,7 +287,7 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
             nStakeModifierHeight = pindex->nHeight;
             nStakeModifierTime = pindex->GetBlockTime();
         }
-        //cout << "GetKernelStakeModifier nStakeModifierTime    : " << nStakeModifierTime << " nStakeModifierHeight : " << nStakeModifierHeight << " block: " << pindex->nHeight << endl;
+        cout << "GetKernelStakeModifier nStakeModifierTime    : " << nStakeModifierTime << " nStakeModifierHeight : " << nStakeModifierHeight << " block: " << pindex->nHeight << endl;
         if (fDebug) LogPrintf("GetKernelStakeModifier nStakeModifierTime           : %u  nStakeModifierHeight : %d block: %d \n", nStakeModifierTime, nStakeModifierHeight, pindex->nHeight);
     }
     nStakeModifier = pindex->nStakeModifier;
