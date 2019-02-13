@@ -324,7 +324,7 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
     //check that it is matured
     CTransaction txFrom;
     stakeInput->GetTxFrom(txFrom);
-    if (chainActive.Height() - stakeInput->GetIndexFrom()->nHeight < (txFrom.IsCoinStake() ? Params().StakeMinConfirmations() : txFrom.IsCoinBase() ? Params().COINBASE_MATURITY() : 10))
+    if (chainActive.Height() - stakeInput->GetIndexFrom()->nHeight < Params().COINBASE_MATURITY())
       return error("Stake(): maturity violation");
 
     // Min age requirement
