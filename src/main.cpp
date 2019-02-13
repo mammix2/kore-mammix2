@@ -5396,6 +5396,7 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
             bool fGeneratedStakeModifier = false;
             if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
                 LogPrintf("AddToBlockIndex() : ComputeNextStakeModifier() failed \n");
+            if (fDebug) LogPrintf("ComputeNextStakeModifier() => Block : %d Modifier Generated ? %s Modifier: %u \n", pindexNew->nHeight, fGeneratedStakeModifier ? "true" : "false", nStakeModifier);
             pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
             // lets only compute the oldModifier here after the fork, because before fork it is already
             // calculated
