@@ -1261,6 +1261,13 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
             continue;
         }
 
+        // Do we have balance ?
+        if (pwallet->GetBalance() <= 0) 
+        {
+            MilliSleep(60000);
+            continue;
+        }
+
         //
         // Create new block
         //
@@ -1308,7 +1315,7 @@ void KoreMiner_Legacy()
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
                 do {
-                     if (fDebug) LogPrintf("Waiting for a Peer!!! \n" );
+                     if (fDebug) LogPrintf("KoreMiner_Legacy is waiting for a Peer!!! \n" );
                     bool fvNodesEmpty;
                     {
                         LOCK(cs_vNodes);
@@ -1326,7 +1333,7 @@ void KoreMiner_Legacy()
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
             CBlockIndex* pindexPrev = chainActive.Tip();
 
-            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, coinbaseScript->reserveScript, NULL, true));
+            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, coinbaseScript->reserveScript, NULL, false));
             
             if (!pblocktemplate.get())
             {
@@ -1336,7 +1343,7 @@ void KoreMiner_Legacy()
             CBlock *pblock = &pblocktemplate->block;
             IncrementExtraNonce_Legacy(pblock, pindexPrev, nExtraNonce);
 
-            LogPrintf("Running KoreMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
+            if (fDebug) LogPrintf("KoreMiner_Legacy Running with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                 ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
             //
@@ -1350,19 +1357,23 @@ void KoreMiner_Legacy()
             {
                 unsigned int nHashesDone = 0;
                 unsigned int nNonceFound = (unsigned int) -1;
-
+                if (fDebug) LogPrintf("KoreMiner_Legacy Looking for a Hash Solution \n");
                 for(int i=0;i<1;i++){
                     pblock->nNonce=pblock->nNonce+1;
                     testHash=pblock->CalculateBestBirthdayHash();
                     nHashesDone++;
-                    if (fDebug) LogPrintf("testHash %s\n", testHash.ToString().c_str());
-                    if (fDebug) LogPrintf("Hash Target %s\n", hashTarget.ToString().c_str());
+                    if (fDebug) {
+                      LogPrintf("KoreMiner_Legacy testHash %s\n", testHash.ToString().c_str());
+                      LogPrintf("KoreMiner_Legacy Hash Target %s\n", hashTarget.ToString().c_str());
+                    }
 
                     if(UintToArith256(testHash)<hashTarget){
                         // Found a solution
                         nNonceFound=pblock->nNonce;
-                        LogPrintf("Found Hash %s\n", testHash.ToString().c_str());
-                        LogPrintf("hash2 %s\n", pblock->GetHash().ToString().c_str());
+                        if (fDebug) {
+                          LogPrintf("KoreMiner_Legacy Found Hash %s\n", testHash.ToString().c_str());
+                          LogPrintf("KoreMiner_Legacy hash2 %s\n", pblock->GetHash().ToString().c_str());
+                        }
                         // Found a solution
                         assert(testHash == pblock->GetHash());
 
