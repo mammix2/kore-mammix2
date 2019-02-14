@@ -151,10 +151,10 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
         fGeneratedStakeModifier = true;
         return true; // genesis block's modifier is 0
     }
-    if (pindexPrev->nHeight == 0 ) //|| IsLastBlockBeforeFork(pindexPrev->nHeight)) 
+    if (pindexPrev->nHeight == 0 || IsFirstBlockAfterFork(pindexPrev->nHeight + 1))
     {
         //Give a stake modifier to the first block
-        // Lets give a stake modifier to the last block
+        // Lets give a stake modifier First Block After Fork
         fGeneratedStakeModifier = true;
         nStakeModifier = uint64_t("stakemodifier");
         return true;
@@ -255,6 +255,19 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
     if (!mapBlockIndex.count(hashBlockFrom))
         return error("GetKernelStakeModifier() : block not indexed");
     const CBlockIndex* pindexFrom = mapBlockIndex[hashBlockFrom];
+    // Lets check if the block is from befor fork, if so we need to change it
+    if (UseLegacyCode(pindexFrom->nHeight)) {
+        // for all blocks before fork we will return an modifier as
+        // it was found at the last block before fork, please note that
+        // we will no be able to store the last kore block, once we don't have
+        // some fields in the database yet, like nFlags, nStakeModifier
+        pindexFrom = chainActive[Params().HeigthToFork()-1];
+        nStakeModifier = uint64_t("stakemodifier");
+        nStakeModifierHeight = pindexFrom->nHeight;
+        nStakeModifierTime = pindexFrom->GetBlockTime();
+
+        return true;
+    }    
 
     nStakeModifierHeight = pindexFrom->nHeight;
     nStakeModifierTime = pindexFrom->GetBlockTime();

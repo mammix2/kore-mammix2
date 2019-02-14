@@ -2248,7 +2248,7 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
     CAmount nAmountSelected = 0;
     if (GetBoolArg("-korestake", true)) {
         //cout << "SelectStakeCoins -->" << endl;
-        if(fDebug) LogPrintf("SelectStakeCoins -->");
+        if(fDebug) LogPrintf("SelectStakeCoins --> \n");
         for (const COutput &out : vCoins) {
             //make sure not to outrun target amount
             if (nAmountSelected + out.tx->vout[out.i].nValue > nTargetAmount)
@@ -2271,11 +2271,11 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
             std::unique_ptr<CkoreStake> input(new CkoreStake());
             //cout << "SelectStakeCoins : " << out.nDepth << endl;
             input->SetInput((CTransaction) *out.tx, out.i);
-            if(fDebug) LogPrintf("SelectStakeCoin from : %d", input->GetIndexFrom()->nHeight);
+            if(fDebug) LogPrintf("SelectStakeCoin from : %d \n", input->GetIndexFrom()->nHeight);
             listInputs.emplace_back(std::move(input));
         }
         //cout << "SelectStakeCoins <--" << endl;
-        if(fDebug) LogPrintf("SelectStakeCoins <--");
+        if(fDebug) LogPrintf("SelectStakeCoins <-- \n");
     }
 
     return true;

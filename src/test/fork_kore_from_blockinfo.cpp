@@ -12,13 +12,13 @@
 #include <boost/test/unit_test.hpp>
 
 
-BOOST_AUTO_TEST_SUITE(fork_kore)
+BOOST_AUTO_TEST_SUITE(fork_kore_from_blockinfo)
 
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 
 
-BOOST_AUTO_TEST_CASE(minimum_fork)
+BOOST_AUTO_TEST_CASE(quick_fork)
 {
     Checkpoints::fEnabled = false;
     int64_t oldTargetTimespan = Params().TargetTimespan();
@@ -47,7 +47,8 @@ BOOST_AUTO_TEST_CASE(minimum_fork)
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 
     // generate 4 pow blocks
-    GeneratePOWLegacyBlocks(1, minConfirmations + 2, pwalletMain, scriptPubKey);
+    CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false);
+
     // generate 4 pos blocks
     GeneratePOSLegacyBlocks(minConfirmations + 2, 9, pwalletMain, scriptPubKey);
 

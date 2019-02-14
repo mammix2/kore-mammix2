@@ -50,6 +50,7 @@ BITCOIN_TESTS =\
   test/DoS_tests.cpp \
   test/fork_afterwords.cpp \
   test/fork_kore.cpp \
+  test/fork_kore_from_blockinfo.cpp \
   test/fork_testnet.cpp \
   test/generate_blockinfo.cpp \
   test/getarg_tests.cpp \
