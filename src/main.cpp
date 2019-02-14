@@ -9519,6 +9519,10 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
 
     else if (strCommand == NetMsgType::BLOCK && !fImporting && !fReindex) // Ignore blocks received while importing
     {
+        // If we are in the last block and a new block has arrived
+        // than it need to be processed by the new chain
+        if (IsLastBlockBeforeFork(chainActive.Height()))
+          return ProcessMessage(pfrom, strCommand, vRecv, nTimeReceived);
         CBlock block;
         vRecv >> block;
 
