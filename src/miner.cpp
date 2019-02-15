@@ -1000,7 +1000,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         // check every minute
         MilliSleep(60000);
     }
-    if (fDebug) LogPrintf("We are Free to create Block: %s", GetnHeight(chainActive.Tip())+1);
+    if (fDebug) LogPrintf("We are Free to create Block: %s \n", GetnHeight(chainActive.Tip())+1);
     while (!ShutdownRequested() && (fGenerateBitcoins || fProofOfStake)) {
         boost::this_thread::interruption_point();
         if (fProofOfStake) {
