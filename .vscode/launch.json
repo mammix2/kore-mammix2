@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "50844",
+            "processId": "2391",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -45,7 +45,7 @@
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/kored",
             "args": ["-testnet","-debug","-par=1"],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,

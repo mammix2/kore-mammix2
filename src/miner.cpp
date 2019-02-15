@@ -878,6 +878,101 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     return true;
 }
 
+bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainparams)
+{
+
+    CValidationState state;
+
+    // Found a solution
+    {
+        LOCK(cs_main);
+        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
+            return error("ProcessBlockFound(): generated/staked block is stale");
+    }
+
+    if (fDebug)LogPrintf("%s \n ", pblock->ToString());
+
+    // verify hash target and signature of coinstake tx
+    if (pblock->IsProofOfStake() && !CheckProofOfStake_Legacy(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, state))
+        return false;
+
+    LogPrintf("%s %s\n", pblock->IsProofOfStake() ? "Stake " : "Mined " , pblock->IsProofOfStake() ? FormatMoney(pblock->vtx[1].GetValueOut()) : FormatMoney(pblock->vtx[0].GetValueOut()));
+
+    // Inform about the new block
+    if (fDebug) LogPrintf("signalling BlockFound\n");
+    GetMainSignals().BlockFound(pblock->GetHash());
+    if (fDebug) LogPrintf("signalled BlockFound\n");
+
+    // Process this block the same as if we had received it from another node
+    if (!ProcessNewBlock_Legacy(state, chainparams, NULL, pblock, true, NULL))
+        return error("KoreMiner: ProcessNewBlock, block not accepted");
+
+
+    return true;
+}
+
+#include <iostream>
+
+// attempt to generate suitable proof-of-stake
+bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
+{
+    
+    // if we are trying to sign
+    //    something except proof-of-stake block template
+    if (!pblock->vtx[0].vout[0].IsEmpty()){
+    	LogPrintf("something except proof-of-stake block\n");
+    	return false;
+    }
+
+    // if we are trying to sign
+    //    a complete proof-of-stake block
+    if (pblock->IsProofOfStake()){
+    	LogPrintf("trying to sign a complete proof-of-stake block\n");
+    	return true;
+    }
+
+    static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // startup timestamp
+
+    CKey key;
+    CMutableTransaction txCoinStake;
+    txCoinStake.nTime = GetAdjustedTime();
+    txCoinStake.nTime &= ~STAKE_TIMESTAMP_MASK_LEGACY;
+    CAmount nFees = 0;
+
+    int64_t nSearchTime = txCoinStake.nTime; // search to current time
+
+    //cout << "SearchTime               = " << nSearchTime << endl;
+    //cout << "nLastCoinStakeSearchTime = " << nLastCoinStakeSearchTime << endl;
+
+    if (nSearchTime >= nLastCoinStakeSearchTime)
+    {
+        int64_t nSearchInterval =  1 ;
+        if (pwallet->CreateCoinStake_Legacy(*pwallet, pblock, nSearchInterval, nFees, txCoinStake, key))
+        {            
+            //if (txCoinStake.nTime >= pindexBestHeader->GetMedianTimePast()+1)
+            //{
+                // make sure coinstake would meet timestamp protocol
+                //    as it would be the same as the block timestamp
+                //pblock->nTime = txCoinStake.nTime = pblock->vtx[0].nTime;
+
+                // we have to make sure that we have no future timestamps in
+                //    our transactions set
+                for (vector<CTransaction>::iterator it = pblock->vtx.begin(); it != pblock->vtx.end();)
+                    if (it->nTime > pblock->nTime) { it = pblock->vtx.erase(it); } else { ++it; }
+
+                pblock->vtx.insert(pblock->vtx.begin() + 1, txCoinStake);
+                pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+
+                // append a signature to our block
+                return key.Sign(pblock->GetHash(), pblock->vchBlockSig);
+            //}
+        }
+        nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
+        nLastCoinStakeSearchTime = nSearchTime;
+    }
+    return false;
+}
+
 bool fGenerateBitcoins = false;
 bool fMintableCoins = false;
 int nMintableLastCheck = 0;
@@ -894,7 +989,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()))) {
+    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip())+1) ) {
         // while nobody requested to shutdown and we should use the legacy code
         // this thread should wait
         if (fDebug) {
@@ -905,7 +1000,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
         // check every minute
         MilliSleep(60000);
     }
-
+    if (fDebug) LogPrintf("We are Free to create Block: %s", GetnHeight(chainActive.Tip())+1);
     while (!ShutdownRequested() && (fGenerateBitcoins || fProofOfStake)) {
         boost::this_thread::interruption_point();
         if (fProofOfStake) {
@@ -1115,101 +1210,6 @@ void static ThreadBitcoinMiner(void* parg)
     LogPrintf("ThreadBitcoinMiner exiting\n");
 }
 
-bool ProcessBlockFound_Legacy(const CBlock* pblock, const CChainParams& chainparams)
-{
-
-    CValidationState state;
-
-    // Found a solution
-    {
-        LOCK(cs_main);
-        if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
-            return error("ProcessBlockFound(): generated/staked block is stale");
-    }
-
-    if (fDebug)LogPrintf("%s \n ", pblock->ToString());
-
-    // verify hash target and signature of coinstake tx
-    if (pblock->IsProofOfStake() && !CheckProofOfStake_Legacy(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, state))
-        return false;
-
-    LogPrintf("%s %s\n", pblock->IsProofOfStake() ? "Stake " : "Mined " , pblock->IsProofOfStake() ? FormatMoney(pblock->vtx[1].GetValueOut()) : FormatMoney(pblock->vtx[0].GetValueOut()));
-
-    // Inform about the new block
-    if (fDebug) LogPrintf("signalling BlockFound\n");
-    GetMainSignals().BlockFound(pblock->GetHash());
-    if (fDebug) LogPrintf("signalled BlockFound\n");
-
-    // Process this block the same as if we had received it from another node
-    if (!ProcessNewBlock_Legacy(state, chainparams, NULL, pblock, true, NULL))
-        return error("KoreMiner: ProcessNewBlock, block not accepted");
-
-
-    return true;
-}
-
-#include <iostream>
-
-// attempt to generate suitable proof-of-stake
-bool SignBlock_Legacy(CWallet* pwallet, CBlock* pblock)
-{
-    
-    // if we are trying to sign
-    //    something except proof-of-stake block template
-    if (!pblock->vtx[0].vout[0].IsEmpty()){
-    	LogPrintf("something except proof-of-stake block\n");
-    	return false;
-    }
-
-    // if we are trying to sign
-    //    a complete proof-of-stake block
-    if (pblock->IsProofOfStake()){
-    	LogPrintf("trying to sign a complete proof-of-stake block\n");
-    	return true;
-    }
-
-    static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // startup timestamp
-
-    CKey key;
-    CMutableTransaction txCoinStake;
-    txCoinStake.nTime = GetAdjustedTime();
-    txCoinStake.nTime &= ~STAKE_TIMESTAMP_MASK_LEGACY;
-    CAmount nFees = 0;
-
-    int64_t nSearchTime = txCoinStake.nTime; // search to current time
-
-    //cout << "SearchTime               = " << nSearchTime << endl;
-    //cout << "nLastCoinStakeSearchTime = " << nLastCoinStakeSearchTime << endl;
-
-    if (nSearchTime >= nLastCoinStakeSearchTime)
-    {
-        int64_t nSearchInterval =  1 ;
-        if (pwallet->CreateCoinStake_Legacy(*pwallet, pblock, nSearchInterval, nFees, txCoinStake, key))
-        {            
-            //if (txCoinStake.nTime >= pindexBestHeader->GetMedianTimePast()+1)
-            //{
-                // make sure coinstake would meet timestamp protocol
-                //    as it would be the same as the block timestamp
-                //pblock->nTime = txCoinStake.nTime = pblock->vtx[0].nTime;
-
-                // we have to make sure that we have no future timestamps in
-                //    our transactions set
-                for (vector<CTransaction>::iterator it = pblock->vtx.begin(); it != pblock->vtx.end();)
-                    if (it->nTime > pblock->nTime) { it = pblock->vtx.erase(it); } else { ++it; }
-
-                pblock->vtx.insert(pblock->vtx.begin() + 1, txCoinStake);
-                pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
-
-                // append a signature to our block
-                return key.Sign(pblock->GetHash(), pblock->vchBlockSig);
-            //}
-        }
-        nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;
-        nLastCoinStakeSearchTime = nSearchTime;
-    }
-    return false;
-}
-
 void ThreadStakeMinter_Legacy(CWallet* pwallet)
 {
 
@@ -1226,7 +1226,10 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
 
     bool fTryToSync = true;
     
-    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip())))
+    // lets say the fork will happen at block 50, this thread can only be running until
+    // block 48, because if we are in block 48 it means we are trying to create the last
+    // legacy block which is the block 49.
+    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()) + 1) )
     {
         boost::this_thread::interruption_point();
     
@@ -1285,6 +1288,8 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
 
         MilliSleep(500);
     }
+
+    if (fDebug) LogPrintf("ThreadStakeMinter_Legacy Exiting at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 void KoreMiner_Legacy()
@@ -1309,8 +1314,8 @@ void KoreMiner_Legacy()
             throw std::runtime_error("No coinbase script available (mining requires a wallet)");
         }
 
-        // This thread should exit, if it has reached the Fork Height
-        while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()))) {
+        // This thread should exit, if it has reached last
+        while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()) + 1) ) {
             if (chainparams.MiningRequiresPeers()) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
@@ -1434,15 +1439,16 @@ void KoreMiner_Legacy()
     }
     catch (const boost::thread_interrupted&)
     {
-        LogPrintf("KoreMiner terminated\n");
+        if (fDebug) LogPrintf("KoreMiner_Legacy Exiting at block: %d", GetnHeight(chainActive.Tip()));
         throw;
     }
     catch (const std::runtime_error &e)
     {
         LogPrintf("KoreMiner runtime error: %s\n", e.what());
+        if (fDebug) LogPrintf("KoreMiner_Legacy Runtime Error : %s Exiting at block: %d", e.what(), GetnHeight(chainActive.Tip()));
         return;
     }
-    LogPrintf("KoreMiner_Legacy Exiting.\n");
+    if (fDebug) LogPrintf("KoreMiner_Legacy Exiting at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
