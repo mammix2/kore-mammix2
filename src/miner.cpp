@@ -1229,7 +1229,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
     // lets say the fork will happen at block 50, this thread can only be running until
     // block 48, because if we are in block 48 it means we are trying to create the last
     // legacy block which is the block 49.
-    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()) + 1) )
+    while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip())+1) )
     {
         boost::this_thread::interruption_point();
     
@@ -1315,7 +1315,7 @@ void KoreMiner_Legacy()
         }
 
         // This thread should exit, if it has reached last
-        while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()) + 1) ) {
+        while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip())+1) ) {
             if (chainparams.MiningRequiresPeers()) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
@@ -1476,9 +1476,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
 
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++) {
-        if (UseLegacyCode(GetnHeight(chainActive.Tip()))) {
             minerThreads->create_thread(boost::bind(&KoreMiner_Legacy));
-        } else {
             minerThreads->create_thread(boost::bind(&ThreadBitcoinMiner, pwallet));
         }
     }
