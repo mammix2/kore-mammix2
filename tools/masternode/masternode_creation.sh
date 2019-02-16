@@ -64,6 +64,7 @@ masternode_user=$control_wallet_user
 masternode_password=$control_wallet_password
 masternode_conf_file=`pwd`/$masternode_name.conf
 readme=`pwd`/$masternode_name.readme
+activation_file=`pwd`/$masternode_name.activation
 
 if [ $# -eq 5 ]
 then
@@ -172,6 +173,14 @@ echo ""
 echo " COOL ! We got at least $txConfirmations confirmations"
 echo ""
 
+echo "Generating $activation_file file"
+echo "#!/bin/sh" >> $activation_file
+echo "set -e" >> $activation_file
+echo "" >> $activation_file
+echo $masternode_activation_command >> $activation_file
+chmod +x $activation_file
+
+
 echo "Congratulations !!! Your Masternode is ready to be started."  >> $readme
 echo "Please, now follow instruction at $readme"
 echo "##########################################################################" >> $readme
@@ -187,7 +196,7 @@ echo "##   4. Make sure your masternode has connections and is in sync."  >> $re
 echo "##        kore-cli -testnet mnsync status"   >> $readme
 echo "##        ** IsBlockchainSynced should be true"   >> $readme
 echo "##   5. Activate your masternode. Make sure your mastenode is in sync."  >> $readme
-echo "##    $masternode_activation_command"  >> $readme
+echo "##      execute this command: $activation_file"  >> $readme
 echo "##   6. Check if the masternode status"   >> $readme
 echo "##        kore-cli -testnet masternode status"   >> $readme
 echo "##        ** The message has to be: \"Masternode successfully started\""   >> $readme

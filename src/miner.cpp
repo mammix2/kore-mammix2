@@ -1012,8 +1012,8 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             }
 
             while (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins || 
-                  (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) /* || 
-                  ! (masternodeSync.IsSynced() && (mnodeman.CountEnabled() == mnodeman.size()) && mnodeman.CountEnabled() >1 ) */
+                  (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) || 
+                  ! (masternodeSync.IsSynced() && (mnodeman.CountEnabled() == mnodeman.size()) && mnodeman.CountEnabled() >1 ) 
                   )
             {
                 if (fDebug) {
