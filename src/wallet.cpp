@@ -3793,9 +3793,7 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, 
         txNew.vout[2].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;;        
 	}
 
-    //Masternode and general budget payments
-    // last two parameters are not used for legacy.
-    FillBlockPayee(txNew, 0, true,true, true);
+    FillBlockPayee_Legacy(txNew, 0, true);
 
     // make sure coinstake would meet timestamp protocol
     if (txNew.nTime >= pindexBestHeader->GetMedianTimePast()+1)
