@@ -1024,9 +1024,8 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                     LogPrintf("BitcoinMiner vNodes Empty                ? %s (should be false)\n", vNodes.empty() ? "true" : "false");
                     LogPrintf("BitcoinMiner Wallet Locked               ? %s (should be false) \n", pwallet->IsLocked() ? "true" : "false");
                     LogPrintf("BitcoinMiner Is there Mintable Coins     ? %s (should be true) \n", fMintableCoins ? "true" : "false");
-                    // LogPrintf("BitcoinMiner Masternode is Synced        ? %s (should be true)\n", masternodeSync.IsSynced() ? "true" : "false");
-                    // if we dont have masternode enabled, we will fail to send money to masternode
-                    // LogPrintf("BitcoinMiner How Many MN are Enabled     ? %d (should be %d)\n", mnodeman.CountEnabled(), mnodeman.size());
+                    LogPrintf("BitcoinMiner Masternode is Synced        ? %s (should be true)\n", masternodeSync.IsSynced() ? "true" : "false");
+                    LogPrintf("BitcoinMiner How Many MN are Enabled     ? %d (should be %d)\n", mnodeman.CountEnabled(), mnodeman.size());
                     LogPrintf("BitcoinMiner Balance > 0                 ? %s (should be true)\n", pwallet->GetBalance() > 0 ? "true" : "false");
                     LogPrintf("BitcoinMiner Balance is >= than reserved ? %s (should be true)\n", nReserveBalance >= pwallet->GetBalance() ? "true" : "false");
                     LogPrintf("***************************************************************\n");
@@ -1069,7 +1068,8 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             LogPrintf("vNodes Empty  ? %s \n", vNodes.empty() ? "true" : "false");
             LogPrintf("Wallet Locked ? %s \n", pwallet->IsLocked() ? "true" : "false");
             LogPrintf("Is there Mintable Coins ? %s \n", fMintableCoins ? "true" : "false");
-            // LogPrintf("Masternode is Synced ? %s \n", masternodeSync.IsSynced() ? "true" : "false");
+            LogPrintf("Masternode is Synced ? %s \n", masternodeSync.IsSynced() ? "true" : "false");
+            LogPrintf("BitcoinMiner How Many MN are Enabled     ? %d (should be %d)\n", mnodeman.CountEnabled(), mnodeman.size());
             LogPrintf("Do we have Balance ? %s \n", pwallet->GetBalance() > 0 ? "true" : "false");
             LogPrintf("Balance is Greater than reserved one ? %s \n", nReserveBalance >= pwallet->GetBalance() ? "true" : "false");
         }
