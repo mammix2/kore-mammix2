@@ -478,7 +478,7 @@ public:
         nBudgetFeeConfirmations = 2;           // Number of confirmations for the finalization fee. We have to make this very short
                                                // here because we only have a 8 block finalization window on testnet
 
-        nMasternodeMinConfirmations   = 6;
+        nMasternodeMinConfirmations   = 2;
         nMasternodeMinMNPSeconds      = 2 * 60;
         nMasternodeMinMNBSeconds      = 1 * 60;
         nMasternodePingSeconds        = 1 * 60;
