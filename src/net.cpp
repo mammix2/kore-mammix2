@@ -1413,7 +1413,7 @@ void TorThread()
     tor_args.push_back("--GeoIPv6File");
     tor_args.push_back((tor_directory / "geoip6").string());
     tor_args.push_back("--HiddenServiceDir");    
-    tor_args.push_back((tor_directory / "onion").string());
+    tor_args.push_back((GetDataDir() / "onion").string());
     tor_args.push_back("--HiddenServicePort");
     tor_args.push_back(std::to_string(Params().GetDefaultPort()));    
     tor_args.push_back("-f");

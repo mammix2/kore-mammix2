@@ -53,12 +53,7 @@ std::string CTxIn::ToString() const
     str += "CTxIn(";
     str += prevout.ToString();
     if (prevout.IsNull())
-#ifdef ZEROCOIN    
-        if(scriptSig.IsZerocoinSpend())
-            str += strprintf(", zerocoinspend %s...", HexStr(scriptSig).substr(0, 25));
-        else
-#endif        
-            str += strprintf(", coinbase %s", HexStr(scriptSig));
+        str += strprintf(", coinbase %s", HexStr(scriptSig));
     else
         str += strprintf(", scriptSig=%s", HexStr(scriptSig).substr(0, 24));
     if (nSequence != SEQUENCE_FINAL)
@@ -170,19 +165,6 @@ CAmount CTransaction::GetValueOut() const
     return nValueOut;
 }
 
-#ifdef ZEROCOIN
-CAmount CTransaction::GetZerocoinMinted() const
-{
-    for (const CTxOut txOut : vout) {
-        if(!txOut.scriptPubKey.IsZerocoinMint())
-            continue;
-
-        return txOut.nValue;
-    }
-
-    return  CAmount(0);
-}
-#endif
 
 bool CTransaction::UsesUTXO(const COutPoint out)
 {
@@ -202,34 +184,6 @@ std::list<COutPoint> CTransaction::GetOutPoints() const
         listOutPoints.emplace_back(COutPoint(txHash, i));
     return listOutPoints;
 }
-
-#ifdef ZEROCOIN
-CAmount CTransaction::GetZerocoinSpent() const
-{
-    if(!IsZerocoinSpend())
-        return 0;
-
-    CAmount nValueOut = 0;
-    for (const CTxIn txin : vin) {
-        if(!txin.scriptSig.IsZerocoinSpend())
-            continue;
-
-        nValueOut += txin.nSequence * COIN;
-    }
-
-    return nValueOut;
-}
-
-int CTransaction::GetZerocoinMintCount() const
-{
-    int nCount = 0;
-    for (const CTxOut out : vout) {
-        if (out.scriptPubKey.IsZerocoinMint())
-            nCount++;
-    }
-    return nCount;
-}
-#endif
 
 double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSize) const
 {

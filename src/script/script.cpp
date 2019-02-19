@@ -278,10 +278,6 @@ const bool GetOpFromName(string str, opcodetype& opcode)
     else if (str == "OP_NOP8") opcode = OP_NOP8;
     else if (str == "OP_NOP9") opcode = OP_NOP9;
     else if (str == "OP_NOP10") opcode = OP_NOP10;
-#ifdef ZEROCOIN
-    else if (opcode == "OP_ZEROCOINMINT") opcode = OP_ZEROCOINMINT ;
-    else if (opcode == "OP_ZEROCOINSPEND") opcode = OP_ZEROCOINSPEND;
-#endif
     else {
         opcode = OP_INVALIDOPCODE;
         return false;

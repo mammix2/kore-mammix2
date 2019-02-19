@@ -463,9 +463,6 @@ public:
     bool CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, int64_t nSearchInterval, int64_t nFees, CMutableTransaction& txNew, CKey& key);
     bool MultiSend();
     void AutoCombineDust();
-#ifdef ZEROCOIN    
-    void AutoZeromint();
-#endif    
 
     static CFeeRate minTxFee;
     static CAmount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool);
@@ -503,10 +500,6 @@ public:
     {
         return ::IsMine(*this, txout.scriptPubKey);
     }
-#ifdef ZEROCOIN    
-    bool IsMyZerocoinSpend(const CBigNum& bnSerial) const;
-    bool IsMyMint(const CBigNum& bnValue) const;
-#endif    
     CAmount GetCredit(const CTxOut& txout, const isminefilter& filter) const
     {
         if (!MoneyRange(txout.nValue))

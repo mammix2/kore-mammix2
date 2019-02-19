@@ -11,11 +11,6 @@
 #include "pow.h"
 #include "support/csviterator.h"
 #include "uint256.h"
-#ifdef ZEROCOIN
-#include "accumulators.h"
-using namespace libzerocoin;
-#endif
-
 #include <iostream>
 #include <fstream>
 

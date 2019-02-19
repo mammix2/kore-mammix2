@@ -413,7 +413,7 @@ public:
         vDeployments[DEPLOYMENT_CSV].nStartTime = 1456790400; // March 1st, 2016
         vDeployments[DEPLOYMENT_CSV].nTimeout   = 1493596800; // May 1st, 2017
 
-        nLastPOWBlock                 = 1000;
+        nLastPOWBlock                 = 100;
         nMasternodeCountDrift         = 4;
         nBlockEnforceSerialRange      = 1;          //Enforce serial range starting this block
         nBlockRecalculateAccumulators = 9908000;    //Trigger a recalculation of accumulators

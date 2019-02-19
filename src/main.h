@@ -21,9 +21,6 @@
 #include "pow.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
-#ifdef ZEROCOIN
-#include "primitives/zerocoin.h"
-#endif
 #include "script/script.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
@@ -50,9 +47,6 @@
 
 class CBlockIndex;
 class CBlockTreeDB;
-#ifdef ZEROCOIN
-class CZerocoinDB;
-#endif
 class CSporkDB;
 class CBloomFilter;
 class CInv;
@@ -533,27 +527,10 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsV
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
 
-#ifdef ZEROCOIN
-bool BlockToPubcoinList(const CBlock& block, list<libzerocoin::PublicCoin>& listPubcoins, bool fFilterInvalid);
-bool BlockToMintValueVector(const CBlock& block, const libzerocoin::CoinDenomination denom, std::vector<CBigNum>& vValues);
-std::list<libzerocoin::CoinDenomination> ZerocoinSpendListFromBlock(const CBlock& block, bool fFilterInvalid);
-void FindMints(vector<CMintMeta> vMintsToFind, vector<CMintMeta>& vMintsToUpdate, vector<CMintMeta>& vMissingMints);
-bool GetZerocoinMint(const CBigNum& bnPubcoin, uint256& txHash);
-bool IsSerialKnown(const CBigNum& bnSerial);
-bool IsSerialInBlockchain(const CBigNum& bnSerial, int& nHeightTx);
-bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend);
-bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend, CTransaction& tx);
-bool IsPubcoinInBlockchain(const uint256& hashPubcoin, uint256& txid);
-bool RemoveSerialFromDB(const CBigNum& bnSerial);
-#endif
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx, CTransaction& tx);
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx);
 bool IsBlockHashInChain(const uint256& hashBlock);
 bool ValidOutPoint(const COutPoint out, int nHeight);
-#ifndef ZEROCOIN
-void RecalculateZKORESpent();
-void RecalculateZKOREMinted();
-#endif
 bool RecalculateKORESupply(int nHeightStart);
 bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError);
 
@@ -868,11 +845,6 @@ extern CCoinsViewCache* pcoinsTip;
 
 /** Global variable that points to the active block tree (protected by cs_main) */
 extern CBlockTreeDB* pblocktree;
-
-#ifdef ZEROCOIN
-/** Global variable that points to the zerocoin database (protected by cs_main) */
-extern CZerocoinDB* zerocoinDB;
-#endif
 
 /** Global variable that points to the spork database (protected by cs_main) */
 extern CSporkDB* pSporkDB;

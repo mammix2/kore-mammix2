@@ -11,10 +11,6 @@
 
 #include "init.h"
 
-#ifdef ZEROCOIN
-#include "accumulators.h"
-#include "accumulatorcheckpoints.h"
-#endif
 #include "activemasternode.h"
 #include "addrman.h"
 #include "amount.h"

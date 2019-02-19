@@ -121,7 +121,6 @@ BITCOIN_CORE_H = \
   core_memusage.h \
   primitives/block.h \
   primitives/transaction.h \
-  primitives/deterministicmint.h \
   core_io.h \
   crypter.h \
   obfuscation.h \
