@@ -83,7 +83,7 @@ uint256 CBlockIndex::GetBlockTrust() const
 }
 const CBlockIndex* GetLastBlockIndex_Legacy(const CBlockIndex* pindex, bool fProofOfStake)
 {
-    while (pindex && pindex->pprev && (pindex->IsProofOfStake_Legacy() != fProofOfStake))
+    while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
         pindex = pindex->pprev;
     return pindex;
 }

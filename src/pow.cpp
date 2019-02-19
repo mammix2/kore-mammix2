@@ -36,7 +36,7 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
         nActualSpacing = nTargetSpacing;
 
     // Retarget
-    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake_Legacy());
+    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
     arith_uint256 bnNew, bnOld;
     bnNew.SetCompact(pindexLast->nBits);
     bnOld = bnNew;
@@ -56,7 +56,6 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
     return bnNew.GetCompact();
 }
 
-
 unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
     unsigned int nTargetLimit = UintToArith256(Params().ProofOfWorkLimit()).GetCompact();
@@ -74,7 +73,6 @@ unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBl
 
     return CalculateNextWorkRequired_Legacy(pindexPrev, pindexPrevPrev->GetBlockTime());
 }
-
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
@@ -189,7 +187,6 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
     return bnNew.GetCompact();
 }
-
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const int nHeight)
 {

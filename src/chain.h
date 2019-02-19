@@ -319,22 +319,12 @@ public:
 
     bool IsProofOfStake() const
     {
-        return (nFlags & BLOCK_PROOF_OF_STAKE);
+        return (nFlags & BLOCK_PROOF_OF_STAKE) || (nStatus & BLOCK_PROOF_OF_STAKE);
     }
 
     void SetProofOfStake()
     {
         nFlags |= BLOCK_PROOF_OF_STAKE;
-    }
-
-    bool IsProofOfWork_Legacy() const
-    {
-        return !IsProofOfStake_Legacy();
-    }
-
-    bool IsProofOfStake_Legacy() const
-    {
-        return (nStatus & BLOCK_PROOF_OF_STAKE);
     }
 
     void SetProofOfStake_Legacy()
@@ -382,7 +372,7 @@ public:
     {
         if (UseLegacyCode(nHeight))
             return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
-                pprev, nHeight, IsProofOfStake_Legacy() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
+                pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
                 hashMerkleRoot.ToString(),
                 GetBlockHash().ToString());
         else

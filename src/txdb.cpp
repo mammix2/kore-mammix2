@@ -403,7 +403,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     pindexNew->prevoutStake      = diskindex.prevoutStake;
                     pindexNew->nStakeTime        = diskindex.nStakeTime;
                     pindexNew->hashProofOfStake  = diskindex.hashProofOfStake;
-                    bool isProofOfStake = useLegacyCode ? pindexNew->IsProofOfStake_Legacy() : pindexNew->IsProofOfStake(); 
+                    bool isProofOfStake = pindexNew->IsProofOfStake(); 
                     if (!isProofOfStake && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
                         if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, pindexNew->nHeight))
                             return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());

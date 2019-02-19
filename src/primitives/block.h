@@ -150,9 +150,15 @@ public:
     // ppcoin: two types of block: proof-of-work or proof-of-stake
     bool IsProofOfStake() const
     {
-        // More than 2 transaction and the second transaction vtx[2] must be a locking transaction
-        // that simply locks the coins without reward
-        return (vtx.size() > 1 && vtx[2].IsCoinStake());
+        if (vtx.size() <= 1)
+            return false;
+
+        if (vtx[0].IsCoinBase() && vtx[1].IsCoinStake())
+            return true;
+        else if (vtx[1].IsCoinStake())
+            return true;
+        else
+            return false;
     }
 
     bool IsProofOfWork() const
