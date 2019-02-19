@@ -110,12 +110,10 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     case TX_NULL_DATA:
         return false;
     case TX_PUBKEY:
+    case TX_LOCKSTAKE:
         keyID = CPubKey(vSolutions[0]).GetID();
         if(!Sign1(keyID, keystore, hash, nHashType, scriptSigRet))
-        {
-            LogPrintf("*** Sign1 failed \n");
             return false;
-        }
         return true;
     case TX_PUBKEYHASH:
         keyID = CKeyID(uint160(vSolutions[0]));
@@ -329,13 +327,13 @@ static CScript CombineSignatures(const CScript& scriptPubKey, const CTransaction
     {
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
-    case TX_ZEROCOINMINT:
         // Don't know anything about this, assume bigger one is correct:
         if (sigs1.size() >= sigs2.size())
             return PushAll(sigs1);
         return PushAll(sigs2);
     case TX_PUBKEY:
     case TX_PUBKEYHASH:
+    case TX_LOCKSTAKE:
         // Signatures are bigger than placeholders or empty scripts:
         if (sigs1.empty() || sigs1[0].empty())
             return PushAll(sigs2);

@@ -4,15 +4,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "primitives/block.h"
-#include "primitives/transaction.h"
+#include "transaction.h"
 
 #include "chain.h"
 #include "hash.h"
 #include "main.h"
+#include "primitives/block.h"
+#include "primitives/transaction.h"
+#include "script/standard.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
-#include "transaction.h"
 
 #include <boost/foreach.hpp>
 
@@ -62,19 +63,19 @@ std::string CTxIn::ToString() const
     return str;
 }
 
-CTxOut::CTxOut(const CAmount& nValueIn, CScript scriptPubKeyIn)
-{
-    nValue = nValueIn;
-    scriptPubKey = scriptPubKeyIn;
-    nRounds = -10;
-}
-
 bool COutPoint::IsMasternodeReward(const CTransaction* tx) const
 {
     if(!tx->IsCoinStake())
         return false;
 
     return (n == tx->vout.size() - 1) && (tx->vout[1].scriptPubKey != tx->vout[n].scriptPubKey);
+}
+
+CTxOut::CTxOut(const CAmount& nValueIn, CScript scriptPubKeyIn)
+{
+    nValue = nValueIn;
+    scriptPubKey = scriptPubKeyIn;
+    nRounds = -10;
 }
 
 uint256 CTxOut::GetHash() const
@@ -87,6 +88,16 @@ std::string CTxOut::ToString() const
 	if (IsEmpty()) return "CTxOut(empty)";
     return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey));
 }
+
+bool CTxOut::IsCoinStake() const
+    {
+        vector<vector<unsigned char> > vSolutions;
+        txnouttype whichType;
+        if (!Solver(scriptPubKey, whichType, vSolutions))
+            return false;
+
+        return whichType == TX_LOCKSTAKE;
+    }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nTime(0), nLockTime(0) {}
 CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}
@@ -130,27 +141,6 @@ CTransaction& CTransaction::operator=(const CTransaction &tx) {
     *const_cast<unsigned int*>(&nLockTime) = tx.nLockTime;
     *const_cast<uint256*>(&hash) = tx.hash;
     return *this;
-}
-
-bool CTransaction::IsCoinStake() const
-{
-    if (vin.empty())
-        return false;
-
-    // ppcoin: the coin stake transaction is marked with the first output empty
-    if (vin[0].prevout.IsNull())
-        return false;
-    
-    return (vin.size() > 0 && vout.size() >= 2 && vout[0].IsEmpty());
-}
-
-bool CTransaction::IsCoinNewStake() const
-{
-    // Must have nLockTime
-    if (nLockTime == 0)
-        return false;    
-
-    return (vin.size() > 0 && vout.size() >= 3 && vout[0].IsEmpty());
 }
 
 CAmount CTransaction::GetValueOut() const

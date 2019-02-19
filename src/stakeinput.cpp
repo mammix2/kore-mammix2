@@ -8,28 +8,46 @@
 #include "wallet.h"
 
 //!KORE Stake
-CScript CKoreStake::GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey)
+CScript CKoreStake::GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey, bool fisStake)
 {
     vector<valtype> vSolutions;
-    txnouttype whichType;
     CScript scriptPubKeyKernel = txFrom.vout[nPosition].scriptPubKey;
-    if (!Solver(scriptPubKeyKernel, whichType, vSolutions)) {
+    if (!Solver(scriptPubKeyKernel, ptxType, vSolutions))
+    {
         LogPrintf("CreateCoinStake : failed to parse kernel\n");
         return false;
     }
 
-    if (whichType != TX_PUBKEY && whichType != TX_PUBKEYHASH)
+    if (ptxType != TX_PUBKEY && ptxType != TX_PUBKEYHASH && ptxType != TX_LOCKSTAKE)
         return false; // only support pay to public key and pay to address
 
-    if (whichType == TX_PUBKEYHASH) // pay to address type
+    if (ptxType == TX_PUBKEYHASH || (fisStake && ptxType == TX_PUBKEY) || (!fisStake && ptxType == TX_LOCKSTAKE)) // pay to address type
     {
         //convert to pay to public key type
-        CKey key;
-        if (!pwallet->GetKey(uint160(vSolutions[0]), key))
-            return false;
+        if(ptxType == TX_PUBKEYHASH)
+        { 
+            CKey key;
+            if(!pwallet->GetKey(uint160(vSolutions[0]), key))
+                return false;
 
-        scriptPubKey << key.GetPubKey() << OP_CHECKSIG;
-    } else
+            if(fisStake)
+                scriptPubKey << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << key.GetPubKey() << OP_CHECKSIG;
+            else
+                scriptPubKey << key.GetPubKey() << OP_CHECKSIG;
+        }
+        else
+        {
+            CPubKey pubKey(vSolutions[0]);
+            if(!pubKey.IsValid())
+                return false;
+
+            if(fisStake)
+                scriptPubKey << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG;
+            else
+                scriptPubKey << pubKey << OP_CHECKSIG;
+        }        
+    }
+    else
         scriptPubKey = scriptPubKeyKernel;
 
     return scriptPubKey;
@@ -51,6 +69,7 @@ bool CKoreStake::GetTxFrom(CTransaction& tx)
 bool CKoreStake::CreateTxIn(CWallet* pwallet, CTxIn& txIn, uint256 hashTxOut)
 {
     txIn = CTxIn(txFrom.GetHash(), nPosition);
+    txIn.prevPubKey = txFrom.vout[nPosition].scriptPubKey;
     return true;
 }
 
@@ -59,16 +78,28 @@ CAmount CKoreStake::GetValue()
     return txFrom.vout[nPosition].nValue;
 }
 
-bool CKoreStake::CreateTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool splitStake)
+bool CKoreStake::CreateLockingTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool fsplitStake)
 {
     CScript scriptPubKey;
-    GetPubKeyScript(pwallet, scriptPubKey);
-
+    GetScriptPubKey(pwallet, scriptPubKey);
     vout.emplace_back(CTxOut(0, scriptPubKey));
 
     // Calculate if we need to split the output
-    if (splitStake)
+    if (fsplitStake)
+    {
+        scriptPubKey.clear();
+        GetScriptPubKey(pwallet, scriptPubKey, false);
         vout.emplace_back(CTxOut(0, scriptPubKey));
+    }
+
+    return true;
+}
+
+bool CKoreStake::CreateTxOut(CWallet* pwallet, CTxOut& txOut)
+{
+    CScript scriptPubKey;
+    GetScriptPubKey(pwallet, scriptPubKey, false);
+    txOut = CTxOut(0, scriptPubKey);
 
     return true;
 }
@@ -91,7 +122,7 @@ CDataStream CKoreStake::GetUniqueness()
 {
     //The unique identifier for a KORE stake is the outpoint
     CDataStream ss(SER_NETWORK, 0);
-    ss << nPosition << txFrom.GetHash();
+    ss << txFrom.GetHash() << nPosition;
     return ss;
 }
 

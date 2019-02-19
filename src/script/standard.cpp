@@ -6,6 +6,7 @@
 
 #include "script/standard.h"
 
+#include "chainparams.h"
 #include "pubkey.h"
 #include "script/script.h"
 #include "util.h"
@@ -31,7 +32,7 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_SCRIPTHASH: return "scripthash";
     case TX_MULTISIG: return "multisig";
     case TX_NULL_DATA: return "nulldata";
-    case TX_ZEROCOINMINT: return "zerocoinmint";
+    case TX_LOCKSTAKE: return "stake";
     }
     return NULL;
 }
@@ -53,6 +54,10 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 
         // Sender provides N pubkeys, receivers provides M signatures
         mTemplates.insert(make_pair(TX_MULTISIG, CScript() << OP_SMALLINTEGER << OP_PUBKEYS << OP_SMALLINTEGER << OP_CHECKMULTISIG));
+
+        // Stake locking tx, locks transaction for 4 hours and includes a TX_PUBKEYHASH
+        // in the form 03C20140 B2 75 2200000000000000000000000000000000000000000000 AC
+        mTemplates.insert(make_pair(TX_LOCKSTAKE, CScript() << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << OP_PUBKEY << OP_CHECKSIG));
     }
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:
@@ -178,7 +183,6 @@ bool Solver_Legacy(const CScript& scriptPubKey, txnouttype& typeRet, vector<vect
 
         // Sender provides N pubkeys, receivers provides M signatures
         mTemplates.insert(make_pair(TX_MULTISIG, CScript() << OP_SMALLINTEGER << OP_PUBKEYS << OP_SMALLINTEGER << OP_CHECKMULTISIG));
-    
     }
 
     vSolutionsRet.clear();
@@ -316,11 +320,9 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
     {
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
-#ifdef ZEROCOIN
-    case TX_ZEROCOINMINT:
-#endif
         return -1;
     case TX_PUBKEY:
+    case TX_LOCKSTAKE:
         return 1;
     case TX_PUBKEYHASH:
         return 2;
@@ -363,7 +365,7 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
     if (!Solver(scriptPubKey, whichType, vSolutions))
         return false;
 
-    if (whichType == TX_PUBKEY)
+    if (whichType == TX_PUBKEY || whichType == TX_LOCKSTAKE)
     {
         CPubKey pubKey(vSolutions[0]);
         if (!pubKey.IsValid())
@@ -393,7 +395,7 @@ bool ExtractDestination(const CScript& scriptPubKey, uint160& addressRet)
     if (!Solver(scriptPubKey, whichType, vSolutions))
         return false;
 
-    if (whichType == TX_PUBKEY)
+    if (whichType == TX_PUBKEY || whichType == TX_LOCKSTAKE)
     {
         CPubKey pubKey(vSolutions[0]);
         if (!pubKey.IsValid())

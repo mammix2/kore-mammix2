@@ -19,7 +19,7 @@ bool GetKeyIDFromUTXO(const CTxOut& txout, CKeyID& keyID)
     txnouttype whichType;
     if (!Solver(txout.scriptPubKey, whichType, vSolutions))
         return false;
-    if (whichType == TX_PUBKEY) {
+    if (whichType == TX_PUBKEY || whichType == TX_LOCKSTAKE) {
         keyID = CPubKey(vSolutions[0]).GetID();
     } else if (whichType == TX_PUBKEYHASH) {
         keyID = CKeyID(uint160(vSolutions[0]));
@@ -42,7 +42,7 @@ bool SignBlock(CBlock& block, const CKeyStore& keystore)
         if (!fFoundID)
             return error("%s: failed to find key for PoW", __func__);
     } else {
-        if (!GetKeyIDFromUTXO(block.vtx[1].vout[1], keyID))
+        if (!GetKeyIDFromUTXO(block.vtx[0].vout[1], keyID))
             return error("%s: failed to find key for PoS", __func__);
     }
 
@@ -67,10 +67,10 @@ bool CheckBlockSignature(const CBlock& block)
     CPubKey pubkey;
     txnouttype whichType;
     std::vector<valtype> vSolutions;
-    const CTxOut& txout = block.vtx[1].vout[1];
+    const CTxOut& txout = block.vtx[1].vout[0];
     if (!Solver(txout.scriptPubKey, whichType, vSolutions))
         return false;
-    if (whichType == TX_PUBKEY || whichType == TX_PUBKEYHASH) {
+    if (whichType == TX_PUBKEY || whichType == TX_PUBKEYHASH || whichType == TX_LOCKSTAKE) {
         valtype& vchPubKey = vSolutions[0];
         pubkey = CPubKey(vchPubKey);
     }
