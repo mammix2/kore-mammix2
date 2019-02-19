@@ -41,7 +41,7 @@ uint256 ComputeStakeModifier_Legacy(const CBlockIndex* pindexPrev, const uint256
 //   quantities so as to generate blocks faster, degrading the system back into
 //   a proof-of-work situation.
 
-bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx)
+bool CheckStakeKernelHash_Legacy(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx)
 {
     // Weight
     int64_t nValueIn = txPrev->vout[prevout.n].nValue;
@@ -65,14 +65,14 @@ bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, con
 
     // Now check if proof-of-stake hash meets target protocol
     if (UintToArith256(hashProofOfStake) / nValueIn > bnTarget){
-		if(fDebug)LogPrintf("CheckStakeKernelHash() : hash does not meet protocol target   previous = %x  target = %x\n", nBits, bnTarget.GetCompact());
+		if(fDebug)LogPrintf("CheckStakeKernelHash_Legacy() : hash does not meet protocol target   previous = %x  target = %x\n", nBits, bnTarget.GetCompact());
         return false;
 	}
 
     return true;
 }
 
-bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime)
+bool CheckKernel_Legacy(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime)
 {
     uint256 targetProofOfStake;
 
@@ -102,7 +102,7 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
     if (prevtx.nTime + Params().StakeMinAge() > nTime) // Min age requirement
         return false;
 
-    return CheckStakeKernelHash(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), prevout, nTime);
+    return CheckStakeKernelHash_Legacy(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), prevout, nTime);
 }
 
 
@@ -149,7 +149,7 @@ bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, u
     if (prevtx.nTime + Params().StakeMinAge() > tx.nTime) // Min age requirement
         return error("CheckProofOfStake() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d \n", prevtx.nTime, Params().StakeMinAge(), tx.nTime);
 
-    if (!CheckStakeKernelHash(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), txin.prevout, tx.nTime))
+    if (!CheckStakeKernelHash_Legacy(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), txin.prevout, tx.nTime))
        return state.DoS(1, error("%s: CheckStakeKernelHash failed \n", __func__), REJECT_INVALID, "bad-cs-proofhash");
 
     return true;

@@ -93,6 +93,7 @@ CCoinsViewCache::~CCoinsViewCache()
     assert(!hasModifier);
 }
 
+// TODO: Remove "_Legacy" name in method
 size_t CCoinsViewCache::DynamicMemoryUsage_Legacy() const {
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
 }
@@ -297,11 +298,8 @@ CAmount CCoinsViewCache::GetValueIn(const CTransaction& tx) const
 
 bool CCoinsViewCache::HaveInputs(const CTransaction& tx) const
 {
-    if (!tx.IsCoinBase() 
-#ifdef ZEROCOIN    
-    && !tx.IsZerocoinSpend()
-#endif    
-    ) {
+    if (!tx.IsCoinBase())
+    {
         for (unsigned int i = 0; i < tx.vin.size(); i++) {
             const COutPoint& prevout = tx.vin[i].prevout;
             const CCoins* coins = AccessCoins(prevout.hash);

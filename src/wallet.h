@@ -463,9 +463,6 @@ public:
     bool CreateCoinStake_Legacy(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew, CKey& key);
     bool MultiSend();
     void AutoCombineDust();
-#ifdef ZEROCOIN    
-    void AutoZeromint();
-#endif    
 
     static CFeeRate minTxFee;
     static CAmount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool);
@@ -1051,6 +1048,11 @@ public:
     CAmount Value() const
     {
         return tx->vout[i].nValue;
+    }
+    
+    bool IsCoinStake() const
+    {
+        return tx->vout[i].IsCoinStake();
     }
 
     std::string ToString() const;

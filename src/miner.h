@@ -6,6 +6,7 @@
 
 #ifndef BITCOIN_MINER_H
 #define BITCOIN_MINER_H
+#include "amount.h"
 
 #include <stdint.h>
 
@@ -20,6 +21,9 @@ class CWallet;
 static const bool DEFAULT_PRINTPRIORITY_LEGACY = false; 
 
 struct CBlockTemplate;
+
+CAmount GetBlockReward(CBlockIndex* pindexPrev);
+uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock);
 
 /** Run the miner threads */
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads);

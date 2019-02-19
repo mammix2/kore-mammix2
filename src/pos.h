@@ -14,9 +14,9 @@ class COutPoint;
 class uint256;
 class CTransaction;
 
-bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx);
+bool CheckStakeKernelHash_Legacy(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx);
 
-bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime);                          
+bool CheckKernel_Legacy(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime);                          
 
 uint256 ComputeStakeModifier_Legacy(const CBlockIndex* pindexPrev, const uint256& kernel);
 bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits, CValidationState &state);

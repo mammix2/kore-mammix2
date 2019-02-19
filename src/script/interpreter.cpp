@@ -1261,8 +1261,6 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigne
 
     vector<vector<unsigned char> > stack, stackCopy;
     if (!EvalScript(stack, scriptSig, flags, checker, serror)){
-        // TODO: REMOVER!!!
-        printf("%x", scriptSig);
         // serror is set
         return false;}
     if (flags & SCRIPT_VERIFY_P2SH)

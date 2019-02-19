@@ -31,7 +31,7 @@ bool IsBlockPayeeValid(const CBlock& block, int nBlockHeight);
 bool IsBlockPayeeValid_Legacy(const CBlock& block, int nBlockHeight);
 std::string GetRequiredPaymentsString(int nBlockHeight);
 bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue, CAmount nMinted);
-void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake, bool stakeSplitted);
+void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake, CAmount nstakedBallance = 0);
 void FillBlockPayee_Legacy(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake);
 
 void DumpMasternodePayments();
@@ -147,7 +147,7 @@ public:
         return false;
     }
 
-    bool IsTransactionValid(const CTransaction& txNew);
+    bool IsTransactionValid(const CTransaction& txNew, CBlockIndex* pindexPrev);
     std::string GetRequiredPaymentsString();
 
     ADD_SERIALIZE_METHODS;
@@ -285,7 +285,7 @@ public:
     int GetMinMasternodePaymentsProto();
     void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
     std::string GetRequiredPaymentsString(int nBlockHeight);
-    void FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake, bool stakeSplitted);
+    void FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake, CAmount nstakedBallance = 0);
     void FillBlockPayee_Legacy(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake);
     std::string ToString() const;
     int GetOldestBlock();

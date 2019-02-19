@@ -44,6 +44,7 @@ enum opcodetype
     OP_FALSE = OP_0,
     OP_PUSHDATA1 = 0x4c,
     OP_PUSHDATA2 = 0x4d,
+    // Maximum acceptable value 0x1FFC00
     OP_PUSHDATA4 = 0x4e,
     OP_1NEGATE = 0x4f,
     OP_RESERVED = 0x50,

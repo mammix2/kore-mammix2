@@ -14,7 +14,6 @@
 #include "masternode-sync.h"
 #include "legacy/consensus/merkle.h"
 #include "net.h"
-#include "pob.h"
 #include "pos.h"
 #include "pow.h"
 #include "primitives/block.h"
@@ -104,6 +103,39 @@ public:
     }
 };
 
+CAmount GetBlockReward(CBlockIndex* pindexPrev)
+{
+    if (pindexPrev->nHeight >= Params().LAST_POW_BLOCK()) {
+        if (pindexPrev->nMoneySupply == MAX_MONEY)
+            return 0;
+
+        static double oneThird = (double)1 / 3;
+        static double half = (double)1 / 2;
+        static double max_money_cube = 1.728e21; // MAX_MONEY/COIN (12,000,000.00000000 KORE)
+        static double k_square_root = pow((double)135711131719231, half);
+
+        double moneySupplyFloat = (double)pindexPrev->nMoneySupply / COIN;
+        moneySupplyFloat = pow(moneySupplyFloat, 3);
+        double rewardDouble = pow(max_money_cube -  moneySupplyFloat, oneThird);
+        rewardDouble = rewardDouble / k_square_root;
+
+        CAmount reward = ceil(rewardDouble * COIN);
+        if (reward + pindexPrev->nMoneySupply < MAX_MONEY)
+            return reward;
+        else
+            return (MAX_MONEY) - pindexPrev->nMoneySupply;
+    } else {
+        if ((Params().NetworkID() == CBaseChainParams::TESTNET || Params().NetworkID() == CBaseChainParams::UNITTEST)
+            && pindexPrev->nHeight >= 0
+            && pindexPrev->nHeight < 500)
+        {
+            return 10000 * COIN;
+        }
+
+        return 5 * COIN;
+    }
+}
+
 void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev, bool fProofOfStake)
 {
     int64_t nOldTime = pblock->nTime;
@@ -119,6 +151,100 @@ void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev, bool fProof
 inline CBlockIndex *GetParentIndex(CBlockIndex *index)
 {
     return index->pprev;
+}
+
+uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
+{
+    /* current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
+    const CBlockIndex* BlockLastSolved = pindexLast;
+    const CBlockIndex* BlockReading = pindexLast;
+    int64_t nActualTimespan = 0;
+    int64_t LastBlockTime = 0;
+    int64_t PastBlocksMin = 24;
+    int64_t PastBlocksMax = 24;
+    int64_t CountBlocks = 0;
+    uint256 PastDifficultyAverage;
+    uint256 PastDifficultyAveragePrev;
+
+    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
+        return Params().ProofOfStakeLimit().GetCompact();
+    }
+
+    if (pindexLast->nHeight + 1 > Params().LAST_POW_BLOCK()) {
+        uint256 bnTargetLimit = (~uint256(0) >> 24);
+        int64_t nTargetSpacing = 60;
+        int64_t nTargetTimespan = 60 * 40;
+
+        int64_t nActualSpacing = 0;
+        if (pindexLast->nHeight != 0)
+            nActualSpacing = pindexLast->GetBlockTime() - pindexLast->pprev->GetBlockTime();
+
+        if (nActualSpacing < 0)
+            nActualSpacing = 1;
+
+        int64_t nNewSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
+
+        // ppcoin: target change every block
+        // ppcoin: retarget with exponential moving toward target spacing
+        uint256 bnNew;
+        bnNew.SetCompact(pindexLast->nBits);
+
+        int64_t nInterval = nTargetTimespan / nTargetSpacing;
+        bnNew *= ((nInterval - 1) * nTargetSpacing + (nActualSpacing * nNewSpacing));
+        bnNew /= ((nInterval + 1) * nTargetSpacing);
+
+        if (bnNew <= 0 || bnNew > bnTargetLimit)
+            bnNew = bnTargetLimit;
+
+        return bnNew.GetCompact();
+    }
+
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
+        if (PastBlocksMax > 0 && i > PastBlocksMax) {
+            break;
+        }
+        CountBlocks++;
+
+        if (CountBlocks <= PastBlocksMin) {
+            if (CountBlocks == 1) {
+                PastDifficultyAverage.SetCompact(BlockReading->nBits);
+            } else {
+                PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (uint256().SetCompact(BlockReading->nBits))) / (CountBlocks + 1);
+            }
+            PastDifficultyAveragePrev = PastDifficultyAverage;
+        }
+
+        if (LastBlockTime > 0) {
+            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+            nActualTimespan += Diff;
+        }
+        LastBlockTime = BlockReading->GetBlockTime();
+
+        if (BlockReading->pprev == NULL) {
+            assert(BlockReading);
+            break;
+        }
+        BlockReading = BlockReading->pprev;
+    }
+
+    uint256 bnNew(PastDifficultyAverage);
+
+    int64_t _nTargetTimespan = CountBlocks * Params().TargetSpacing();
+
+    if (nActualTimespan < _nTargetTimespan / 3)
+        nActualTimespan = _nTargetTimespan / 3;
+    if (nActualTimespan > _nTargetTimespan * 3)
+        nActualTimespan = _nTargetTimespan * 3;
+
+    // Retarget
+    bnNew *= nActualTimespan;
+    bnNew /= _nTargetTimespan;
+
+    if (bnNew > Params().ProofOfStakeLimit()) {
+        bnNew = Params().ProofOfStakeLimit();
+    }
+
+    return bnNew.GetCompact();
 }
 
 inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKeyIn)
@@ -272,15 +398,14 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         pblock->nTime = GetAdjustedTime();
         CBlockIndex* pindexPrev = chainActive.Tip();
-        pblock->nBits = GetNextTarget1(pindexPrev, pblock);
+        pblock->nBits = GetNextTarget(pindexPrev, pblock);
         int64_t nSearchTime = pblock->nTime; // search to current time
         
         if (nSearchTime >= nLastCoinStakeSearchTime) {
             if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime - nLastCoinStakeSearchTime, txCoinbase, txCoinStake, nTxNewTime, fProofOfStake, key)) {
                 pblock->nTime = nTxNewTime;
-                pblock->vtx[0].vout[0].SetEmpty();
                 if (fDebug) LogPrintf("txCoinStake: %s", txCoinStake.ToString());
-                pblock->vtx.push_back(CTransaction(txCoinbase));
+                pblock->vtx[0] = CTransaction(txCoinbase);
                 pblock->vtx.push_back(CTransaction(txCoinStake));
                 fStakeFound = true;
             }
@@ -517,14 +642,16 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         if (!fProofOfStake) {
             pblock->vtx[0] = txNew;
             pblocktemplate->vTxFees[0] = -nFees;
+            pblock->vtx[0].vin[0].scriptSig = CScript() << nHeight << OP_0;
         }
-        pblock->vtx[0].vin[0].scriptSig = CScript() << nHeight << OP_0;
 
         // Fill in header
         pblock->hashPrevBlock = pindexPrev->GetBlockHash();
         if (!fProofOfStake)
+        {
             UpdateTime(pblock, pindexPrev, fProofOfStake);
-        pblock->nBits = GetNextTarget1(pindexPrev, pblock);
+            pblock->nBits = GetNextTarget(pindexPrev, pblock);
+        }
         pblock->nNonce = 0;
 
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
@@ -787,7 +914,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
         if (!fProofOfStake)
             UpdateTime(pblock, pindexPrev, fProofOfStake);
 
-        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
+        pblock->nBits          = GetNextWorkRequired_Legacy(pindexPrev, pblock, fProofOfStake);
         pblock->nNonce         = 0;
         
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
@@ -1338,6 +1465,5 @@ CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet,
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
     return CreateNewBlock(scriptPubKey, pwallet, fProofOfStake);
 }
-
 
 #endif // ENABLE_WALLET

@@ -256,13 +256,14 @@ public:
         nEnforceBlockUpgradeMajority = 750;  // consensus.nMajorityEnforceBlockUpgrade = 750;
         nRejectBlockOutdatedMajority = 950;  // consensus.nMajorityRejectBlockOutdated = 950;
         nToCheckBlockUpgradeMajority = 1000; // consensus.nMajorityWindow = 1000;
-        nMinerThreads = 0;
-        nTargetTimespan = 1 * 60;
-        nTargetSpacing = 1 * 60;
-        nStakeTargetSpacing = 60; // stake every 1 hour
-        nPastBlocksMin = 24;
-        nPastBlocksMax = 24;
-        nStakeMinAge = 4 * 60 * 60;
+        nMinerThreads          = 0;
+        nTargetTimespan        = 1 * 60;
+        nTargetSpacing         = 1 * 60;
+        nStakeTargetSpacing    = 60;          // stake every 1 hour
+        nStakeLockInterval     = 60 * 60 * 4; // Stake remains locked for 4 hours
+        nPastBlocksMin         = 24;
+        nPastBlocksMax         = 24;
+        nStakeMinAge           = 4 * 60 * 60;
         nStakeMinConfirmations = 25;
         nModifier = MODIFIER_INTERVAL_TESTNET;
         nClientMintableCoinsInterval = 5 * 60;
@@ -377,13 +378,14 @@ public:
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
         nToCheckBlockUpgradeMajority = 100;
-        nMinerThreads = 0;
-        nTargetTimespan = 1 * 60; // KORE: 1 minute
-        nTargetSpacing  = 1 * 30; // KORE: 30 seconds
-        nStakeTargetSpacing = 10; // Stake every 10 minutes
-        nPastBlocksMin = 64;
-        nPastBlocksMax = 64;
-        nStakeMinAge = 30 * 60; // It will stake after 30 minutes
+        nMinerThreads       = 0;
+        nTargetTimespan     = 1 * 60;  // KORE: 1 minute
+        nTargetSpacing      = 1 * 30;  // KORE: 30 seconds
+        nStakeTargetSpacing = 10;      // Stake every 10 minutes
+        nStakeLockInterval  = 60 * 30; // Stake remains locked for 30 minutes
+        nPastBlocksMin      = 64;
+        nPastBlocksMax      = 64;
+        nStakeMinAge        = 30 * 60; // It will stake after 30 minutes
         nStakeMinConfirmations = 25;
         nModifier = MODIFIER_INTERVAL_TESTNET;
         nClientMintableCoinsInterval = 10; // Every 10 seconds
@@ -564,8 +566,11 @@ public:
         nPastBlocksMin  = 32;
         nPastBlocksMax  = 128;
         nMaturity = 1;
+
         nStakeMinAge = 1;
         nStakeMinConfirmations = 25;
+        nStakeLockInterval = 1;
+        nStakeTargetSpacing = 1;
 
         fMiningRequiresPeers      = false;
         fDefaultConsistencyChecks = true;
@@ -590,6 +595,7 @@ public:
     virtual void setSkipProofOfWorkCheck(bool afSkipProofOfWorkCheck) { fSkipProofOfWorkCheck = afSkipProofOfWorkCheck; }
     virtual void setHeightToFork(int aHeightToFork) { heightToFork = aHeightToFork; };
     virtual void setLastPowBlock(int aLastPOWBlock) { nLastPOWBlock = aLastPOWBlock; };
+    virtual void setStakeLockInterval(int aStakeLockInterval) { nStakeLockInterval = aStakeLockInterval; };
 };
 static CUnitTestParams unitTestParams;
 

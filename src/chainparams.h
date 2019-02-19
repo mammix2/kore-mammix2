@@ -12,6 +12,7 @@
 #include "checkpoints.h"
 #include "primitives/block.h"
 #include "protocol.h"
+#include "primitives/transaction.h"
 #include "uint256.h"
 
 #include <vector>
@@ -96,6 +97,7 @@ public:
     int64_t TargetTimespan() const { return nTargetTimespan; }
     int64_t TargetSpacing() const { return nTargetSpacing; }
     int64_t StakeTargetSpacing() const {return nStakeTargetSpacing;}
+    int64_t StakeLockInterval() const { return (nStakeLockInterval / CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) | CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG; }
     int64_t DifficultyAdjustmentInterval() const { return nTargetTimespan / nTargetSpacing; }
     int64_t PastBlocksMin() const { return nPastBlocksMin; }
     int64_t PastBlocksMax() const { return nPastBlocksMax; }
@@ -107,6 +109,7 @@ public:
     
     int64_t Interval() const { return nTargetTimespan / nTargetSpacing; }
     int COINBASE_MATURITY() const { return nMaturity; }
+    int GetMaxStakeModifierInterval() const { return min(nStakeMinConfirmations, 64U); }
     CAmount MaxMoneyOut() const { return nMaxMoneyOut; }
     /** The masternode count that we will allow the see-saw reward payments to be off by */
     int MasternodeCountDrift() const { return nMasternodeCountDrift; }
@@ -175,6 +178,7 @@ protected:
     int64_t nTargetTimespan;
     int64_t nTargetSpacing;
     int64_t nStakeTargetSpacing;
+    int64_t nStakeLockInterval;
     int64_t nPastBlocksMin; // used when calculating the NextWorkRequired 
     int64_t nPastBlocksMax;
     unsigned int nStakeMinAge;
@@ -251,6 +255,7 @@ public:
     virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
     virtual void setHeightToFork(int aHeightToFork) = 0;
     virtual void setLastPowBlock(int aLastPOWBlock) = 0;
+    virtual void setStakeLockInterval(int aStakeLockInterval) = 0;
 };
 
 

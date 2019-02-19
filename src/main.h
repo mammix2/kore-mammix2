@@ -21,9 +21,6 @@
 #include "pow.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
-#ifdef ZEROCOIN
-#include "primitives/zerocoin.h"
-#endif
 #include "script/script.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
@@ -332,8 +329,6 @@ bool DisconnectBlocksAndReprocess(int blocks);
 // ***TODO***
 double ConvertBitsToDouble(unsigned int nBits);
 CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue);
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount);
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
 
 /**
  * Prune block and undo files (blk???.dat and undo???.dat) so that the disk space used is less than a user-defined target.
@@ -524,31 +519,12 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsV
 
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
-
-#ifdef ZEROCOIN
-bool BlockToPubcoinList(const CBlock& block, list<libzerocoin::PublicCoin>& listPubcoins, bool fFilterInvalid);
-bool BlockToMintValueVector(const CBlock& block, const libzerocoin::CoinDenomination denom, std::vector<CBigNum>& vValues);
-std::list<libzerocoin::CoinDenomination> ZerocoinSpendListFromBlock(const CBlock& block, bool fFilterInvalid);
-void FindMints(vector<CMintMeta> vMintsToFind, vector<CMintMeta>& vMintsToUpdate, vector<CMintMeta>& vMissingMints);
-bool GetZerocoinMint(const CBigNum& bnPubcoin, uint256& txHash);
-bool IsSerialKnown(const CBigNum& bnSerial);
-bool IsSerialInBlockchain(const CBigNum& bnSerial, int& nHeightTx);
-bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend);
-bool IsSerialInBlockchain(const uint256& hashSerial, int& nHeightTx, uint256& txidSpend, CTransaction& tx);
-bool IsPubcoinInBlockchain(const uint256& hashPubcoin, uint256& txid);
-bool RemoveSerialFromDB(const CBigNum& bnSerial);
-#endif
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx, CTransaction& tx);
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx);
 bool IsBlockHashInChain(const uint256& hashBlock);
 bool ValidOutPoint(const COutPoint out, int nHeight);
-#ifndef ZEROCOIN
-void RecalculateZKORESpent();
-void RecalculateZKOREMinted();
-#endif
 bool RecalculateKORESupply(int nHeightStart);
 bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError);
-
 
 /**
  * Check if transaction will be final in the next block to be created.
@@ -668,7 +644,6 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
 /** Context-independent validity checks */
 bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW = true);
 bool CheckBlock(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
-bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev);
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState &state);
