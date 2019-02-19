@@ -24,7 +24,7 @@
             },
 
             // No args
-            "args": ["all"],
+            "args": ["-j4","all"],
 
             // Use the standard less compilation problem matcher.
             "problemMatcher": {
