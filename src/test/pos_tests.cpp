@@ -6,11 +6,11 @@
 #include "init.h"
 #include "main.h"
 #include "miner.h"
-#include "pob.h"
 #include "pubkey.h"
 #include "timedata.h"
 #include "uint256.h"
 #include "util.h"
+#include "utilmoneystr.h"
 #include "utiltime.h"
 #include "wallet.h"
 
@@ -18,10 +18,12 @@
 #include <cmath>
 #include <random>
 
-BOOST_AUTO_TEST_SUITE(pob_tests)
+BOOST_AUTO_TEST_SUITE(pos_tests)
+
+// #define RUN_INTEGRATION_TEST
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
-static const int WALLETS_AVAILABLE = 238;
+static const int WALLETS_AVAILABLE = 100;
 static const int MASTERNODES_AVAILABLE = 20;
 
 static CWallet* wallets = new CWallet[WALLETS_AVAILABLE];
@@ -31,6 +33,8 @@ static CAmount currentSuply;
 static std::default_random_engine generator;
 static uint genesisTime;
 int blockCount = 200;
+int lastPoSWallet = -1;
+int nextToLastPoSWallet = -1;
 
 static CAmount* masternodes = new CAmount[MASTERNODES_AVAILABLE];
 static int currMasternode = 0;
@@ -78,10 +82,10 @@ static std::vector<CRecipient> PopulateWalletByWealth(double numberOfWallets, do
     std::vector<CRecipient> vecSend;
 
     printf("Distributing %.0f for %.0f wallets.\n", toDistribute, numberOfWallets);
-    printf(" Creating transactions: 0\%");
+    printf(" Creating transactions: 0%%");
 
     for (int i = 0; i < numberOfWallets; i++) {
-        ulong val = 0;
+        CAmount val = 0;
 
         if (i == numberOfWallets - 1) {
             val = toDistribute;
@@ -116,13 +120,13 @@ static std::vector<CRecipient> PopulateWalletByWealth(double numberOfWallets, do
         wallets[walletCount].nStakeSetUpdateTime = 0;
         wallets[walletCount].nStakeSplitThreshold = 5000 * COIN;
 
-        printf("\xd Creating transactions: %.2f\%", (i * 100) / numberOfWallets);
+        printf("\xd Creating transactions: %.2f%%", (i * 100) / numberOfWallets);
 
         toDistribute -= val;
         walletCount++;
     }
 
-    printf("\xd Creating transactions: 100\%    \n");
+    printf("\xd Creating transactions: 100%% \t \n");
     return vecSend;
 }
 
@@ -131,13 +135,13 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
-            return error("KOREMiner : generated block is stale");
+            return error("KOREMiner: generated block is stale");
     }
 
     // Process this block the same as if we had receiveMinerd it from another node
     CValidationState state;
     if (!ProcessNewBlock(state, NULL, pblock)) {
-        return error("KOREMiner : ProcessNewBlock, block not accepted");
+        return error("KOREMiner: ProcessNewBlock, block not accepted");
     }
 
     return true;
@@ -201,7 +205,7 @@ void StartPreMineAndWalletAllocation()
         CValidationState state;
         BOOST_CHECK(ProcessBlockFound(pblock, wallets[0]));
 
-        if (i == 5 || i == 37 || i == 95 || i == 199) {
+        if (i == 5 || i == 37 || i == 95 || i == 198) {
             wallets[0].ScanForWalletTransactions(actualBlock, true);
             actualBlock = chainActive[i];
 
@@ -213,10 +217,10 @@ void StartPreMineAndWalletAllocation()
             std::vector<CRecipient> vecSend;
             switch (populate) {
             case 0:
-                vecSend = PopulateWalletByWealth(137, 39800 * COIN); //1388, 2, true);
+                vecSend = PopulateWalletByWealth(69, 39800 * COIN); //1388, 2, true);
                 break;
             case 1:
-                vecSend = PopulateWalletByWealth(90, 318400 * COIN); //900, 16);
+                vecSend = PopulateWalletByWealth(20, 318400 * COIN); //900, 16);
                 break;
             case 2:
                 vecSend = PopulateWalletByWealth(9, 577100 * COIN); //90, 29);
@@ -242,7 +246,9 @@ void StartPreMineAndWalletAllocation()
     }
 }
 
-BOOST_AUTO_TEST_CASE(CheckProofOfBalance_percentages)
+#ifdef RUN_INTEGRATION_TEST
+
+BOOST_AUTO_TEST_CASE(CheckProofOfStake_percentages)
 {
     {
         LOCK(cs_main);
@@ -262,25 +268,19 @@ BOOST_AUTO_TEST_CASE(CheckProofOfBalance_percentages)
 
     for (int i = 0; i < WALLETS_AVAILABLE; i++) {
         wallets[i].ScanForWalletTransactions(genesisBlock, true);
-        printf("Balance for wallet %u is %u.\n", i, wallets[i].GetBalance());
+        printf("Balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
 
     std::uniform_int_distribution<int> distribution(0, 237);
 
     // const CBlockIndex index1(index);
-    // uint nBits = GetNextTarget1(&index1);
+    // uint nBits = GetNextTarget(&index1);
 
     while (_supply < MAX_MONEY) {
-        /*
-        \/ This gets the current Coinbase \/  \/                   This is the balance multiplier                    \/
-        (_totalSupply - _supply) / 987001.9 * (0.05 + 4.93501e-8 * userBalance + 1.17928e-52 * userBalance^2 * _supply)
-        */
-
         uint nExtraNonce = 0;
         int walletID = distribution(generator);
 
         CWallet* wallet = &wallets[walletID];
-        //wallet->cs_wallet.unlock();
         CReserveKey reservekey(wallet);
 
         // BitcoinMiner(wallet, true);
@@ -295,26 +295,41 @@ BOOST_AUTO_TEST_CASE(CheckProofOfBalance_percentages)
             CBlock* pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-            if (!SignBlock(*pblock, *wallet)) {
+            if (!SignBlock(*pblock, *wallet, UseLegacyCode(pindexPrev->nHeight + 1))) {
                 printf("BitcoinMiner(): Signing new block with UTXO key failed \n");
                 continue;
             }
 
-            ProcessBlockFound(pblock, *wallet);
+            if (!ProcessBlockFound(pblock, *wallet))
+                continue;
+            
             blockCount++;
 
-            int last = lastBlockStaked[walletID];
-            CAmount prevBalance = wallet->GetBalance();
-            wallet->ScanForWalletTransactions(chainActive[last]);
-            lastBlockStaked[walletID] = pindexPrev->nHeight;
-            CAmount balance = wallet->GetBalance();
-            printf("Wallet %u generated %u and has a balance of %u after mint on block %u.\n", walletID, balance - prevBalance, balance, blockCount);
+            if (nextToLastPoSWallet >= 0)
+            {
+                int last = lastBlockStaked[nextToLastPoSWallet];
+                CAmount prevBalance = wallets[nextToLastPoSWallet].GetBalance();
+                wallets[nextToLastPoSWallet].ScanForWalletTransactions(chainActive[last]);
+                CAmount balance = wallets[nextToLastPoSWallet].GetBalance();
+                printf("Wallet %d generated %s and has a balance of %s after mint on block %d.\n", nextToLastPoSWallet, FormatMoney(balance - prevBalance).c_str(), FormatMoney(balance).c_str(), last);
+            }
+            
+            lastBlockStaked[walletID] = blockCount;
+            nextToLastPoSWallet = lastPoSWallet;
+            lastPoSWallet = walletID;
 
-            continue;
+            _supply = chainActive.Tip()->nMoneySupply;
         }
 
         if (blockCount == 525600) break;
     }
+
+    for (int i = 0; i < WALLETS_AVAILABLE; i++) {
+        wallets[i].ScanForWalletTransactions(genesisBlock, true);
+        printf("Final balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
+    }
 }
+
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()
