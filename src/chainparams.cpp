@@ -392,7 +392,7 @@ public:
         // spacing          : [confirmations-1, max(confirmations-1, value)]
         // modifierInterval : [spacing, spacing)]
         // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-        nMaturity                    = nStakeMinConfirmations       = 12;        
+        nMaturity                    = nStakeMinConfirmations       = 25;        
         nTargetTimespan              = 1 * 60; // KORE: 1 minute
         nTargetSpacing               = nStakeTargetSpacing          = 60;
         nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
