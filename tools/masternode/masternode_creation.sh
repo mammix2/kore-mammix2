@@ -118,7 +118,11 @@ echo "  command: $command"
 masternode_private_key=`$command`
 
 echo "Generating $masternode_conf_file file"
-rm $masternode_conf_file
+if [ -f "$masternode_conf_file" ]
+then
+    rm $masternode_conf_file
+fi
+
 echo "server=1" > $masternode_conf_file
 echo "daemon=1" >> $masternode_conf_file
 echo "addnode=$control_wallet_onion" >> $masternode_conf_file
@@ -175,7 +179,10 @@ echo " COOL ! We got at least $txConfirmations confirmations"
 echo ""
 
 echo "Generating $activation_file file"
-rm $activation_file
+if [ -f "$activation_file" ]
+then
+    rm $activation_file
+fi
 echo "#!/bin/sh" >> $activation_file
 echo "set -e" >> $activation_file
 echo "" >> $activation_file
@@ -185,7 +192,11 @@ chmod +x $activation_file
 
 echo "Congratulations !!! Your Masternode is ready to be started."  >> $readme
 echo "Please, now follow instruction at $readme"
-rm $readme
+if [ -f "$readme" ] 
+then
+    rm $readme
+fi
+
 echo "##########################################################################" >> $readme
 echo "## Congratulations !!!"  >> $readme
 echo "## your Masternode is ready to be started !!!             "  >> $readme

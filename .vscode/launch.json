@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "33010",
+            "processId": "95780",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -148,6 +148,21 @@
                     "ignoreFailures": true
                 }
             ]
-        }        
+        },
+        { 
+            "name": "Attach to Unit ",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/src/test/test_kore",
+            "processId": "85695",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },       
     ]
 }
