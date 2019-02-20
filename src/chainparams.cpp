@@ -392,7 +392,7 @@ public:
         // spacing          : [confirmations-1, max(confirmations-1, value)]
         // modifierInterval : [spacing, spacing)]
         // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-        nMaturity                    = nStakeMinConfirmations       = 25;        
+        nMaturity                    = nStakeMinConfirmations       = 12;        
         nTargetTimespan              = 1 * 60; // KORE: 1 minute
         nTargetSpacing               = nStakeTargetSpacing          = 60;
         nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
@@ -413,7 +413,7 @@ public:
         vDeployments[DEPLOYMENT_CSV].nStartTime = 1456790400; // March 1st, 2016
         vDeployments[DEPLOYMENT_CSV].nTimeout   = 1493596800; // May 1st, 2017
 
-        nLastPOWBlock                 = 100;
+        nLastPOWBlock                 = 1000;
         nMasternodeCountDrift         = 4;
         nBlockEnforceSerialRange      = 1;          //Enforce serial range starting this block
         nBlockRecalculateAccumulators = 9908000;    //Trigger a recalculation of accumulators

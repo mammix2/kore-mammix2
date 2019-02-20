@@ -2,6 +2,8 @@
 #include "checkpoints.h"
 #include "init.h"
 #include "tests_util.h"
+#include "util.h"
+#include "utiltime.h"
 
 
 #include <boost/test/unit_test.hpp>
@@ -12,6 +14,12 @@ BOOST_AUTO_TEST_SUITE(fork_afterwords)
 
 BOOST_AUTO_TEST_CASE(after_fork)
 {
+    if (fDebug) {
+        LogPrintf("****************************************** \n");
+        LogPrintf("**  Starting fork_afterwords/after_fork ** \n");
+        LogPrintf("****************************************** \n");
+    }
+
     Checkpoints::fEnabled = false;
     int64_t oldTargetTimespan = Params().TargetTimespan();
     int64_t oldTargetSpacing = Params().TargetSpacing();
@@ -36,6 +44,7 @@ BOOST_AUTO_TEST_CASE(after_fork)
     ModifiableParams()->setStakeMinAge(0);
     ModifiableParams()->setTargetTimespan(1);
     ModifiableParams()->setEnableBigRewards(true);
+    SetMockTime(0);
 
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);

@@ -2,6 +2,8 @@
 #include "checkpoints.h"
 #include "init.h"
 #include "tests_util.h"
+#include "util.h"
+#include "utiltime.h"
 
 
 #include <boost/test/unit_test.hpp>
@@ -13,6 +15,12 @@ BOOST_AUTO_TEST_SUITE(fork_testnet)
 
 BOOST_AUTO_TEST_CASE(testnet_parameters)
 {
+    if (fDebug) {
+        LogPrintf("*********************************************** \n");
+        LogPrintf("**  Starting fork_testnet/testnet_parameters ** \n");
+        LogPrintf("*********************************************** \n");
+    }
+
     Checkpoints::fEnabled = false;
     int64_t oldTargetTimespan = Params().TargetTimespan();
     int64_t oldTargetSpacing = Params().TargetSpacing();
@@ -43,6 +51,7 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     ModifiableParams()->setStakeMinAge(nStakeMinAge);
     ModifiableParams()->setTargetTimespan(nTargetTimespan);
     ModifiableParams()->setEnableBigRewards(true);
+    SetMockTime(0);    
 
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);

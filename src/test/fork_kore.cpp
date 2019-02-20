@@ -8,6 +8,7 @@
 #include "init.h"
 #include "tests_util.h"
 #include "util.h"
+#include "utiltime.h"
 
 #include <boost/test/unit_test.hpp>
 
@@ -20,6 +21,12 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 
 BOOST_AUTO_TEST_CASE(minimum_fork)
 {
+    if (fDebug) {
+        LogPrintf("************************************** \n");
+        LogPrintf("**  Starting fork_kore/minimum_fork ** \n");
+        LogPrintf("************************************** \n");
+    }
+
     Checkpoints::fEnabled = false;
     int64_t oldTargetTimespan = Params().TargetTimespan();
     int64_t oldTargetSpacing = Params().TargetSpacing();
@@ -42,6 +49,7 @@ BOOST_AUTO_TEST_CASE(minimum_fork)
     ModifiableParams()->setStakeMinAge(0);
     ModifiableParams()->setTargetTimespan(1);
     ModifiableParams()->setEnableBigRewards(true);
+    SetMockTime(0);
 
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
