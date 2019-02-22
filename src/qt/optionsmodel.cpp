@@ -105,12 +105,6 @@ void OptionsModel::Init()
         addOverriddenOption("-par");
 
 // Wallet
-#ifdef ENABLE_WALLET
-    if (!settings.contains("bSpendZeroConfChange"))
-        settings.setValue("bSpendZeroConfChange", false);
-    if (!SoftSetBoolArg("-spendzeroconfchange", settings.value("bSpendZeroConfChange").toBool()))
-        addOverriddenOption("-spendzeroconfchange");
-#endif
     if (!settings.contains("nStakeSplitThreshold"))
         settings.setValue("nStakeSplitThreshold", 1);
 
@@ -208,8 +202,6 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
         }
 
 #ifdef ENABLE_WALLET
-        case SpendZeroConfChange:
-            return settings.value("bSpendZeroConfChange");
         case ShowMasternodesTab:
             return settings.value("fShowMasternodesTab");
 #endif
@@ -300,12 +292,6 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
             }
         } break;
 #ifdef ENABLE_WALLET
-        case SpendZeroConfChange:
-            if (settings.value("bSpendZeroConfChange") != value) {
-                settings.setValue("bSpendZeroConfChange", value);
-                setRestartRequired(true);
-            }
-            break;
         case ShowMasternodesTab:
             if (settings.value("fShowMasternodesTab") != value) {
                 settings.setValue("fShowMasternodesTab", value);

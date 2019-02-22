@@ -7,6 +7,7 @@
 #include "main.h"
 #include "miner.h"
 #include "pubkey.h"
+#include "script/sign.h"
 #include "timedata.h"
 #include "uint256.h"
 #include "util.h"
@@ -171,7 +172,6 @@ void StartPreMineAndWalletAllocation()
     wallets[0].strWalletFile = "wallet_0.dat";
     CWalletDB walletDB(wallets[0].strWalletFile, "crw");
 
-    //wallets[0].NewKeyPool();
     {
         LOCK(wallets[0].cs_wallet);
         wallets[0].AddKeyPubKey(key, pubKey);
@@ -248,7 +248,7 @@ void StartPreMineAndWalletAllocation()
 
 #ifdef RUN_INTEGRATION_TEST
 
-BOOST_AUTO_TEST_CASE(CheckProofOfStake_percentages)
+BOOST_AUTO_TEST_CASE(pos_integration)
 {
     {
         LOCK(cs_main);
@@ -271,10 +271,7 @@ BOOST_AUTO_TEST_CASE(CheckProofOfStake_percentages)
         printf("Balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
 
-    std::uniform_int_distribution<int> distribution(0, 237);
-
-    // const CBlockIndex index1(index);
-    // uint nBits = GetNextTarget(&index1);
+    std::uniform_int_distribution<int> distribution(0, WALLETS_AVAILABLE - 1);
 
     while (_supply < MAX_MONEY) {
         uint nExtraNonce = 0;
@@ -295,25 +292,24 @@ BOOST_AUTO_TEST_CASE(CheckProofOfStake_percentages)
             CBlock* pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-            if (!SignBlock(*pblock, *wallet, UseLegacyCode(pindexPrev->nHeight + 1))) {
+            if (!SignBlock(*pblock, *wallet)) {
                 printf("BitcoinMiner(): Signing new block with UTXO key failed \n");
                 continue;
             }
 
             if (!ProcessBlockFound(pblock, *wallet))
                 continue;
-            
+
             blockCount++;
 
-            if (nextToLastPoSWallet >= 0)
-            {
+            if (nextToLastPoSWallet >= 0) {
                 int last = lastBlockStaked[nextToLastPoSWallet];
                 CAmount prevBalance = wallets[nextToLastPoSWallet].GetBalance();
                 wallets[nextToLastPoSWallet].ScanForWalletTransactions(chainActive[last]);
                 CAmount balance = wallets[nextToLastPoSWallet].GetBalance();
                 printf("Wallet %d generated %s and has a balance of %s after mint on block %d.\n", nextToLastPoSWallet, FormatMoney(balance - prevBalance).c_str(), FormatMoney(balance).c_str(), last);
             }
-            
+
             lastBlockStaked[walletID] = blockCount;
             nextToLastPoSWallet = lastPoSWallet;
             lastPoSWallet = walletID;
@@ -331,5 +327,201 @@ BOOST_AUTO_TEST_CASE(CheckProofOfStake_percentages)
 }
 
 #endif
+
+static long nTime = GetTime();
+static int nHeight = 1;
+
+CMutableTransaction GetNewTransaction(CScript script, CAmount nvalue, bool fisMined = true, bool fisPoS = false)
+{
+    CMutableTransaction tx;
+    tx.nVersion = 2;
+    tx.nTime = ++nTime;
+    CTxIn txIn;
+    if (fisMined) {
+        txIn.prevout.SetNull();
+        txIn.scriptSig = CScript() << nHeight << OP_0;
+    }
+    tx.vin.emplace_back(txIn);
+    CTxOut txOut;
+    txOut.scriptPubKey = script;
+    txOut.nValue = nvalue;
+
+    if (fisPoS) {
+        CTxOut txOut2;
+        txOut2.nValue = 0.1 * nvalue;
+        txOut2.scriptPubKey = CScript() << OP_0;
+        tx.vout.emplace_back(txOut2);
+
+        txOut.nValue -= txOut2.nValue;
+    }
+
+    tx.vout.emplace_back(txOut);
+
+    return tx;
+}
+
+CBlock GetNewPoWBlock(uint256 nprevBlockHash, CTransaction tx)
+{
+    CBlock block;
+    block.nVersion = 1;
+    block.nTime = ++nTime + 20;
+    block.payee = tx.vout[0].scriptPubKey;
+    block.fChecked = true;
+    block.hashPrevBlock = nprevBlockHash;
+    block.vtx.emplace_back(tx);
+    block.hashMerkleRoot = block.BuildMerkleTree();
+
+    CBlockIndex* idx = InsertBlockIndex(block.GetHash());
+    idx->nVersion = block.nVersion;
+    idx->hashMerkleRoot = block.hashMerkleRoot;
+    idx->nTime = block.nTime;
+    idx->nHeight = nHeight++;
+
+    chainActive.SetTip(idx);
+
+    return block;
+}
+
+CBlock GetNewPoSBlock(uint256 nprevBlockHash, CTransaction tx, CTransaction tx_stake, CScript script)
+{
+    CBlock block;
+    block.nVersion = 1;
+    block.nTime = ++nTime + 30;
+    block.payee = script;
+    block.fChecked = true;
+    block.hashPrevBlock = nprevBlockHash;
+    block.vtx.emplace_back(tx);
+    block.vtx.emplace_back(tx_stake);
+    block.hashMerkleRoot = block.BuildMerkleTree();
+
+    CBlockIndex* idx = InsertBlockIndex(block.GetHash());
+    idx->nVersion = block.nVersion;
+    idx->hashMerkleRoot = block.hashMerkleRoot;
+    idx->nTime = block.nTime;
+    idx->nHeight = nHeight++;
+
+    chainActive.SetTip(idx);
+
+    return block;
+}
+
+CWalletTx AddToWallet(CWallet* wallet, CTransaction tx, CBlock block)
+{
+    CWalletTx wtx(wallet, tx);
+    {
+        LOCK(cs_main);
+        wtx.SetMerkleBranch(block);
+        wtx.fMerkleVerified = true;
+    }
+
+    CWalletDB walletDB(wallet->strWalletFile, "crw");
+
+    wallet->AddToWallet(wtx, false, &walletDB);
+
+    mempool.addUnchecked(tx.GetHash(), CTxMemPoolEntry(tx, 0, block.nTime, 100.0, nHeight));
+
+    return wtx;
+}
+
+/*
+** This test takes a long time to finish (49 seconds of sleep) because of the nature of a time locking transaction.
+** We're creating PoW and PoS blocks here to test if the GetBalance method works as intended.
+** The UnitTest ChainParams configuration states that any coinbase should be available after 1 block (nMaturity = 1)
+** and we set the locking interval of a PoS transaction to 60 seconds (aStakeLockInterval = 60).
+** Because of the SEQUENCE_LOCKTIME_GRANULARITY chosen (5 bits), we can only set the locking interval in increments of
+** 32 seconds. The minimal locking time is 32 seconds and the maximum locking time is 65504 seconds or 1091 minutes or
+** 18 hours.
+** The balance is tested against the last coinbase sum up to that point.
+** To test the addition of the locked coin to the balance, we must wait at least 32 seconds.
+ */
+BOOST_AUTO_TEST_CASE(pos_GetBalance)
+{
+    // Set ChainParams for the test
+    SelectParams(CBaseChainParams::UNITTEST);
+    ModifiableParams()->setHeightToFork(0);
+    ModifiableParams()->setStakeLockInterval(60);
+
+    CBitcoinSecret bsecret;
+    bsecret.SetString(strSecret);
+    CKey key = bsecret.GetKey();
+    CPubKey pubKey = key.GetPubKey();
+    CKeyID keyID = pubKey.GetID();
+    CScript script = GetScriptForDestination(keyID);
+
+    CWallet wallet;
+    wallet.strWalletFile = "pos_GetBalance.dat";
+    {
+        LOCK(wallet.cs_wallet);
+        wallet.AddKeyPubKey(key, pubKey);
+    }
+    CWalletDB walletDB(wallet.strWalletFile, "crw");
+
+    // Add a PoW 5 KORE tx to the wallet
+    CMutableTransaction tx1 = GetNewTransaction(script, 5 * COIN);
+    CBlock block1 = GetNewPoWBlock(chainActive.Genesis()->GetBlockHash(), tx1);
+    CWalletTx wtx1 = AddToWallet(&wallet, tx1, block1);
+    // This coin will be available only on the next block
+    BOOST_CHECK(wallet.GetBalance() == 0);
+
+    sleep(2);
+
+    // Add a PoW 5 KORE tx to the wallet
+    CMutableTransaction tx2 = GetNewTransaction(script, 5 * COIN);
+    CBlock block2 = GetNewPoWBlock(block1.GetHash(), tx2);
+    CWalletTx wtx2 = AddToWallet(&wallet, tx2, block2);
+    // We're checking the balance against first coin
+    BOOST_CHECK(wallet.GetBalance() == 5 * COIN);
+
+    sleep(2);
+
+    // Spend the first coin
+    CMutableTransaction tx3 = GetNewTransaction(CScript() << OP_0, 5 * COIN, false);
+    tx3.vin[0].prevout = COutPoint(tx1.GetHash(), 0);
+    SignSignature(wallet, wtx1, tx3, 0);
+    CBlock block3 = GetNewPoWBlock(block2.GetHash(), tx3);
+    CWalletTx wtx3 = AddToWallet(&wallet, tx3, block3);
+    // We're checking the balance against the second coin
+    BOOST_CHECK(wallet.GetBalance() == 5 * COIN);
+
+    sleep(2);
+
+    // Lock the second coin as stake
+    CMutableTransaction tx4 = GetNewTransaction(script, 10 * COIN, true, true);
+    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
+    tx4_stake.vin[0].prevout = COutPoint(tx2.GetHash(), 0);
+    SignSignature(wallet, wtx2, tx4_stake, 0);
+    CBlock block4 = GetNewPoSBlock(block3.GetHash(), tx4, tx4_stake, script);
+    CWalletTx wtx4 = AddToWallet(&wallet, tx4, block4);
+    CWalletTx wtx4_stake = AddToWallet(&wallet, tx4_stake, block4);
+    // The balance should be 0 until the next block
+    BOOST_CHECK(wallet.GetBalance() == 0);
+
+    sleep(13);
+
+    // Add a PoW 5 KORE tx to the wallet
+    CMutableTransaction tx5 = GetNewTransaction(script, 5 * COIN);
+    CBlock block5 = GetNewPoWBlock(block4.GetHash(), tx5);
+    CWalletTx wtx5 = AddToWallet(&wallet, tx5, block5);
+    // We're checking the balance against the PoS coin
+    BOOST_CHECK(wallet.GetBalance() == 9 * COIN);
+
+    sleep(13);
+
+    // Add a PoW 5 KORE tx to the wallet
+    CMutableTransaction tx6 = GetNewTransaction(script, 5 * COIN);
+    CBlock block6 = GetNewPoWBlock(block5.GetHash(), tx6);
+    CWalletTx wtx6 = AddToWallet(&wallet, tx6, block6);
+    // We're checking the balance against the last PoW coin
+    BOOST_CHECK(wallet.GetBalance() == 14 * COIN);
+
+    sleep(17);
+
+    // Add a PoW 5 KORE tx to the wallet
+    CMutableTransaction tx7 = GetNewTransaction(script, 5 * COIN);
+    CBlock block7 = GetNewPoWBlock(block6.GetHash(), tx7);
+    CWalletTx wtx7 = AddToWallet(&wallet, tx7, block7);
+    // We're checking the balance against the expired lock coin
+    BOOST_CHECK(wallet.GetBalance() == 24 * COIN);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

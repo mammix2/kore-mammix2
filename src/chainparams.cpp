@@ -569,7 +569,7 @@ public:
 
         nStakeMinAge = 1;
         nStakeMinConfirmations = 25;
-        nStakeLockInterval = 1;
+        nStakeLockInterval = 32; // minimum value
         nStakeTargetSpacing = 1;
 
         fMiningRequiresPeers      = false;
