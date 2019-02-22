@@ -1380,6 +1380,15 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
             AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL);
         }
+    } else {
+        string automatic_onion;
+        boost::filesystem::path const hostname_path = GetDataDir() / "onion" / "hostname";
+        if (!boost::filesystem::exists(hostname_path)) {
+            return InitError(_("No external address found."));
+        }
+        ifstream file(hostname_path.string().c_str());
+        file >> automatic_onion;
+        AddLocal(CService(automatic_onion, GetListenPort(), fNameLookup), LOCAL_MANUAL);
     }
 
     BOOST_FOREACH(const std::string& strDest, mapMultiArgs["-seednode"])
