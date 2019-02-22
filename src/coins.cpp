@@ -5,6 +5,7 @@
 
 #include "coins.h"
 #include "random.h"
+#include "util.h" //fDebug
 
 #include <assert.h>
 
@@ -131,6 +132,10 @@ CCoinsModifier CCoinsViewCache::ModifyCoins_Legacy(const uint256& txid)
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
     size_t cachedCoinUsage = 0;    
+    if (fDebug) { 
+        LogPrintf("Coins in the cache : %d \n", cacheCoins.size());
+        LogPrintf("ModifyCoins_Legacy txid: %s inserted ? %s \n",txid.ToString().c_str(), ret.second? "true" : "false");
+    }
     if (ret.second) {
         if (!base->GetCoins(txid, ret.first->second.coins)) {
             // The parent view does not have this entry; mark it as fresh.
@@ -140,9 +145,11 @@ CCoinsModifier CCoinsViewCache::ModifyCoins_Legacy(const uint256& txid)
             // The parent view only has a pruned entry for this; mark it as fresh.
             ret.first->second.flags = CCoinsCacheEntry::FRESH;
         }
-    } else {
+    }  else {
         cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage_Legacy();
-    }
+    } 
+    if (fDebug) LogPrintf("coin height=%d ntime=%d \n", ret.first->second.coins.nHeight, ret.first->second.coins.nTime);
+
     // Assume that whenever ModifyCoins is called, the entry will be modified.
     ret.first->second.flags |= CCoinsCacheEntry::DIRTY;
     return CCoinsModifier(*this, ret.first, cachedCoinUsage);
@@ -152,6 +159,10 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
 {
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
+    if (fDebug) { 
+        LogPrintf("Coins in the cache : %d \n", cacheCoins.size());
+        LogPrintf("ModifyCoins_Legacy txid: %s inserted ? %s \n",txid.ToString().c_str(), ret.second? "true" : "false");
+    }
     if (ret.second) {
         if (!base->GetCoins(txid, ret.first->second.coins)) {
             // The parent view does not have this entry; mark it as fresh.
@@ -162,6 +173,7 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
             ret.first->second.flags = CCoinsCacheEntry::FRESH;
         }
     }
+    if (fDebug) LogPrintf("coin height=%d ntime=%d \n", ret.first->second.coins.nHeight, ret.first->second.coins.nTime);
     // Assume that whenever ModifyCoins is called, the entry will be modified.
     ret.first->second.flags |= CCoinsCacheEntry::DIRTY;
     return CCoinsModifier(*this, ret.first, 0);

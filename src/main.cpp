@@ -3343,7 +3343,7 @@ bool DisconnectBlock_Legacy(const CBlock& block, CValidationState& state, const 
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
         const CTransaction &tx = block.vtx[i];
         uint256 hash = tx.GetHash();
-        LogPrintf("tx Hash %s",hash.ToString().c_str());
+        LogPrintf("tx Hash %s pos=%d\n",hash.ToString().c_str(),i);
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
         {
@@ -4337,6 +4337,10 @@ void static UpdateTip(CBlockIndex* pindexNew)
     chainActive.SetTip(pindexNew);
 
     // New best block
+    // Lico, after fork happens, this line can be removed
+    // it is necessary here otherwise it will not be able to 
+    // stake !!!
+    nChainHeight = pindexNew->nHeight;
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
 
