@@ -7,26 +7,43 @@
 #include "checkpoints.h"
 #include "init.h"
 #include "tests_util.h"
+#include "txdb.h"
 #include "util.h"
 #include "utiltime.h"
 
 #include <boost/test/unit_test.hpp>
 
 
-BOOST_AUTO_TEST_SUITE(fork_kore)
-
-
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 
 
+struct RestartDataBaseTest
+{
+
+    RestartDataBaseTest()
+    {
+        cout << "Finalizing Current Database !!!" << endl;
+        FinalizeDBTest(false);
+    }
+    ~RestartDataBaseTest() 
+    { 
+        cout << "Starting a New Database !!!" << endl;
+        InitializeDBTest();
+    }    
+};
+
+
+//BOOST_FIXTURE_TEST_SUITE(fork_kore, RestartDataBaseTest)
+BOOST_AUTO_TEST_SUITE(fork_kore)
+
 BOOST_AUTO_TEST_CASE(minimum_fork)
 {
+    cout << "**  Starting fork_kore/minimum_fork **" << endl;
     if (fDebug) {
         LogPrintf("************************************** \n");
         LogPrintf("**  Starting fork_kore/minimum_fork ** \n");
         LogPrintf("************************************** \n");
     }
-
     Checkpoints::fEnabled = false;
     int64_t oldTargetTimespan = Params().TargetTimespan();
     int64_t oldTargetSpacing = Params().TargetSpacing();
@@ -71,6 +88,11 @@ BOOST_AUTO_TEST_CASE(minimum_fork)
     ModifiableParams()->setStakeMinConfirmations(oldStakeMinConfirmations);
     ModifiableParams()->setTargetTimespan(oldTargetTimespan);
     ModifiableParams()->setTargetSpacing(oldTargetSpacing);
+}
+
+BOOST_AUTO_TEST_CASE(minimum_fork2)
+{
+    cout << "**  Starting fork_kore/minimum_fork2 **" << endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

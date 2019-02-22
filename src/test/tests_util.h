@@ -7,6 +7,7 @@
 class CWallet;
 class CBlock;
 class CBlockIndex;
+class CCoinsViewDB;
 
 typedef struct {
     bool fProofOfStake;
@@ -23,6 +24,10 @@ typedef struct {
 } blockinfo_t;
 
 extern blockinfo_t blockinfo[];
+
+
+void InitializeDBTest();
+void FinalizeDBTest(bool shutdown);
 
 void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake);
 

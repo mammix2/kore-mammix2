@@ -137,6 +137,7 @@ echo "staking=0"  >> $masternode_conf_file
 echo "masternode=1"  >> $masternode_conf_file
 echo "masternodeprivkey=$masternode_private_key"  >> $masternode_conf_file
 echo "masternodeaddr=$masternode_onion_address"   >> $masternode_conf_file
+echo "masternode account= $masternode_account"    >> $masternode_conf_file
 echo "# sporkkey for testnet"
 echo "sporkkey=8pLecrnAhZjHZyKfqMAtN4rekdcBFrikTi1w1hXjuDRfV1Ygean"   >> $masternode_conf_file
 

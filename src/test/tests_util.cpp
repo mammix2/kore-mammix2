@@ -8,6 +8,7 @@
 #include "primitives/block.h"
 #include "pubkey.h"
 #include "tests_util.h"
+#include "txdb.h"
 #include "uint256.h"
 #include "util.h"
 #include "utiltime.h"
@@ -19,6 +20,48 @@
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
 
+
+CWallet* pwalletMain;
+
+static CCoinsViewDB* pcoinsdbview = NULL;
+
+void InitializeDBTest()
+{
+    
+#ifdef ENABLE_WALLET
+    bitdb.MakeMock();
+#endif
+/*
+    pcoinsdbview = new CCoinsViewDB(1 << 23, true);
+    pblocktree = new CBlockTreeDB(1 << 20, true);
+    pcoinsTip = new CCoinsViewCache(pcoinsdbview);
+    InitBlockIndex();
+#ifdef ENABLE_WALLET
+    bool fFirstRun;
+    pwalletMain = new CWallet("wallet.dat");
+    pwalletMain->LoadWallet(fFirstRun);
+    RegisterValidationInterface(pwalletMain);
+#endif
+*/
+}
+
+void FinalizeDBTest(bool shutdown) 
+{
+#ifdef ENABLE_WALLET
+    bitdb.Flush(shutdown);
+    //bitdb.Close();
+#endif
+/*
+    delete pcoinsTip;
+    delete pcoinsdbview;
+    delete pblocktree;
+#ifdef ENABLE_WALLET
+    UnregisterValidationInterface(pwalletMain);
+    delete pwalletMain;
+    pwalletMain = NULL;
+#endif
+*/
+}
 
 blockinfo_t blockinfo[] =
     {
