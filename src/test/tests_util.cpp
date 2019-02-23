@@ -31,7 +31,6 @@ void InitializeDBTest()
 #ifdef ENABLE_WALLET
     bitdb.MakeMock();
 #endif
-/*
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsTip = new CCoinsViewCache(pcoinsdbview);
@@ -42,7 +41,6 @@ void InitializeDBTest()
     pwalletMain->LoadWallet(fFirstRun);
     RegisterValidationInterface(pwalletMain);
 #endif
-*/
 }
 
 void FinalizeDBTest(bool shutdown) 
@@ -51,7 +49,6 @@ void FinalizeDBTest(bool shutdown)
     bitdb.Flush(shutdown);
     //bitdb.Close();
 #endif
-/*
     delete pcoinsTip;
     delete pcoinsdbview;
     delete pblocktree;
@@ -60,7 +57,6 @@ void FinalizeDBTest(bool shutdown)
     delete pwalletMain;
     pwalletMain = NULL;
 #endif
-*/
 }
 
 blockinfo_t blockinfo[] =

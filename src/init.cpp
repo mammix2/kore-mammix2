@@ -1784,6 +1784,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (mapArgs.count("-blocksizenotify"))
         uiInterface.NotifyBlockSize.connect(BlockSizeNotifyCallback);
     uiInterface.InitMessage(_("Activating best chain..."));
+    // currently we are at this height
+    nChainHeight = GetnHeight(chainActive.Tip());
+
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
     if (UseLegacyCode(GetnHeight(chainActive.Tip()))) {
