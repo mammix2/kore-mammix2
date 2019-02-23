@@ -422,7 +422,7 @@ public:
         nBlockEnforceInvalidUTXO      = 9902850;    //Start enforcing the invalid UTXO's
         nEnforceNewSporkKey           = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey            = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
-        heightToFork                  = 40;     //
+        heightToFork                  = 25;     //
         fEnableBigReward = true;
 
         // sending rewards to this public key
