@@ -392,9 +392,9 @@ public:
         // spacing          : [confirmations-1, max(confirmations-1, value)]
         // modifierInterval : [spacing, spacing)]
         // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-        nMaturity                    = nStakeMinConfirmations       = 25;        
+        nMaturity                    = nStakeMinConfirmations       = 10; // Lico should be25;        
         nTargetTimespan              = 1 * 60; // KORE: 1 minute
-        nTargetSpacing               = nStakeTargetSpacing          = 60;
+        nTargetSpacing               = nStakeTargetSpacing          = 15; // Lico this should be de default 60;
         nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
         nStakeMinAge                 = 30 * 60; // It will stake after 30 minutes
         nPastBlocksMin = 64;
