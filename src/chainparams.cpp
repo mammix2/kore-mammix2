@@ -413,7 +413,7 @@ public:
         vDeployments[DEPLOYMENT_CSV].nStartTime = 1456790400; // March 1st, 2016
         vDeployments[DEPLOYMENT_CSV].nTimeout   = 1493596800; // May 1st, 2017
 
-        nLastPOWBlock                 = 30; // 1000
+        nLastPOWBlock                 = 100; // 1000
         nMasternodeCountDrift         = 4;
         nBlockEnforceSerialRange      = 1;          //Enforce serial range starting this block
         nBlockRecalculateAccumulators = 9908000;    //Trigger a recalculation of accumulators
@@ -422,7 +422,7 @@ public:
         nBlockEnforceInvalidUTXO      = 9902850;    //Start enforcing the invalid UTXO's
         nEnforceNewSporkKey           = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey            = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
-        heightToFork                  = 25;     //
+        heightToFork                  = 40;     //
         fEnableBigReward = true;
 
         // sending rewards to this public key
