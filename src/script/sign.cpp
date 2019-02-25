@@ -6,9 +6,10 @@
 
 #include "script/sign.h"
 
-#include "primitives/transaction.h"
+#include "chainparams.h"
 #include "key.h"
 #include "keystore.h"
+#include "primitives/transaction.h"
 #include "script/standard.h"
 #include "uint256.h"
 #include "util.h"
@@ -238,6 +239,12 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CMutabl
         txin.scriptSig << static_cast<valtype>(subscript);
         //txin.scriptSig << valtype(subscript.begin(), subscript.end());
         if (!fSolved) return false;
+    }
+    else if (whichType == TX_LOCKSTAKE && txin.nSequence != Params().StakeLockSequenceNumber())
+    {
+        txTo.vin[nIn].nSequence = Params().StakeLockSequenceNumber();
+
+        return SignSignature(keystore, fromPubKey, txTo, nIn, nHashType);
     }
 
     // Test solution

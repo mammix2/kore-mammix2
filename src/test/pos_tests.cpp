@@ -24,9 +24,9 @@ BOOST_AUTO_TEST_SUITE(pos_tests)
 // #define RUN_INTEGRATION_TEST
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
-static const int WALLETS_AVAILABLE = 100;
 static const int MASTERNODES_AVAILABLE = 20;
 
+static int WALLETS_AVAILABLE = 100;
 static CWallet* wallets = new CWallet[WALLETS_AVAILABLE];
 static CAmount _supply = 2000000 * COIN;
 static int walletCount = 1;
@@ -100,31 +100,34 @@ static std::vector<CRecipient> PopulateWalletByWealth(double numberOfWallets, do
         if (val < 10000 && toDistribute - 10000 >= 0)
             val = 10000;
 
+        if (val >= 50 * COIN) {
+            // create walletDB name
+            stringstream ss;
+            ss << "wallet_" << walletCount << ".dat";
+            wallets[walletCount].strWalletFile = ss.str();
 
-        // create walletDB name
-        stringstream ss;
-        ss << "wallet_" << walletCount << ".dat";
-        wallets[walletCount].strWalletFile = ss.str();
+            CWalletDB walletDB(wallets[walletCount].strWalletFile, "crw");
 
-        CWalletDB walletDB(wallets[walletCount].strWalletFile, "crw");
+            wallets[walletCount].nTimeFirstKey = genesisTime;
+            wallets[walletCount].nStakeSetUpdateTime = 0;
+            wallets[walletCount].nStakeSplitThreshold = 5000 * COIN;
 
-        if (val >= 10000) {
             CPubKey key;
             wallets[walletCount].GetKeyFromPool(key);
             CScript scriptPubKey = GetScriptForDestination(key.GetID());
 
             CRecipient recipient = {scriptPubKey, val, false};
             vecSend.push_back(recipient);
-        }
 
-        wallets[walletCount].nTimeFirstKey = genesisTime;
-        wallets[walletCount].nStakeSetUpdateTime = 0;
-        wallets[walletCount].nStakeSplitThreshold = 5000 * COIN;
+            walletCount++;
+        } else {
+            CRecipient recipient = {CScript() << OP_RETURN, val, false};
+            vecSend.push_back(recipient);
+        }
 
         printf("\xd Creating transactions: %.2f%%", (i * 100) / numberOfWallets);
 
         toDistribute -= val;
-        walletCount++;
     }
 
     printf("\xd Creating transactions: 100%% \t \n");
@@ -205,7 +208,7 @@ void StartPreMineAndWalletAllocation()
         CValidationState state;
         BOOST_CHECK(ProcessBlockFound(pblock, wallets[0]));
 
-        if (i == 5 || i == 37 || i == 95 || i == 198) {
+        if (i == 107 || i == 165 || i == 197 || i == 199) {
             wallets[0].ScanForWalletTransactions(actualBlock, true);
             actualBlock = chainActive[i];
 
@@ -217,16 +220,16 @@ void StartPreMineAndWalletAllocation()
             std::vector<CRecipient> vecSend;
             switch (populate) {
             case 0:
-                vecSend = PopulateWalletByWealth(69, 39800 * COIN); //1388, 2, true);
+                vecSend = PopulateWalletByWealth(1, 1054700 * COIN); //10, 53);
                 break;
             case 1:
-                vecSend = PopulateWalletByWealth(20, 318400 * COIN); //900, 16);
-                break;
-            case 2:
                 vecSend = PopulateWalletByWealth(9, 577100 * COIN); //90, 29);
                 break;
+            case 2:
+                vecSend = PopulateWalletByWealth(20, 318400 * COIN); //900, 16);
+                break;
             case 3:
-                vecSend = PopulateWalletByWealth(1, 1054700 * COIN); //10, 53);
+                vecSend = PopulateWalletByWealth(69, 39800 * COIN); //1388, 2, true);
                 break;
             default:
                 printf("No transactions done for case %d in block %d.\n", populate, i);
@@ -261,15 +264,33 @@ BOOST_AUTO_TEST_CASE(pos_integration)
     ModifiableParams()->setHeightToFork(0);
     ModifiableParams()->setLastPowBlock(200);
 
+    genesisTime = chainActive.Genesis()->nTime;
+
     // Mine 200 blocks and alocate funds to all wallets
     StartPreMineAndWalletAllocation();
 
     currentSuply = chainActive.Tip()->nMoneySupply;
 
+    WALLETS_AVAILABLE = walletCount + 1;
+    // int lastWalletWithBalance = 0;
     for (int i = 0; i < WALLETS_AVAILABLE; i++) {
-        wallets[i].ScanForWalletTransactions(genesisBlock, true);
+        // if (wallets[i].nTimeFirstKey == genesisTime) {
+            wallets[i].ScanForWalletTransactions(genesisBlock, true);
+        //     if (wallets[i].GetBalance() > 0)
+        //         lastWalletWithBalance = i;
+        //     else
+        //         break;
+        // }
         printf("Balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
+
+    // size_t newSize = lastWalletWithBalance;
+    // CWallet* newArr = new CWallet[newSize];
+
+    // memcpy(newArr, wallets, lastWalletWithBalance * sizeof(CWallet));
+
+    // delete[] wallets;
+    // wallets = newArr;
 
     std::uniform_int_distribution<int> distribution(0, WALLETS_AVAILABLE - 1);
 
@@ -281,7 +302,8 @@ BOOST_AUTO_TEST_CASE(pos_integration)
         CReserveKey reservekey(wallet);
 
         // BitcoinMiner(wallet, true);
-
+        wallet->ScanForWalletTransactions(genesisBlock, true);
+        printf("Balance for wallet %d is %s.\n", walletID, FormatMoney(wallet->GetBalance()).c_str());
         if (wallet->GetBalance() > 0 && wallet->MintableCoins()) {
             CBlockIndex* pindexPrev = chainActive.Tip();
 
@@ -334,7 +356,6 @@ static int nHeight = 1;
 CMutableTransaction GetNewTransaction(CScript script, CAmount nvalue, bool fisMined = true, bool fisPoS = false)
 {
     CMutableTransaction tx;
-    tx.nVersion = 2;
     tx.nTime = ++nTime;
     CTxIn txIn;
     if (fisMined) {
@@ -364,7 +385,7 @@ CBlock GetNewPoWBlock(uint256 nprevBlockHash, CTransaction tx)
 {
     CBlock block;
     block.nVersion = 1;
-    block.nTime = ++nTime + 20;
+    block.nTime = (nTime += 15);
     block.payee = tx.vout[0].scriptPubKey;
     block.fChecked = true;
     block.hashPrevBlock = nprevBlockHash;
@@ -386,7 +407,7 @@ CBlock GetNewPoSBlock(uint256 nprevBlockHash, CTransaction tx, CTransaction tx_s
 {
     CBlock block;
     block.nVersion = 1;
-    block.nTime = ++nTime + 30;
+    block.nTime = (nTime += 15);
     block.payee = script;
     block.fChecked = true;
     block.hashPrevBlock = nprevBlockHash;
@@ -424,15 +445,18 @@ CWalletTx AddToWallet(CWallet* wallet, CTransaction tx, CBlock block)
 }
 
 /*
-** This test takes a long time to finish (49 seconds of sleep) because of the nature of a time locking transaction.
-** We're creating PoW and PoS blocks here to test if the GetBalance method works as intended.
-** The UnitTest ChainParams configuration states that any coinbase should be available after 1 block (nMaturity = 1)
-** and we set the locking interval of a PoS transaction to 60 seconds (aStakeLockInterval = 60).
-** Because of the SEQUENCE_LOCKTIME_GRANULARITY chosen (5 bits), we can only set the locking interval in increments of
-** 32 seconds. The minimal locking time is 32 seconds and the maximum locking time is 65504 seconds or 1091 minutes or
-** 18 hours.
-** The balance is tested against the last coinbase sum up to that point.
-** To test the addition of the locked coin to the balance, we must wait at least 32 seconds.
+** We're creating PoW and PoS blocks here to test if the GetBalance
+** method works as intended. The UnitTest ChainParams configuration
+** states that any coinbase should be available after 1 block
+** (nMaturity = 1) and we set the locking interval of a PoS transaction
+** to 60 seconds (aStakeLockInterval = 60). Because of the
+** SEQUENCE_LOCKTIME_GRANULARITY chosen (5 bits), we can only set the
+** locking interval in increments of 32 seconds. The minimal locking
+** time is 32 seconds and the maximum locking time is 65504 seconds or
+** 1091 minutes or 18 hours.
+** The balance is tested against the last coinbase sum up to that point
+** in time. To test the addition of the locked coin to the balance, we
+** must wait 32 seconds from the time of the block it was locked in.
  */
 BOOST_AUTO_TEST_CASE(pos_GetBalance)
 {
@@ -459,69 +483,170 @@ BOOST_AUTO_TEST_CASE(pos_GetBalance)
     // Add a PoW 5 KORE tx to the wallet
     CMutableTransaction tx1 = GetNewTransaction(script, 5 * COIN);
     CBlock block1 = GetNewPoWBlock(chainActive.Genesis()->GetBlockHash(), tx1);
+    // Set mock time to time in block
+    SetMockTime(nTime);
     CWalletTx wtx1 = AddToWallet(&wallet, tx1, block1);
     // This coin will be available only on the next block
     BOOST_CHECK(wallet.GetBalance() == 0);
 
-    sleep(2);
-
     // Add a PoW 5 KORE tx to the wallet
     CMutableTransaction tx2 = GetNewTransaction(script, 5 * COIN);
     CBlock block2 = GetNewPoWBlock(block1.GetHash(), tx2);
+    // Set mock time to time in block
+    SetMockTime(nTime);
     CWalletTx wtx2 = AddToWallet(&wallet, tx2, block2);
     // We're checking the balance against first coin
     BOOST_CHECK(wallet.GetBalance() == 5 * COIN);
 
-    sleep(2);
-
     // Spend the first coin
     CMutableTransaction tx3 = GetNewTransaction(CScript() << OP_0, 5 * COIN, false);
     tx3.vin[0].prevout = COutPoint(tx1.GetHash(), 0);
-    SignSignature(wallet, wtx1, tx3, 0);
+    BOOST_CHECK(SignSignature(wallet, wtx1, tx3, 0));
     CBlock block3 = GetNewPoWBlock(block2.GetHash(), tx3);
+    // Set mock time to time in block
+    SetMockTime(nTime);
     CWalletTx wtx3 = AddToWallet(&wallet, tx3, block3);
     // We're checking the balance against the second coin
     BOOST_CHECK(wallet.GetBalance() == 5 * COIN);
 
-    sleep(2);
-
     // Lock the second coin as stake
     CMutableTransaction tx4 = GetNewTransaction(script, 10 * COIN, true, true);
-    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
+    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
     tx4_stake.vin[0].prevout = COutPoint(tx2.GetHash(), 0);
-    SignSignature(wallet, wtx2, tx4_stake, 0);
+    BOOST_CHECK(SignSignature(wallet, wtx2, tx4_stake, 0));
     CBlock block4 = GetNewPoSBlock(block3.GetHash(), tx4, tx4_stake, script);
+    // Set mock time to time in block
+    SetMockTime(nTime);
     CWalletTx wtx4 = AddToWallet(&wallet, tx4, block4);
     CWalletTx wtx4_stake = AddToWallet(&wallet, tx4_stake, block4);
     // The balance should be 0 until the next block
     BOOST_CHECK(wallet.GetBalance() == 0);
 
-    sleep(13);
-
     // Add a PoW 5 KORE tx to the wallet
     CMutableTransaction tx5 = GetNewTransaction(script, 5 * COIN);
     CBlock block5 = GetNewPoWBlock(block4.GetHash(), tx5);
+    // Set mock time to time in block
+    SetMockTime(nTime);
     CWalletTx wtx5 = AddToWallet(&wallet, tx5, block5);
     // We're checking the balance against the PoS coin
     BOOST_CHECK(wallet.GetBalance() == 9 * COIN);
 
-    sleep(13);
-
     // Add a PoW 5 KORE tx to the wallet
     CMutableTransaction tx6 = GetNewTransaction(script, 5 * COIN);
     CBlock block6 = GetNewPoWBlock(block5.GetHash(), tx6);
+    // Set mock time to time in block
+    SetMockTime(nTime);
     CWalletTx wtx6 = AddToWallet(&wallet, tx6, block6);
     // We're checking the balance against the last PoW coin
     BOOST_CHECK(wallet.GetBalance() == 14 * COIN);
 
-    sleep(17);
-
     // Add a PoW 5 KORE tx to the wallet
     CMutableTransaction tx7 = GetNewTransaction(script, 5 * COIN);
     CBlock block7 = GetNewPoWBlock(block6.GetHash(), tx7);
+    // Set mock time to time in block
+    SetMockTime(nTime);
     CWalletTx wtx7 = AddToWallet(&wallet, tx7, block7);
     // We're checking the balance against the expired lock coin
     BOOST_CHECK(wallet.GetBalance() == 24 * COIN);
+}
+
+BOOST_AUTO_TEST_CASE(pos_CreateTransaction)
+{
+    // Set ChainParams for the test
+    SelectParams(CBaseChainParams::UNITTEST);
+    ModifiableParams()->setHeightToFork(0);
+    ModifiableParams()->setStakeLockInterval(60);
+
+    CBitcoinSecret bsecret;
+    bsecret.SetString(strSecret);
+    CKey key = bsecret.GetKey();
+    CPubKey pubKey = key.GetPubKey();
+    CKeyID keyID = pubKey.GetID();
+    CScript script = GetScriptForDestination(keyID);
+
+    CWallet wallet;
+    wallet.strWalletFile = "pos_CreateTransaction.dat";
+    {
+        LOCK(wallet.cs_wallet);
+        wallet.AddKeyPubKey(key, pubKey);
+    }
+    CWalletDB walletDB(wallet.strWalletFile, "crw");
+
+    // Add a PoW 5 KORE tx to the wallet
+    CMutableTransaction tx1 = GetNewTransaction(script, 5 * COIN);
+    CBlock block1 = GetNewPoWBlock(chainActive.Genesis()->GetBlockHash(), tx1);
+    // Set mock time to time in block
+    SetMockTime(nTime);
+    CWalletTx wtx1 = AddToWallet(&wallet, tx1, block1);
+    // This coin will be available only on the next block
+    BOOST_CHECK(wallet.GetBalance() == 0);
+
+    // Add a PoW 5 KORE tx to the wallet
+    CMutableTransaction tx2 = GetNewTransaction(script, 5 * COIN);
+    CBlock block2 = GetNewPoWBlock(block1.GetHash(), tx2);
+    // Set mock time to time in block
+    SetMockTime(nTime);
+    CWalletTx wtx2 = AddToWallet(&wallet, tx2, block2);
+    // We're checking the balance against the first coin
+    BOOST_CHECK(wallet.GetBalance() == 5 * COIN);
+
+    // Lock the first coin as stake
+    CMutableTransaction tx3 = GetNewTransaction(script, 10 * COIN, true, true);
+    CMutableTransaction tx3_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
+    tx3_stake.vin[0].prevout = COutPoint(tx1.GetHash(), 0);
+    BOOST_CHECK(SignSignature(wallet, wtx1, tx3_stake, 0));
+    CBlock block3 = GetNewPoSBlock(block2.GetHash(), tx3, tx3_stake, script);
+    // Set mock time to time in block
+    SetMockTime(nTime);
+    CWalletTx wtx3 = AddToWallet(&wallet, tx3, block3);
+    CWalletTx wtx3_stake = AddToWallet(&wallet, tx3_stake, block3);
+    // We're checking the balance against the second coin since the first coin was staked
+    BOOST_CHECK(wallet.GetBalance() == 5 * COIN);
+
+    // Lock the second coin as stake
+    CMutableTransaction tx4 = GetNewTransaction(script, 10 * COIN, true, true);
+    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
+    tx4_stake.vin[0].prevout = COutPoint(tx2.GetHash(), 0);
+    BOOST_CHECK(SignSignature(wallet, wtx2, tx4_stake, 0));
+    CBlock block4 = GetNewPoSBlock(block2.GetHash(), tx4, tx4_stake, script);
+    // Set mock time to time in block
+    SetMockTime(nTime);
+    CWalletTx wtx4 = AddToWallet(&wallet, tx4, block4);
+    CWalletTx wtx4_stake = AddToWallet(&wallet, tx4_stake, block4);
+    // We're checking the balance against the coinbase of the first PoS block since the second coin was also staked
+    BOOST_CHECK(wallet.GetBalance() == 9 * COIN);
+
+    // Lock the first PoS coinbase as stake
+    CMutableTransaction tx5 = GetNewTransaction(script, 10 * COIN, true, true);
+    CMutableTransaction tx5_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 9 * COIN, false);
+    tx5_stake.vin[0].prevout = COutPoint(tx3.GetHash(), 1);
+    BOOST_CHECK(SignSignature(wallet, wtx3, tx5_stake, 0));
+    CBlock block5 = GetNewPoSBlock(block2.GetHash(), tx5, tx5_stake, script);
+    // Set mock time to time in block
+    SetMockTime(nTime);
+    CWalletTx wtx5 = AddToWallet(&wallet, tx5, block5);
+    CWalletTx wtx5_stake = AddToWallet(&wallet, tx5_stake, block5);
+    // We're checking the balance against the coinbase of the first PoS block since the second coin was also staked
+    BOOST_CHECK(wallet.GetBalance() == 9 * COIN);
+
+    // Mock a 22 second wait
+    SetMockTime(nTime += 22);
+    // Try to spend our first staked coin
+    BOOST_CHECK(wallet.GetBalance() == 14 * COIN);
+    CWalletTx wtx6;
+    CReserveKey reserveKey(&wallet);
+    CAmount feeRate;
+    string failReason;
+    BOOST_CHECK(wallet.CreateTransaction(CScript() << OP_RETURN, 13.99996830 * COIN, wtx6, reserveKey, feeRate, failReason));
+    CBlock block6 = GetNewPoWBlock(block5.GetHash(), wtx6);
+    // Set mock time to time in block
+    SetMockTime(nTime);
+    BOOST_CHECK(wallet.GetBalance() == 28 * COIN);
+}
+
+BOOST_AUTO_TEST_CASE(pos_ValidateBlock)
+{
+    
 }
 
 BOOST_AUTO_TEST_SUITE_END()

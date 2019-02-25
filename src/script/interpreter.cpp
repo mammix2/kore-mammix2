@@ -1097,7 +1097,7 @@ public:
     template<typename S>
     void Serialize(S &s, int nType, int nVersion) const {
         // Serialize nVersion
-        ::Serialize(s, txTo.nVersion, nType, nVersion);
+        ::Serialize(s, txTo.GetVersion(), nType, nVersion);
         // Serialize nTime
         ::Serialize(s, txTo.nTime, nType, nVersion);
        
@@ -1213,7 +1213,7 @@ bool TransactionSignatureChecker::CheckSequence(const CScriptNum& nSequence) con
 
     // Fail if the transaction's version number is not set high
     // enough to trigger BIP 68 rules.
-    if (static_cast<uint32_t>(txTo->nVersion) < 2)
+    if (static_cast<uint32_t>(txTo->GetVersion()) < 2)
         return false;
 
     // Sequence numbers with their most significant bit set are not

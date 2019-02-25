@@ -57,7 +57,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 
         // Stake locking tx, locks transaction for 4 hours and includes a TX_PUBKEYHASH
         // in the form 03C20140 B2 75 2200000000000000000000000000000000000000000000 AC
-        mTemplates.insert(make_pair(TX_LOCKSTAKE, CScript() << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << OP_PUBKEY << OP_CHECKSIG));
+        mTemplates.insert(make_pair(TX_LOCKSTAKE, CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << OP_PUBKEY << OP_CHECKSIG));
     }
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:

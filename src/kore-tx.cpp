@@ -8,6 +8,7 @@
 #include "coins.h"
 #include "core_io.h"
 #include "keystore.h"
+#include "main.h"
 #include "primitives/block.h" // for MAX_BLOCK_SIZE
 #include "primitives/transaction.h"
 #include "script/script.h"
@@ -160,7 +161,7 @@ static void RegisterLoad(const string& strInput)
 static void MutateTxVersion(CMutableTransaction& tx, const string& cmdVal)
 {
     int64_t newVersion = atoi64(cmdVal);
-    if (newVersion < 1 || newVersion > CTransaction::CURRENT_VERSION)
+    if (newVersion < 1 || newVersion > 2)
         throw runtime_error("Invalid TX version requested");
 
     tx.nVersion = (int)newVersion;

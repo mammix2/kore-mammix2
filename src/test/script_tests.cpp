@@ -563,7 +563,7 @@ BOOST_AUTO_TEST_CASE(script_build)
     good.push_back(TestBuilder(CScript() << OP_2 << ToByteVector(keys.pubkey1C) << ToByteVector(keys.pubkey1C) << OP_2 << OP_CHECKMULTISIG,
                                "2-of-2 with two identical keys and sigs pushed", SCRIPT_VERIFY_SIGPUSHONLY
                               ).Num(0).PushSig(keys.key1).PushSig(keys.key1));
-    good.push_back(TestBuilder(CScript() << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
+    good.push_back(TestBuilder(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
                                "Timelock transaction", SCRIPT_VERIFY_CHECKSEQUENCEVERIFY
                               ).Num(0).PushSig(keys.key1));
 

@@ -561,16 +561,16 @@ public:
         vFixedSeeds.clear(); //! Unit test mode doesn't have any fixed seeds.
         vSeeds.clear();      //! Unit test mode doesn't have any DNS seeds.
 
-        nTargetTimespan = 0;             // consensus.nTargetTimespan one hour
-        nTargetSpacing  = 1;             // consensus.nTargetSpacing 1 minutes
+        nTargetTimespan = 5;             // consensus.nTargetTimespan one hour
+        nTargetSpacing  = 10;             // consensus.nTargetSpacing 1 minutes
         nPastBlocksMin  = 32;
         nPastBlocksMax  = 128;
         nMaturity = 1;
 
-        nStakeMinAge = 1;
-        nStakeMinConfirmations = 25;
+        nStakeMinAge = 5;
+        nStakeMinConfirmations = 5;
         nStakeLockInterval = 32; // minimum value
-        nStakeTargetSpacing = 1;
+        nStakeTargetSpacing = 10;
 
         fMiningRequiresPeers      = false;
         fDefaultConsistencyChecks = true;

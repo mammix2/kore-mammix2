@@ -1236,10 +1236,9 @@ CAmount CWalletTx::GetCredit(const isminefilter& filter) const
 // coin will be accepted on the mempool of any other node.
 bool CWalletTx::IsStakeSpendable() const
 {
-    static uint lockTime = (Params().StakeLockInterval() & CTxIn::SEQUENCE_LOCKTIME_MASK) << CTxIn::SEQUENCE_LOCKTIME_GRANULARITY;
     uint medianPassedTime = (GetTime() + chainActive.Tip()->GetMedianTimePast() - (2 * this->nTime)) / 2;
-    
-    return medianPassedTime >= lockTime;
+
+    return medianPassedTime >= Params().StakeLockInterval();
 }
 
 CAmount CWalletTx::GetStakedCredit() const
@@ -2072,6 +2071,10 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
 
                 if (mine == ISMINE_WATCH_ONLY && nWatchonlyConfig == 1)
                     continue;
+                
+                if (mine == ISMINE_STAKE)
+                    if (!pcoin->IsStakeSpendable())
+                        continue;                    
 
                 if (IsLockedCoin((*it).first, i) && nCoinType != ONLY_10000)
                     continue;
@@ -2084,6 +2087,8 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 if ((mine & ISMINE_SPENDABLE) != ISMINE_NO)
                     fIsSpendable = true;
                 if ((mine & ISMINE_MULTISIG) != ISMINE_NO)
+                    fIsSpendable = true;
+                if ((mine & ISMINE_STAKE) != ISMINE_NO)
                     fIsSpendable = true;
 
                 vCoins.emplace_back(COutput(pcoin, i, nDepth, fIsSpendable));
@@ -2871,6 +2876,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend,
         return false;
     }
 
+    wtxNew.SetVersion(UseLegacyCode() ? 1 : 2);
     wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.BindWallet(this);
     CMutableTransaction txNew;
@@ -3430,7 +3436,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (GetTime() - nLastStakeSetUpdate > nStakeSetUpdateTime) {
         listInputs.clear();
         stakeableBalance.clear();
-        if (!SelectStakeCoins(listInputs, min(nBalance - nReserveBalance, nCombineThreshold), stakeableBalance))
+        if (!SelectStakeCoins(listInputs, nBalance - nReserveBalance, stakeableBalance))
             return false;
 
         nLastStakeSetUpdate = GetTime();

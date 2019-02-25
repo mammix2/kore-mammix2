@@ -701,7 +701,7 @@ bool AddOrphanTx(const CTransaction& tx, NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(c
     // have been mined or received.
     // 10,000 orphans, each of which is at most 5,000 bytes big is
     // at most 500 megabytes of orphans:
-    unsigned int sz = tx.GetSerializeSize(SER_NETWORK, CTransaction::CURRENT_VERSION);
+    unsigned int sz = tx.GetSerializeSize(SER_NETWORK, GetCurrentTransactionVersion());
     if (sz > 5000)
     {
         LogPrint("mempool", "ignoring large orphan tx (size: %u, hash: %s)\n", sz, hash.ToString());
@@ -771,7 +771,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) EXCLUSIVE_LOCKS_REQUIRE
 bool IsStandardTx(const CTransaction& tx, string& reason)
 {
     AssertLockHeld(cs_main);
-    if (tx.nVersion > CTransaction::CURRENT_VERSION || tx.nVersion < 1) {
+    if (tx.GetVersion() > GetCurrentTransactionVersion() || tx.GetVersion() < 1) {
         reason = "version";
         return false;
     }
@@ -802,7 +802,7 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
-    unsigned int sz = tx.GetSerializeSize(SER_NETWORK, CTransaction::CURRENT_VERSION);
+    unsigned int sz = tx.GetSerializeSize(SER_NETWORK, GetCurrentTransactionVersion());
     unsigned int nMaxSize = MAX_STANDARD_TX_SIZE;
     if (sz >= nMaxSize) {
         reason = "tx-size";
@@ -1523,7 +1523,7 @@ static std::pair<int, int64_t> CalculateSequenceLocks(const CTransaction &tx, in
     // tx.nVersion is signed integer so requires cast to unsigned otherwise
     // we would be doing a signed comparison and half the range of nVersion
     // wouldn't support BIP 68.
-    bool fEnforceBIP68 = static_cast<uint32_t>(tx.nVersion) >= 2
+    bool fEnforceBIP68 = static_cast<uint32_t>(tx.GetVersion()) >= 2
                       && flags & LOCKTIME_VERIFY_SEQUENCE;
 
     // Do not enforce sequence numbers as a relative lock time
@@ -1703,7 +1703,7 @@ bool AcceptToMemoryPoolWorker_Legacy(CTxMemPool& pool, CValidationState &state, 
     // sure that such transactions will be mined (unless we're on
     // -testnet/-regtest).
     const CChainParams& chainparams = Params();
-    if (fRequireStandard && tx.nVersion >= 2 && VersionBitsTipState_Legacy(CChainParams::DEPLOYMENT_CSV) != THRESHOLD_ACTIVE) {
+    if (fRequireStandard && tx.GetVersion() >= 2 && VersionBitsTipState_Legacy(CChainParams::DEPLOYMENT_CSV) != THRESHOLD_ACTIVE) {
         return state.DoS(0, false, REJECT_NONSTANDARD, "premature-version2-tx");
     }
 
@@ -3585,6 +3585,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
     CAmount nValueOut = 0;
     CAmount nValueIn = 0;
+    CAmount nLockingValueIn = 0;
+    CAmount nLockingValueOut = 0;
     unsigned int nMaxBlockSigOps = MAX_BLOCK_SIGOPS_CURRENT;
     vector<uint256> vSpendsInBlock;
     uint256 hashBlock = block.GetHash();
@@ -3616,9 +3618,15 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             if (nSigOps > nMaxBlockSigOps)
                 return state.DoS(100, error("ConnectBlock() : too many sigops"), REJECT_INVALID, "bad-blk-sigops");
 
+            CAmount thisValueIn = view.GetValueIn(tx);
             if (!tx.IsCoinStake())
-                nFees += view.GetValueIn(tx) - tx.GetValueOut();
-            nValueIn += view.GetValueIn(tx);
+                nFees += thisValueIn - tx.GetValueOut();
+            else {
+                nLockingValueIn += thisValueIn;
+                nLockingValueOut += tx.GetValueOut();
+            }
+
+            nValueIn += thisValueIn;
 
             std::vector<CScriptCheck> vChecks;
             unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_DERSIG;
@@ -3657,6 +3665,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         return state.DoS(100, error("ConnectBlock() : reward pays too much (actual=%s vs limit=%s)",
                                     FormatMoney(pindex->nMint), FormatMoney(nExpectedMint)),
                          REJECT_INVALID, "bad-cb-amount");
+    }
+
+    if (block.IsProofOfStake()) {
+        // Check that the dificulty ease computes to the sum of vin
+        nLockingValueIn
+
     }
 
     if (!control.Wait())
@@ -4308,6 +4322,15 @@ void PruneAndFlush() {
 bool UseLegacyCode(int nHeight)
 {
     return nHeight < Params().HeigthToFork();
+}
+bool UseLegacyCode()
+{
+    return chainActive.Tip()->nHeight < Params().HeigthToFork();
+}
+
+static const int32_t GetCurrentTransactionVersion()
+{ 
+    return UseLegacyCode() ? 1 : 2; 
 }
 
 /** Update chainActive and related internal data structures. */
@@ -5499,7 +5522,15 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
     
 
     if (fBlockIsProofOfStake) {
-        // Coinbase first input must have a valid Signature
+        // Must have at least 2 transactions
+        if (block.vtx.empty() || !block.vtx.size() < 2)
+            return state.DoS(100, error("CheckBlock(): coinstake must have 2 transactions"));
+
+        // Coinbase first transaction must have only 1 vin
+        if (block.vtx[0].vin.size() != 1)
+            return state.DoS(100, error("CheckBlock(): coinstake first transaction must have only 1 vin"));
+            
+        // Coinbase first transaction first input must have a valid Signature
         CScript coinbaseSignature = CScript() << height << OP_0;
         if (block.vtx[0].vin[0].scriptSig.size() > coinbaseSignature.size())
             coinbaseSignature = CScript() << height + 1 << OP_0;
@@ -5507,6 +5538,10 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             if (block.vtx[0].vin[0].scriptSig[i] != coinbaseSignature[i])
                 return state.DoS(100, error("CheckBlock(): coinbase input scriptSig is incorrect"), 
                     REJECT_INVALID, "bad-cb-scriptsig");
+        
+        // First transaction first input must have at least 2 vout
+        if(block.vtx[0].vout.size() < 2)
+            return state.DoS(100, error("CheckBlock(): coinstake first transaction must have at least 2 vout"));
 
         // Second transaction must be coinstake, the rest must not be
         if (block.vtx.empty() || !block.vtx[1].IsCoinStake())
@@ -5515,6 +5550,12 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             if (block.vtx[i].IsCoinStake())
                 return state.DoS(100, error("CheckBlock(): more than one coinstake"));
         
+        // Second transaction must have at least 1 vin
+        if (block.vtx[1].vin.size() < 1)
+            return state.DoS(100, error("CheckBlock(): coinstake second transaction must have at least 1 vin"));
+
+        // 
+        
         // First vout must be a locking transaction, the rest must not be
         if (!block.vtx[1].vout[0].IsCoinStake())
             return state.DoS(100, error("CheckBlock(): second tx, first vout is not locking"));
@@ -5522,14 +5563,15 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             if (block.vtx[1].vout[i].IsCoinStake())
                 return state.DoS(100, error("CheckBlock(): more than one locking vout"));
         
-        // Second transaction must lock coins from same pubkey
-        
-        uint160 lockPubKeyID;
+        // Second transaction must lock coins from same pubkey as coinbase
         uint160 pubKeyID;
+        ExtractDestination(block.vtx[0].vout[1].scriptPubKey, pubKeyID);
+        uint160 lockPubKeyID;
         ExtractDestination(block.vtx[1].vin[0].prevPubKey, lockPubKeyID);
-        //CPubKey pubKey = block.vtx[1].vin[0].prevPubKey;
-        //if (!pubKey.IsFullyValid())
-        //    return state.DoS(100, error("CheckBlock(): previous pubkey from lock is invalid"));
+        if (lockPubKeyID != pubKeyID)
+            return state.DoS(100, error("CheckBlock(): locking pubkey different from coinbase pubkey"));
+        
+        // There must be only one pubkey on the locking transaction
         for (unsigned int i = 1; i < block.vtx[1].vin.size(); i++)
         {
             pubKeyID.SetNull();
@@ -5537,6 +5579,8 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             if(lockPubKeyID != pubKeyID)
                 return state.DoS(100, error("CheckBlock(): more than one pubkey on lock"));
         }
+
+        // All the outputs pubkeys must be the same as the locking pubkey
         for (unsigned int i = 0; i < block.vtx[1].vout.size(); i++)
         {
             pubKeyID.SetNull();
@@ -5544,13 +5588,7 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             if(pubKeyID != lockPubKeyID)
                 return state.DoS(100, error("CheckBlock(): more than one pubkey on lock tx"));
         }
-
-        // Second transaction must lock coins from same pubkey as coinbase
-        pubKeyID.SetNull();
-        ExtractDestination(block.vtx[0].vout[1].scriptPubKey, pubKeyID);
-        if (lockPubKeyID != pubKeyID)
-            return state.DoS(100, error("CheckBlock(): locking pubkey different from coinbase pubkey"));
-
+      
         // TODO: Second transaction must not create new coins
         // CAmount valueIn = 0;
         // for (unsigned int i = 0; i < block.vtx[1].vin.size(); i++)

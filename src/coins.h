@@ -99,7 +99,7 @@ public:
         fCoinStake = tx.IsCoinStake();
         vout = tx.vout;
         nHeight = nHeightIn;
-        nVersion = tx.nVersion;
+        nVersion = tx.GetVersion();
         nTime = tx.nTime;
         ClearUnspendable();
     }

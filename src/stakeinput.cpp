@@ -31,7 +31,7 @@ CScript CKoreStake::GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey, boo
                 return false;
 
             if(fisStake)
-                scriptPubKey << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << key.GetPubKey() << OP_CHECKSIG;
+                scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << key.GetPubKey() << OP_CHECKSIG;
             else
                 scriptPubKey << key.GetPubKey() << OP_CHECKSIG;
         }
@@ -42,7 +42,7 @@ CScript CKoreStake::GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey, boo
                 return false;
 
             if(fisStake)
-                scriptPubKey << Params().StakeLockInterval() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG;
+                scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG;
             else
                 scriptPubKey << pubKey << OP_CHECKSIG;
         }        

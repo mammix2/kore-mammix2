@@ -258,16 +258,24 @@ private:
     /** Memory only. */
     const uint256 hash;
     void UpdateHash() const;
+    int32_t nVersion;
 
 public:
-    static const int32_t CURRENT_VERSION = 1;
+    int32_t GetVersion() const
+    {
+        return nVersion;
+    }
+    void SetVersion(int32_t v)
+    {
+        nVersion = v;
+    }
 
     // The local variables are made const to prevent unintended modification
     // without updating the cached hash value. However, CTransaction is not
     // actually immutable; deserialization and assignment are implemented,
     // and bypass the constness. This is safe, as they update the entire
     // structure, including the hash.
-    const int32_t nVersion;
+    // const int32_t nVersion;
     const uint32_t nTime;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;

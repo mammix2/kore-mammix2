@@ -328,7 +328,7 @@ inline CMutableTransaction CreateCoinbaseTransactionForSwap(CBlockIndex *indexPr
 
             lineCount++;
 
-            if(txNew.GetSerializeSize(SER_NETWORK, CTransaction::CURRENT_VERSION) > MAX_ZEROCOIN_TX_SIZE){
+            if(txNew.GetSerializeSize(SER_NETWORK, GetCurrentTransactionVersion()) > MAX_ZEROCOIN_TX_SIZE){
                 txNew.vout.pop_back();
                 
                 lineCount--;

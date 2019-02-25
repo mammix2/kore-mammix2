@@ -371,13 +371,11 @@ void FlushStateToDisk();
 /** Prune block files and flush state to disk. */
 void PruneAndFlush();
 
-
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, 
                         bool* pfMissingInputs, bool fRejectInsaneFee = false, bool ignoreFees = false);
 bool AcceptToMemoryPool_Legacy(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fOverrideMempoolLimit=false, bool fRejectAbsurdFee=false);
-
 
 bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool isDSTX = false);
 
@@ -618,6 +616,9 @@ int GetnHeight(const CBlockIndex* pIndex);
 
 /* Check if it is necessary to use the new code or old code */
 bool UseLegacyCode(int nHeight);
+bool UseLegacyCode();
+
+static const int32_t GetCurrentTransactionVersion();
 
 /** Functions for validating blocks and updating the block tree */
 
