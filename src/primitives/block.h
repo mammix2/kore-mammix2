@@ -28,6 +28,7 @@ class CBlockHeader
 public:
     // header
     static const int32_t CURRENT_VERSION=1;
+    static const int32_t POS_FORK_VERSION=2;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -38,6 +39,12 @@ public:
     uint32_t nBirthdayB;
 
     CBlockHeader()
+    {
+        nVersion = CBlockHeader::CURRENT_VERSION;
+        SetNull();
+    }
+
+    CBlockHeader(int32_t nVersionIn) : nVersion(nVersionIn)
     {
         SetNull();
     }
@@ -59,7 +66,7 @@ public:
 
     void SetNull()
     {
-        nVersion = CBlockHeader::CURRENT_VERSION;
+        //nVersion = CBlockHeader::CURRENT_VERSION;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
         nTime = 0;
@@ -102,12 +109,17 @@ public:
     mutable std::vector<uint256> vMerkleTree;
     mutable bool fChecked;
 
-    CBlock()
+    CBlock() : CBlockHeader()
     {
         SetNull();
     }
 
-    CBlock(const CBlockHeader &header)
+    CBlock(const int32_t nVersionIn) : CBlockHeader(nVersionIn)
+    {
+        SetNull();
+    }
+
+    CBlock(const CBlockHeader &header) : CBlockHeader(header.nVersion)
     {
         SetNull();
         *((CBlockHeader*)this) = header;
@@ -135,8 +147,8 @@ public:
 
     CBlockHeader GetBlockHeader() const
     {
-        CBlockHeader block;
-        block.nVersion       = nVersion;
+        CBlockHeader block(nVersion);
+        //block.nVersion       = nVersion;
         block.hashPrevBlock  = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
         block.nTime          = nTime;

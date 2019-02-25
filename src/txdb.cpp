@@ -400,8 +400,13 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     pindexNew->hashProofOfStake  = diskindex.hashProofOfStake;
                     bool isProofOfStake = useLegacyCode ? pindexNew->IsProofOfStake_Legacy() : pindexNew->IsProofOfStake(); 
                     if (!isProofOfStake && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
-                        if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, pindexNew->nHeight))
-                            return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());
+                        if (useLegacyCode) {
+                            if (!CheckProofOfWork_Legacy(pindexNew->GetBlockHash(), pindexNew->nBits))
+                                return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());
+                        } else {
+                            if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits))
+                                return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());
+                        }
                     }
                     // ppcoin: build setStakeSeen
                     if (!useLegacyCode && isProofOfStake)

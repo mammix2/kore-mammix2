@@ -192,11 +192,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 }
 
 
-bool CheckProofOfWork(uint256 hash, unsigned int nBits, const int nHeight)
+bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 {
-    // Lico FORK
-     if (UseLegacyCode(nHeight))
-       return CheckProofOfWork_Legacy(hash, nBits);
     bool fNegative;
     bool fOverflow;
     uint256 bnTarget;

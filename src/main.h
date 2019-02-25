@@ -617,7 +617,7 @@ public:
 
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos);
-bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeight);
+bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 
 /* This function will return the nHeight from an pIndex, 
@@ -626,6 +626,7 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 int GetnHeight(const CBlockIndex* pIndex);
 
 /* Check if it is necessary to use the new code or old code */
+bool UseLegacyCode(const CBlock & block);
 bool UseLegacyCode(int nHeight);
 bool IsLastBlockBeforeFork(int nHeight);
 bool IsFirstBlockAfterFork(int nHeight);
@@ -853,6 +854,7 @@ struct CBlockTemplate {
     CBlock block;
     std::vector<CAmount> vTxFees;
     std::vector<int64_t> vTxSigOps;
+    CBlockTemplate(const int32_t nVersion) : block(nVersion) {};
 };
 
 #endif // BITCOIN_MAIN_H

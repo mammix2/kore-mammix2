@@ -186,7 +186,6 @@ std::string getexplorerBlockHash(int64_t Height)
         return genesisblockhash;
     }
 
-    CBlock block;
     CBlockIndex* pblockindex = mapBlockIndex[chainActive.Tip()->GetBlockHash()];
     while (pblockindex->nHeight > Height)
         pblockindex = pblockindex->pprev;

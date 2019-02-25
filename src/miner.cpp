@@ -231,7 +231,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     CReserveKey reservekey(pwallet);
 
     // Create new block
-    unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+    unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate(CBlockHeader::POS_FORK_VERSION));
     if (!pblocktemplate.get())
         return NULL;
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
@@ -316,7 +316,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         const int nHeight = pindexPrev->nHeight + 1;
         if (!fProofOfStake)
           pblock->nTime = GetAdjustedTime();
-        pblock->nVersion = 1;
+        // we will be creating blocks from after fork here always
+        pblock->nVersion = CBlockHeader::POS_FORK_VERSION;
         CCoinsViewCache view(pcoinsTip);
 
         // Priority order to process transactions
@@ -572,7 +573,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
 {
 
     // Create new block
-    unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+    unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate(CBlockHeader::CURRENT_VERSION));
     if(!pblocktemplate.get())
         return NULL;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
@@ -624,7 +625,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
         const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
 
         // Setting the first bit, fork preparation and setting the version as 1
-        pblock->nVersion =  1; //ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
+        pblock->nVersion =  CBlockHeader::CURRENT_VERSION; //ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
         // -regtest only: allow overriding block.nVersion with
         // -blockversion=N to test forking scenarios
         if (chainparams.MineBlocksOnDemand())

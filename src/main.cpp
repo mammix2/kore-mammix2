@@ -2394,7 +2394,7 @@ bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos)
     return true;
 }
 
-bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeight)
+bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos)
 {
     block.SetNull();
 
@@ -2412,8 +2412,13 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeigh
 
     // Check the header
     if (block.IsProofOfWork()) {
-        if (!CheckProofOfWork(block.GetHash(), block.nBits, nHeight))
-            return error("ReadBlockFromDisk : Errors in block header");
+        if (UseLegacyCode(block)) {
+            if (!CheckProofOfWork_Legacy(block.GetHash(), block.nBits))
+                return error("ReadBlockFromDisk : Errors in block header");
+        } else {
+            if (!CheckProofOfWork(block.GetHash(), block.nBits))
+                return error("ReadBlockFromDisk : Errors in block header");
+        }
     }
 
     return true;
@@ -2421,7 +2426,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const int nHeigh
 
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex)
 {
-    if (!ReadBlockFromDisk(block, pindex->GetBlockPos(), pindex->nHeight))
+    if (!ReadBlockFromDisk(block, pindex->GetBlockPos()))
         return false;
     if (block.GetHash() != pindex->GetBlockHash()) {
         LogPrintf("%s : block=%s index=%s\n", __func__, block.GetHash().ToString().c_str(), pindex->GetBlockHash().ToString().c_str());
@@ -4316,6 +4321,11 @@ void PruneAndFlush() {
 }
 
 
+bool UseLegacyCode(const CBlock & block)
+{
+  return block.nVersion == CBlockHeader::CURRENT_VERSION;
+}
+
 bool UseLegacyCode(int nHeight)
 {
     return nHeight < Params().HeigthToFork();
@@ -5442,7 +5452,7 @@ bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationS
 {
     if (fDebug) LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, nHeight ))
+    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader() : proof of work failed"),
             REJECT_INVALID, "high-hash");
 
@@ -5452,7 +5462,7 @@ bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationS
 bool CheckBlockHeader_Legacy(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW)
 {
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, nHeight))
+    if (fCheckPOW && !CheckProofOfWork_Legacy(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader(): proof of work failed"), REJECT_INVALID, "high-hash");
 
     // Check timestamp
@@ -6885,6 +6895,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
     // Map of disk positions for blocks with unknown parent (only used for reindex)
     static std::multimap<uint256, CDiskBlockPos> mapBlocksUnknownParent;
     int64_t nStart = GetTimeMillis();
+    const CChainParams& chainparams = Params();
 
     int nLoaded = 0;
     try {
@@ -6939,8 +6950,13 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
                 // process in case the block isn't known yet
                 if (mapBlockIndex.count(hash) == 0 || (mapBlockIndex[hash]->nStatus & BLOCK_HAVE_DATA) == 0) {
                     CValidationState state;
-                    if (ProcessNewBlock(state, NULL, &block, dbp))
-                        nLoaded++;
+                    if (UseLegacyCode(block)) {
+                        if (ProcessNewBlock_Legacy(state, chainparams, NULL, &block, true, dbp))
+                            nLoaded++;
+                    } else {
+                        if (ProcessNewBlock(state, NULL, &block, dbp))
+                            nLoaded++;
+                    }
                     if (state.IsError())
                         break;
                 } else if (hash != Params().HashGenesisBlock() && mapBlockIndex[hash]->nHeight % 1000 == 0) {
@@ -6956,14 +6972,16 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
                     std::pair<std::multimap<uint256, CDiskBlockPos>::iterator, std::multimap<uint256, CDiskBlockPos>::iterator> range = mapBlocksUnknownParent.equal_range(head);
                     while (range.first != range.second) {
                         std::multimap<uint256, CDiskBlockPos>::iterator it = range.first;
-                        if (ReadBlockFromDisk(block, it->second, chainActive.Height())) {
+                        if (ReadBlockFromDisk(block, it->second)) {
                             LogPrintf("%s: Processing out of order child %s of %s\n", __func__, block.GetHash().ToString(),
                                 head.ToString());
                             CValidationState dummy;
-                            if (ProcessNewBlock(dummy, NULL, &block, &it->second)) {
+                            if (UseLegacyCode(block)) {
+                                if (ProcessNewBlock_Legacy(dummy, chainparams, NULL, &block, true, &it->second))
+                                    nLoaded++;
+                            } else if (ProcessNewBlock(dummy, NULL, &block, &it->second))
                                 nLoaded++;
-                                queue.push_back(block.GetHash());
-                            }
+                            queue.push_back(block.GetHash());
                         }
                         range.first++;
                         mapBlocksUnknownParent.erase(it);
