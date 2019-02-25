@@ -3585,8 +3585,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
     CAmount nValueOut = 0;
     CAmount nValueIn = 0;
-    CAmount nLockingValueIn = 0;
-    CAmount nLockingValueOut = 0;
     unsigned int nMaxBlockSigOps = MAX_BLOCK_SIGOPS_CURRENT;
     vector<uint256> vSpendsInBlock;
     uint256 hashBlock = block.GetHash();
@@ -3618,15 +3616,9 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             if (nSigOps > nMaxBlockSigOps)
                 return state.DoS(100, error("ConnectBlock() : too many sigops"), REJECT_INVALID, "bad-blk-sigops");
 
-            CAmount thisValueIn = view.GetValueIn(tx);
             if (!tx.IsCoinStake())
-                nFees += thisValueIn - tx.GetValueOut();
-            else {
-                nLockingValueIn += thisValueIn;
-                nLockingValueOut += tx.GetValueOut();
-            }
-
-            nValueIn += thisValueIn;
+                nFees += view.GetValueIn(tx) - tx.GetValueOut();
+            nValueIn += view.GetValueIn(tx);
 
             std::vector<CScriptCheck> vChecks;
             unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_DERSIG;
@@ -3665,12 +3657,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         return state.DoS(100, error("ConnectBlock() : reward pays too much (actual=%s vs limit=%s)",
                                     FormatMoney(pindex->nMint), FormatMoney(nExpectedMint)),
                          REJECT_INVALID, "bad-cb-amount");
-    }
-
-    if (block.IsProofOfStake()) {
-        // Check that the dificulty ease computes to the sum of vin
-        nLockingValueIn
-
     }
 
     if (!control.Wait())
