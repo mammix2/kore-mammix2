@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].prevout.n = 0;
     tx.vout.resize(1);
     tx.vout[0].nValue = 5000000000LL;
-    for (unsigned int i = 0; i < 1001; ++i)
+    for (unsigned int i = 0; i < 999; ++i)
     {
         tx.vout[0].nValue -= 1000000;
         hash = tx.GetHash();

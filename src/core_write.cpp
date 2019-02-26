@@ -35,7 +35,7 @@ string FormatScript(const CScript& script)
             } else if ((op >= OP_1 && op <= OP_16) || op == OP_1NEGATE) {
                 ret += strprintf("%i ", op - OP_1NEGATE - 1);
                 continue;
-            } else if (op >= OP_NOP && op <= OP_CHECKMULTISIGVERIFY) {
+            } else if ((op >= OP_NOP && op <= OP_CHECKMULTISIGVERIFY) || op == OP_CHECKLOCKTIMEVERIFY || op == OP_CHECKSEQUENCEVERIFY) {
                 string str(GetOpName(op));
                 if (str.substr(0, 3) == string("OP_")) {
                     ret += str.substr(3, string::npos) + " ";

@@ -5,12 +5,6 @@
 ["serializedTransaction,verifyFlags]"],
 ["Objects that are only a single string (like this one) are ignored"],
 
-["This is a KORE transaction f57466cd88233537728b75485625ebb01f2a688bb761be5ae681e9f98e02deaf"],
-["See https://chainz.cryptoid.info/kore/tx.dws?80422.htm"],
-[[["f57466cd88233537728b75485625ebb01f2a688bb761be5ae681e9f98e02deaf",1,"0x21 0x03e48817f0623bd9cbbd35140df911591f032121122d0fa607d8b9a0d19d2fb49a CHECKSIG"]],
-"01000000a05d555a01afde028ef9e981e65abe61b78b682a1fb0eb255648758b7237352388cd6674f5010000004847304402204041928e85a7b540fb30fe4411d07e8f47a922f42003ed8b3ad183360331c084022075fc3d5ecba1375223ea44c661c6fc88523bc10fb38a59501ebfdf7024fcd5ee01ffffffff040000000000000000008f9cf05c1f000000232103e48817f0623bd9cbbd35140df911591f032121122d0fa607d8b9a0d19d2fb49aacea52310000000000232102f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058baca94bc500000000001976a9141cc04fe27da714aba9b0bb167657861724ab914088ac00000000",
-"NONE"],
-
 ["The following tests for the presence of a bug in the handling of SIGHASH_SINGLE"],
 ["It results in signing the constant 1,instead of something generated based on the transaction,"],
 ["when the input doing the signing has an index greater than the maximum output index"],

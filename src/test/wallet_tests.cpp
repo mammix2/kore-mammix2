@@ -25,8 +25,10 @@ typedef set<pair<const CWalletTx*,unsigned int> > CoinSet;
 
 BOOST_AUTO_TEST_SUITE(wallet_tests)
 
+static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 static CWallet wallet;
 static vector<COutput> vCoins;
+static CScript script;
 
 static void add_coin(const CAmount& nValue, int nAge = 6*24, bool fIsFromMe = false, int nInput=0)
 {
@@ -38,7 +40,16 @@ static void add_coin(const CAmount& nValue, int nAge = 6*24, bool fIsFromMe = fa
     if (fIsFromMe) {
         // IsFromMe() returns (GetDebit() > 0), and GetDebit() is 0 if vin.empty(),
         // so stop vin being empty, and cache a non-zero Debit to fake out IsFromMe()
+        CMutableTransaction txIn;
+        txIn.vout.resize(1);
+        txIn.vout[0].nValue = nValue;
+        txIn.vout[0].scriptPubKey = script;
+        CWalletTx* wtxIn = new CWalletTx(&wallet, txIn);
+        CWalletDB walletDB(wallet.strWalletFile, "crw");
+        wallet.AddToWallet(*wtxIn, false, &walletDB);
+
         tx.vin.resize(1);
+        tx.vin[0].prevout = COutPoint(wtxIn->GetHash(), 0);
     }
     CWalletTx* wtx = new CWalletTx(&wallet, tx);
     COutput output(wtx, nInput, nAge, true);
@@ -47,9 +58,25 @@ static void add_coin(const CAmount& nValue, int nAge = 6*24, bool fIsFromMe = fa
 
 static void empty_wallet(void)
 {
-    BOOST_FOREACH(COutput output, vCoins)
+    BOOST_FOREACH(COutput output, vCoins) 
         delete output.tx;
+    
     vCoins.clear();
+    wallet.SetNull();
+
+    static CBitcoinSecret bsecret;
+    bsecret.SetString(strSecret);
+    CKey key = bsecret.GetKey();
+    CPubKey pubKey = key.GetPubKey();
+    CKeyID keyID = pubKey.GetID();
+    script = GetScriptForDestination(keyID);
+
+    wallet.strWalletFile = "wallet_tests.dat";
+    CWalletDB walletDB(wallet.strWalletFile, "crw");
+    {
+        LOCK(wallet.cs_wallet);
+        wallet.AddKeyPubKey(key, pubKey);
+    }
 }
 
 static bool equal_sets(CoinSet a, CoinSet b)
@@ -60,9 +87,14 @@ static bool equal_sets(CoinSet a, CoinSet b)
 
 BOOST_AUTO_TEST_CASE(coin_selection_tests)
 {
+    ModifiableParams()->setHeightToFork(0);
+
+    
+
     CoinSet setCoinsRet, setCoinsRet2;
     CAmount nValueRet;
 
+    {
     LOCK(wallet.cs_wallet);
 
     // test multiple times to allow for differences in the shuffle order
@@ -296,6 +328,7 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
             }
             BOOST_CHECK_NE(fails, RANDOM_REPEATS);
         }
+    }
     }
     empty_wallet();
 }

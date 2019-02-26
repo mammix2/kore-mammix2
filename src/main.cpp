@@ -837,7 +837,7 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
 
         if (whichType == TX_NULL_DATA)
             nDataOut++;
-        else if ((whichType == TX_MULTISIG) && (!fIsBareMultisigStd)) {
+        else if (whichType == TX_MULTISIG && !fIsBareMultisigStd) {
             reason = "bare-multisig";
             return false;
         } else if (txout.IsDust(::minRelayTxFee)) {
