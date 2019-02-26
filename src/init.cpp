@@ -1373,6 +1373,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));
     }
 
+    StartTor();
+
+
     if (mapArgs.count("-externalip")) {
         BOOST_FOREACH(const std::string& strAddr, mapMultiArgs["-externalip"]) {
             CService addrLocal(strAddr, GetListenPort(), fNameLookup);
@@ -1380,6 +1383,23 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr));
             AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL);
         }
+    } else {
+        MilliSleep(500);
+        string automatic_onion;
+        boost::filesystem::path const hostname_path = GetDataDir() / "onion" / "hostname";
+        int attempts = 0;
+        while (true) {
+            if (filesystem::exists(hostname_path))
+                break;
+            ++attempts;
+            MilliSleep(1000);
+            if (attempts > 8)
+                return InitError(("Timed out waiting for onion hostname."));
+            printf("No onion hostname yet, will retry in 1 seconds... (%d/8)\n", attempts);
+        }
+        ifstream file(hostname_path.string().c_str());
+        file >> automatic_onion;
+        AddLocal(CService(automatic_onion, GetListenPort(), fNameLookup), LOCAL_MANUAL);
     }
 
     BOOST_FOREACH(const std::string& strDest, mapMultiArgs["-seednode"])
@@ -1990,7 +2010,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     LogPrintf("mapAddressBook.size() = %u\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
 #endif
 
-    StartTor();
+    
 
     StartTorControl(threadGroup, scheduler);
 
