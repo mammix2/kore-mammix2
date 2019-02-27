@@ -1061,6 +1061,11 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             }
         }
 
+        if (!fProofOfStake && (chainActive.Tip()->nHeight > Params().LAST_POW_BLOCK())) {
+             if (fDebug) 
+               LogPrintf("Pow Period has ended, we need to exit this thread \n");
+             break;
+        }
         //
         // Create new block
         //
