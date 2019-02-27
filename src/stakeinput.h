@@ -24,6 +24,7 @@ public:
     virtual bool CreateLockingTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool fsplitStake) = 0;
     virtual bool CreateTxOut(CWallet* pwallet, CTxOut& txOut) = 0;
     virtual bool GetModifier(uint64_t& nStakeModifier) = 0;
+    virtual uint256 GetOldModifier(bool isProofOfStake) = 0;
     virtual CDataStream GetUniqueness() = 0;
     virtual int GetPosition() = 0;
 };
@@ -49,6 +50,7 @@ public:
     bool GetTxFrom(CTransaction& tx) override;
     CAmount GetValue() override;
     bool GetModifier(uint64_t& nStakeModifier) override;
+    uint256 GetOldModifier(bool isProofOfStake) override;
     CDataStream GetUniqueness() override;
     bool CreateTxIn(CWallet* pwallet, CTxIn& txIn, uint256 hashTxOut = 0) override;
     virtual bool CreateLockingTxOuts(CWallet* pwallet, vector<CTxOut>& vout, bool fsplitStake) override;

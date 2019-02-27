@@ -53,7 +53,7 @@ QString BitcoinUnits::id(int unit)
 
 QString BitcoinUnits::name(int unit)
 {
-    if (Params().NetworkID() == CBaseChainParams::MAIN) {
+    if (Params().GetNetworkID() == CBaseChainParams::MAIN) {
         switch (unit) {
         case KORE:
             return QString("KORE");
@@ -80,7 +80,7 @@ QString BitcoinUnits::name(int unit)
 
 QString BitcoinUnits::description(int unit)
 {
-    if (Params().NetworkID() == CBaseChainParams::MAIN) {
+    if (Params().GetNetworkID() == CBaseChainParams::MAIN) {
         switch (unit) {
         case KORE:
             return QString("KORE");
@@ -282,5 +282,5 @@ QVariant BitcoinUnits::data(const QModelIndex& index, int role) const
 
 CAmount BitcoinUnits::maxMoney()
 {
-    return Params().MaxMoneyOut();
+    return Params().GetMaxMoneyOut();
 }

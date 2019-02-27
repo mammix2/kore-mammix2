@@ -88,7 +88,7 @@ CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CMu
     txSpend.vin[0].prevout.n = 0;
     txSpend.vin[0].scriptSig = scriptSig;
     if (flags > 0 && flags & SCRIPT_VERIFY_CHECKSEQUENCEVERIFY)
-        txSpend.vin[0].nSequence = Params().StakeLockSequenceNumber();
+        txSpend.vin[0].nSequence = Params().GetStakeLockSequenceNumber();
     else
         txSpend.vin[0].nSequence = std::numeric_limits<unsigned int>::max();
     txSpend.vout[0].scriptPubKey = CScript();
@@ -566,10 +566,10 @@ BOOST_AUTO_TEST_CASE(script_build)
     good.push_back(TestBuilder(CScript() << OP_2 << ToByteVector(keys.pubkey1C) << ToByteVector(keys.pubkey1C) << OP_2 << OP_CHECKMULTISIG,
                                "2-of-2 with two identical keys and sigs pushed", SCRIPT_VERIFY_SIGPUSHONLY
                               ).Num(0).PushSig(keys.key1).PushSig(keys.key1));
-    good.push_back(TestBuilder(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
+    good.push_back(TestBuilder(CScript() << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
                                "Timelock transaction", SCRIPT_VERIFY_CHECKSEQUENCEVERIFY
                               ).Num(0).PushSig(keys.key1));
-    bad.push_back(TestBuilder(CScript() << Params().StakeLockSequenceNumber() + 1 << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
+    bad.push_back(TestBuilder(CScript() << Params().GetStakeLockSequenceNumber() + 1 << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
                                "Timelock transaction", SCRIPT_VERIFY_CHECKSEQUENCEVERIFY
                               ).Num(0).PushSig(keys.key1));
 

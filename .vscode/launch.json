@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "3974",
+            "processId": "99829",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -45,7 +45,7 @@
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/kored",
             "args": ["-testnet","-debug","-par=1"],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
@@ -128,13 +128,13 @@
             ]
         },                 
         {
-            "name": "(gdb) Launch Tests",
+            "name": "(gdb) Unit Tests",
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/test/test_kore",
-            //"args": ["--log_level=test_suite"],
-            "args": ["--log_level=test_suite", "--log_sink=stdout", "--run_test=main_tests"],
+            //"args": ["--log_level=test_suite", "--run_test=main_tests"],
+            "args": ["--log_level=test_suite", "--log_sink=stdout"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -147,6 +147,21 @@
                     "ignoreFailures": true
                 }
             ]
-        }        
+        },
+        { 
+            "name": "Attach to Unit ",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/src/test/test_kore",
+            "processId": "85695",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },       
     ]
 }

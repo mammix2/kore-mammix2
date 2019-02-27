@@ -66,6 +66,10 @@ src/qt/moc_*.cpp
 src/qt/forms/ui_*.h
 
 src/qt/test/moc*.cpp
+tools/masternode/jq
+tools/masternode/*.conf
+tools/masternode/*.readme
+tools/masternode/*.activation
 
 .deps
 .dirstamp
@@ -104,6 +108,8 @@ KORE-Qt.app
 Makefile.test
 kore-qt_test
 src/test/buildenv.py
+src/test/delete-me
+delete-me
 
 # Resources cpp
 qrc_*.cpp

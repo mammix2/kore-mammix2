@@ -5,13 +5,9 @@
 #ifndef KORE_MINTPOOL_H
 #define KORE_MINTPOOL_H
 
-#include <map>
-#include <list>
-#ifdef ZEROCOIN
-#include "primitives/zerocoin.h"
-#include "libzerocoin/bignum.h"
-#endif
 #include "uint256.h"
+#include <list>
+#include <map>
 
 /**
  * The MintPool only contains mint values that have not been added to the blockchain yet.

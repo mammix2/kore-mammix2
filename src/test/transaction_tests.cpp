@@ -312,16 +312,16 @@ SetupDummyLockingInputs(CBasicKeyStore& keystoreRet, CCoinsViewCache& coinsRet)
     // Create some dummy input transactions
     dummyTransactions[0].vout.resize(2);
     dummyTransactions[0].vout[0].nValue = 11*CENT;
-    dummyTransactions[0].vout[0].scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
+    dummyTransactions[0].vout[0].scriptPubKey << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[0].GetPubKey()) << OP_CHECKSIG;
     dummyTransactions[0].vout[1].nValue = 50*CENT;
-    dummyTransactions[0].vout[1].scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
+    dummyTransactions[0].vout[1].scriptPubKey << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[1].GetPubKey()) << OP_CHECKSIG;
     coinsRet.ModifyCoins(dummyTransactions[0].GetHash())->FromTx(dummyTransactions[0], 0);
 
     dummyTransactions[1].vout.resize(2);
     dummyTransactions[1].vout[0].nValue = 21*CENT;
-    dummyTransactions[1].vout[0].scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[2].GetPubKey()) << OP_CHECKSIG;
+    dummyTransactions[1].vout[0].scriptPubKey << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[2].GetPubKey()) << OP_CHECKSIG;
     dummyTransactions[1].vout[1].nValue = 22*CENT;
-    dummyTransactions[1].vout[1].scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[3].GetPubKey()) << OP_CHECKSIG;
+    dummyTransactions[1].vout[1].scriptPubKey << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(key[3].GetPubKey()) << OP_CHECKSIG;
     coinsRet.ModifyCoins(dummyTransactions[1].GetHash())->FromTx(dummyTransactions[1], 0);
 
     return dummyTransactions;
@@ -456,7 +456,7 @@ BOOST_AUTO_TEST_CASE(test_Locking)
     t.vin[0].prevout.hash = dummyTransactions[0].GetHash();
     t.vin[0].prevout.n = 1;
     t.vin[0].scriptSig << std::vector<unsigned char>(65, 0);
-    t.vin[0].nSequence = Params().StakeLockSequenceNumber();
+    t.vin[0].nSequence = Params().GetStakeLockSequenceNumber();
     t.vout.resize(1);
     t.vout[0].nValue = 90*CENT;
     CKey key;

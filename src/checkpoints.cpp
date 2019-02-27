@@ -32,7 +32,7 @@ bool CheckBlock(int nHeight, const uint256& hash, bool fMatchesCheckpoint)
     if (!fEnabled)
         return true;
 
-    const MapCheckpoints& checkpoints = *Params().Checkpoints().mapCheckpoints;
+    const MapCheckpoints& checkpoints = *Params().GetCheckpoints().mapCheckpoints;
 
     MapCheckpoints::const_iterator i = checkpoints.find(nHeight);
     // If looking for an exact match, then return false
@@ -54,7 +54,7 @@ double GuessVerificationProgress(CBlockIndex* pindex, bool fSigchecks)
     // Work is defined as: 1.0 per transaction before the last checkpoint, and
     // fSigcheckVerificationFactor per transaction after.
 
-    const CCheckpointData& data = Params().Checkpoints();
+    const CCheckpointData& data = Params().GetCheckpoints();
 
     if (pindex->nChainTx <= data.nTransactionsLastCheckpoint) {
         double nCheapBefore = pindex->nChainTx;
@@ -78,7 +78,7 @@ int GetTotalBlocksEstimate()
     if (!fEnabled)
         return 0;
 
-    const MapCheckpoints& checkpoints = *Params().Checkpoints().mapCheckpoints;
+    const MapCheckpoints& checkpoints = *Params().GetCheckpoints().mapCheckpoints;
     if (checkpoints.empty())
         return 0;
 
@@ -90,7 +90,7 @@ CBlockIndex* GetLastCheckpoint()
     if (!fEnabled)
         return NULL;
 
-    const MapCheckpoints& checkpoints = *Params().Checkpoints().mapCheckpoints;
+    const MapCheckpoints& checkpoints = *Params().GetCheckpoints().mapCheckpoints;
 
     BOOST_REVERSE_FOREACH (const MapCheckpoints::value_type& i, checkpoints) {
         const uint256& hash = i.second;

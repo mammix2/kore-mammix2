@@ -8,7 +8,6 @@
 #include "amount.h"
 #include "base58.h"
 #include "chainparams.h"
-#include "validationinterface.h"
 #include "core_io.h"
 #include "init.h"
 #include "main.h"
@@ -17,6 +16,7 @@
 #include "pow.h"
 #include "rpcserver.h"
 #include "util.h"
+#include "validationinterface.h"
 #ifdef ENABLE_WALLET
 #include "db.h"
 #include "wallet.h"
@@ -29,13 +29,9 @@
 #include <boost/assign/list_of.hpp>
 
 #include <univalue.h>
-#include <condition_variable>
 
 using namespace std;
 
-
-extern mutex csBestBlock;
-extern condition_variable cvBlockChange;
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
@@ -44,7 +40,7 @@ extern condition_variable cvBlockChange;
  */
 UniValue GetNetworkHashPS(int lookup, int height)
 {
-    CBlockIndex *pb = chainActive.Tip();
+    CBlockIndex* pb = chainActive.Tip();
 
     if (height >= 0 && height < chainActive.Height())
         pb = chainActive[height];
@@ -162,7 +158,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
     }
 
     // -regtest mode: don't return until nGenProcLimit blocks are generated
-    if (fGenerate && Params().MineBlocksOnDemand()) {
+    if (fGenerate && Params().ShouldMineBlocksOnDemand()) {
         int nHeightStart = 0;
         int nHeightEnd = 0;
         int nHeight = 0;
@@ -186,7 +182,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
                 LOCK(cs_main);
                 IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
             }
-            while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, chainActive.Height())) {
+            while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits)) {
                 // Yes, there is a chance every nonce could fail to satisfy the -regtest
                 // target -- 1 in 2^(2^32). That ain't gonna happen.
                 ++pblock->nNonce;
@@ -265,8 +261,8 @@ UniValue getmininginfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("genproclimit", (int)GetArg("-genproclimit", -1)));
     obj.push_back(Pair("networkhashps", getnetworkhashps(params, false)));
     obj.push_back(Pair("pooledtx", (uint64_t)mempool.size()));
-    obj.push_back(Pair("testnet", Params().NetworkID() == CBaseChainParams::TESTNET));
-    obj.push_back(Pair("chain", Params().NetworkIDString()));
+    obj.push_back(Pair("testnet", Params().GetNetworkID() == CBaseChainParams::TESTNET));
+    obj.push_back(Pair("chain", Params().GetNetworkIDString()));
 #ifdef ENABLE_WALLET
     obj.push_back(Pair("generate", getgenerate(params, false)));
     obj.push_back(Pair("hashespersec", gethashespersec(params, false)));
@@ -523,7 +519,8 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     UpdateTime(pblock, pindexPrev, false);
     pblock->nNonce = 0;
 
-    UniValue aCaps(UniValue::VARR); aCaps.push_back("proposal");
+    UniValue aCaps(UniValue::VARR);
+    aCaps.push_back("proposal");
 
     UniValue transactions(UniValue::VARR);
     map<uint256, int64_t> setTxIndex;
@@ -581,8 +578,8 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast() + 1));
     result.push_back(Pair("mutable", aMutable));
     result.push_back(Pair("noncerange", "00000000ffffffff"));
-//    result.push_back(Pair("sigoplimit", (int64_t)MAX_BLOCK_SIGOPS));
-//    result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_SIZE));
+    //    result.push_back(Pair("sigoplimit", (int64_t)MAX_BLOCK_SIGOPS));
+    //    result.push_back(Pair("sizelimit", (int64_t)MAX_BLOCK_SIZE));
     result.push_back(Pair("curtime", pblock->GetBlockTime()));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight + 1)));
@@ -600,7 +597,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         result.push_back(Pair("payee_amount", ""));
     }
 
-    result.push_back(Pair("masternode_payments", pblock->nTime > Params().StartMasternodePayments()));
+    result.push_back(Pair("masternode_payments", pblock->nTime > Params().GetStartMasternodePayments()));
     result.push_back(Pair("enforce_masternode_payments", true));
 
     return result;

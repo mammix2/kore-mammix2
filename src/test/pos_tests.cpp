@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(pos_integration)
 
     SelectParams(CBaseChainParams::UNITTEST);
     ModifiableParams()->setHeightToFork(0);
-    ModifiableParams()->setLastPowBlock(200);
+    ModifiableParams()->setLastPowBlockBlock(200);
 
     genesisTime = chainActive.Genesis()->nTime;
 
@@ -448,7 +448,7 @@ CWalletTx AddToWallet(CWallet* wallet, CTransaction tx, CBlock block)
 ** We're creating PoW and PoS blocks here to test if the GetBalance
 ** method works as intended. The UnitTest ChainParams configuration
 ** states that any coinbase should be available after 1 block
-** (nMaturity = 1) and we set the locking interval of a PoS transaction
+** (nCoinbaseMaturity = 1) and we set the locking interval of a PoS transaction
 ** to 60 seconds (aStakeLockInterval = 60). Because of the
 ** SEQUENCE_LOCKTIME_GRANULARITY chosen (5 bits), we can only set the
 ** locking interval in increments of 32 seconds. The minimal locking
@@ -463,6 +463,7 @@ BOOST_AUTO_TEST_CASE(pos_GetBalance)
     // Set ChainParams for the test
     SelectParams(CBaseChainParams::UNITTEST);
     ModifiableParams()->setHeightToFork(0);
+    ModifiableParams()->setCoinbaseMaturity(1);
     ModifiableParams()->setStakeLockInterval(60);
 
     CBitcoinSecret bsecret;
@@ -511,7 +512,7 @@ BOOST_AUTO_TEST_CASE(pos_GetBalance)
 
     // Lock the second coin as stake
     CMutableTransaction tx4 = GetNewTransaction(script, 10 * COIN, true, true);
-    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
+    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
     tx4_stake.vin[0].prevout = COutPoint(tx2.GetHash(), 0);
     BOOST_CHECK(SignSignature(wallet, wtx2, tx4_stake, 0));
     CBlock block4 = GetNewPoSBlock(block3.GetHash(), tx4, tx4_stake, script);
@@ -555,6 +556,7 @@ BOOST_AUTO_TEST_CASE(pos_CreateTransaction)
     // Set ChainParams for the test
     SelectParams(CBaseChainParams::UNITTEST);
     ModifiableParams()->setHeightToFork(0);
+    ModifiableParams()->setCoinbaseMaturity(1);
     ModifiableParams()->setStakeLockInterval(60);
 
     CBitcoinSecret bsecret;
@@ -592,7 +594,7 @@ BOOST_AUTO_TEST_CASE(pos_CreateTransaction)
 
     // Lock the first coin as stake
     CMutableTransaction tx3 = GetNewTransaction(script, 10 * COIN, true, true);
-    CMutableTransaction tx3_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
+    CMutableTransaction tx3_stake = GetNewTransaction(CScript() << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
     tx3_stake.vin[0].prevout = COutPoint(tx1.GetHash(), 0);
     BOOST_CHECK(SignSignature(wallet, wtx1, tx3_stake, 0));
     CBlock block3 = GetNewPoSBlock(block2.GetHash(), tx3, tx3_stake, script);
@@ -605,7 +607,7 @@ BOOST_AUTO_TEST_CASE(pos_CreateTransaction)
 
     // Lock the second coin as stake
     CMutableTransaction tx4 = GetNewTransaction(script, 10 * COIN, true, true);
-    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
+    CMutableTransaction tx4_stake = GetNewTransaction(CScript() << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 5 * COIN, false);
     tx4_stake.vin[0].prevout = COutPoint(tx2.GetHash(), 0);
     BOOST_CHECK(SignSignature(wallet, wtx2, tx4_stake, 0));
     CBlock block4 = GetNewPoSBlock(block2.GetHash(), tx4, tx4_stake, script);
@@ -618,7 +620,7 @@ BOOST_AUTO_TEST_CASE(pos_CreateTransaction)
 
     // Lock the first PoS coinbase as stake
     CMutableTransaction tx5 = GetNewTransaction(script, 10 * COIN, true, true);
-    CMutableTransaction tx5_stake = GetNewTransaction(CScript() << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 9 * COIN, false);
+    CMutableTransaction tx5_stake = GetNewTransaction(CScript() << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG, 9 * COIN, false);
     tx5_stake.vin[0].prevout = COutPoint(tx3.GetHash(), 1);
     BOOST_CHECK(SignSignature(wallet, wtx3, tx5_stake, 0));
     CBlock block5 = GetNewPoSBlock(block2.GetHash(), tx5, tx5_stake, script);

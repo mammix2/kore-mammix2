@@ -4,20 +4,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "arith_uint256.h" // Legacy code
 #include "txdb.h"
+#include "arith_uint256.h" // Legacy code
 #include "chain.h"
 #include "main.h"
 #include "pow.h"
 #include "support/csviterator.h"
 #include "uint256.h"
-#ifdef ZEROCOIN
-#include "accumulators.h"
-using namespace libzerocoin;
-#endif
-
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include <stdint.h>
 
@@ -25,15 +20,15 @@ using namespace libzerocoin;
 
 using namespace std;
 
-static const char DB_COINS = 'c';
-static const char DB_BLOCK_FILES = 'f';
-static const char DB_TXINDEX = 't';
-static const char DB_BLOCK_INDEX = 'b';
+static const char DB_COINS        = 'c';
+static const char DB_BLOCK_FILES  = 'f';
+static const char DB_TXINDEX      = 't';
+static const char DB_BLOCK_INDEX  = 'b';
 
-static const char DB_BEST_BLOCK = 'B';
-static const char DB_FLAG = 'F';
+static const char DB_BEST_BLOCK   = 'B';
+static const char DB_FLAG         = 'F';
 static const char DB_REINDEX_FLAG = 'R';
-static const char DB_LAST_BLOCK = 'l';
+static const char DB_LAST_BLOCK   = 'l';
 
 void static BatchWriteCoins(CLevelDBBatch& batch, const uint256& hash, const CCoins& coins)
 {
@@ -188,7 +183,7 @@ bool CCoinsViewDB::GetStats(CCoinsStats& stats) const
     return true;
 }
 
-bool CCoinsViewDB::DumpUTXO(string &fileSaved, string fileBaseName)
+bool CCoinsViewDB::DumpUTXO(string& fileSaved, string fileBaseName)
 {
     /* It seems that there are no "const iterators" for LevelDB.  Since we
        only need read operations on it, use a const-cast to get around
@@ -205,14 +200,14 @@ bool CCoinsViewDB::DumpUTXO(string &fileSaved, string fileBaseName)
     fileSaved = fileBaseName;
     string nHeight;
     ofstream myfile;
-    {    
+    {
         LOCK(cs_main);
-    
+
         fileSaved += itostr(mapBlockIndex.find(hashBlock)->second->nHeight);
         fileSaved += ".csv";
     }
     myfile.open(fileSaved);
-    
+
     while (pcursor->Valid()) {
         boost::this_thread::interruption_point();
         try {
@@ -224,12 +219,10 @@ bool CCoinsViewDB::DumpUTXO(string &fileSaved, string fileBaseName)
                         const CTxOut& out = coins.vout[i];
                         if (!out.IsNull()) {
                             stringstream scriptStream(out.scriptPubKey.ToString());
-                            for(CSVIterator loop(scriptStream, ' '); loop != CSVIterator(); ++loop)
-                            {
-                                for (int i = 0; i < (*loop).size(); i++)
-                                {
+                            for (CSVIterator loop(scriptStream, ' '); loop != CSVIterator(); ++loop) {
+                                for (int i = 0; i < (*loop).size(); i++) {
                                     myfile << (*loop)[i] << ',';
-                                    ss <<  (*loop)[i];
+                                    ss << (*loop)[i];
                                 }
                             }
 
@@ -297,7 +290,8 @@ bool CBlockTreeDB::WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos>
     return WriteBatch(batch);
 }
 
-bool CBlockTreeDB::ReadAddrIndex(uint160 addrid, std::vector<CExtDiskTxPos> &list) {
+bool CBlockTreeDB::ReadAddrIndex(uint160 addrid, std::vector<CExtDiskTxPos>& list)
+{
     boost::scoped_ptr<CLevelDBIterator> pcursor(NewIterator());
 
     uint64_t lookupid;
@@ -322,10 +316,11 @@ bool CBlockTreeDB::ReadAddrIndex(uint160 addrid, std::vector<CExtDiskTxPos> &lis
     return true;
 }
 
-bool CBlockTreeDB::AddAddrIndex(const std::vector<std::pair<uint160, CExtDiskTxPos> > &list) {
+bool CBlockTreeDB::AddAddrIndex(const std::vector<std::pair<uint160, CExtDiskTxPos> >& list)
+{
     unsigned char foo[0];
     CLevelDBBatch batch(&GetObfuscateKey());
-    for (std::vector<std::pair<uint160, CExtDiskTxPos> >::const_iterator it=list.begin(); it!=list.end(); it++) {
+    for (std::vector<std::pair<uint160, CExtDiskTxPos> >::const_iterator it = list.begin(); it != list.end(); it++) {
         CHashWriter ss(SER_GETHASH, 0);
         ss << salt;
         ss << it->first;
@@ -403,10 +398,15 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     pindexNew->prevoutStake      = diskindex.prevoutStake;
                     pindexNew->nStakeTime        = diskindex.nStakeTime;
                     pindexNew->hashProofOfStake  = diskindex.hashProofOfStake;
-                    bool isProofOfStake = pindexNew->IsProofOfStake(); 
+                    bool isProofOfStake = pindexNew->IsProofOfStake();
                     if (!isProofOfStake && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
-                        if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, pindexNew->nHeight))
-                            return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());
+                        if (useLegacyCode) {
+                            if (!CheckProofOfWork_Legacy(pindexNew->GetBlockHash(), pindexNew->nBits))
+                                return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());
+                        } else {
+                            if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits))
+                                return error("LoadBlockIndexGuts() : CheckProofOfWork failed: %s", pindexNew->ToString());
+                        }
                     }
                     // ppcoin: build setStakeSeen
                     if (!useLegacyCode && isProofOfStake)

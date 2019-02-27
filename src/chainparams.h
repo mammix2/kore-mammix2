@@ -11,8 +11,8 @@
 #include "chainparamsbase.h"
 #include "checkpoints.h"
 #include "primitives/block.h"
-#include "protocol.h"
 #include "primitives/transaction.h"
+#include "protocol.h"
 #include "uint256.h"
 
 #include <vector>
@@ -41,7 +41,6 @@ public:
         EXT_PUBLIC_KEY, // BIP32
         EXT_SECRET_KEY, // BIP32
         EXT_COIN_TYPE,  // BIP44
-
         MAX_BASE58_TYPES
     };
 
@@ -63,178 +62,171 @@ public:
 
     typedef BIP9Deployment vDeployments_type[MAX_VERSION_BITS_DEPLOYMENTS];
 
-    // mark the Fork Block here
-    const int HeigthToFork() const { return heightToFork; };
+    virtual const Checkpoints::CCheckpointData& GetCheckpoints() const = 0;
 
-    const uint256& HashGenesisBlock() const { return hashGenesisBlock; }
-    const MessageStartChars& MessageStart() const { return pchMessageStart; }
-    const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
-    int GetDefaultPort() const { return nDefaultPort; }
-    const uint256& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
-    const uint256& ProofOfStakeLimit() const { return bnProofOfStakeLimit; }
-    int SubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
-    /** Used to check majorities for block version upgrade */
-    int EnforceBlockUpgradeMajority() const { return nEnforceBlockUpgradeMajority; }
-    int RejectBlockOutdatedMajority() const { return nRejectBlockOutdatedMajority; }
-    int ToCheckBlockUpgradeMajority() const { return nToCheckBlockUpgradeMajority; }
-    int MaxReorganizationDepth() const { return nMaxReorganizationDepth; }
+    const std::vector<unsigned char>&      AlertKey() const                    { return vAlertPubKey; }
+    const int32_t                          HeightToFork() const                { return nHeightToFork; };
+    const uint256&                         HashGenesisBlock() const            { return nHashGenesisBlock; }
+    const MessageStartChars&               MessageStart() const                { return pchMessageStart; }
+    const uint256&                         ProofOfWorkLimit() const            { return bnProofOfWorkLimit; }
+    const uint256&                         ProofOfStakeLimit() const           { return bnProofOfStakeLimit; }
+    const CBlock&                          GenesisBlock() const                { return genesis; }
+    const CChainParams::vDeployments_type& GetVDeployments() const             { return vDeployments; }
+    const std::vector<CDNSSeedData>&       DNSSeeds() const                    { return vSeeds; }
+    const std::vector<unsigned char>&      Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
+    const std::vector<CAddress>&           FixedSeeds() const                  { return vFixedSeeds; }
 
-    /** Used if GenerateBitcoins is called with a negative number of threads */
-    int DefaultMinerThreads() const { return nMinerThreads; }
-    const CBlock& GenesisBlock() const { return genesis; }
-    /** Make miner wait to have peers to avoid wasting work */
-    bool MiningRequiresPeers() const { return fMiningRequiresPeers; }
-    /** Headers first syncing is disabled */
-    bool HeadersFirstSyncingActive() const { return fHeadersFirstSyncingActive; };
-    /** Default value for -checkmempool and -checkblockindex argument */
-    bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
     /** Allow mining of a min-difficulty block */
-    bool AllowMinDifficultyBlocks() const { return fAllowMinDifficultyBlocks; }
-    /** Skip proof-of-work check: allow mining of any difficulty block */
-    bool SkipProofOfWorkCheck() const { return fSkipProofOfWorkCheck; }
-    /** Make standard checks */
-    bool RequireStandard() const { return fRequireStandard; }
-    int64_t TargetTimespan() const { return nTargetTimespan; }
-    int64_t TargetSpacing() const { return nTargetSpacing; }
-    int64_t StakeTargetSpacing() const {return nStakeTargetSpacing;}
-    int64_t StakeLockInterval() const { return nStakeLockInterval; }
-    int64_t StakeLockSequenceNumber() const { return (nStakeLockInterval >> CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) | CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG; }
-    int64_t DifficultyAdjustmentInterval() const { return nTargetTimespan / nTargetSpacing; }
-    int64_t PastBlocksMin() const { return nPastBlocksMin; }
-    int64_t PastBlocksMax() const { return nPastBlocksMax; }
-    unsigned int StakeMinAge() const {return nStakeMinAge;}
-    unsigned int StakeMinConfirmations() const {return nStakeMinConfirmations;}
-    unsigned int GetModifier() const {return nModifier;}
-    int64_t ClientMintableCoinsInterval() const { return nClientMintableCoinsInterval; }
-    int64_t EnsureMintableCoinsInterval() const { return nEnsureMintableCoinsInterval; }
-    
-    int64_t Interval() const { return nTargetTimespan / nTargetSpacing; }
-    int COINBASE_MATURITY() const { return nMaturity; }
-    int GetMaxStakeModifierInterval() const { return min(nStakeMinConfirmations, 64U); }
-    CAmount MaxMoneyOut() const { return nMaxMoneyOut; }
-    /** The masternode count that we will allow the see-saw reward payments to be off by */
-    int MasternodeCountDrift() const { return nMasternodeCountDrift; }
-    int64_t MaxTipAge() const { return nMaxTipAge; }
-    uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }    
-    /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
-    bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
-    /** Return the BIP70 network string (main, test or regtest) */
-    std::string NetworkIDString() const { return strNetworkID; }
-    const std::vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
-    const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
-
-    uint32_t RuleChangeActivationThreshold() const { return nRuleChangeActivationThreshold;}
-    uint32_t MinerConfirmationWindow() const { return nMinerConfirmationWindow;}
-
-    const CChainParams::vDeployments_type & GetVDeployments() const { return vDeployments;}
-    const std::vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
-    virtual const Checkpoints::CCheckpointData& Checkpoints() const = 0;
-    int PoolMaxTransactions() const { return nPoolMaxTransactions; }
-
+    bool                      AllowMinDifficultyBlocks() const         { return fAllowMinDifficultyBlocks; }
+    bool                      EnableBigRewards() const                 { return fEnableBigReward; }
+    /** Make miner wait to have peers to avoid wasting work */
+    bool                      DoesMiningRequiresPeers() const          { return fMiningRequiresPeers; }
+    int32_t                   GetBlockEnforceInvalid() const           { return nBlockEnforceInvalidUTXO; }
+    int64_t                   GetBudgetFeeConfirmations() const        { return nBudgetFeeConfirmations; }
+    int64_t                   GetBudgetVoteUpdate() const              { return nBudgetVoteUpdate; }
+    int64_t                   GetClientMintableCoinsInterval() const   { return nClientMintableCoinsInterval; }
+    int32_t                   GetCoinbaseMaturity() const              { return nCoinbaseMaturity; }
+    /** Used if GenerateBitcoins is called with a negative number of threads */
+    int32_t                   GetDefaultMinerThreads() const           { return nMinerThreads; }
+    int32_t                   GetDefaultPort() const                   { return nDefaultPort; }
     /** Spork key and Masternode Handling **/
-    std::string DevFundPubKey() const { return strDevFundPubKey; }
-    std::string SporkKey() const { return strSporkKey; }
-    int64_t NewSporkStart() const { return nEnforceNewSporkKey; }
-    int64_t RejectOldSporkKey() const { return nRejectOldSporkKey; }
-    std::string ObfuscationPoolDummyAddress() const { return strObfuscationPoolDummyAddress; }
-    int64_t StartMasternodePayments() const { return nStartMasternodePayments; }
-    int64_t BudgetVoteUpdate() const { return nBudgetVoteUpdate; }
-    int64_t BudgetFeeConfirmations() const { return nBudgetFeeConfirmations; }
-
-    int64_t MasternodeMinConfirmations() const { return nMasternodeMinConfirmations; }
-    int64_t MasternodeMinMNPSeconds() const { return nMasternodeMinMNPSeconds; }
-    int64_t MasternodeMinMNBSeconds() const { return nMasternodeMinMNBSeconds; }
-    int64_t MasternodePingSeconds() const { return nMasternodePingSeconds; }
-    int64_t MasternodeExpirationSeconds() const { return nMasternodeExpirationSeconds; }    
-    int64_t MasternodeRemovalSeconds() const { return nMasternodeRemovalSeconds; }
-    int64_t MasternodeCheckSeconds() const { return nMasternodeCheckSeconds; }
-    int64_t MasternodeCoinScore() const { return nMasternodeCoinScore; }
-    int64_t MasternodeBudgetPaymentCycle() const { return nMasternodeBudgetPaymentCycle; }
-    int64_t MasternodeFinalizationWindow() const { return nMasternodeFinalizationWindow; }
-        
-    CBaseChainParams::Network NetworkID() const { return networkID; }
-    int LAST_POW_BLOCK() const { return nLastPOWBlock; }
-    int Block_Enforce_Invalid() const { return nBlockEnforceInvalidUTXO; }
-    int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
-
+    std::string               GetDevFundPubKey() const                 { return strDevFundPubKey; }
+    int64_t                   GetDifficultyAdjustmentInterval() const  { return nTargetTimespan / nTargetSpacing; }
+    int64_t                   GetEnsureMintableCoinsInterval() const   { return nEnsureMintableCoinsInterval; }
+    int64_t                   GetInterval() const                      { return nTargetTimespan / nTargetSpacing; }
+    int32_t                   GetLastPoWBlock() const                  { return nLastPOWBlock; }
+    /** Used to check majorities for block version upgrade */
+    int32_t                   GetMajorityBlockUpgradeEnforce() const   { return nMajorityBlockUpgradeEnforce; }
+    int32_t                   GetMajorityBlockUpgradeToCheck() const   { return nMajorityBlockUpgradeToCheck; }
+    int32_t                   GetMajorityBlockOutdatedReject() const   { return nMajorityBlockOutdatedReject; }
+    int64_t                   GetMasternodeBudgetPaymentCycle() const  { return nMasternodeBudgetPaymentCycle; }
+    int64_t                   GetMasternodeCheckSeconds() const        { return nMasternodeCheckSeconds; }
+    int64_t                   GetMasternodeCoinScore() const           { return nMasternodeCoinScore; }
+    /** The masternode count that we will allow the see-saw reward payments to be off by */
+    int32_t                   GetMasternodeCountDrift() const          { return nMasternodeCountDrift; }
+    int64_t                   GetMasternodeExpirationSeconds() const   { return nMasternodeExpirationSeconds; }
+    int64_t                   GetMasternodeFinalizationWindow() const  { return nMasternodeFinalizationWindow; }
+    int64_t                   GetMasternodeMinConfirmations() const    { return nMasternodeMinConfirmations; }
+    int64_t                   GetMasternodeMinMNBSeconds() const       { return nMasternodeMinMNBSeconds; }
+    int64_t                   GetMasternodeMinMNPSeconds() const       { return nMasternodeMinMNPSeconds; }
+    int64_t                   GetMasternodePingSeconds() const         { return nMasternodePingSeconds; }
+    int64_t                   GetMasternodeRemovalSeconds() const      { return nMasternodeRemovalSeconds; }
+    CAmount                   GetMaxMoneyOut() const                   { return nMaxMoneyOut; }
+    int32_t                   GetMaxReorganizationDepth() const        { return nMaxReorganizationDepth; }
+    int32_t                   GetMaxStakeModifierInterval() const      { return std::min(nStakeMinConfirmations, 64U); }
+    int64_t                   GetMaxTipAge() const                     { return nMaxTipAge; }
+    uint32_t                  GetMinerConfirmationWindow() const       { return nMinerConfirmationWindow; }
+    uint32_t                  GetModifierInterval() const              { return nModifierInterval; }
+    CBaseChainParams::Network GetNetworkID() const                     { return networkID; }
+    /** Return the BIP70 network string (main, test or regtest) */
+    std::string               GetNetworkIDString() const               { return strNetworkID; }
+    std::string               GetObfuscationPoolDummyAddress() const   { return strObfuscationPoolDummyAddress; }
+    int32_t                   GetPoolMaxTransactions() const           { return nPoolMaxTransactions; }
+    uint32_t                  GetRuleChangeActivationThreshold() const { return nRuleChangeActivationThreshold; }
+    std::string               GetSporkKey() const                      { return strSporkKey; }
+    int64_t                   GetSporkKeyEnforceNew() const            { return nSporkKeyEnforceNew; }
+    int64_t                   GetSporkKeyRejectOld() const             { return nSporkKeyRejectOld; }
+    int64_t                   GetStartMasternodePayments() const       { return nStartMasternodePayments; }
+    int64_t                   GetPastBlocksMax() const                 { return nPastBlocksMax; }
+    int64_t                   GetPastBlocksMin() const                 { return nPastBlocksMin; }
+    // minimum spacing is maturity - 1
+    int64_t                   GetStakeLockInterval() const             { return nStakeLockInterval; }
+    int64_t                   GetStakeLockSequenceNumber() const       { return (nStakeLockInterval >> CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) | CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG; }
+    uint32_t                  GetStakeMinAge() const                   { return nStakeMinAge; }
+    // minimum Stake confirmations is 2 !!!
+    uint32_t                  GetStakeMinConfirmations() const         { return nStakeMinConfirmations; }
+    uint32_t                  GetTargetSpacing() const                 { return nTargetSpacing; }
+    int64_t                   GetTargetSpacingForStake() const         { return nTargetSpacingForStake; }
+    uint32_t                  GetTargetTimespan() const                { return nTargetTimespan; }
+    /** Default value for -checkmempool and -checkblockindex argument */
+    bool                      IsConsistencyChecksDefault() const       { return fDefaultConsistencyChecks; }
+    /** Headers first syncing is disabled */
+    bool                      IsHeadersFirstSyncingActive() const      { return fHeadersFirstSyncingActive; };
+    uint64_t                  PruneAfterHeight() const                 { return nPruneAfterHeight; }
+    /** Make standard checks */
+    bool                      RequireStandard() const                  { return fRequireStandard; }
+    /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
+    bool                      ShouldMineBlocksOnDemand() const         { return fMineBlocksOnDemand; }
+    /** Skip proof-of-work check: allow mining of any difficulty block */
+    bool                      SkipProofOfWorkCheck() const             { return fSkipProofOfWorkCheck; }
+    
 protected:
     CChainParams() {}
 
-    int heightToFork;
-
-    uint256 hashGenesisBlock;
-    MessageStartChars pchMessageStart;
+    uint256                    bnProofOfWorkLimit;
+    uint256                    bnProofOfStakeLimit;
+    bool                       fMiningRequiresPeers;
+    bool                       fAllowMinDifficultyBlocks;
+    bool                       fDefaultConsistencyChecks;
+    bool                       fRequireStandard;
+    bool                       fMineBlocksOnDemand;
+    bool                       fSkipProofOfWorkCheck;
+    bool                       fHeadersFirstSyncingActive;
+    bool                       fEnableBigReward;
+    CBlock                     genesis;
+    int32_t                    nBlockEnforceInvalidUTXO;
+    int32_t                    nBlockEnforceSerialRange;
+    int32_t                    nBlockFirstFraudulent;
+    int32_t                    nBlockLastGoodCheckpoint;
+    int32_t                    nBlockRecalculateAccumulators;
+    int64_t                    nBudgetFeeConfirmations;
+    int64_t                    nBudgetVoteUpdate;
+    int64_t                    nClientMintableCoinsInterval; // PoS mining
+    int32_t                    nCoinbaseMaturity;
+    int32_t                    nDefaultPort;
+    int64_t                    nEnsureMintableCoinsInterval;
+    uint256                    nHashGenesisBlock;
+    int32_t                    nHeightToFork;    
+    MessageStartChars          pchMessageStart;
+    int32_t                    nMaxReorganizationDepth;
+    int64_t                    nMaxTipAge;
+    uint64_t                   nPruneAfterHeight; // Legacy
+    int32_t                    nSubsidyHalvingInterval;
+    int32_t                    nLastPOWBlock;
+    int32_t                    nMajorityBlockUpgradeEnforce;
+    int32_t                    nMajorityBlockUpgradeToCheck;
+    int32_t                    nMajorityBlockOutdatedReject;
+    int64_t                    nMasternodeCheckSeconds;
+    int64_t                    nMasternodeCoinScore;
+    int32_t                    nMasternodeCountDrift;
+    int64_t                    nMasternodeExpirationSeconds;
+    int64_t                    nMasternodeMinConfirmations;
+    int64_t                    nMasternodeMinMNPSeconds;
+    int64_t                    nMasternodeMinMNBSeconds;
+    int64_t                    nMasternodePingSeconds;
+    int64_t                    nMasternodeRemovalSeconds;
+    int64_t                    nMasternodeBudgetPaymentCycle;
+    int64_t                    nMasternodeFinalizationWindow;
+    CAmount                    nMaxMoneyOut;
+    uint32_t                   nMinerConfirmationWindow;
+    int32_t                    nMinerThreads;
+    uint32_t                   nModifierInterval;
+    CBaseChainParams::Network  networkID;
+    std::string                strNetworkID;
+    int64_t                    nPastBlocksMin; // used when calculating the NextWorkRequired
+    int64_t                    nPastBlocksMax;
+    int32_t                    nPoolMaxTransactions;
+    uint32_t                   nRuleChangeActivationThreshold;
+    int64_t                    nSporkKeyEnforceNew;
+    int64_t                    nSporkKeyRejectOld;
+    int64_t                    nStakeLockInterval;
+    uint32_t                   nStakeMinAge;
+    uint32_t                   nStakeMinConfirmations;
+    int64_t                    nStartMasternodePayments;
+    uint32_t                   nTargetTimespan;
+    uint32_t                   nTargetSpacing;
+    int64_t                    nTargetSpacingForStake;
+    std::string                strDevFundPubKey;
+    std::string                strObfuscationPoolDummyAddress;
+    std::string                strSporkKey;
     //! Raw pub key bytes for the broadcast alert signing key.
     std::vector<unsigned char> vAlertPubKey;
-    int nDefaultPort;
-    long nMaxTipAge;    
-    uint64_t nPruneAfterHeight; // Legacy    
-    uint256 bnProofOfWorkLimit;
-    uint256 bnProofOfStakeLimit;
-    int nMaxReorganizationDepth;
-    int nSubsidyHalvingInterval;
-    int nEnforceBlockUpgradeMajority;
-    int nRejectBlockOutdatedMajority;
-    int nToCheckBlockUpgradeMajority;
-    int64_t nTargetTimespan;
-    int64_t nTargetSpacing;
-    int64_t nStakeTargetSpacing;
-    int64_t nStakeLockInterval;
-    int64_t nPastBlocksMin; // used when calculating the NextWorkRequired 
-    int64_t nPastBlocksMax;
-    unsigned int nStakeMinAge;
-    unsigned int nStakeMinConfirmations = 25;
-    unsigned int nModifier;
-    int64_t nClientMintableCoinsInterval; // PoS mining
-    int64_t nEnsureMintableCoinsInterval;
-    int nLastPOWBlock;
-    int nMasternodeCountDrift;
-    int nMaturity;
-    int nModifierUpdateBlock;
-    CAmount nMaxMoneyOut;
-    int nMinerThreads;
-    std::vector<CDNSSeedData> vSeeds;
+    vDeployments_type          vDeployments;
+    std::vector<CAddress>      vFixedSeeds;
+    std::vector<CDNSSeedData>  vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
-    uint32_t nRuleChangeActivationThreshold;
-    uint32_t nMinerConfirmationWindow;
-    vDeployments_type vDeployments;
-    CBaseChainParams::Network networkID;
-    std::string strNetworkID;
-    std::string strDevFundPubKey;
-    CBlock genesis;
-    std::vector<CAddress> vFixedSeeds;
-    bool fMiningRequiresPeers;
-    bool fAllowMinDifficultyBlocks;
-    bool fDefaultConsistencyChecks;
-    bool fRequireStandard;
-    bool fMineBlocksOnDemand;
-    bool fSkipProofOfWorkCheck;
-    bool fHeadersFirstSyncingActive;
-    int nPoolMaxTransactions;
-    std::string strSporkKey;
-    int64_t nEnforceNewSporkKey;
-    int64_t nRejectOldSporkKey;
-    std::string strObfuscationPoolDummyAddress;
-    int64_t nStartMasternodePayments;
-    int64_t nBudgetVoteUpdate;
-    void  MineNewGenesisBlock_Legacy();
-    int64_t nBudgetFeeConfirmations;
-    int64_t nMasternodeMinConfirmations;
-    int64_t nMasternodeMinMNPSeconds;
-    int64_t nMasternodeMinMNBSeconds;
-    int64_t nMasternodePingSeconds;
-    int64_t nMasternodeExpirationSeconds;
-    int64_t nMasternodeRemovalSeconds;
-    int64_t nMasternodeCheckSeconds;
-    int64_t nMasternodeCoinScore;   
-    int64_t nMasternodeBudgetPaymentCycle;
-    int64_t nMasternodeFinalizationWindow;
 
-    int nBlockEnforceSerialRange;
-    int nBlockRecalculateAccumulators;
-    int nBlockFirstFraudulent;
-    int nBlockLastGoodCheckpoint;
-    int nBlockEnforceInvalidUTXO;
+    void MineNewGenesisBlock_Legacy();
 };
 
 /**
@@ -247,18 +239,24 @@ class CModifiableParams
 {
 public:
     //! Published setters to allow changing values in unit test cases
-    virtual void setSubsidyHalvingInterval(int anSubsidyHalvingInterval) = 0;
-    virtual void setEnforceBlockUpgradeMajority(int anEnforceBlockUpgradeMajority) = 0;
-    virtual void setRejectBlockOutdatedMajority(int anRejectBlockOutdatedMajority) = 0;
-    virtual void setToCheckBlockUpgradeMajority(int anToCheckBlockUpgradeMajority) = 0;
-    virtual void setDefaultConsistencyChecks(bool aDefaultConsistencyChecks) = 0;
     virtual void setAllowMinDifficultyBlocks(bool aAllowMinDifficultyBlocks) = 0;
-    virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
+    virtual void setCoinbaseMaturity(int aCoinbaseMaturity) = 0;
+    virtual void setDefaultConsistencyChecks(bool aDefaultConsistencyChecks) = 0;
+    virtual void setEnableBigRewards(bool bigRewards) = 0;
+    virtual void setEnforceBlockUpgradeMajority(int anMajorityBlockUpgradeEnforce) = 0;
     virtual void setHeightToFork(int aHeightToFork) = 0;
-    virtual void setLastPowBlock(int aLastPOWBlock) = 0;
+    virtual void setLastPowBlockBlock(int aLastPOWBlock) = 0;
+    virtual void setRejectBlockOutdatedMajority(int anMajorityBlockOutdatedReject) = 0;
+    virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
     virtual void setStakeLockInterval(int aStakeLockInterval) = 0;
+    virtual void setStakeMinAge(int aStakeMinAge) = 0;
+    virtual void setStakeMinConfirmations(int aStakeMinConfirmations) = 0;
+    virtual void setStakeModifierInterval(int aStakeModifier) = 0;
+    virtual void setSubsidyHalvingInterval(int anSubsidyHalvingInterval) = 0;
+    virtual void setTargetSpacing(uint aTargetSpacing) = 0;
+    virtual void setTargetTimespan(uint aTargetTimespan) = 0;
+    virtual void setToCheckBlockUpgradeMajority(int anMajorityBlockUpgradeToCheck) = 0;
 };
-
 
 /**
  * Return the currently selected parameters. This won't change after app startup

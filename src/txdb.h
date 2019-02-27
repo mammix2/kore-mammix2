@@ -9,10 +9,6 @@
 
 #include "leveldbwrapper.h"
 #include "main.h"
-#ifdef ZEROCOIN
-#include "primitives/zerocoin.h"
-#endif
-
 #include <map>
 #include <string>
 #include <utility>
@@ -42,7 +38,7 @@ public:
     uint256 GetBestBlock() const;
     bool BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock);
     bool GetStats(CCoinsStats& stats) const;
-    bool DumpUTXO(string &fileSaved, string fileBaseName = "dump_");
+    bool DumpUTXO(string& fileSaved, string fileBaseName = "dump_");
 };
 
 /** Access to the block database (blocks/index/) */
@@ -67,39 +63,13 @@ public:
     bool ReadReindexing(bool& fReindex);
     bool ReadTxIndex(const uint256& txid, CDiskTxPos& pos);
     bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos> >& list);
-    bool ReadAddrIndex(uint160 addrid, std::vector<CExtDiskTxPos> &list);
-    bool AddAddrIndex(const std::vector<std::pair<uint160, CExtDiskTxPos> > &list);
+    bool ReadAddrIndex(uint160 addrid, std::vector<CExtDiskTxPos>& list);
+    bool AddAddrIndex(const std::vector<std::pair<uint160, CExtDiskTxPos> >& list);
     bool WriteFlag(const std::string& name, bool fValue);
     bool ReadFlag(const std::string& name, bool& fValue);
     bool WriteInt(const std::string& name, int nValue);
     bool ReadInt(const std::string& name, int& nValue);
     bool LoadBlockIndexGuts();
 };
-
-#ifdef ZEROCOIN
-class CZerocoinDB : public CLevelDBWrapper
-{
-public:
-    CZerocoinDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-
-private:
-    CZerocoinDB(const CZerocoinDB&);
-    void operator=(const CZerocoinDB&);
-
-public:
-    bool WriteCoinMint(const libzerocoin::PublicCoin& pubCoin, const uint256& txHash);
-    bool ReadCoinMint(const CBigNum& bnPubcoin, uint256& txHash);
-    bool ReadCoinMint(const uint256& hashPubcoin, uint256& hashTx);
-    bool WriteCoinSpend(const CBigNum& bnSerial, const uint256& txHash);
-    bool ReadCoinSpend(const CBigNum& bnSerial, uint256& txHash);
-    bool ReadCoinSpend(const uint256& hashSerial, uint256 &txHash);
-    bool EraseCoinMint(const CBigNum& bnPubcoin);
-    bool EraseCoinSpend(const CBigNum& bnSerial);
-    bool WipeCoins(std::string strType);
-    bool WriteAccumulatorValue(const uint32_t& nChecksum, const CBigNum& bnValue);
-    bool ReadAccumulatorValue(const uint32_t& nChecksum, CBigNum& bnValue);
-    bool EraseAccumulatorValue(const uint32_t& nChecksum);
-};
-#endif
 
 #endif // BITCOIN_TXDB_H

@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+
 #include "chain.h"
 #include "main.h"
 #include "stakeinput.h"
@@ -12,8 +13,7 @@ CScript CKoreStake::GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey, boo
 {
     vector<valtype> vSolutions;
     CScript scriptPubKeyKernel = txFrom.vout[nPosition].scriptPubKey;
-    if (!Solver(scriptPubKeyKernel, ptxType, vSolutions))
-    {
+    if (!Solver(scriptPubKeyKernel, ptxType, vSolutions)) {
         LogPrintf("CreateCoinStake : failed to parse kernel\n");
         return false;
     }
@@ -24,30 +24,26 @@ CScript CKoreStake::GetScriptPubKey(CWallet* pwallet, CScript& scriptPubKey, boo
     if (ptxType == TX_PUBKEYHASH || (fisStake && ptxType == TX_PUBKEY) || (!fisStake && ptxType == TX_LOCKSTAKE)) // pay to address type
     {
         //convert to pay to public key type
-        if(ptxType == TX_PUBKEYHASH)
-        { 
+        if (ptxType == TX_PUBKEYHASH) {
             CKey key;
-            if(!pwallet->GetKey(uint160(vSolutions[0]), key))
+            if (!pwallet->GetKey(uint160(vSolutions[0]), key))
                 return false;
 
-            if(fisStake)
-                scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << key.GetPubKey() << OP_CHECKSIG;
+            if (fisStake)
+                scriptPubKey << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << key.GetPubKey() << OP_CHECKSIG;
             else
                 scriptPubKey << key.GetPubKey() << OP_CHECKSIG;
-        }
-        else
-        {
+        } else {
             CPubKey pubKey(vSolutions[0]);
-            if(!pubKey.IsValid())
+            if (!pubKey.IsValid())
                 return false;
 
-            if(fisStake)
-                scriptPubKey << Params().StakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG;
+            if (fisStake)
+                scriptPubKey << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << pubKey << OP_CHECKSIG;
             else
                 scriptPubKey << pubKey << OP_CHECKSIG;
-        }        
-    }
-    else
+        }
+    } else
         scriptPubKey = scriptPubKeyKernel;
 
     return scriptPubKey;
@@ -85,8 +81,7 @@ bool CKoreStake::CreateLockingTxOuts(CWallet* pwallet, vector<CTxOut>& vout, boo
     vout.emplace_back(CTxOut(0, scriptPubKey));
 
     // Calculate if we need to split the output
-    if (fsplitStake)
-    {
+    if (fsplitStake) {
         scriptPubKey.clear();
         GetScriptPubKey(pwallet, scriptPubKey, false);
         vout.emplace_back(CTxOut(0, scriptPubKey));
@@ -118,6 +113,13 @@ bool CKoreStake::GetModifier(uint64_t& nStakeModifier)
     return true;
 }
 
+uint256 CKoreStake::GetOldModifier(bool isProofOfStake)
+{
+    // Lico, we could also, return the old modifier it the current one was not able
+    // to find it.
+    return isProofOfStake ? pindexFrom->nStakeModifierOld : chainActive.Tip()->nStakeModifierOld;
+}
+
 CDataStream CKoreStake::GetUniqueness()
 {
     //The unique identifier for a KORE stake is the outpoint
@@ -145,6 +147,7 @@ CBlockIndex* CKoreStake::GetIndexFrom()
     return pindexFrom;
 }
 
-int CKoreStake::GetPosition() {
+int CKoreStake::GetPosition()
+{
     return nPosition;
 }

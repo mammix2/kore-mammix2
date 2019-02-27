@@ -5,9 +5,9 @@
 
 #define BOOST_TEST_MODULE Kore Test Suite
 
-#include "main.h"
 #include "random.h"
 #include "txdb.h"
+#include "tests_util.h"
 #include "ui_interface.h"
 #include "util.h"
 #ifdef ENABLE_WALLET
@@ -20,13 +20,11 @@
 #include <boost/thread.hpp>
 
 CClientUIInterface uiInterface;
-CWallet* pwalletMain;
 
 extern bool fPrintToConsole;
 extern void noui_connect();
 
 struct TestingSetup {
-    CCoinsViewDB *pcoinsdbview;
     boost::filesystem::path pathTemp;
     boost::thread_group threadGroup;
     ECCVerifyHandle globalVerifyHandle;
@@ -36,24 +34,16 @@ struct TestingSetup {
         SetupEnvironment();
         fPrintToDebugLog = true; // don't want to write to debug.log file
         fCheckBlockIndex = true;
+        fDebug = true;
         SelectParams(CBaseChainParams::UNITTEST);
         noui_connect();
-#ifdef ENABLE_WALLET
-        bitdb.MakeMock();
-#endif
-        pathTemp = GetTempPath() / strprintf("test_kore_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
+        //pathTemp = GetTempPath() / strprintf("test_kore_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
+        pathTemp = boost::filesystem::path("./delete-me") / strprintf("test_kore_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
+        cout << "Running at :" << pathTemp << endl;
         boost::filesystem::create_directories(pathTemp);
         mapArgs["-datadir"] = pathTemp.string();
-        pblocktree = new CBlockTreeDB(1 << 20, true);
-        pcoinsdbview = new CCoinsViewDB(1 << 23, true);
-        pcoinsTip = new CCoinsViewCache(pcoinsdbview);
-        InitBlockIndex();
-#ifdef ENABLE_WALLET
-        bool fFirstRun;
-        pwalletMain = new CWallet("wallet.dat");
-        pwalletMain->LoadWallet(fFirstRun);
-        RegisterValidationInterface(pwalletMain);
-#endif
+        mapArgs["-printstakemodifier"] = "1";
+        InitializeDBTest();
         nScriptCheckThreads = 3;
         for (int i=0; i < nScriptCheckThreads-1; i++)
             threadGroup.create_thread(&ThreadScriptCheck);
@@ -64,18 +54,9 @@ struct TestingSetup {
         threadGroup.interrupt_all();
         threadGroup.join_all();
         UnregisterNodeSignals(GetNodeSignals());
-#ifdef ENABLE_WALLET
-        delete pwalletMain;
-        pwalletMain = NULL;
-#endif
-        delete pcoinsTip;
-        delete pcoinsdbview;
-        delete pblocktree;
-#ifdef ENABLE_WALLET
-        bitdb.Flush(true);
-#endif
+        FinalizeDBTest(true);
         ECC_Stop();
-        boost::filesystem::remove_all(pathTemp);
+        //boost::filesystem::remove_all(pathTemp);
     }
 };
 

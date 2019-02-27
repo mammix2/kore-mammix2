@@ -1,8 +1,9 @@
 #!/bin/sh
+set -e
 
 masternode_coins_amount=500
 coin=kore
-
+echo " how many parameters $#"
 if [ $# -lt 3 ]
 then
 echo "#############################################################################"
@@ -27,7 +28,9 @@ echo "##   3) you should have $masternode_coins_amount COINS in this wallet"
 echo "##   4) Make sure the kored is running at your masternode, you need the masternode"
 echo "##       onion address and it needs to be up to lock the coins."
 echo "##"
-echo "## PLEASE install jq from here https://stedolan.github.io/jq/"
+echo "## PLEASE install jq from here https://stedolan.github.io/jq/", in this folder
+echo "##        make sure it is named as jq. Ubuntu you can install like this:"
+echo "##        sudo apt-get jq"
 echo "#############################################################################"
 echo "#############################################################################"
 
@@ -60,6 +63,8 @@ masternode_onion_address=$3
 masternode_user=$control_wallet_user
 masternode_password=$control_wallet_password
 masternode_conf_file=`pwd`/$masternode_name.conf
+readme=`pwd`/$masternode_name.readme
+activation_file=`pwd`/$masternode_name.activation
 
 if [ $# -eq 5 ]
 then
@@ -71,15 +76,16 @@ fi
 if [ "$network" = "testnet" ] || [ "$network" = "TESTNET" ]
 then
   masternode_port=11743
-  control_wallet="$user_dir/.$coin/testnet4/masternode.conf"
-  # needs to be the same as nMasternode_Min_Confirmations
+  control_wallet="$user_dir/.$coin/testnet3/masternode.conf"
+  control_wallet_onion=`cat $user_dir/.$coin/testnet3/onion/hostname`
+  # needs to be the same as nMasternodeMinConfirmations
   txConfirmations=6
 else
   masternode_port=10743
   control_wallet="$user_dir/.$coin/masternode.conf"
+  control_wallet_onion=`cat $user_dir/.$coin/onion/hostname`
   txConfirmations=15
 fi
-
 echo "## "
 echo "## Parameters used"
 echo "##   network: $network"
@@ -99,11 +105,12 @@ echo "Creating masternode account"
 command="$dir/kore-cli $cli_args getaccountaddress $masternode_name"
 echo "  command: $command"
 masternode_account=`$command`
-
+echo "  account created: $masternode_account"
 echo "Sending $masternode_coins_amount to $masternode_account"
 command="$dir/kore-cli $cli_args sendtoaddress $masternode_account $masternode_coins_amount"
-masternode_tx=`$command`
 echo "  command: $command"
+masternode_tx=`$command`
+echo "send result: $masternode_tx"
 
 echo "Generating masternode Private Key"
 command="$dir/kore-cli $cli_args masternode genkey"
@@ -111,8 +118,14 @@ echo "  command: $command"
 masternode_private_key=`$command`
 
 echo "Generating $masternode_conf_file file"
+if [ -f "$masternode_conf_file" ]
+then
+    rm $masternode_conf_file
+fi
+
 echo "server=1" > $masternode_conf_file
 echo "daemon=1" >> $masternode_conf_file
+echo "addnode=$control_wallet_onion" >> $masternode_conf_file
 if [ $# -eq 5 ]
 then
 echo "rpcuser=$masternode_user"  >> $masternode_conf_file
@@ -124,6 +137,7 @@ echo "staking=0"  >> $masternode_conf_file
 echo "masternode=1"  >> $masternode_conf_file
 echo "masternodeprivkey=$masternode_private_key"  >> $masternode_conf_file
 echo "masternodeaddr=$masternode_onion_address"   >> $masternode_conf_file
+echo "masternode account= $masternode_account"    >> $masternode_conf_file
 echo "# sporkkey for testnet"
 echo "sporkkey=8pLecrnAhZjHZyKfqMAtN4rekdcBFrikTi1w1hXjuDRfV1Ygean"   >> $masternode_conf_file
 
@@ -142,16 +156,19 @@ echo "#######################################################################"
 echo "##  Updating this wallet masternode.conf file: $control_wallet #"
 new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
 echo "## $new_masternode"
-echo  $new_masternode >> $control_wallet
-echo "## The following is the control wallet masternode.conf "  >> $masternode_conf_file
+echo "$new_masternode" >> $control_wallet
+masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx"
+echo "## command to activate this masternode: $masternode_activation_command" >> $masternode_conf_file
+echo "## The following is the masternode entry at masternode.conf "  >> $masternode_conf_file
 echo "## $new_masternode"   >> $masternode_conf_file
 
 echo "##########################################################################"
 echo "## Let's wait for the Confirmations"
 echo "##########################################################################"
 command="$dir/kore-cli $cli_args gettransaction $masternode_tx"
-
+echo " Sending command: $command"
 confirmations=`$command | jq .confirmations`
+echo "Confirmations $confirmations"
 while [ $confirmations -lt $txConfirmations ]
 do
   echo " Waiting for $txConfirmations confirmations, so far we have $confirmations"
@@ -162,16 +179,50 @@ echo ""
 echo " COOL ! We got at least $txConfirmations confirmations"
 echo ""
 
-echo ""
-echo "##########################################################################"
-echo "## Congratulations !!!"
-echo "## your Masternode is ready to be started !!!             "
-echo "## "
-echo "## Now you need to perform the following steps"
-echo "##   1. Change your masternode $coin.conf with the parameters found here:"
-echo "##      $masternode_conf_file"
-echo "##   2. Restart your masternode"
-echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."
-echo "##   4. Activate your masternode with the command:"
-echo "##    `pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx"
-echo "##########################################################################"
+echo "Generating $activation_file file"
+if [ -f "$activation_file" ]
+then
+    rm $activation_file
+fi
+echo "#!/bin/sh" >> $activation_file
+echo "set -e" >> $activation_file
+echo "" >> $activation_file
+echo $masternode_activation_command >> $activation_file
+chmod +x $activation_file
+
+
+echo "Congratulations !!! Your Masternode is ready to be started."  >> $readme
+echo "Please, now follow instruction at $readme"
+if [ -f "$readme" ] 
+then
+    rm $readme
+fi
+
+echo "##########################################################################" >> $readme
+echo "## Congratulations !!!"  >> $readme
+echo "## your Masternode is ready to be started !!!             "  >> $readme
+echo "## " >> $readme
+echo "## Now you need to perform the following steps"  >> $readme
+echo "##   1. Change your masternode $coin.conf with the parameters found here:"  >> $readme
+echo "##      $masternode_conf_file"  >> $readme
+echo "##   2. Restart your masternode"  >> $readme
+echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."  >> $readme
+echo "##   4. Make sure your masternode has connections and is in sync."  >> $readme
+echo "##        kore-cli -testnet mnsync status"   >> $readme
+echo "##        ** IsBlockchainSynced should be true"   >> $readme
+echo "##   5. Activate your masternode. Make sure your mastenode is in sync."  >> $readme
+echo "##      execute this command: $activation_file"  >> $readme
+echo "##   6. Check if the masternode status"   >> $readme
+echo "##        kore-cli -testnet masternode status"   >> $readme
+echo "##        ** The message has to be: \"Masternode successfully started\""   >> $readme
+echo "##"
+echo "##   Some importante commands command you may use from Control Wallet" >> $readme
+echo "##     - kore-cli -testnet listreceivedbyaccount" >> $readme
+echo "##     - kore-cli -testnet mnsync status" >> $readme
+echo "##     - kore-cli -testnet mnsync reset" >> $readme
+echo "##" >> $readme
+echo "##   Some importante commands command you may use from Masternode" >> $readme
+echo "##     - kore-cli -testnet masternode status" >> $readme
+echo "##     - kore-cli -testnet masternode count" >> $readme
+echo "##     - kore-cli -testnet masternode list" >> $readme
+echo "##########################################################################"  >> $readme

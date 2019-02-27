@@ -202,6 +202,7 @@ void CObfuscationPool::ProcessMessageObfuscation(CNode* pfrom, std::string& strC
 
             CValidationState state;
             CMutableTransaction tx;
+            tx.nTime = GetAdjustedTime();
 
             BOOST_FOREACH (const CTxOut o, out) {
                 nValueOut += o.nValue;
@@ -703,10 +704,10 @@ void CObfuscationPool::ChargeFees()
     int target = 0;
 
     //mostly offending?
-    if (offences >= Params().PoolMaxTransactions() - 1 && r > 33) return;
+    if (offences >= Params().GetPoolMaxTransactions() - 1 && r > 33) return;
 
     //everyone is an offender? That's not right
-    if (offences >= Params().PoolMaxTransactions()) return;
+    if (offences >= Params().GetPoolMaxTransactions()) return;
 
     //charge one of the offenders randomly
     if (offences > 1) target = 50;
@@ -1163,6 +1164,7 @@ void CObfuscationPool::SendObfuscationDenominate(std::vector<CTxIn>& vin, std::v
 
         CValidationState state;
         CMutableTransaction tx;
+        tx.nTime = GetAdjustedTime();
 
         BOOST_FOREACH (const CTxOut& o, vout) {
             nValueOut += o.nValue;
@@ -1783,7 +1785,6 @@ bool CObfuscationPool::CreateDenominated(CAmount nTotalValue)
     if (!pwalletMain->HasCollateralInputs()) {
         CRecipient recipient = {scriptCollateral, OBFUSCATION_COLLATERAL * 4, false};
         vecSend.push_back(recipient);
-
         nValueLeft -= OBFUSCATION_COLLATERAL * 4;
     }
 
@@ -1800,7 +1801,6 @@ bool CObfuscationPool::CreateDenominated(CAmount nTotalValue)
             scriptDenom = GetScriptForDestination(vchPubKey.GetID());
             // TODO: do not keep reservekeyDenom here
             reservekeyDenom.KeepKey();
-
             CRecipient recipient = {scriptDenom, v, false};
             vecSend.push_back(recipient);
 
@@ -2305,7 +2305,7 @@ void ThreadCheckObfuScationPool()
 
             // check if we should activate or ping every few minutes,
             // start right after sync is considered to be done
-            if (c % Params().MasternodePingSeconds() == 1) activeMasternode.ManageStatus();
+            if (c % Params().GetMasternodePingSeconds() == 1) activeMasternode.ManageStatus();
 
             if (c % 60 == 0) {
                 mnodeman.CheckAndRemove();
