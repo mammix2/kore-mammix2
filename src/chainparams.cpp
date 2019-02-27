@@ -299,15 +299,16 @@ public:
         nEnforceNewSporkKey = 1525158000; //!> Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey  = 1527811200; //!> Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
-        // using yescript
-        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 5, 10289162, 14343975, 0x201fffff, 1, pow (7,2) * COIN);
+        genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 22, 12624920, 58284520, 0x201fffff, 1, pow (7,2) * COIN);
         hashGenesisBlock = genesis.GetHash();
-        LogPrintf("%s", hashGenesisBlock.ToString());
+        printf("hashGenesisBlock for Mainnet: %s \n", hashGenesisBlock.ToString().c_str());
         genesis.print();
-        assert(hashGenesisBlock == uint256("0x0a9ab95126cdf38d00973715c656e5f27e35ed17bc13e3ac061afda26e3a7cb9"));
+        assert(hashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
         if (false)
             MineNewGenesisBlock_Legacy();
         assert(genesis.hashMerkleRoot == uint256S("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
+        printf("hashMerkleRoot for Mainnet: %s \n", genesis.hashMerkleRoot.ToString().c_str());
+
         // Primary DNS Seeder
         vSeeds.push_back(CDNSSeedData("kore-dnsseed-1", "dnsseed.kore.life"));
         vSeeds.push_back(CDNSSeedData("kore-dnsseed-2", "dnsseed2.kore.life"));
