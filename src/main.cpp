@@ -4421,13 +4421,16 @@ void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
                 }
             }
         }
+        LogPrintf("Signalling start --> upgraded : %d \n", nUpgraded);
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
             //int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
-            if (pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK == CBlockHeader::SIGNALING_NEW_VERSION_MASK )
+            LogPrintf(" block: %d version: %x \n", pindex->nHeight, pindex->nVersion);
+            if ((pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK) == CBlockHeader::SIGNALING_NEW_VERSION_MASK )
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
+        LogPrintf("Signalling end <-- upgraded : %d \n", nUpgraded);
         if (nUpgraded > 0)
             LogPrintf("%s: %d of last 100 blocks have new version \n", __func__, nUpgraded);
         if (nUpgraded > 100/2)
