@@ -318,7 +318,7 @@ CNodeState* State(NodeId pnode)
 
 int GetHeight()
 {
-    while (true) {
+    while (!ShutdownRequested()) {
         TRY_LOCK(cs_main, lockMain);
         if (!lockMain) {
             MilliSleep(50);
@@ -9678,12 +9678,7 @@ int ActiveProtocol()
             return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 #endif            
 
-/* Lico. just for comparison, previous protocol enforcement was checking for a block!
-    if ((unsigned int)chainActive.Tip()->nHeight >= PROTOCOL_ENFORCEMENT_BLOCK))
-        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;            
-*/        
-
-    return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
+  return MIN_PEER_PROTO_VERSION;
 }
 
 // requires LOCK(cs_vRecvMsg)

@@ -11,7 +11,11 @@
  * network protocol versioning
  */
 
-static const int PROTOCOL_VERSION = 70101;
+static const int PROTOCOL_VERSION = 130000;
+// not using _CLIENT_VERSION_MAJOR because it is still 0
+// 13 => _CLIENT_VERSION_MINOR
+// 00 => _CLIENT_VERSION_REVISION
+// 00 => _CLIENT_VERSION_BUILD
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
@@ -20,9 +24,7 @@ static const int INIT_PROTO_VERSION = 209;
 static const int GETHEADERS_VERSION = 31800;
 
 //! disconnect from peers older than this proto version
-static const int MIN_PEER_PROTO_VERSION = 70100;
-static const int MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT = MIN_PEER_PROTO_VERSION;
-static const int MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT = MIN_PEER_PROTO_VERSION;
+static const int MIN_PEER_PROTO_VERSION = 70101;
 
 //! masternodes older than this proto version use old strMessage format for mnannounce
 static const int MIN_PEER_MNANNOUNCE = PROTOCOL_VERSION;
@@ -45,7 +47,7 @@ static const int NO_BLOOM_VERSION = 70011;
 
 // Legacy
 //! minimum peer version for masternode budgets
-static const int MIN_BUDGET_PEER_PROTO_VERSION = 70100;
+static const int MIN_BUDGET_PEER_PROTO_VERSION = 70101;
 
 //! demand canonical block signatures starting from this version
 static const int CANONICAL_BLOCK_SIG_VERSION = 70012;
