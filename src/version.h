@@ -11,7 +11,7 @@
  * network protocol versioning
  */
 
-static const int PROTOCOL_VERSION = 70101;
+static const int PROTOCOL_VERSION = 130000;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
@@ -20,7 +20,7 @@ static const int INIT_PROTO_VERSION = 209;
 static const int GETHEADERS_VERSION = 31800;
 
 //! disconnect from peers older than this proto version
-static const int MIN_PEER_PROTO_VERSION = 70100;
+static const int MIN_PEER_PROTO_VERSION = 70101;
 static const int MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT = MIN_PEER_PROTO_VERSION;
 static const int MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT = MIN_PEER_PROTO_VERSION;
 

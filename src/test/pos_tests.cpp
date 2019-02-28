@@ -346,6 +346,9 @@ BOOST_AUTO_TEST_CASE(pos_integration)
         wallets[i].ScanForWalletTransactions(genesisBlock, true);
         printf("Final balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
+
+    delete wallets;
+    delete masternodes;
 }
 
 #endif
