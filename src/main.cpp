@@ -4423,17 +4423,17 @@ void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
         }
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
-            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
+            //int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
+            if (pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK == CBlockHeader::SIGNALING_NEW_VERSION_MASK )
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
         if (nUpgraded > 0)
-            LogPrintf("%s: %d of last 100 blocks have unexpected version\n", __func__, nUpgraded);
+            LogPrintf("%s: %d of last 100 blocks have new version \n", __func__, nUpgraded);
         if (nUpgraded > 100/2)
         {
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
-            strMiscWarning = _("Warning: Unknown block versions being mined! It's possible unknown rules are in effect");
+            strMiscWarning = _("Warning: more than 50% of the last 100 blocks has the new version !!!");
             if (!fWarned) {
                 CAlert::Notify(strMiscWarning, true);
                 fWarned = true;
