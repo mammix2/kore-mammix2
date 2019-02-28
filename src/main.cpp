@@ -4321,9 +4321,9 @@ void PruneAndFlush() {
 }
 
 
-bool UseLegacyCode(const CBlock & block)
+bool UseLegacyCode(const CBlockHeader & block)
 {
-  return block.nVersion == CBlockHeader::CURRENT_VERSION;
+  return block.nVersion <= CBlockHeader::CURRENT_VERSION;
 }
 
 bool UseLegacyCode(int nHeight)
@@ -5451,6 +5451,10 @@ int GetnHeight(const CBlockIndex* pIndex)
 bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW)
 {
     if (fDebug) LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
+    // Let's check if we are dealing with the correct block version
+    if (UseLegacyCode(block))
+      return state.DoS(50, error("CheckBlockHeader() : block version failed"),
+            REJECT_INVALID, "block-version");
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader() : proof of work failed"),

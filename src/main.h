@@ -626,7 +626,7 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 int GetnHeight(const CBlockIndex* pIndex);
 
 /* Check if it is necessary to use the new code or old code */
-bool UseLegacyCode(const CBlock & block);
+bool UseLegacyCode(const CBlockHeader & block);
 bool UseLegacyCode(int nHeight);
 bool IsLastBlockBeforeFork(int nHeight);
 bool IsFirstBlockAfterFork(int nHeight);
