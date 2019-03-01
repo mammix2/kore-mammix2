@@ -561,7 +561,7 @@ void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
         // Simple block creation, nothing special yet:
         BOOST_CHECK(pblocktemplate = CreateNewBlock_Legacy(chainparams, scriptPubKey, pwallet, fProofOfStake));
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
-        pblock->nVersion = 1;
+        pblock->nVersion = CBlockHeader::CURRENT_VERSION;
         pblock->nBits = blockinfo[i].nBits;
         // Lets create the transaction
         if (!fProofOfStake) {
@@ -627,7 +627,7 @@ void createNewBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
         unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(scriptPubKey, pwallet, fProofOfStake));
         assert(pblocktemplate.get() != NULL);
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
-        pblock->nVersion = 1;
+        pblock->nVersion = CBlockHeader::CURRENT_VERSION;
         //pblock->nTime = blockinfo[i].nTime;
         pblock->nBits = blockinfo[i].nBits;
         // Lets create the transaction

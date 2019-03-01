@@ -261,6 +261,8 @@ public:
     virtual void setEnableBigRewards(bool bigRewards) = 0;
     virtual void setTargetTimespan(uint aTargetTimespan) = 0;
     virtual void setTargetSpacing(uint aTargetSpacing) = 0;
+    virtual void setMineBlocksOnDemand(bool mineBlocks) = 0;
+
 };
 
 

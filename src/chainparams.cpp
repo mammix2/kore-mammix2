@@ -620,7 +620,7 @@ public:
         // PoS may fail to create new Blocks, if we try to set this to less than 10
         nTargetSpacing = aTargetSpacing;
     };
-
+    virtual void setMineBlocksOnDemand(bool mineBlocks) { fMineBlocksOnDemand = mineBlocks; };
 };
 static CUnitTestParams unitTestParams;
 

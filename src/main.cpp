@@ -4323,7 +4323,7 @@ void PruneAndFlush() {
 
 bool UseLegacyCode(const CBlockHeader & block)
 {
-  return block.nVersion <= CBlockHeader::CURRENT_VERSION;
+  return (block.nVersion & ~CBlockHeader::SIGNALING_NEW_VERSION_MASK) <= (CBlockHeader::CURRENT_VERSION  & ~CBlockHeader::SIGNALING_NEW_VERSION_MASK);
 }
 
 bool UseLegacyCode(int nHeight)

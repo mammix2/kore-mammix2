@@ -44,6 +44,7 @@ BOOST_AUTO_TEST_CASE(after_fork)
     ModifiableParams()->setStakeMinAge(0);
     ModifiableParams()->setTargetTimespan(1);
     ModifiableParams()->setEnableBigRewards(true);
+    //ModifiableParams()->setMineBlocksOnDemand(false);
     SetMockTime(0);
 
     ScanForWalletTransactions(pwalletMain);
