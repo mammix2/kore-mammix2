@@ -25,16 +25,30 @@ BOOST_AUTO_TEST_CASE(generate_old_pow)
     int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
     int oldStakeMinAge = Params().StakeMinAge();
     int oldModifier = Params().GetModifierInterval();
-    int minConfirmations = 11;
-    ModifiableParams()->setHeightToFork(999);
-    ModifiableParams()->setStakeMinConfirmations(minConfirmations);
-    ModifiableParams()->setCoinbaseMaturity(minConfirmations);
-    ModifiableParams()->setTargetSpacing(minConfirmations-1);
-    ModifiableParams()->setStakeModifierInterval(minConfirmations-1);
-    ModifiableParams()->setStakeMinAge(0);      
-    ModifiableParams()->setTargetTimespan(1);
-    ModifiableParams()->setEnableBigRewards(true);
 
+    // confirmations    : 3
+    // remember that the miminum spacing is 10 !!!
+    // spacing          : [confirmations-1, max(confirmations-1, value)]
+    // modifierInterval : [spacing, spacing)]
+    // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
+    int minConfirmations = 3;
+    int nStakeMinConfirmations       = minConfirmations;        
+    int nMaturity                    = minConfirmations;
+    int nTargetTimespan              = 1 * 60; // KORE: 1 minute
+    int nStakeTargetSpacing          = 10;
+    int nTargetSpacing               = nStakeTargetSpacing;
+    int nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
+    int nStakeMinAge                 = 30 * 60; // It will stake after 30 minutes
+
+    ModifiableParams()->setHeightToFork(999);
+    ModifiableParams()->setStakeMinConfirmations(nStakeMinConfirmations);
+    ModifiableParams()->setCoinbaseMaturity(nMaturity);
+    ModifiableParams()->setTargetSpacing(nTargetSpacing);
+    ModifiableParams()->setStakeModifierInterval(nModifierInterval);
+    ModifiableParams()->setStakeMinAge(nStakeMinAge);
+    ModifiableParams()->setTargetTimespan(nTargetTimespan);
+    ModifiableParams()->setEnableBigRewards(true);
+    SetMockTime(0);    
     
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
