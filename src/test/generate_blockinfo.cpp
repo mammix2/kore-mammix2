@@ -3,6 +3,8 @@
 #include "checkpoints.h"
 #include "init.h"
 #include "tests_util.h"
+#include "utiltime.h"
+
 
 
 #include <boost/test/unit_test.hpp>
