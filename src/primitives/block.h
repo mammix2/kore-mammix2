@@ -27,6 +27,7 @@ class CBlockHeader
 {
 public:
     // header
+    // using the left  bit to signal a new version, not using the signal bit
     static const int32_t CURRENT_VERSION=0x40000001;
     static const int32_t POS_FORK_VERSION=2;
     static const int32_t SIGNALING_NEW_VERSION_MASK=0x40000000;
