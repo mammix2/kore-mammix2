@@ -9,10 +9,11 @@
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 
-BOOST_AUTO_TEST_SUITE(generate_block_info)
+BOOST_AUTO_TEST_SUITE(generate_blockinfo)
 
 /*
   This TEST CASE SHOULD BE USED ONLY WHEN YOU WANT TO CREATE DATA TO BLOCK INFO
+  */
   
 BOOST_AUTO_TEST_CASE(generate_old_pow)
 {
@@ -38,9 +39,9 @@ BOOST_AUTO_TEST_CASE(generate_old_pow)
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 
-    int totalOldPow = 2;
+    int totalOldPow = 30;
     // generate old pow blocks
-    GeneratePOWLegacyBlocks(1,totalOldPow+1, pwalletMain, scriptPubKey);
+    GeneratePOWLegacyBlocks(1,totalOldPow+1, pwalletMain, scriptPubKey, true);
  
     // Leaving old values
     Checkpoints::fEnabled = true;
@@ -53,6 +54,5 @@ BOOST_AUTO_TEST_CASE(generate_old_pow)
     ModifiableParams()->setTargetTimespan(oldTargetTimespan);
     ModifiableParams()->setTargetSpacing(oldTargetSpacing);
 }
-*/
 
 BOOST_AUTO_TEST_SUITE_END()

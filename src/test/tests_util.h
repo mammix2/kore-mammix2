@@ -29,7 +29,7 @@ extern blockinfo_t blockinfo[];
 void InitializeDBTest();
 void FinalizeDBTest(bool shutdown);
 
-void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake);
+void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake, bool logToStdout=false);
 
 /*
   Before Creating a PoS Block it is necessary to call this function to make sure
@@ -51,7 +51,7 @@ void ScanForWalletTransactions(CWallet* pwallet);
 */
 void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake);
 
-void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey);
+void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey, bool logToStdout=false);
 
 void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey);
 

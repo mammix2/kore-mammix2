@@ -165,23 +165,23 @@ blockinfo_t blockinfo[] =
 };
 
 
-void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake)
+void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake, bool logToStdout)
 {
-    /*
-    cout << pblock->ToString().c_str();    
-    cout << "{" << fProofOfStake << ", ";
-    cout << pblock->nTime << ", ";
-    cout << pblock->vtx[0].nTime << " , ";
-    cout << pblock->nBits << " , ";
-    cout << pblock->nNonce << " , ";
-    cout << nExtraNonce << " , ";
-    cout << pblock->nBirthdayA << " , ";
-    cout << pblock->nBirthdayB << " , ";
-    cout << "uint256(\"" << pblock->GetHash().ToString().c_str() << "\") , ";
-    cout << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") , ";
-    cout << pwallet->GetBalance() << " },";
-    cout << " // " << "Block " << blockNumber << endl;
-    */
+    if (logToStdout) {
+        //cout << pblock->ToString().c_str();
+        cout << "{" << fProofOfStake << ", ";
+        cout << pblock->nTime << ", ";
+        cout << pblock->vtx[0].nTime << " , ";
+        cout << pblock->nBits << " , ";
+        cout << pblock->nNonce << " , ";
+        cout << nExtraNonce << " , ";
+        cout << pblock->nBirthdayA << " , ";
+        cout << pblock->nBirthdayB << " , ";
+        cout << "uint256(\"" << pblock->GetHash().ToString().c_str() << "\") , ";
+        cout << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") , ";
+        cout << pwallet->GetBalance() << " },";
+        cout << " // " << "Block " << blockNumber << endl;
+    }
 
     if (fDebug) {
         LogPrintf("Block %d %s \n",blockNumber, (pblock->IsProofOfStake() ? " (PoS) " : " (PoW) "));
@@ -422,7 +422,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
     BOOST_CHECK(oldnHeight + endBlock - startBlock == chainActive.Tip()->nHeight);
 }
 
-void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey)
+void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey, bool logToStdout)
 {
     const CChainParams& chainparams = Params();
     unsigned int nExtraNonce = 0;
@@ -476,7 +476,7 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
                     foundBlock = true;
                     ProcessBlockFound_Legacy(pblock, chainparams);
                     // We have our data, lets print them
-                    LogBlockFound(pwallet, j, pblock, nExtraNonce, false);
+                    LogBlockFound(pwallet, j, pblock, nExtraNonce, false, logToStdout);
 
                     break;
                 }
