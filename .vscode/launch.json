@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "54526",
+            "processId": "80283",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -133,10 +133,10 @@
             "request": "launch",
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/test/test_kore",
-            "args": ["--log_level=all", "--run_test=fork_kore"],
+            "args": ["--log_level=all", "--run_test=fork_afterwords"],
             //"args": ["--log_level=test_suite", "--run_test=fork_tests/generate_chain"],
             //"args": ["--log_level=test_suite", "--log_sink=stdout"],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,

@@ -2061,7 +2061,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     scheduler.scheduleEvery(&DumpData, DUMP_ADDRESSES_INTERVAL);
 
     // ppcoin:mint proof-of-stake blocks in the background
-    if (GetBoolArg("-staking", false)) {
+    if (GetBoolArg("-staking", true)) {
         threadGroup.create_thread(boost::bind(&ThreadStakeMinter_Legacy, pwalletMain));
         threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "stakemint", &ThreadStakeMinter));
     }

@@ -4422,7 +4422,10 @@ void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
             }
         }
         LogPrintf("Signalling start --> upgraded : %d \n", nUpgraded);
-        for (int i = 0; i < 100 && pindex != NULL; i++)
+        // checking for a day, 1 block a minute => 60*24
+        int BlocksPerDay = 60/Params().TargetSpacing()*60*24;
+        int BlocksToMeasure = min(BlocksPerDay,pindex->nHeight);
+        for (int i = 0; i < BlocksToMeasure && pindex != NULL; i++)
         {
             //int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
             LogPrintf(" block: %d version: %x \n", pindex->nHeight, pindex->nVersion);
@@ -4431,16 +4434,16 @@ void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
             pindex = pindex->pprev;
         }
         LogPrintf("Signalling end <-- upgraded : %d \n", nUpgraded);
+        int versionSignalingPercent = nUpgraded*100/BlocksToMeasure;
+        string versionSignaling = "Please note that " + std::to_string(versionSignalingPercent) + "%, " + std::to_string(nUpgraded) + " of " + std::to_string(BlocksToMeasure) + " blocks, have new version.";
         if (nUpgraded > 0)
-            LogPrintf("%s: %d of last 100 blocks have new version \n", __func__, nUpgraded);
-        if (nUpgraded > 100/2)
-        {
-            // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
-            strMiscWarning = _("Warning: more than 50% of the last 100 blocks has the new version !!!");
-            if (!fWarned) {
-                CAlert::Notify(strMiscWarning, true);
-                fWarned = true;
-            }
+            LogPrintf("%s: %s \n", __func__, versionSignaling.c_str());
+        
+        // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
+        strMiscWarning = _(versionSignaling.c_str());
+        if (!fWarned) {
+            CAlert::Notify(strMiscWarning, true);
+            fWarned = true;
         }
     }
 }
