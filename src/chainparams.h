@@ -245,7 +245,7 @@ public:
     virtual void setEnableBigRewards(bool bigRewards) = 0;
     virtual void setEnforceBlockUpgradeMajority(int anMajorityBlockUpgradeEnforce) = 0;
     virtual void setHeightToFork(int aHeightToFork) = 0;
-    virtual void setLastPowBlockBlock(int aLastPOWBlock) = 0;
+    virtual void setLastPowBlock(int aLastPOWBlock) = 0;
     virtual void setRejectBlockOutdatedMajority(int anMajorityBlockOutdatedReject) = 0;
     virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
     virtual void setStakeLockInterval(int aStakeLockInterval) = 0;

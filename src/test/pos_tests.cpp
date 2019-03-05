@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "blocksignature.h"
+#include "hash.h"
 #include "init.h"
 #include "main.h"
 #include "miner.h"
@@ -15,13 +16,14 @@
 #include "utiltime.h"
 #include "wallet.h"
 
+#include <gperftools/profiler.h>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <random>
 
 BOOST_AUTO_TEST_SUITE(pos_tests)
 
-// #define RUN_INTEGRATION_TEST
+#define RUN_INTEGRATION_TEST
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 static const int MASTERNODES_AVAILABLE = 20;
@@ -188,7 +190,10 @@ void StartPreMineAndWalletAllocation()
     int i = 1;
     int populate = 0;
     while (i <= blockCount) {
-        pblocktemplate = CreateNewBlock(script, &wallets[0], false);
+        int64_t time = GetTimeMicros();
+        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(script, &wallets[0], false));
+        if (!pblocktemplate.get())
+            continue;
 
         CBlockIndex* pindexPrev = chainActive.Tip();
         CBlock* pblock = &pblocktemplate->block; // pointer for convenience
@@ -205,7 +210,6 @@ void StartPreMineAndWalletAllocation()
         pblock->vtx[0] = CTransaction(txCoinbase);
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
-        CValidationState state;
         BOOST_CHECK(ProcessBlockFound(pblock, wallets[0]));
 
         if (i == 107 || i == 165 || i == 197 || i == 199) {
@@ -236,23 +240,38 @@ void StartPreMineAndWalletAllocation()
                 break;
             }
 
-            if (wallets[0].CreateTransaction(vecSend, txNew, reserveKey, feeRate, failReason, (const CCoinControl*)__null, ALL_COINS, false, 0L)) {
-                if (wallets[0].CommitTransaction(txNew, reserveKey)) {
-                    printf("Transactions done for case %d in block %d.\n", populate, i);
-                    populate++;
-                }
-            }
+            if (wallets[0].CreateTransaction(vecSend, txNew, reserveKey, feeRate, failReason, (const CCoinControl*)__null, ALL_COINS, false, 0L) && wallets[0].CommitTransaction(txNew, reserveKey)) 
+                printf("Transactions done for case %d in block %d.\n", populate++, i);
         }
 
         i++;
-        delete pblocktemplate;
+        pblocktemplate.reset();
+
+        time = GetTimeMicros() - time;
+        printf("%u\n", time);
     }
 }
 
 #ifdef RUN_INTEGRATION_TEST
 
+// BOOST_AUTO_TEST_CASE(pos_integration)
+// {
+//     yescrypt_settestn(4);
+
+//     ModifiableParams()->setHeightToFork(0);
+//     ModifiableParams()->setLastPowBlock(200);
+//     blockCount = 10;
+
+//     ProfilerStart("fromcode_081_2.prof");
+
+//     StartPreMineAndWalletAllocation();
+
+//     ProfilerStop();
+// }
+
 BOOST_AUTO_TEST_CASE(pos_integration)
 {
+    yescrypt_settestn(4);
     {
         LOCK(cs_main);
         Checkpoints::fEnabled = false;
@@ -260,9 +279,8 @@ BOOST_AUTO_TEST_CASE(pos_integration)
 
     CBlockIndex* genesisBlock = chainActive.Genesis();
 
-    SelectParams(CBaseChainParams::UNITTEST);
     ModifiableParams()->setHeightToFork(0);
-    ModifiableParams()->setLastPowBlockBlock(200);
+    ModifiableParams()->setLastPowBlock(200);
 
     genesisTime = chainActive.Genesis()->nTime;
 

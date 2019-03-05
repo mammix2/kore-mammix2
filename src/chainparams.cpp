@@ -576,7 +576,7 @@ public:
     const Checkpoints::CCheckpointData& GetCheckpoints() const
     {
         // UnitTest share the same checkpoints as MAIN
-        return data;
+        return dataTestnet;
     }
 
     //! Published setters to allow changing values innMajorityBlockUpgradeEnforcenMajorityBlockUpgradeEnforcenMajorityBlockUpgradeEnforce
@@ -586,7 +586,7 @@ public:
     virtual void setEnableBigRewards(bool afBigRewards) { fEnableBigReward = afBigRewards; };
     virtual void setEnforceBlockUpgradeMajority(int anMajorityBlockUpgradeEnforce) { nMajorityBlockUpgradeEnforce = anMajorityBlockUpgradeEnforce; }
     virtual void setHeightToFork(int aHeightToFork) { nHeightToFork = aHeightToFork; };
-    virtual void setLastPowBlockBlock(int aLastPOWBlock) { nLastPOWBlock = aLastPOWBlock; };
+    virtual void setLastPowBlock(int aLastPOWBlock) { nLastPOWBlock = aLastPOWBlock; };
     virtual void setRejectBlockOutdatedMajority(int anMajorityBlockOutdatedReject) { nMajorityBlockOutdatedReject = anMajorityBlockOutdatedReject; }
     virtual void setSkipProofOfWorkCheck(bool afSkipProofOfWorkCheck) { fSkipProofOfWorkCheck = afSkipProofOfWorkCheck; }
     virtual void setStakeLockInterval(int aStakeLockInterval) { nStakeLockInterval = aStakeLockInterval; };
@@ -599,6 +599,7 @@ public:
     virtual void setTargetSpacing(uint aTargetSpacing)    { nTargetSpacing = aTargetSpacing; };
     virtual void setToCheckBlockUpgradeMajority(int anMajorityBlockUpgradeToCheck) { nMajorityBlockUpgradeToCheck = anMajorityBlockUpgradeToCheck; }
 };
+
 static CUnitTestParams unitTestParams;
 
 static CChainParams* pCurrentParams = 0;

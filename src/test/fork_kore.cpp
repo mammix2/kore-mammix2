@@ -17,20 +17,20 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 
 // #define RUN_THIS_TESTS
 
-struct RestartDataBaseTest
-{
+// struct RestartDataBaseTest
+// {
 
-    RestartDataBaseTest()
-    {
-        cout << "Finalizing Current Database !!!" << endl;
-        FinalizeDBTest(false);
-    }
-    ~RestartDataBaseTest() 
-    { 
-        cout << "Starting a New Database !!!" << endl;
-        InitializeDBTest();
-    }    
-};
+//     RestartDataBaseTest()
+//     {
+//         cout << "Finalizing Current Database !!!" << endl;
+//         FinalizeDBTest(false);
+//     }
+//     ~RestartDataBaseTest() 
+//     { 
+//         cout << "Starting a New Database !!!" << endl;
+//         InitializeDBTest();
+//     }    
+// };
 
 
 //BOOST_FIXTURE_TEST_SUITE(fork_kore, RestartDataBaseTest)

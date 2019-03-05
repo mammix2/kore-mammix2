@@ -62,6 +62,7 @@
         "string_view": "cpp",
         "optional": "cpp"
     },
+    // Comment here to display generated files
     "files.exclude": {
         "**/.deps": true,
         "**/.dirstamp": true,
@@ -73,11 +74,18 @@
         "**/*.o": true,
         "**/*.moc": true,
         "**/*.pc": true,
+        "**/kore_*.qm": true,
         "**/moc_*": true,
+        "**/ui_*.h": true,
+        "**/obj*/": true,
+        "**/libtool{,.m4}": true,
+        "aclocal.m4": true,
         "depends/built": true,
         "depends/sources": true,
         "depends/work": true,
         "depends/x86*": true,
-        "src/**/build-aux": true
+        "**/build-aux": true,
+        "**/Makefile{,.in}": true,
+        "**/config{.log,.status,ure}": true
     }
 }
