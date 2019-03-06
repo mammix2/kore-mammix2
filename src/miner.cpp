@@ -998,8 +998,8 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
           LogPrintf("Current nHeight: %d \n", GetnHeight(chainActive.Tip()));
           LogPrintf("Height to Fork : %d \n", Params().HeigthToFork());
         }
-        // check every minute
-        MilliSleep(60000);
+        // check every 5 seconds
+        MilliSleep(5000);
     }
     if (fDebug) LogPrintf("We are Free to create Block: %s \n", GetnHeight(chainActive.Tip())+1);
     while (!ShutdownRequested() && (fGenerateBitcoins || fProofOfStake)) {
@@ -1059,6 +1059,11 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                     continue;
                 }
             }
+        }
+
+        if (vNodes.size() < 3 || nChainHeight < GetBestPeerHeight()) {
+            MilliSleep(60000);
+            continue;
         }
 
         if (!fProofOfStake && (chainActive.Tip()->nHeight > Params().LAST_POW_BLOCK())) {
@@ -1257,14 +1262,14 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
 		if (fTryToSync)
 		{
 			fTryToSync = false;
-			if (vNodes.size() < 3 || nChainHeight < GetBestPeerHeight_Legacy())
+			if (vNodes.size() < 3 || nChainHeight < GetBestPeerHeight())
 			{
 				MilliSleep(60000);
 				continue;
 			}
 		}
 
-        if (nChainHeight < GetBestPeerHeight_Legacy() - 1)
+        if (nChainHeight < GetBestPeerHeight() - 1)
         {
             MilliSleep(2000);
             continue;

@@ -318,7 +318,7 @@ bool SendMessages_Fork(CNode* pto, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
-int GetBestPeerHeight_Legacy();
+int GetBestPeerHeight();
 
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();

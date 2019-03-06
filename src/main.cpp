@@ -91,7 +91,7 @@ bool fAlerts = DEFAULT_ALERTS;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT; // Legacy
 
 int nChainHeight = -1; // Legacy
-CMedianFilter<int> cPeerBlockCounts(5, 0); // Legacy
+CMedianFilter<int> cPeerBlockCounts(5, 0);
 
 int64_t nReserveBalance = 0;
 
@@ -2697,7 +2697,7 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
     return GetSeeSaw(blockValue, nMasternodeCount, nHeight);
 }
 
-int GetBestPeerHeight_Legacy()
+int GetBestPeerHeight()
 {
     return std::max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate());
 }
@@ -7920,6 +7920,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             pfrom->nStartingHeight, addrMe.ToString(), pfrom->id,
             remoteAddr);
 
+        cPeerBlockCounts.input(pfrom->nChainHeight);
+
         int64_t nTimeOffset = nTime - GetTime();
         pfrom->nTimeOffset = nTimeOffset;
         AddTimeData(pfrom->addr, nTimeOffset);
@@ -8460,7 +8462,18 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             // it, if the remote node sends a ping once per second and this node takes 5
             // seconds to respond to each, the 5th ping the remote sends would appear to
             // return very quickly.
-            pfrom->PushMessage("pong", nonce);
+            pfrom->PushMessage(NetMsgType::PONG, nonce);
+            if (pfrom->nVersion >= PING_INCLUDES_HEIGHT_VERSION)
+            {
+                int nPeerHeight;
+                vRecv >> nPeerHeight;
+
+                LOCK(cs_main);
+                cPeerBlockCounts.input(nPeerHeight);
+                pfrom->nChainHeight = nPeerHeight;
+
+                LogPrint("net", "%s has chain height %d\n", pfrom->addr.ToString().c_str(), nPeerHeight);
+            }
         }
     }
 
