@@ -16,7 +16,7 @@
 #include "utiltime.h"
 #include "wallet.h"
 
-#include <gperftools/profiler.h>
+// #include <gperftools/profiler.h>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <random>
@@ -43,6 +43,8 @@ static CAmount* masternodes = new CAmount[MASTERNODES_AVAILABLE];
 static int currMasternode = 0;
 
 static std::map<int, int> lastBlockStaked;
+
+static CScript script0;
 
 static struct {
     unsigned int extraNonce;
@@ -123,7 +125,7 @@ static std::vector<CRecipient> PopulateWalletByWealth(double numberOfWallets, do
 
             walletCount++;
         } else {
-            CRecipient recipient = {CScript() << OP_RETURN, val, false};
+            CRecipient recipient = { script0, val, false};
             vecSend.push_back(recipient);
         }
 
@@ -172,7 +174,7 @@ void StartPreMineAndWalletAllocation()
     CKey key = bsecret.GetKey();
     CPubKey pubKey = key.GetPubKey();
     CKeyID keyID = pubKey.GetID();
-    CScript script = GetScriptForDestination(keyID);
+    script0 = GetScriptForDestination(keyID);
 
     wallets[0].strWalletFile = "wallet_0.dat";
     CWalletDB walletDB(wallets[0].strWalletFile, "crw");
@@ -190,8 +192,7 @@ void StartPreMineAndWalletAllocation()
     int i = 1;
     int populate = 0;
     while (i <= blockCount) {
-        int64_t time = GetTimeMicros();
-        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(script, &wallets[0], false));
+        unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(script0, &wallets[0], false));
         if (!pblocktemplate.get())
             continue;
 
@@ -212,7 +213,7 @@ void StartPreMineAndWalletAllocation()
 
         BOOST_CHECK(ProcessBlockFound(pblock, wallets[0]));
 
-        if (i == 107 || i == 165 || i == 197 || i == 199) {
+        if (i == 184 || i == 189 || i == 194 || i == 199) {
             wallets[0].ScanForWalletTransactions(actualBlock, true);
             actualBlock = chainActive[i];
 
@@ -224,31 +225,29 @@ void StartPreMineAndWalletAllocation()
             std::vector<CRecipient> vecSend;
             switch (populate) {
             case 0:
-                vecSend = PopulateWalletByWealth(1, 1054700 * COIN); //10, 53);
+                vecSend = PopulateWalletByWealth(1, 900000 * COIN); //10, 53);
                 break;
             case 1:
-                vecSend = PopulateWalletByWealth(9, 577100 * COIN); //90, 29);
+                vecSend = PopulateWalletByWealth(9, 550000 * COIN); //90, 29);
                 break;
             case 2:
-                vecSend = PopulateWalletByWealth(20, 318400 * COIN); //900, 16);
+                vecSend = PopulateWalletByWealth(20, 310000 * COIN); //900, 16);
                 break;
             case 3:
-                vecSend = PopulateWalletByWealth(69, 39800 * COIN); //1388, 2, true);
+                vecSend = PopulateWalletByWealth(69, 30000 * COIN); //1388, 2, true);
                 break;
             default:
                 printf("No transactions done for case %d in block %d.\n", populate, i);
                 break;
             }
 
-            if (wallets[0].CreateTransaction(vecSend, txNew, reserveKey, feeRate, failReason, (const CCoinControl*)__null, ALL_COINS, false, 0L) && wallets[0].CommitTransaction(txNew, reserveKey)) 
-                printf("Transactions done for case %d in block %d.\n", populate++, i);
+            if (wallets[0].CreateTransaction(vecSend, txNew, reserveKey, feeRate, failReason, (const CCoinControl*)__null, ALL_COINS, false, 0L))
+                if(wallets[0].CommitTransaction(txNew, reserveKey))
+                    printf("Transactions don e for case %d in block %d.\n", populate++, i);
         }
 
         i++;
         pblocktemplate.reset();
-
-        time = GetTimeMicros() - time;
-        printf("%u\n", time);
     }
 }
 
@@ -290,31 +289,19 @@ BOOST_AUTO_TEST_CASE(pos_integration)
     currentSuply = chainActive.Tip()->nMoneySupply;
 
     WALLETS_AVAILABLE = walletCount + 1;
-    // int lastWalletWithBalance = 0;
     for (int i = 0; i < WALLETS_AVAILABLE; i++) {
-        // if (wallets[i].nTimeFirstKey == genesisTime) {
-            wallets[i].ScanForWalletTransactions(genesisBlock, true);
-        //     if (wallets[i].GetBalance() > 0)
-        //         lastWalletWithBalance = i;
-        //     else
-        //         break;
-        // }
+        wallets[i].ScanForWalletTransactions(genesisBlock, true);
         printf("Balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
 
-    // size_t newSize = lastWalletWithBalance;
-    // CWallet* newArr = new CWallet[newSize];
-
-    // memcpy(newArr, wallets, lastWalletWithBalance * sizeof(CWallet));
-
-    // delete[] wallets;
-    // wallets = newArr;
-
     std::uniform_int_distribution<int> distribution(0, WALLETS_AVAILABLE - 1);
 
+    int64_t mockTime = GetTime();
     while (_supply < MAX_MONEY) {
         uint nExtraNonce = 0;
-        int walletID = distribution(generator);
+        int walletID = 0;
+        if (blockCount > 202)
+            walletID = distribution(generator);
 
         CWallet* wallet = &wallets[walletID];
         CReserveKey reservekey(wallet);
@@ -326,8 +313,11 @@ BOOST_AUTO_TEST_CASE(pos_integration)
             CBlockIndex* pindexPrev = chainActive.Tip();
 
             unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, wallet, true));
-            if (!pblocktemplate.get())
+            if (!pblocktemplate.get()) {
+                mockTime += 10;
+                SetMockTime(mockTime);
                 continue;
+            }
 
             CBlock* pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
@@ -669,7 +659,6 @@ BOOST_AUTO_TEST_CASE(pos_CreateTransaction)
 
 BOOST_AUTO_TEST_CASE(pos_ValidateBlock)
 {
-    
 }
 
 BOOST_AUTO_TEST_SUITE_END()

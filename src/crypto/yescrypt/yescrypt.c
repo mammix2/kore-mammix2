@@ -66,7 +66,7 @@ void yescrypt_hash(const char *input, char *output)
     if (yescryptN <= 0)
         yescryptN = YESCRYPT_N;
 
-    yescrypt_wavi((const uint8_t *) input, 88, (const uint8_t *) input, 88, (uint8_t *) output, 32);
+    yescrypt_wavi((const uint8_t *) input, 89, (const uint8_t *) input, 89, (uint8_t *) output, 32);
 }
 
 void yescrypt_settestn(uint32_t n)

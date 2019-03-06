@@ -357,6 +357,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     if (!pblocktemplate.get())
         return NULL;
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
+    // Set if block as proof of stake or not
+    pblock->fIsProofOfStake = fProofOfStake;
 
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios

@@ -542,6 +542,13 @@ static CRegTestParams regTestParams;
 
 /**
  * Unit test
+ * Follow this rules in order to get the correct stake modifier
+ * confirmations    : 11
+ * remember that the miminum spacing is 10 !!!
+ * spacing          : [confirmations-1, max(confirmations-1, value)]
+ * nCoinbaseMaturity = nStakeMinConfirmations = confirmations
+ * modifierInterval : [spacing, spacing)]
+ * pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
  */
 class CUnitTestParams : public CMainParams, public CModifiableParams
 {
@@ -558,16 +565,14 @@ public:
         fMiningRequiresPeers                       = false;
         fSkipProofOfWorkCheck                      = true;
         nDefaultPort                               = 51478;
-        nCoinbaseMaturity = nStakeMinConfirmations = 3;
-        nModifierInterval                          = 10;
+        nTargetSpacingForStake = nTargetSpacing    = 10;
+        nCoinbaseMaturity = nStakeMinConfirmations = nTargetSpacing + 1;
+        nModifierInterval                          = nTargetSpacing;
+        nTargetTimespan                            = nTargetSpacing - 1;
         nPastBlocksMax                             = 128;
         nPastBlocksMin                             = 32;
         nStakeLockInterval                         = 32; // minimum value
         nStakeMinAge                               = 5;
-        nStakeMinConfirmations                     = 5;
-        nTargetSpacing                             = 10;
-        nTargetSpacingForStake                     = nModifierInterval;
-        nTargetTimespan                            = 1;
 
         vFixedSeeds.clear(); //! Unit test mode doesn't have any fixed seeds.
         vSeeds.clear();      //! Unit test mode doesn't have any DNS seeds.
@@ -576,7 +581,7 @@ public:
     const Checkpoints::CCheckpointData& GetCheckpoints() const
     {
         // UnitTest share the same checkpoints as MAIN
-        return dataTestnet;
+        return data;
     }
 
     //! Published setters to allow changing values innMajorityBlockUpgradeEnforcenMajorityBlockUpgradeEnforcenMajorityBlockUpgradeEnforce

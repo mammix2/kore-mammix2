@@ -2143,7 +2143,7 @@ bool less_then_denom(const COutput& out1, const COutput& out2)
     return (!found1 && found2);
 }
 
-bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInputs, CAmount nTargetAmount, map<string, CAmount>& stakeableBalance)
+bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInputs, CAmount nTargetAmount, map<string, CAmount>& stakeableBalance, map<string, CAmount>& maxStakeableBalance)
 {
     vector<COutput> vCoins;
     AvailableCoins(vCoins, true, NULL, false, STAKABLE_COINS);
@@ -2151,7 +2151,13 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
     if (GetBoolArg("-korestake", true)) {
         //cout << "SelectStakeCoins -->" << endl;
         if (fDebug) LogPrintf("SelectStakeCoins --> \n");
-        for (const COutput& out : vCoins) {
+        for (const COutput& out : vCoins) {            
+            uint160 destination;
+            if (!ExtractDestination(out.tx->vout[out.i].scriptPubKey, destination))
+                continue;
+
+            nTargetAmount = max(nTargetAmount, maxStakeableBalance[destination.ToString()]);
+
             //make sure not to outrun target amount
             if (nAmountSelected + out.tx->vout[out.i].nValue > nTargetAmount)
                 continue;
@@ -2165,10 +2171,6 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
 
             //check that it is matured
             if (out.nDepth < Params().GetCoinbaseMaturity())
-                continue;
-
-            uint160 destination;
-            if (!ExtractDestination(out.tx->vout[out.i].scriptPubKey, destination))
                 continue;
 
             //add to our stake set
@@ -3371,10 +3373,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     static int nLastStakeSetUpdate = 0;
     static list<std::unique_ptr<CStakeInput> > listInputs;
     static map<string, CAmount> stakeableBalance;
+    static map<string, CAmount> maxStakeableBalance;
     if (GetTime() - nLastStakeSetUpdate > nStakeSetUpdateTime) {
         listInputs.clear();
         stakeableBalance.clear();
-        if (!SelectStakeCoins(listInputs, nBalance - nReserveBalance, stakeableBalance))
+        if (!SelectStakeCoins(listInputs, nBalance - nReserveBalance, stakeableBalance, maxStakeableBalance))
             return false;
 
         nLastStakeSetUpdate = GetTime();
@@ -3473,8 +3476,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             for (std::unique_ptr<CStakeInput>& otherStakeInput : listInputs) {
                 if (otherStakeInput == stakeInput)
                     continue;
-                else if (txInCount > 10)
-                    break;
 
                 CScript scriptPubKey;
                 uint160 otherDestination;
@@ -3490,6 +3491,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                     break;
                 }
                 txLock.vin.emplace_back(txIn);
+
+                unsigned int nBytes = ::GetSerializeSize(txLock, SER_NETWORK, PROTOCOL_VERSION);
+                if (nBytes >= MAX_STANDARD_TX_SIZE)
+                {
+                    maxStakeableBalance.emplace(destination.ToString(), nBalance);
+                    LogPrintf("%s: txLock exceeded coinstake size limit. Max was set for next try.\n", __func__);
+                    return error("txLock exceeded coinstake size limit. Max was set for next try");
+                }
 
                 nBalance += otherStakeInput->GetValue();
                 txInCount++;

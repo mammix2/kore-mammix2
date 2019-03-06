@@ -16,10 +16,14 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    if(nVersion < 2)
-        return Hash(BEGIN(nVersion), END(nBirthdayB));
-
-    return SerializeHashYescrypt(*this);
+    if(nVersion >= 2) {
+        if (fIsProofOfStake)
+            return Hash(BEGIN(nVersion), END(fIsProofOfStake));
+        else
+            return SerializeHashYescrypt(*this);
+    }
+    
+    return Hash(BEGIN(nVersion), END(nBirthdayB));
 }
 
 uint256 CBlockHeader::GetMidHash() const

@@ -365,31 +365,41 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
 }
 
 // Check kernel hash target and coinstake signature
-bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::unique_ptr<CStakeInput>& stake)
+bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::list<std::unique_ptr<CStakeInput>>& listStake)
 {
     const CTransaction tx = block.vtx[1];
     if (!tx.IsCoinStake())
         return error("CheckProofOfStake() : called on non-coinstake %s", tx.GetHash().ToString().c_str());
 
-    // Kernel (input 0) must match the stake hash target per coin age (nBits)
-    const CTxIn& txin = tx.vin[0];
+    std::unique_ptr<CStakeInput> kernel;
+    CAmount nTotalValue = 0;
+    for (int i = 0; i < tx.vin.size(); i++)
+    {
+        const CTxIn& txin = tx.vin[i];
 
-    // First try finding the previous transaction in database
-    uint256 hashBlock;
-    CTransaction txPrev;
-    if (!GetTransaction(txin.prevout.hash, txPrev, hashBlock, true))
-        return error("CheckProofOfStake() : INFO: read txPrev failed");
+        // First try finding the previous transaction in database
+        uint256 hashBlock;
+        CTransaction txPrev;
+        if (!GetTransaction(txin.prevout.hash, txPrev, hashBlock, true))
+            return error("CheckProofOfStake() : INFO: read txPrev failed");
 
-    //verify signature and script
-    if (!VerifyScript(txin.scriptSig, txPrev.vout[txin.prevout.n].scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&tx, 0)))
-        return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
+        //verify signature and script
+        if (!VerifyScript(txin.scriptSig, txPrev.vout[txin.prevout.n].scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&tx, i)))
+            return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
 
-    //Construct the stakeinput object
-    CKoreStake* koreInput = new CKoreStake();
-    koreInput->SetInput(txPrev, txin.prevout.n);
-    stake = std::unique_ptr<CStakeInput>(koreInput);
+        //Construct the stakeinput object
+        CKoreStake* koreInput = new CKoreStake();
+        koreInput->SetInput(txPrev, txin.prevout.n);
+        std::unique_ptr<CStakeInput> stake = std::unique_ptr<CStakeInput>(koreInput);
+        nTotalValue += stake->GetValue();
 
-    CBlockIndex* pindex = stake->GetIndexFrom();
+        listStake.emplace_back(std::move(stake));
+
+        if (i == 0)
+            kernel = std::unique_ptr<CStakeInput>(koreInput);
+    }
+
+    CBlockIndex* pindex = kernel->GetIndexFrom();
     if (!pindex)
         return error("%s: Failed to find the block index", __func__);
 
@@ -402,12 +412,12 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
     bnTargetPerCoinDay.SetCompact(block.nBits);
 
     uint64_t nStakeModifier = 0;
-    if (!stake->GetModifier(nStakeModifier))
+    if (!kernel->GetModifier(nStakeModifier))
         return error("%s failed to get modifier for stake input\n", __func__);
 
     unsigned int nBlockFromTime = blockprev.nTime;
     unsigned int nTxTime = block.nTime;
-    if (!CheckStake(stake->GetUniqueness(), stake->GetValue(), nStakeModifier, bnTargetPerCoinDay, nBlockFromTime, nTxTime)) {
+    if (!CheckStake(kernel->GetUniqueness(), nTotalValue, nStakeModifier, bnTargetPerCoinDay, nBlockFromTime, nTxTime)) {
         return error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s \n", tx.GetHash().GetHex());
     }
 

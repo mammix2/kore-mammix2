@@ -5266,8 +5266,8 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
 
     if (fBlockIsProofOfStake) {
         // Must have at least 2 transactions
-        if (block.vtx.empty() || !block.vtx.size() < 2)
-            return state.DoS(100, error("CheckBlock(): coinstake must have 2 transactions"));
+        if (block.vtx.empty() || block.vtx.size() < 2)
+            return state.DoS(100, error("CheckBlock(): coinstake must have at least 2 transactions"));
 
         // Coinbase first transaction must have only 1 vin
         if (block.vtx[0].vin.size() != 1)
@@ -5275,8 +5275,8 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
 
         // Coinbase first transaction first input must have a valid Signature
         CScript coinbaseSignature = CScript() << height << OP_0;
-        if (block.vtx[0].vin[0].scriptSig.size() > coinbaseSignature.size())
-            coinbaseSignature = CScript() << height + 1 << OP_0;
+        // if (block.vtx[0].vin[0].scriptSig.size() > coinbaseSignature.size())
+        //     coinbaseSignature = CScript() << height + 1 << OP_0;
         for (int i = 0; i < coinbaseSignature.size() - 1; i++)
             if (block.vtx[0].vin[0].scriptSig[i] != coinbaseSignature[i])
                 return state.DoS(100, error("CheckBlock(): coinbase input scriptSig is incorrect"),
@@ -5914,13 +5914,22 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
     if (block.IsProofOfStake()) {
         uint256 hashProofOfStake = 0;
-        unique_ptr<CStakeInput> stake;
+        std::list<std::unique_ptr<CStakeInput>> listStake;
 
-        if (!CheckProofOfStake(block, hashProofOfStake, stake))
+        if (!CheckProofOfStake(block, hashProofOfStake, listStake))
             return state.DoS(100, error("%s: proof of stake check failed", __func__));
 
-        if (!stake)
-            return error("%s: null stake ptr", __func__);
+        if (listStake.empty())
+            return error("%s: empty list stake ptr", __func__);
+        
+        for(std::list<std::unique_ptr<CStakeInput>>::iterator it = listStake.begin(); it != listStake.end(); ++it)
+        {
+            CStakeInput* stake = (*it).release();
+            if (!stake)
+                return error("%s: null stake ptr", __func__);
+            
+            //delete stake;
+        }
 
         uint256 hash = block.GetHash();
         if (!mapProofOfStake.count(hash)) // add to mapProofOfStake

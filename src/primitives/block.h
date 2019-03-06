@@ -37,6 +37,7 @@ public:
     uint32_t nNonce;
     uint32_t nBirthdayA;
     uint32_t nBirthdayB;
+    bool fIsProofOfStake;
 
     CBlockHeader()
     {
@@ -63,6 +64,8 @@ public:
         READWRITE(nNonce);
         READWRITE(nBirthdayA);
         READWRITE(nBirthdayB);
+        if (nVersion >= 2)
+            READWRITE(fIsProofOfStake);
     }
 
     void SetNull()
@@ -75,6 +78,7 @@ public:
         nNonce = 0;
         nBirthdayA = 0;
         nBirthdayB = 0;
+        fIsProofOfStake = false;
     }
 
     bool IsNull() const
@@ -157,6 +161,7 @@ public:
         block.nNonce = nNonce;
         block.nBirthdayA = nBirthdayA;
         block.nBirthdayB = nBirthdayB;
+        block.fIsProofOfStake = fIsProofOfStake;
         return block;
     }
 
@@ -167,9 +172,9 @@ public:
             return false;
 
         if (vtx[0].IsCoinBase() && vtx[1].IsCoinStake())
-            return true;
+            return true & fIsProofOfStake;
         else if (vtx[1].IsCoinStake())
-            return true;
+            return true & fIsProofOfStake;
         else
             return false;
     }
