@@ -65,7 +65,7 @@ masternode_password=$control_wallet_password
 masternode_conf_file=`pwd`/$masternode_name.conf
 readme=`pwd`/$masternode_name.readme
 activation_file=`pwd`/$masternode_name.activation
-
+my_conf_file=$user_dir/.$coin/kore.conf
 if [ $# -eq 5 ]
 then
 cli_args="-$network -debug -rpcuser=$control_wallet_user -rpcpassword=$control_wallet_password"
@@ -161,6 +161,10 @@ masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$c
 echo "## command to activate this masternode: $masternode_activation_command" >> $masternode_conf_file
 echo "## The following is the masternode entry at masternode.conf "  >> $masternode_conf_file
 echo "## $new_masternode"   >> $masternode_conf_file
+
+echo "##########################################################################"
+echo "## "
+echo "addnode=$masternode_onion_address" >> $my_conf_file
 
 echo "##########################################################################"
 echo "## Let's wait for the Confirmations"
