@@ -211,12 +211,9 @@ echo "##   1. Change your masternode $coin.conf with the parameters found here:"
 echo "##      $masternode_conf_file"  >> $readme
 echo "##   2. Restart your masternode"  >> $readme
 echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."  >> $readme
-echo "##   4. Make sure your masternode has connections and is in sync."  >> $readme
-echo "##        kore-cli -testnet mnsync status"   >> $readme
-echo "##        ** IsBlockchainSynced should be true"   >> $readme
-echo "##   5. Activate your masternode. Make sure your mastenode is in sync."  >> $readme
+echo "##   4. Activate your masternode. Make sure your mastenode is in sync."  >> $readme
 echo "##      execute this command: $activation_file"  >> $readme
-echo "##   6. Check if the masternode status"   >> $readme
+echo "##   5. Check if the masternode are enabled"   >> $readme
 echo "##        kore-cli -testnet masternode status"   >> $readme
 echo "##        ** The message has to be: \"Masternode successfully started\""   >> $readme
 echo "##"

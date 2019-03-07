@@ -38,12 +38,12 @@ command="$cli $cli_args addnode $masternode_onion_address onetry "
 `$command`
 echo "Waiting the masternode onion address ($masternode_onion_address) to be in the peerlist"
 command="$cli $cli_args getpeerinfo"
-amIinthePeerList=`$command | jq [.[].addr | test\(\"$masternode_onion_address\"\)] | any`
+amIinthePeerList=`$command | jq [.[].addr] | jq map\(test\(\"$masternode_onion_address\"\)\) | jq any`
 while [ $amIinthePeerList != true ]
 do
   echo "Waiting the masternode onion address ($masternode_onion_address) to be in the peerlist"
   sleep 5
-  amIinthePeerList=`$command | jq [.[].addr | test\(\"$masternode_onion_address\"\)] | any`
+  amIinthePeerList=`$command | jq [.[].addr] | jq map\(test\(\"$masternode_onion_address\"\)\) | jq any`
 done
 
 echo "#############################################################################"
