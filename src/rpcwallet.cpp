@@ -837,6 +837,23 @@ UniValue getbalance(const UniValue& params, bool fHelp)
     return ValueFromAmount(nBalance);
 }
 
+UniValue getstakedbalance(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "getstakedbalance\n"
+            
+            "\nResult:\n"
+            "amount              (numeric) The total amount in KORE staked that is not spendable yet.\n"
+
+            "\nExamples:\n"
+            "\nThe total staked amount in the server across all accounts\n" +
+            HelpExampleCli("getstakedbalance", "")
+        );
+    
+    return ValueFromAmount(pwalletMain->GetStakedBalance());
+}
+
 UniValue getunconfirmedbalance(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 0)
