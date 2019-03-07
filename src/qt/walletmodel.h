@@ -139,11 +139,13 @@ public:
     CAmount getBalance(const CCoinControl* coinControl = NULL) const;
     CAmount getUnconfirmedBalance() const;
     CAmount getImmatureBalance() const;
+    CAmount getStakedBalance() const;
     CAmount getAnonymizedBalance() const;
     bool haveWatchOnly() const;
     CAmount getWatchBalance() const;
     CAmount getWatchUnconfirmedBalance() const;
     CAmount getWatchImmatureBalance() const;
+    CAmount getWatchStakedBalance() const;
     EncryptionStatus getEncryptionStatus() const;
     CKey generateNewKey() const; //for temporary paper wallet key generation
     bool setAddressBook(const CTxDestination& address, const string& strName, const string& strPurpose);
@@ -234,10 +236,12 @@ private:
     CAmount cachedBalance;
     CAmount cachedUnconfirmedBalance;
     CAmount cachedImmatureBalance;
+    CAmount cachedStakedBalance;
     CAmount cachedAnonymizedBalance;
     CAmount cachedWatchOnlyBalance;
     CAmount cachedWatchUnconfBalance;
     CAmount cachedWatchImmatureBalance;
+    CAmount cachedWatchStakedBalance;
     EncryptionStatus cachedEncryptionStatus;
     int cachedNumBlocks;
     int cachedTxLocks;
@@ -251,7 +255,7 @@ private:
 
 signals:
     // Signal that balance in wallet changed
-    void balanceChanged(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance);
+    void balanceChanged(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& stakedBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance, const CAmount& watchStakedBalance);
 
     // Encryption status of wallet changed
     void encryptionStatusChanged(int status);
@@ -287,7 +291,7 @@ public slots:
     void updateWatchOnlyFlag(bool fHaveWatchonly);
     /* MultiSig added */
     void updateMultiSigFlag(bool fHaveMultiSig);
-    /* Current, immature or unconfirmed balance might have changed - emit 'balanceChanged' if so */
+    /* Current, immature, unconfirmed or staked balance might have changed - emit 'balanceChanged' if so */
     void pollBalanceChanged();
     /* Update address book labels in the database */
     void updateAddressBookLabels(const CTxDestination& address, const string& strName, const string& strPurpose);
