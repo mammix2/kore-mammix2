@@ -8,12 +8,14 @@ echo "##########################################################################
 echo "#############################################################################"
 echo "## "
 echo "## This is a Kore script and it activates a masternode."
-echo "## masternode_activation.sh <cli> <cli-args> <masternode-name>"
+echo "## masternode_activation.sh <cli> <cli-args> <masternode-name> <masternode_tx> <masternode_onion_address>"
 echo "## Parameters"
 echo "##   cli: kore-cli location"
 echo "##   cli-args: kore-cli arguments"
 echo "##   masternode-name: masternode name, as it is in the masternode.conf"
 echo "##   masternode_tx: masternode transaction"
+echo "##   masternode_onion_address: masternode onion"
+
 exit 1
 fi
 
@@ -21,6 +23,7 @@ cli="$1"
 cli_args="$2"
 masternode_name="$3"
 masternode_tx=$4
+masternode_onion_address=$5
 
 echo "## Parameters"
 echo "##   cli: $cli"
@@ -28,6 +31,20 @@ echo "##   cli-args: $cli_args"
 echo "##   masternode-name: $masternode_name"
 echo "##   masternode_tx: $masternode_tx"
 
+
+echo "#############################################################################"
+echo "## Let's make sure we have a direct connection to the masternode "
+command="$cli $cli_args addnode $masternode_onion_address onetry "
+`$command`
+echo "Waiting the masternode onion address ($masternode_onion_address) to be in the peerlist"
+command="$cli $cli_args getpeerinfo"
+amIinthePeerList=`$command | jq [.[].addr | test\(\"$masternode_onion_address\"\)] | any`
+while [ $amIinthePeerList != true ]
+do
+  echo "Waiting the masternode onion address ($masternode_onion_address) to be in the peerlist"
+  sleep 5
+  amIinthePeerList=`$command | jq [.[].addr | test\(\"$masternode_onion_address\"\)] | any`
+done
 
 echo "#############################################################################"
 echo "## Let's make sure the blockchain is in SYNC"
@@ -38,7 +55,7 @@ IsBlockChainSynced=`$command | jq .IsBlockchainSynced`
 while [ $IsBlockChainSynced != true ]
 do
   echo "Waiting Blockchain to be in sync"
-  sleep 10
+  sleep 5
   IsBlockChainSynced=`$command | jq .IsBlockchainSynced`
 done
 
