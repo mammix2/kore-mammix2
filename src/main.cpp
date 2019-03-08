@@ -8452,6 +8452,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             // seconds to respond to each, the 5th ping the remote sends would appear to
             // return very quickly.
             pfrom->PushMessage(NetMsgType::PONG, nonce);
+            LogPrint("net", "%s has version : %d\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             if (pfrom->nVersion >= PING_INCLUDES_HEIGHT_VERSION)
             {
                 int nPeerHeight;
@@ -9486,7 +9487,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
             // seconds to respond to each, the 5th ping the remote sends would appear to
             // return very quickly.
             pfrom->PushMessage(NetMsgType::PONG, nonce);
-
+            LogPrint("net", "%s has version : %d\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
             if (pfrom->nVersion >= PING_INCLUDES_HEIGHT_VERSION)
             {
                 int nPeerHeight;
