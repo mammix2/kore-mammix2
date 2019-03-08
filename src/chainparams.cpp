@@ -253,7 +253,6 @@ public:
         bnProofOfStakeLimit = ~uint256(0) >> 16;
         nSubsidyHalvingInterval = 4000;
         nMaxReorganizationDepth = 25;
-        nEnforceBlockUpgradeMajority = 750;  // consensus.nMajorityEnforceBlockUpgrade = 750;
         nRejectBlockOutdatedMajority = 950;  // consensus.nMajorityRejectBlockOutdated = 950;
         nToCheckBlockUpgradeMajority = 1000; // consensus.nMajorityWindow = 1000;
         nMinerThreads = 0;
@@ -382,9 +381,10 @@ public:
         vAlertPubKey = ParseHex("04cd7ce93858b4257079f4ed9150699bd9f66437ff76617690d1cc180321e94ea391bbccf3bccdcf2edaf0429e32c07b53354e9cecf458cca3fe71dc277f11d9c5");
         nDefaultPort = 11743;
         nMaxTipAge = 0x7fffffff;
-        nEnforceBlockUpgradeMajority = 51;
-        nRejectBlockOutdatedMajority = 75;
-        nToCheckBlockUpgradeMajority = 100;
+        // if we have achieve the nRejectBlockOutdatedMajority from nToCheckBlockUpgradeMajority
+        // blocks from old version will be rejected, 75 from 100 means 75%
+        nRejectBlockOutdatedMajority = 75; 
+        nToCheckBlockUpgradeMajority = 100; 
         nMinerThreads                = 0;
         // Follow this rules in order to get the correct stake modifier
         // confirmations    : 3
@@ -515,7 +515,6 @@ public:
         pchMessageStart[2] = 0x6a;
         pchMessageStart[3] = 0xe1;
         nSubsidyHalvingInterval      = 150;    // consensus.nSubsidyHalvingInterval
-        nEnforceBlockUpgradeMajority = 750;    // consensus.nMajorityEnforceBlockUpgrade
         nRejectBlockOutdatedMajority = 950;    // consensus.nMajorityRejectBlockOutdated
         nToCheckBlockUpgradeMajority = 1000;   // consensus.nMajorityWindow
         nTargetTimespan = 60 * 60;             // consensus.nTargetTimespan one hour
@@ -601,7 +600,6 @@ public:
 
     //! Published setters to allow changing values in unit test cases
     virtual void setSubsidyHalvingInterval(int anSubsidyHalvingInterval) { nSubsidyHalvingInterval = anSubsidyHalvingInterval; }
-    virtual void setEnforceBlockUpgradeMajority(int anEnforceBlockUpgradeMajority) { nEnforceBlockUpgradeMajority = anEnforceBlockUpgradeMajority; }
     virtual void setRejectBlockOutdatedMajority(int anRejectBlockOutdatedMajority) { nRejectBlockOutdatedMajority = anRejectBlockOutdatedMajority; }
     virtual void setToCheckBlockUpgradeMajority(int anToCheckBlockUpgradeMajority) { nToCheckBlockUpgradeMajority = anToCheckBlockUpgradeMajority; }
     virtual void setDefaultConsistencyChecks(bool afDefaultConsistencyChecks) { fDefaultConsistencyChecks = afDefaultConsistencyChecks; }

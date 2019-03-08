@@ -16,7 +16,7 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    if((nVersion & ~SIGNALING_NEW_VERSION_MASK) < 2)
+    if((nVersion & ~SIGNALING_NEW_VERSION_MASK) < CBlockHeader::POS_FORK_VERSION)
         return Hash(BEGIN(nVersion), END(nBirthdayB));
 
     return SerializeHashYescrypt(*this);
