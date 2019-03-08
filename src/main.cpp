@@ -4421,21 +4421,20 @@ void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
                 }
             }
         }
-        LogPrintf("Signalling start --> upgraded : %d \n", nUpgraded);
-        // checking for a day, 1 block a minute => 60*24
-        int BlocksPerDay = 60/Params().TargetSpacing()*60*24;
-        int BlocksToMeasure = min(BlocksPerDay,pindex->nHeight);
+        LogPrintf("Signalling start --> \n");
+        int BlocksToMeasure = Params().ToCheckBlockUpgradeMajority();
         for (int i = 0; i < BlocksToMeasure && pindex != NULL; i++)
         {
             //int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
             LogPrintf(" block: %d version: %x \n", pindex->nHeight, pindex->nVersion);
-            if ((pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK) == CBlockHeader::SIGNALING_NEW_VERSION_MASK )
+            if ((pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK) == CBlockHeader::SIGNALING_NEW_VERSION_MASK)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
         LogPrintf("Signalling end <-- upgraded : %d \n", nUpgraded);
-        int versionSignalingPercent = nUpgraded*100/BlocksToMeasure;
-        string versionSignaling = "Please note that " + std::to_string(versionSignalingPercent) + "%, " + std::to_string(nUpgraded) + " of " + std::to_string(BlocksToMeasure) + " blocks, have new version.";
+        int currentVersionSignalingPercent = nUpgraded*100/BlocksToMeasure;
+        int versionMajorityPercent = Params().RejectBlockOutdatedMajority()*100/Params().ToCheckBlockUpgradeMajority();
+        string versionSignaling = "Please note that " + std::to_string(currentVersionSignalingPercent) + "%, " + std::to_string(nUpgraded) + " of " + std::to_string(BlocksToMeasure) + " blocks, have new version. When it reaches " + std::to_string(versionMajorityPercent) + "% blocks from version 1 will be discarded !!! If you have not updated, please do it asap." ;
         if (nUpgraded > 0)
             LogPrintf("%s: %s \n", __func__, versionSignaling.c_str());
         
