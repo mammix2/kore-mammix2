@@ -4434,7 +4434,7 @@ void static UpdateTip_Legacy(CBlockIndex *pindexNew) {
         LogPrintf("Signalling end <-- upgraded : %d \n", nUpgraded);
         int currentVersionSignalingPercent = nUpgraded*100/BlocksToMeasure;
         int versionMajorityPercent = Params().RejectBlockOutdatedMajority()*100/Params().ToCheckBlockUpgradeMajority();
-        string versionSignaling = "Please note that " + std::to_string(currentVersionSignalingPercent) + "%, " + std::to_string(nUpgraded) + " of " + std::to_string(BlocksToMeasure) + " blocks, have new version. When it reaches " + std::to_string(versionMajorityPercent) + "% blocks from version 1 will be discarded !!! If you have not updated, please do it asap." ;
+        string versionSignaling = "Please note that " + std::to_string(currentVersionSignalingPercent) + "% of blocks have new version. When it reaches " + std::to_string(versionMajorityPercent) + "%, blocks from version 1 will be discarded !!! If you have not updated, please do it asap." ;
         if (nUpgraded > 0)
             LogPrintf("%s: %s \n", __func__, versionSignaling.c_str());
         
