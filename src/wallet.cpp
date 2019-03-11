@@ -1774,13 +1774,12 @@ CAmount CWallet::GetStakedBalance() const
     CAmount nTotal = 0;
     {
         LOCK2(cs_main, cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
             const CWalletTx* pcoin = &(*it).second;
             if (pcoin->IsTrusted())
                 nTotal += pcoin->GetStakedCredit();
         }
-    }    
+    }
 }
 
 CAmount CWallet::GetUnlockedCoins() const
@@ -1978,19 +1977,17 @@ CAmount CWallet::GetWatchOnlyBalance() const
 }
 
 
-
 CAmount CWallet::GetStakedWatchOnlyBalance() const
 {
     CAmount nTotal = 0;
     {
         LOCK2(cs_main, cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
             const CWalletTx* pcoin = &(*it).second;
             if (pcoin->IsTrusted())
                 nTotal += pcoin->GetStakedWatchOnlyCredit();
         }
-    }    
+    }
 }
 
 CAmount CWallet::GetUnconfirmedWatchOnlyBalance() const
@@ -2203,7 +2200,7 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
     if (GetBoolArg("-korestake", true)) {
         //cout << "SelectStakeCoins -->" << endl;
         if (fDebug) LogPrintf("SelectStakeCoins --> \n");
-        for (const COutput& out : vCoins) {            
+        for (const COutput& out : vCoins) {
             uint160 destination;
             if (!ExtractDestination(out.tx->vout[out.i].scriptPubKey, destination))
                 continue;
@@ -3439,7 +3436,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         return false;
 
     if (GetAdjustedTime() - chainActive.Tip()->GetBlockTime() < Params().GetTargetSpacing() * 0.75)
-        MilliSleep(Params().GetTargetSpacing() * 0.25);
+        MilliSleep(Params().GetTargetSpacing() * 0.25 * 1000);
 
     CAmount nCredit;
     CScript scriptPubKeyKernel;
@@ -3545,8 +3542,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 txLock.vin.emplace_back(txIn);
 
                 unsigned int nBytes = ::GetSerializeSize(txLock, SER_NETWORK, PROTOCOL_VERSION);
-                if (nBytes >= MAX_STANDARD_TX_SIZE)
-                {
+                if (nBytes >= MAX_STANDARD_TX_SIZE) {
                     maxStakeableBalance.emplace(destination.ToString(), nBalance);
                     LogPrintf("%s: txLock exceeded coinstake size limit. Max was set for next try.\n", __func__);
                     return error("txLock exceeded coinstake size limit. Max was set for next try");
