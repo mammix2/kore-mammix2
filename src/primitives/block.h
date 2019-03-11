@@ -170,13 +170,14 @@ public:
     // ppcoin: two types of block: proof-of-work or proof-of-stake
     bool IsProofOfStake() const
     {
+        bool isOldVersion = ((nVersion & ~SIGNALING_NEW_VERSION_MASK) < CBlockHeader::POS_FORK_VERSION);
         if (vtx.size() <= 1)
             return false;
 
         if (vtx[0].IsCoinBase() && vtx[1].IsCoinStake())
-            return true & fIsProofOfStake;
+            return isOldVersion ? true : fIsProofOfStake;
         else if (vtx[1].IsCoinStake())
-            return true & fIsProofOfStake;
+            return isOldVersion ? true : fIsProofOfStake;
         else
             return false;
     }

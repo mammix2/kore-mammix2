@@ -15,7 +15,7 @@
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 
-// #define RUN_FORK_TESTS
+#define RUN_FORK_TESTS
 
 // struct RestartDataBaseTest
 // {

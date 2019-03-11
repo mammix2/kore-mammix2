@@ -60,10 +60,12 @@ void FinalizeDBTest(bool shutdown)
 }
 
 blockinfo_t blockinfo[] = {
-    {0, 1551469096, 1551469096, 538968063, 1, 1, 23566544, 53360785, uint256("0a997e60eb4354ba342cf7723bf28aaa7f420ffed05adbfd3f84d51e3191ae57"), uint256("ba2968202ae5a0103084b156145d9e057b8e2dd941ad508e406ae58ab25e2d97"), 0},                // Block 1
-    {0, 1551469157, 1551469127, 538968063, 2, 1, 6231281, 33926692, uint256("0d0f60ae2d7fdbf218d96bf627fd782b7d94c3451f2066588d2f88bbbebfc4cc"), uint256("d6c7a69c77d0faf6554c3409c0da795ded00d4c63cb9fc1e21cd3567e26c4a8a"), 0},                 // Block 2
-    {0, 1551471838, 1551469187, 536990746, 91, 1, 0, 0, uint256("01477110b434e5398c0dd7498e7c987280b531647d36768b834bd5fa06f2d69f"), uint256("52fbfb1bf4facfb3b9cdfbd36c85344ae85f434dd3a7d143e936474872e03141"), 0},                             // Block 3
-    {0, 1551474433, 1551471868, 537028160, 87, 1, 18728010, 45703289, uint256("002d96b7d46707ebe8a9bbd0cfad89de3da07abfdcaf102163ff9379b53395f0"), uint256("5b23c1cd4788aed0a774ccc3be3b35d5ecb9e0db9625543a1ce765eb04673c94"), 900000000000},    // Block 4
+    {0, 1552326080, 1552326005 , 538968063 , 5 , 1 , 3006047 , 59734105 , uint256("0a4d78a0eee2a4414361d3a47a9c56d5613b9deea70c97aee5da5d4b8b66eae9") , uint256("ec6a962b227824b0bb405f00d74c46f38f8b8e945001484e7a5fbc525e30fbf6") , 0 },       // Block 1    
+    {0, 1552326458, 1552326099 , 538968063 , 19 , 1 , 0 , 0 , uint256("15868e9f0e2893b0cbc71da336c833687191cc154caec8a994832280cb3be6c3") , uint256("f687437b883b2c0689297a26b07e2e7c0d40b4f0faae8345ff64e944aa446b10") , 0 },                   // Block 2
+    {0, 1552327987, 1552326482 , 537050656 , 71 , 1 , 2064757 , 13884784 , uint256("02a622f1e2a2c167156dd882448524e785756b92494ae46b46c64a2b25162cc2") , uint256("183eb70efbbc832a456cb94d9d3798df706501b0ab52f4daaadb05a0410ace13") , 0 }, // Block 3    
+    {0, 1552328394, 1552328013 , 536942286 , 17 , 1 , 7892929 , 58159534 , uint256("00bfca079fd6a03b4d38048f70746257322c715fcb0abe4ce6e7399fd65efe3f") , uint256("220650be41d0259edc22a3c0ddc1e8aced3c229346352201953a7cf260fe9489") , 900000000000 }, // Block 4    
+
+    
     {0, 1551475584, 1551474450, 527027404, 63, 1, 21241524, 33555986, uint256("003044cffa95e38e9af9cee7251ca79227ba300395c67e82c45cd80167baab45"), uint256("254a60aa559088a997d0d0b59022d899a7dbbadc9d512905896d20b80f7560eb"), 1800000000000},   // Block 5
     {0, 1551476799, 1551475602, 537061937, 61, 1, 53340836, 58025984, uint256("0041034b9203fe319f48f9de026a20ea69dfe0e9347c71b7e4ac4b178a49da9d"), uint256("fb77c45bcfd87b9a4a0e4456c6b22f858cc79e186f6fa0a2d5e277101bd82318"), 2700000000000},   // Block 6
     {0, 1551483623, 1551476828, 536927768, 236, 1, 16990015, 43555895, uint256("0075f7051456d5a2a6f7e0dfcb992235fb422eff2c9e68b6e9c8e3b1358f978e"), uint256("531f7ed02da106f52ebf3ee37f8a16d5080a9a28015ed8e480ab440e956f61a2"), 3600000000000},  // Block 7
@@ -96,7 +98,7 @@ blockinfo_t blockinfo[] = {
 void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake, bool logToStdout)
 {
     if (logToStdout) {
-        //cout << pblock->ToString().c_str();
+        cout << pblock->ToString().c_str();
         cout << "{" << fProofOfStake << ", ";
         cout << pblock->nTime << ", ";
         cout << pblock->vtx[0].nTime << " , ";
@@ -500,16 +502,16 @@ void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
         pblock->nBirthdayA = blockinfo[i].nBirthdayA;
         pblock->nBirthdayB = blockinfo[i].nBirthdayB;
         CValidationState state;
-        //cout << "Found Block === " << i+1 << " === " << endl;
-        //cout << "nTime         : " << pblock->nTime << endl;
-        //cout << "nNonce        : " << pblock->nNonce << endl;
-        //cout << "extranonce    : " << blockinfo[i].extranonce << endl;
-        //cout << "nBirthdayA    : " << pblock->nBirthdayA << endl;
-        //cout << "nBirthdayB    : " << pblock->nBirthdayB << endl;
-        //cout << "nBits         : " << pblock->nBits << endl;
-        //cout << "Hash          : " << pblock->GetHash().ToString().c_str() << endl;
-        //cout << "hashMerkleRoot: " << pblock->hashMerkleRoot.ToString().c_str()  << endl;
-        //cout << "New Block values" << endl;
+        cout << "Found Block === " << i+1 << " === " << endl;
+        cout << "nTime         : " << pblock->nTime << endl;
+        cout << "nNonce        : " << pblock->nNonce << endl;
+        cout << "extranonce    : " << blockinfo[i].extranonce << endl;
+        cout << "nBirthdayA    : " << pblock->nBirthdayA << endl;
+        cout << "nBirthdayB    : " << pblock->nBirthdayB << endl;
+        cout << "nBits         : " << pblock->nBits << endl;
+        cout << "Hash          : " << pblock->GetHash().ToString().c_str() << endl;
+        cout << "hashMerkleRoot: " << pblock->hashMerkleRoot.ToString().c_str()  << endl;
+        cout << "New Block values" << endl;
 
         if (fProofOfStake) {
             BOOST_CHECK(SignBlock_Legacy(pwallet, pblock));
