@@ -268,6 +268,7 @@ public:
         nTargetSpacing = 1 * 60;  // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
         nStakeTargetSpacing = 60; // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
         nModifierInterval = nStakeTargetSpacing;  // should be the same as nStakeMinConfirmations
+        nStakeLockInterval                            = 60 * 60 * 4;         // Stake remains locked for 4 hours
         nStakeMinAge = 4 * 60 * 60; 
         nPastBlocksMin = 24;
         nPastBlocksMax = 24;
@@ -354,10 +355,10 @@ public:
         // Amount of blocks in a months period of time
         nMasternodeBudgetPaymentCycle = 60*24*30*1; // Using 1 minute per block
         // Submit final budget during the last 2 days (2880 blocks) before payment for Mainnet
-        nMasternodeFinalizationWindow = ((MasternodeBudgetPaymentCycle() / 30) * 2);
+        nMasternodeFinalizationWindow = ((GetMasternodeBudgetPaymentCycle() / 30) * 2);
     }
 
-    const Checkpoints::CCheckpointData& Checkpoints() const
+    const Checkpoints::CCheckpointData& GetCheckpoints() const
     {
         return data;
     }
@@ -397,6 +398,7 @@ public:
         nTargetTimespan              = 1 * 60; // KORE: 1 minute
         nTargetSpacing               = nStakeTargetSpacing          = 60; 
         nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
+        nStakeLockInterval           = 30 * 60; // Stake remains locked for 30 minutes
         nStakeMinAge                 = 30 * 60; // It will stake after 30 minutes
         nPastBlocksMin = 64;
         nPastBlocksMax = 64;
@@ -493,7 +495,7 @@ public:
 
         nBudgetVoteUpdate = 1 * 60; // can only change vote after 1 minute
     }
-    const Checkpoints::CCheckpointData& Checkpoints() const
+    const Checkpoints::CCheckpointData& GetCheckpoints() const
     {
         return dataTestnet;
     }
@@ -549,7 +551,7 @@ public:
         // Kore BIP44
         // base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x01).convert_to_container<std::vector<unsigned char> >();
     }
-    const Checkpoints::CCheckpointData& Checkpoints() const
+    const Checkpoints::CCheckpointData& GetCheckpoints() const
     {
         return dataRegtest;
     }
@@ -587,12 +589,13 @@ public:
         nTargetSpacing         = 10; 
         nStakeTargetSpacing    = 10; 
         nModifierInterval      = nStakeTargetSpacing;
-        nStakeMinAge           = 0; 
+        nStakeLockInterval     = 32; // minimum value
+        nStakeMinAge           = 5; 
         nPastBlocksMin         = 32;
         nPastBlocksMax         = 128;
     }
 
-    const Checkpoints::CCheckpointData& Checkpoints() const
+    const Checkpoints::CCheckpointData& GetCheckpoints() const
     {
         // UnitTest share the same checkpoints as MAIN
         return data;
@@ -606,8 +609,10 @@ public:
     virtual void setAllowMinDifficultyBlocks(bool afAllowMinDifficultyBlocks) { fAllowMinDifficultyBlocks = afAllowMinDifficultyBlocks; }
     virtual void setSkipProofOfWorkCheck(bool afSkipProofOfWorkCheck) { fSkipProofOfWorkCheck = afSkipProofOfWorkCheck; }
     virtual void setHeightToFork(int aHeightToFork) { heightToFork = aHeightToFork; };
+    virtual void setLastPowBlock(int aLastPOWBlock) { nLastPOWBlock = aLastPOWBlock; };
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) { nStakeMinConfirmations = aStakeMinConfirmations;};
     virtual void setStakeMinAge(int aStakeMinAge) { nStakeMinAge = aStakeMinAge; }
+    virtual void setStakeLockInterval(int aStakeLockInterval) { nStakeLockInterval = aStakeLockInterval; };
     virtual void setStakeModifierInterval(int aStakeModifier) { nModifierInterval = aStakeModifier;}
     virtual void setCoinbaseMaturity(int aCoinbaseMaturity) {nMaturity = aCoinbaseMaturity; }
     virtual void setLastPOW(int aLastPOW) { nLastPOWBlock = aLastPOW; };

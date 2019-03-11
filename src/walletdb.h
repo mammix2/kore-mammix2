@@ -11,6 +11,7 @@
 #include "db.h"
 #include "key.h"
 #include "keystore.h"
+
 #include <list>
 #include <stdint.h>
 #include <string>
@@ -25,7 +26,6 @@ class CMasterKey;
 class CScript;
 class CWallet;
 class CWalletTx;
-
 class uint160;
 class uint256;
 

@@ -220,7 +220,6 @@ void Bip38ToolDialog::on_importAddressButton_DEC_clicked()
         ui->statusLabel_DEC->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_DEC->setText(tr("Please wait while key is imported"));
 
-        pwalletMain->MarkDirty();
         pwalletMain->SetAddressBook(vchAddress, "", "receive");
 
         // Don't throw error in case a key is already there

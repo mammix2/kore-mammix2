@@ -16,10 +16,14 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    if((nVersion & ~SIGNALING_NEW_VERSION_MASK) < CBlockHeader::POS_FORK_VERSION)
-        return Hash(BEGIN(nVersion), END(nBirthdayB));
-
-    return SerializeHashYescrypt(*this);
+    if((nVersion & ~SIGNALING_NEW_VERSION_MASK) >= CBlockHeader::POS_FORK_VERSION) {
+        if (fIsProofOfStake)
+            return Hash(BEGIN(nVersion), END(fIsProofOfStake));
+        else
+            return SerializeHashYescrypt(*this);
+    }
+    
+    return Hash(BEGIN(nVersion), END(nBirthdayB));
 }
 
 uint256 CBlockHeader::GetMidHash() const

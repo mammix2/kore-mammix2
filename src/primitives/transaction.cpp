@@ -4,15 +4,16 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "primitives/block.h"
-#include "primitives/transaction.h"
+#include "transaction.h"
 
 #include "chain.h"
 #include "hash.h"
 #include "main.h"
+#include "primitives/block.h"
+#include "primitives/transaction.h"
+#include "script/standard.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
-#include "transaction.h"
 
 #include <boost/foreach.hpp>
 
@@ -52,7 +53,7 @@ std::string CTxIn::ToString() const
     std::string str;
     str += "CTxIn(";
     str += prevout.ToString();
-    if (prevout.IsNull())
+    if (prevout.IsNull())   
         str += strprintf(", coinbase %s", HexStr(scriptSig));
     else
         str += strprintf(", scriptSig=%s", HexStr(scriptSig).substr(0, 24));
@@ -62,19 +63,19 @@ std::string CTxIn::ToString() const
     return str;
 }
 
-CTxOut::CTxOut(const CAmount& nValueIn, CScript scriptPubKeyIn)
-{
-    nValue = nValueIn;
-    scriptPubKey = scriptPubKeyIn;
-    nRounds = -10;
-}
-
 bool COutPoint::IsMasternodeReward(const CTransaction* tx) const
 {
     if(!tx->IsCoinStake())
         return false;
 
     return (n == tx->vout.size() - 1) && (tx->vout[1].scriptPubKey != tx->vout[n].scriptPubKey);
+}
+
+CTxOut::CTxOut(const CAmount& nValueIn, CScript scriptPubKeyIn)
+{
+    nValue = nValueIn;
+    scriptPubKey = scriptPubKeyIn;
+    nRounds = -10;
 }
 
 uint256 CTxOut::GetHash() const
@@ -88,8 +89,18 @@ std::string CTxOut::ToString() const
     return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey));
 }
 
-CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nTime(0), nLockTime(0) {}
-CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}
+bool CTxOut::IsCoinStake() const
+    {
+        vector<vector<unsigned char> > vSolutions;
+        txnouttype whichType;
+        if (!Solver(scriptPubKey, whichType, vSolutions))
+            return false;
+
+        return whichType == TX_LOCKSTAKE;
+    }
+
+CMutableTransaction::CMutableTransaction() : nVersion(2), nTime(0), nLockTime(0) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.GetVersion()), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}
 
 uint256 CMutableTransaction::GetHash() const
 {
@@ -116,36 +127,20 @@ void CTransaction::UpdateHash() const
     *const_cast<uint256*>(&hash) = SerializeHash(*this);
 }
 
-CTransaction::CTransaction() : hash(), nVersion(CTransaction::CURRENT_VERSION), nTime(0), vin(), vout(), nLockTime(0) { }
+CTransaction::CTransaction() : hash(), nVersion(2), nTime(0), vin(), vout(), nLockTime(0) { }
 
 CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {
     UpdateHash();
 }
 
 CTransaction& CTransaction::operator=(const CTransaction &tx) {
-    *const_cast<int*>(&nVersion) = tx.nVersion;
+    *const_cast<int*>(&nVersion) = tx.GetVersion();
     *const_cast<unsigned int*>(&nTime) = tx.nTime;
     *const_cast<std::vector<CTxIn>*>(&vin) = tx.vin;
     *const_cast<std::vector<CTxOut>*>(&vout) = tx.vout;
     *const_cast<unsigned int*>(&nLockTime) = tx.nLockTime;
     *const_cast<uint256*>(&hash) = tx.hash;
     return *this;
-}
-
-bool CTransaction::IsCoinStake() const
-{
-    if (vin.empty())
-        return false;
-
-    // ppcoin: the coin stake transaction is marked with the first output empty
-    if (vin[0].prevout.IsNull())
-        return false;
-    //if (fDebug) {
-    //    LogPrintf("IsCoinStake: vin.size() > 0 ? %s \n", vin.size() > 0 ? "true" : "false");
-    //    LogPrintf("IsCoinStake: vout.size() >= 2 ? %s \n", vout.size() >= 2 ? "true" : "false");
-    //    LogPrintf("IsCoinStake: vout[0].IsEmpty() ? %s \n", vout[0].IsEmpty() ? "true" : "false");
-    // }
-    return (vin.size() > 0 && vout.size() >= 2 && vout[0].IsEmpty());
 }
 
 CAmount CTransaction::GetValueOut() const
@@ -164,7 +159,6 @@ CAmount CTransaction::GetValueOut() const
     }
     return nValueOut;
 }
-
 
 bool CTransaction::UsesUTXO(const COutPoint out)
 {

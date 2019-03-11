@@ -3,10 +3,10 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "netbase.h"
 #include "masternodeconfig.h"
-#include "util.h"
+#include "netbase.h"
 #include "ui_interface.h"
+#include "util.h"
 #include <base58.h>
 
 CMasternodeConfig masternodeConfig;
@@ -61,28 +61,27 @@ bool CMasternodeConfig::read(std::string& strErr)
         int port = 0;
         std::string hostname = "";
         SplitHostPort(ip, port, hostname);
-        if(port == 0 || hostname == "") {
-            strErr = _("Failed to parse host:port string") + "\n"+
+        if (port == 0 || hostname == "") {
+            strErr = _("Failed to parse host:port string") + "\n" +
                      strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"";
             streamConfig.close();
             return false;
         }
 
-        if (Params().NetworkID() == CBaseChainParams::MAIN) {
+        if (Params().GetNetworkID() == CBaseChainParams::MAIN) {
             if (port != Params().GetDefaultPort()) {
-                strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber,line, Params().GetDefaultPort());
+                strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber, line, Params().GetDefaultPort());
                 streamConfig.close();
                 return false;
             }
-        } else if (Params().NetworkID() == CBaseChainParams::TESTNET) {
+        } else if (Params().GetNetworkID() == CBaseChainParams::TESTNET) {
             if (port != Params().GetDefaultPort()) {
-                strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber,line, Params().GetDefaultPort());
+                strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber, line, Params().GetDefaultPort());
                 streamConfig.close();
                 return false;
             }
-        }
-        else if (CService(ip).GetPort() == Params().GetDefaultPort()) {
-            strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber,line, Params().GetDefaultPort());
+        } else if (CService(ip).GetPort() == Params().GetDefaultPort()) {
+            strErr = strprintf("Invalid port detected in masternode.conf \n Line: %d \n \"%s\" \n must be %d for mainnet", linenumber, line, Params().GetDefaultPort());
             streamConfig.close();
             return false;
         }
@@ -94,7 +93,7 @@ bool CMasternodeConfig::read(std::string& strErr)
     return true;
 }
 
-bool CMasternodeConfig::CMasternodeEntry::castOutputIndex(int &n)
+bool CMasternodeConfig::CMasternodeEntry::castOutputIndex(int& n)
 {
     try {
         n = std::stoi(outputIndex);

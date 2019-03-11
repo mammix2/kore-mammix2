@@ -704,10 +704,10 @@ void CObfuscationPool::ChargeFees()
     int target = 0;
 
     //mostly offending?
-    if (offences >= Params().PoolMaxTransactions() - 1 && r > 33) return;
+    if (offences >= Params().GetPoolMaxTransactions() - 1 && r > 33) return;
 
     //everyone is an offender? That's not right
-    if (offences >= Params().PoolMaxTransactions()) return;
+    if (offences >= Params().GetPoolMaxTransactions()) return;
 
     //charge one of the offenders randomly
     if (offences > 1) target = 50;
@@ -2305,7 +2305,7 @@ void ThreadCheckObfuScationPool()
 
             // check if we should activate or ping every few minutes,
             // start right after sync is considered to be done
-            if (c % Params().MasternodePingSeconds() == 1) activeMasternode.ManageStatus();
+            if (c % Params().GetMasternodePingSeconds() == 1) activeMasternode.ManageStatus();
 
             if (c % 60 == 0) {
                 mnodeman.CheckAndRemove();

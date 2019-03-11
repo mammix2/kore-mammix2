@@ -183,10 +183,10 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
     int oldnHeight = chainActive.Tip()->nHeight;
 
     for (int j = startBlock; j < endBlock; j++) {
-        MilliSleep(Params().TargetSpacing() * 1000);
+        MilliSleep(Params().GetTargetSpacing() * 1000);
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
-            if ((GetTime() - nMintableLastCheck > Params().ClientMintibleCoinsInterval())) {
+            if ((GetTime() - nMintableLastCheck > Params().GetClientMintableCoinsInterval())) {
                 nMintableLastCheck = GetTime();
                 fMintableCoins = pwallet->MintableCoins();
             }
@@ -196,7 +196,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
                 nLastCoinStakeSearchInterval = 0;
                 // Do a separate 1 minute check here to ensure fMintableCoins is updated
                 if (!fMintableCoins) {
-                    if (GetTime() - nMintableLastCheck > Params().EnsureMintibleCoinsInterval()) // 1 minute check time
+                    if (GetTime() - nMintableLastCheck > Params().GetEnsureMintableCoinsInterval()) // 1 minute check time
                     {
                         nMintableLastCheck = GetTime();
                         fMintableCoins = pwallet->MintableCoins();
@@ -292,7 +292,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
 
                     // In regression test mode, stop mining after a block is found. This
                     // allows developers to controllably generate a block on demand.
-                    // if (Params().MineBlocksOnDemand())
+                    // if (Params().ShouldMineBlocksOnDemand())
                     //    throw boost::thread_interrupted();
                     break;
                 }
@@ -330,7 +330,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
             // Check for stop or if block needs to be rebuilt
             boost::this_thread::interruption_point();
             // Regtest mode doesn't require peers
-            if (vNodes.empty() && Params().MiningRequiresPeers())
+            if (vNodes.empty() && Params().DoesMiningRequiresPeers())
                 break;
             if (pblock->nNonce >= 0xffff0000)
                 break;
@@ -359,7 +359,7 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
         int lastBlock = chainActive.Tip()->nHeight;
         CAmount oldBalance = pwallet->GetBalance() + pwallet->GetImmatureBalance() + pwallet->GetUnconfirmedBalance();
         // Let-s make sure we have the correct spacing
-        //MilliSleep(Params().TargetSpacing()*1000);
+        //MilliSleep(Params().GetTargetSpacing()*1000);
         bool foundBlock = false;
         //
         // Create new block
@@ -442,7 +442,7 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
                 // we dont have extranounce for pos
                 LogBlockFound(pwallet, j, pblock, 0, true);
                 // Let's wait to generate the nextBlock
-                MilliSleep(Params().TargetSpacing() * 1000);
+                MilliSleep(Params().GetTargetSpacing() * 1000);
             } else {
                 //cout << "NOT ABLE TO PROCESS BLOCK :" << j << endl;
             }

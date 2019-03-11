@@ -9,7 +9,7 @@
 
 #include "compressor.h"
 #include "core_memusage.h" // Legacy
-#include "memusage.h" // Legacy
+#include "memusage.h"      // Legacy
 #include "script/standard.h"
 #include "serialize.h"
 #include "uint256.h"
@@ -91,25 +91,28 @@ public:
     //! version of the CTransaction; accesses to this value should probably check for nHeight as well,
     //! as new tx version will probably only be introduced at certain heights
     int nVersion;
-    
+
     unsigned int nTime;
 
-    void FromTx(const CTransaction &tx, int nHeightIn) {
+    void FromTx(const CTransaction& tx, int nHeightIn)
+    {
         fCoinBase = tx.IsCoinBase();
         fCoinStake = tx.IsCoinStake();
         vout = tx.vout;
         nHeight = nHeightIn;
-        nVersion = tx.nVersion;
+        nVersion = tx.GetVersion();
         nTime = tx.nTime;
         ClearUnspendable();
     }
 
     //! construct a CCoins from a CTransaction, at a given height
-    CCoins(const CTransaction &tx, int nHeightIn) {
+    CCoins(const CTransaction& tx, int nHeightIn)
+    {
         FromTx(tx, nHeightIn);
     }
 
-    void Clear() {
+    void Clear()
+    {
         fCoinBase = false;
         fCoinStake = false;
         std::vector<CTxOut>().swap(vout);
@@ -119,25 +122,28 @@ public:
     }
 
     //! empty constructor
-    CCoins() : fCoinBase(false), fCoinStake(false), vout(0), nHeight(0), nVersion(0), nTime(0) { }
+    CCoins() : fCoinBase(false), fCoinStake(false), vout(0), nHeight(0), nVersion(0), nTime(0) {}
 
     //!remove spent outputs at the end of vout
-    void Cleanup() {
+    void Cleanup()
+    {
         while (vout.size() > 0 && vout.back().IsNull())
             vout.pop_back();
         if (vout.empty())
             std::vector<CTxOut>().swap(vout);
     }
 
-    void ClearUnspendable() {
-        BOOST_FOREACH(CTxOut &txout, vout) {
+    void ClearUnspendable()
+    {
+        BOOST_FOREACH (CTxOut& txout, vout) {
             if (txout.IsUnspendable())
                 txout.SetNull();
         }
         Cleanup();
     }
 
-    void swap(CCoins &to) {
+    void swap(CCoins& to)
+    {
         std::swap(to.fCoinBase, fCoinBase);
         std::swap(to.fCoinStake, fCoinStake);
         to.vout.swap(vout);
@@ -147,40 +153,45 @@ public:
     }
 
     //! equality test
-    friend bool operator==(const CCoins &a, const CCoins &b) {
-         // Empty CCoins objects are always equal.
-         if (a.IsPruned() && b.IsPruned())
-             return true;
-         return a.fCoinBase == b.fCoinBase &&
-                a.fCoinStake == b.fCoinStake &&
-                a.nHeight == b.nHeight &&
-                a.nVersion == b.nVersion &&
-                a.nTime == b.nTime &&
-                a.vout == b.vout;
+    friend bool operator==(const CCoins& a, const CCoins& b)
+    {
+        // Empty CCoins objects are always equal.
+        if (a.IsPruned() && b.IsPruned())
+            return true;
+        return a.fCoinBase == b.fCoinBase &&
+               a.fCoinStake == b.fCoinStake &&
+               a.nHeight == b.nHeight &&
+               a.nVersion == b.nVersion &&
+               a.nTime == b.nTime &&
+               a.vout == b.vout;
     }
 
-    friend bool operator!=(const CCoins &a, const CCoins &b) {
+    friend bool operator!=(const CCoins& a, const CCoins& b)
+    {
         return !(a == b);
     }
 
-    void CalcMaskSize(unsigned int &nBytes, unsigned int &nNonzeroBytes) const;
+    void CalcMaskSize(unsigned int& nBytes, unsigned int& nNonzeroBytes) const;
 
-    bool IsCoinBase() const {
+    bool IsCoinBase() const
+    {
         return fCoinBase;
     }
 
-    bool IsCoinStake() const {
+    bool IsCoinStake() const
+    {
         return fCoinStake;
     }
 
-    unsigned int GetSerializeSize(int nType, int nVersion) const {
+    unsigned int GetSerializeSize(int nType, int nVersion) const
+    {
         unsigned int nSize = 0;
         unsigned int nMaskSize = 0, nMaskCode = 0;
         CalcMaskSize(nMaskSize, nMaskCode);
         bool fFirst = vout.size() > 0 && !vout[0].IsNull();
         bool fSecond = vout.size() > 1 && !vout[1].IsNull();
         assert(fFirst || fSecond || nMaskCode);
-        unsigned int nCode = 16*(nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fCoinBase ? 1 : 0) + (fFirst ? 2 : 0) + (fSecond ? 4 : 0) + (fCoinStake ? 8 : 0);
+        unsigned int nCode = 16 * (nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fCoinBase ? 1 : 0) + (fFirst ? 2 : 0) + (fSecond ? 4 : 0) + (fCoinStake ? 8 : 0);
         // version
         nSize += ::GetSerializeSize(VARINT(this->nVersion), nType, nVersion);
         // size of header code
@@ -197,23 +208,24 @@ public:
         return nSize;
     }
 
-    template<typename Stream>
-    void Serialize(Stream &s, int nType, int nVersion) const {
+    template <typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const
+    {
         unsigned int nMaskSize = 0, nMaskCode = 0;
         CalcMaskSize(nMaskSize, nMaskCode);
         bool fFirst = vout.size() > 0 && !vout[0].IsNull();
         bool fSecond = vout.size() > 1 && !vout[1].IsNull();
         assert(fFirst || fSecond || nMaskCode);
-        unsigned int nCode = 16*(nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fCoinBase ? 1 : 0) + (fFirst ? 2 : 0) + (fSecond ? 4 : 0) + (fCoinStake ? 8 : 0);
+        unsigned int nCode = 16 * (nMaskCode - (fFirst || fSecond ? 0 : 1)) + (fCoinBase ? 1 : 0) + (fFirst ? 2 : 0) + (fSecond ? 4 : 0) + (fCoinStake ? 8 : 0);
         // version
         ::Serialize(s, VARINT(this->nVersion), nType, nVersion);
         // header code
         ::Serialize(s, VARINT(nCode), nType, nVersion);
         // spentness bitmask
-        for (unsigned int b = 0; b<nMaskSize; b++) {
+        for (unsigned int b = 0; b < nMaskSize; b++) {
             unsigned char chAvail = 0;
-            for (unsigned int i = 0; i < 8 && 2+b*8+i < vout.size(); i++)
-                if (!vout[2+b*8+i].IsNull())
+            for (unsigned int i = 0; i < 8 && 2 + b * 8 + i < vout.size(); i++)
+                if (!vout[2 + b * 8 + i].IsNull())
                     chAvail |= (1 << i);
             ::Serialize(s, chAvail, nType, nVersion);
         }
@@ -228,8 +240,9 @@ public:
         ::Serialize(s, nTime, nType, nVersion);
     }
 
-    template<typename Stream>
-    void Unserialize(Stream &s, int nType, int nVersion) {
+    template <typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion)
+    {
         unsigned int nCode = 0;
         // version
         ::Unserialize(s, VARINT(this->nVersion), nType, nVersion);
@@ -281,20 +294,22 @@ public:
 
     //! check whether the entire CCoins is spent
     //! note that only !IsPruned() CCoins can be serialized
-    bool IsPruned() const {
-        BOOST_FOREACH(const CTxOut &out, vout)
+    bool IsPruned() const
+    {
+        BOOST_FOREACH (const CTxOut& out, vout)
             if (!out.IsNull())
                 return false;
         return true;
     }
 
-    size_t DynamicMemoryUsage_Legacy() const {
+    size_t DynamicMemoryUsage_Legacy() const
+    {
         size_t ret = memusage::DynamicUsage(vout);
-        BOOST_FOREACH(const CTxOut &out, vout) {
+        BOOST_FOREACH (const CTxOut& out, vout) {
             ret += RecursiveDynamicUsage(out.scriptPubKey);
         }
         return ret;
-    }    
+    }
 };
 
 class CCoinsKeyHasher
@@ -310,13 +325,13 @@ public:
      * unordered_map will behave unpredictably if the custom hasher returns a
      * uint64_t, resulting in failures when syncing the chain (#4634).
      */
-    size_t operator()(const uint256& key) const {
+    size_t operator()(const uint256& key) const
+    {
         return key.GetHash(salt);
     }
 };
 
-struct CCoinsCacheEntry
-{
+struct CCoinsCacheEntry {
     CCoins coins; // The actual cached data.
     unsigned char flags;
 
@@ -330,8 +345,7 @@ struct CCoinsCacheEntry
 
 typedef boost::unordered_map<uint256, CCoinsCacheEntry, CCoinsKeyHasher> CCoinsMap;
 
-struct CCoinsStats
-{
+struct CCoinsStats {
     int nHeight;
     uint256 hashBlock;
     uint64_t nTransactions;
@@ -366,7 +380,7 @@ public:
     virtual bool GetStats(CCoinsStats& stats) const;
 
     //! Dump the unspent transaction output set to a file "dump_$BLOCKHEIGTH.csv"
-    virtual bool DumpUTXO(string &fileSaved, string fileBaseName = "dump_");
+    virtual bool DumpUTXO(string& fileSaved, string fileBaseName = "dump_");
 
     //! As we use CCoinsViews polymorphically, have a virtual destructor
     virtual ~CCoinsView() {}
@@ -387,7 +401,7 @@ public:
     void SetBackend(CCoinsView& viewIn);
     bool BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock);
     bool GetStats(CCoinsStats& stats) const;
-    bool DumpUTXO(string &fileSaved, string fileBaseName = "dump_");
+    bool DumpUTXO(string& fileSaved, string fileBaseName = "dump_");
 };
 
 class CCoinsViewCache;
@@ -415,7 +429,7 @@ class CCoinsModifier
 private:
     CCoinsViewCache& cache;
     CCoinsMap::iterator it;
-    size_t cachedCoinUsage; // Cached memory usage of the CCoins object before modification    
+    size_t cachedCoinUsage; // Cached memory usage of the CCoins object before modification
     CCoinsModifier(CCoinsViewCache& cache_, CCoinsMap::iterator it_, size_t usage);
 
 public:
@@ -454,7 +468,7 @@ public:
      * The semantics are the same as HaveCoins(), but no calls to
      * the backing CCoinsView are made.
      */
-    bool HaveCoinsInCache_Legacy(const uint256 &txid) const;
+    bool HaveCoinsInCache_Legacy(const uint256& txid) const;
 
     uint256 GetBestBlock() const;
     void SetBestBlock(const uint256& hashBlock);
@@ -484,7 +498,7 @@ public:
      * would not properly overwrite the first coinbase of the pair. Simultaneous modifications
      * are not allowed.
      */
-    CCoinsModifier ModifyNewCoins_Legacy(const uint256 &txid);
+    CCoinsModifier ModifyNewCoins_Legacy(const uint256& txid);
 
     /**
      * Push the modifications applied to this cache to its base.
@@ -497,7 +511,7 @@ public:
      * Removes the transaction with the given hash from the cache, if it is
      * not modified.
      */
-    void Uncache_Legacy(const uint256 &txid);
+    void Uncache_Legacy(const uint256& txid);
 
 
     //! Calculate the size of the cache (in number of transactions)
@@ -521,7 +535,7 @@ public:
 
     //! Return priority of tx at height nHeight
     double GetPriority(const CTransaction& tx, int nHeight) const;
-    double GetPriority_Legacy(const CTransaction &tx, int nHeight, CAmount &inChainInputValue) const;
+    double GetPriority_Legacy(const CTransaction& tx, int nHeight, CAmount& inChainInputValue) const;
 
     const CTxOut& GetOutputFor(const CTxIn& input) const;
 

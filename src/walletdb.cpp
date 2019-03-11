@@ -438,7 +438,6 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
             CWalletTx wtx;
             ssValue >> wtx;
             CValidationState state;
-            // false because there is no reason to go through the zerocoin checks for our own wallet
             if (!(CheckTransaction(wtx, state) && (wtx.GetHash() == hash) && state.IsValid()))
                 return false;
 
@@ -763,7 +762,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 
     pwallet->laccentries.clear();
     ListAccountCreditDebit("*", pwallet->laccentries);
-    BOOST_FOREACH(CAccountingEntry& entry, pwallet->laccentries) {
+    BOOST_FOREACH (CAccountingEntry& entry, pwallet->laccentries) {
         pwallet->wtxOrdered.insert(make_pair(entry.nOrderPos, CWallet::TxPair((CWalletTx*)0, &entry)));
     }
 
@@ -914,10 +913,10 @@ bool BackupWallet(const CWallet& wallet, const filesystem::path& strDest, bool f
     filesystem::path pathWithFile;
     if (!wallet.fFileBacked) {
         return false;
-    } else if(fEnableCustom) {
+    } else if (fEnableCustom) {
         pathWithFile = GetArg("-backuppath", "");
-        if(!pathWithFile.empty()) {
-            if(!pathWithFile.has_extension()) {
+        if (!pathWithFile.empty()) {
+            if (!pathWithFile.has_extension()) {
                 pathCustom = pathWithFile;
                 pathWithFile /= wallet.GetUniqueWalletBackupName();
             } else {
@@ -925,7 +924,7 @@ bool BackupWallet(const CWallet& wallet, const filesystem::path& strDest, bool f
             }
             try {
                 filesystem::create_directories(pathCustom);
-            } catch(const filesystem::filesystem_error& e) {
+            } catch (const filesystem::filesystem_error& e) {
                 NotifyBacked(wallet, false, strprintf("%s\n", e.what()));
                 pathCustom = "";
             }
@@ -945,15 +944,14 @@ bool BackupWallet(const CWallet& wallet, const filesystem::path& strDest, bool f
                 filesystem::path pathDest(strDest);
                 filesystem::path pathSrc = GetDataDir() / wallet.strWalletFile;
                 if (is_directory(pathDest)) {
-                    if(!exists(pathDest)) create_directory(pathDest);
+                    if (!exists(pathDest)) create_directory(pathDest);
                     pathDest /= wallet.strWalletFile;
                 }
                 bool defaultPath = AttemptBackupWallet(wallet, pathSrc.string(), pathDest.string());
 
-                if(defaultPath && !pathCustom.empty()) {
+                if (defaultPath && !pathCustom.empty()) {
                     int nThreshold = GetArg("-custombackupthreshold", DEFAULT_CUSTOMBACKUPTHRESHOLD);
                     if (nThreshold > 0) {
-
                         typedef std::multimap<std::time_t, filesystem::path> folder_set_t;
                         folder_set_t folderSet;
                         filesystem::directory_iterator end_iter;
@@ -976,15 +974,15 @@ bool BackupWallet(const CWallet& wallet, const filesystem::path& strDest, bool f
                         int counter = 0; //TODO: add seconds to avoid naming conflicts
                         for (auto entry : folderSet) {
                             counter++;
-                            if(entry.second == pathWithFile) {
+                            if (entry.second == pathWithFile) {
                                 pathWithFile += "(1)";
                             }
                         }
 
                         if (counter >= nThreshold) {
                             std::time_t oldestBackup = 0;
-                            for(auto entry : folderSet) {
-                                if(oldestBackup == 0 || entry.first < oldestBackup) {
+                            for (auto entry : folderSet) {
+                                if (oldestBackup == 0 || entry.first < oldestBackup) {
                                     oldestBackup = entry.first;
                                 }
                             }
@@ -1021,7 +1019,7 @@ bool AttemptBackupWallet(const CWallet& wallet, const filesystem::path& pathSrc,
 #if BOOST_VERSION >= 105800 /* BOOST_LIB_VERSION 1_58 */
         filesystem::copy_file(pathSrc.c_str(), pathDest, filesystem::copy_option::overwrite_if_exists);
 #else
-        std::ifstream src(pathSrc.c_str(),  std::ios::binary | std::ios::in);
+        std::ifstream src(pathSrc.c_str(), std::ios::binary | std::ios::in);
         std::ofstream dst(pathDest.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
         dst << src.rdbuf();
         dst.flush();

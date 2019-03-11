@@ -13,6 +13,10 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 /* This testcase will take long time to run */
 BOOST_AUTO_TEST_SUITE(fork_testnet)
 
+// #define RUN_FORK_TESTS
+
+#ifdef RUN_FORK_TESTS
+
 BOOST_AUTO_TEST_CASE(testnet_parameters)
 {
     if (fDebug) {
@@ -22,12 +26,12 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     }
 
     Checkpoints::fEnabled = false;
-    int64_t oldTargetTimespan = Params().TargetTimespan();
-    int64_t oldTargetSpacing = Params().TargetSpacing();
-    int oldHeightToFork = Params().HeigthToFork();
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
-    int oldStakeMinAge = Params().StakeMinAge();
+    int64_t oldTargetTimespan = Params().GetTargetTimespan();
+    int64_t oldTargetSpacing = Params().GetTargetSpacing();
+    int oldHeightToFork = Params().HeightToFork();
+    int oldStakeMinConfirmations = Params().GetStakeMinConfirmations();
+    int oldCoinBaseMaturity = Params().GetCoinbaseMaturity();
+    int oldStakeMinAge = Params().GetStakeMinAge();
     int oldModifier = Params().GetModifierInterval();
     // confirmations    : 3
     // remember that the miminum spacing is 10 !!!
@@ -36,16 +40,16 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
     int minConfirmations = 25;
     int nStakeMinConfirmations       = minConfirmations;        
-    int nMaturity                    = minConfirmations;
+    int nCoinbaseMaturity                    = minConfirmations;
     int nTargetTimespan              = 1 * 60; // KORE: 1 minute
-    int nStakeTargetSpacing          = 60;
-    int nTargetSpacing               = nStakeTargetSpacing;
-    int nModifierInterval            = nStakeTargetSpacing; // Modifier interval: time to elapse before new modifier is computed
+    int nTargetSpacingForStake          = 60;
+    int nTargetSpacing               = nTargetSpacingForStake;
+    int nModifierInterval            = nTargetSpacingForStake; // Modifier interval: time to elapse before new modifier is computed
     int nStakeMinAge                 = 30 * 60; // It will stake after 30 minutes
 
     ModifiableParams()->setHeightToFork(minConfirmations + 2);
     ModifiableParams()->setStakeMinConfirmations(nStakeMinConfirmations);
-    ModifiableParams()->setCoinbaseMaturity(nMaturity);
+    ModifiableParams()->setCoinbaseMaturity(nCoinbaseMaturity);
     ModifiableParams()->setTargetSpacing(nTargetSpacing);
     ModifiableParams()->setStakeModifierInterval(nModifierInterval);
     ModifiableParams()->setStakeMinAge(nStakeMinAge);
@@ -60,11 +64,11 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false);
 
     // lets generate new pow blocks
-    int pow = minConfirmations + 2 + Params().StakeMinConfirmations() + 10;
+    int pow = minConfirmations + 2 + Params().GetStakeMinConfirmations() + 10;
     GenerateBlocks(minConfirmations + 2, pow, pwalletMain, scriptPubKey, false);
 
     // lets generate enought block and have 10 POS blocks confirmed
-    GenerateBlocks(pow, pow + Params().StakeMinConfirmations() + 10, pwalletMain, scriptPubKey, true);
+    GenerateBlocks(pow, pow + Params().GetStakeMinConfirmations() + 10, pwalletMain, scriptPubKey, true);
 
     // Leaving old values
     Checkpoints::fEnabled = true;
@@ -78,5 +82,6 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     ModifiableParams()->setTargetSpacing(oldTargetSpacing);
 }
 
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

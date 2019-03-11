@@ -27,75 +27,83 @@ struct CDiskBlockPos {
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
         READWRITE(VARINT(nFile));
         READWRITE(VARINT(nPos));
     }
 
-    CDiskBlockPos() {
+    CDiskBlockPos()
+    {
         SetNull();
     }
 
-    CDiskBlockPos(int nFileIn, unsigned int nPosIn) {
+    CDiskBlockPos(int nFileIn, unsigned int nPosIn)
+    {
         nFile = nFileIn;
         nPos = nPosIn;
     }
 
-    friend bool operator==(const CDiskBlockPos &a, const CDiskBlockPos &b) {
+    friend bool operator==(const CDiskBlockPos& a, const CDiskBlockPos& b)
+    {
         return (a.nFile == b.nFile && a.nPos == b.nPos);
     }
 
-    friend bool operator!=(const CDiskBlockPos &a, const CDiskBlockPos &b) {
+    friend bool operator!=(const CDiskBlockPos& a, const CDiskBlockPos& b)
+    {
         return !(a == b);
     }
 
-    void SetNull() { nFile = -1; nPos = 0; }
+    void SetNull()
+    {
+        nFile = -1;
+        nPos = 0;
+    }
     bool IsNull() const { return (nFile == -1); }
 
     std::string ToString() const
     {
         return strprintf("CBlockDiskPos(nFile=%i, nPos=%i)", nFile, nPos);
     }
-
 };
 
 enum BlockStatus {
     //! Unused.
-    BLOCK_VALID_UNKNOWN      =    0,
+    BLOCK_VALID_UNKNOWN      = 0,
 
     //! Parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max, timestamp not in future
-    BLOCK_VALID_HEADER       =    1,
+    BLOCK_VALID_HEADER       = 1,
 
     //! All parent headers found, difficulty matches, timestamp >= median previous, checkpoint. Implies all parents
     //! are also at least TREE.
-    BLOCK_VALID_TREE         =    2,
+    BLOCK_VALID_TREE         = 2,
 
     /**
      * Only first tx is coinbase, 2 <= coinbase input script length <= 100, transactions valid, no duplicate txids,
      * sigops, size, merkle root. Implies all parents are at least TREE but not necessarily TRANSACTIONS. When all
      * parent blocks also have TRANSACTIONS, CBlockIndex::nChainTx will be set.
      */
-    BLOCK_VALID_TRANSACTIONS =    3,
+    BLOCK_VALID_TRANSACTIONS = 3,
 
     //! Outputs do not overspend inputs, no double spends, coinbase output ok, no immature coinbase spends, BIP30.
     //! Implies all parents are also at least CHAIN.
-    BLOCK_VALID_CHAIN        =    4,
+    BLOCK_VALID_CHAIN        = 4,
 
     //! Scripts & signatures ok. Implies all parents are also at least SCRIPTS.
-    BLOCK_VALID_SCRIPTS      =    5,
+    BLOCK_VALID_SCRIPTS      = 5,
 
     //! All validity bits.
-    BLOCK_VALID_MASK         =   BLOCK_VALID_HEADER | BLOCK_VALID_TREE | BLOCK_VALID_TRANSACTIONS |
-                                 BLOCK_VALID_CHAIN | BLOCK_VALID_SCRIPTS,
+    BLOCK_VALID_MASK         = BLOCK_VALID_HEADER | BLOCK_VALID_TREE | BLOCK_VALID_TRANSACTIONS |
+                               BLOCK_VALID_CHAIN | BLOCK_VALID_SCRIPTS,
 
-    BLOCK_HAVE_DATA          =    8, //! full block available in blk*.dat
-    BLOCK_HAVE_UNDO          =   16, //! undo data available in rev*.dat
-    BLOCK_HAVE_MASK          =   BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO,
+    BLOCK_HAVE_DATA          = 8,  //! full block available in blk*.dat
+    BLOCK_HAVE_UNDO          = 16, //! undo data available in rev*.dat
+    BLOCK_HAVE_MASK          = BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO,
 
-    BLOCK_FAILED_VALID       =   32, //! stage after last reached validness failed
-    BLOCK_FAILED_CHILD       =   64, //! descends from failed block
-    BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
-    BLOCK_PROOF_OF_STAKE     =   128, //! is proof-of-stake block
+    BLOCK_FAILED_VALID       = 32, //! stage after last reached validness failed
+    BLOCK_FAILED_CHILD       = 64, //! descends from failed block
+    BLOCK_FAILED_MASK        = BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
+    BLOCK_PROOF_OF_STAKE     = 128, //! is proof-of-stake block
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -160,9 +168,9 @@ public:
     // proof-of-stake specific fields
     uint256 GetBlockTrust() const;
     uint64_t nStakeModifier;             // hash modifier for proof-of-stake
-    uint256 nStakeModifierOld; // Old wat to calculate PoS
-    
-    unsigned int nStakeModifierChecksum; // checksum of index; in-memeory only
+    uint256 nStakeModifierOld;           // Old way to calculate PoS
+
+    unsigned int nStakeModifierChecksum; // checksum of index; in-memory only
     COutPoint prevoutStake;
     unsigned int nStakeTime;
     uint256 hashProofOfStake;
@@ -180,40 +188,38 @@ public:
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
-    
+
     void SetNull()
     {
-        phashBlock = NULL;
-        pprev = NULL;
-        pnext = NULL;
-        pskip = NULL;
-        nHeight = 0;
-        nFile = 0;
-        nDataPos = 0;
-        nUndoPos = 0;
-        nChainWork = 0;
-        nTx = 0;
-        nChainTx = 0;
-        nStatus = 0;
-        nStakeModifier = 0;
-        nMoneySupply = 0;
-        nSequenceId = 0;
-
-        nMint = 0;
-        nFlags = 0;
-        nStakeModifierOld = uint256();
-        nStakeModifierChecksum = 0;
         prevoutStake.SetNull();
-        hashProofOfStake = uint256();
-        nStakeTime = 0;
-
-        nVersion = 0;
-        hashMerkleRoot = uint256();
-        nTime          = 0;
-        nBits          = 0;
-        nNonce         = 0;
-        nBirthdayA	   = 0;
-        nBirthdayB	   = 0;
+        phashBlock             = NULL;
+        pprev                  = NULL;
+        pnext                  = NULL;
+        pskip                  = NULL;
+        nHeight                = 0;
+        nFile                  = 0;
+        nDataPos               = 0;
+        nUndoPos               = 0;
+        nChainWork             = 0;
+        nTx                    = 0;
+        nChainTx               = 0;
+        nStatus                = 0;
+        nStakeModifier         = 0;
+        nMoneySupply           = 0;
+        nSequenceId            = 0;
+        nMint                  = 0;
+        nFlags                 = 0;
+        nStakeModifierOld      = uint256();
+        nStakeModifierChecksum = 0;
+        hashProofOfStake       = uint256();
+        nStakeTime             = 0;
+        nVersion               = 0;
+        hashMerkleRoot         = uint256();
+        nTime                  = 0;
+        nBits                  = 0;
+        nNonce                 = 0;
+        nBirthdayA             = 0;
+        nBirthdayB             = 0;
     }
 
     CBlockIndex()
@@ -225,33 +231,32 @@ public:
     {
         SetNull();
 
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
-        nBirthdayA     = block.nBirthdayA;
-        nBirthdayB     = block.nBirthdayB;
-        //Proof of Stake
-        bnChainTrust = uint256();
-        nMint = 0;
-        nMoneySupply = 0;
-        nFlags = 0;
-        nStakeModifier = 0;
-	    nStakeModifierOld = uint256();
+        nVersion               = block.nVersion;
+        hashMerkleRoot         = block.hashMerkleRoot;
+        nTime                  = block.nTime;
+        nBits                  = block.nBits;
+        nNonce                 = block.nNonce;
+        nBirthdayA             = block.nBirthdayA;
+        nBirthdayB             = block.nBirthdayB;
+        bnChainTrust           = uint256();
+        nMint                  = 0;
+        nMoneySupply           = 0;
+        nFlags                 = 0;
+        nStakeModifier         = 0;
+        nStakeModifierOld      = uint256();
         nStakeModifierChecksum = 0;
-        hashProofOfStake = uint256();
+        hashProofOfStake       = uint256();
 
         if (block.IsProofOfStake()) {
             SetProofOfStake();
             SetProofOfStake_Legacy();
             prevoutStake = block.vtx[1].vin[0].prevout;
-            nStakeTime = block.nTime;
+            nStakeTime   = block.nTime;
         } else {
             prevoutStake.SetNull();
-            nStakeTime = 0;
+            nStakeTime   = 0;
         }
-    }    
+    }
 
     CDiskBlockPos GetBlockPos() const
     {
@@ -277,14 +282,14 @@ public:
     {
         CBlockHeader block;
         block.nVersion       = nVersion;
-        if (pprev)
-            block.hashPrevBlock = pprev->GetBlockHash();
         block.hashMerkleRoot = hashMerkleRoot;
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
         block.nBirthdayA     = nBirthdayA;
         block.nBirthdayB     = nBirthdayB;
+        if (pprev)
+            block.hashPrevBlock = pprev->GetBlockHash();
         return block;
     }
 
@@ -311,36 +316,22 @@ public:
             *(--pbegin) = pindex->GetBlockTime();
 
         std::sort(pbegin, pend);
-        return pbegin[(pend - pbegin)/2];
+        return pbegin[(pend - pbegin) / 2];
     }
 
     bool IsProofOfWork() const
     {
-        if (UseLegacyCode(nHeight))
-          return IsProofOfWork_Legacy();
-        return !(nFlags & BLOCK_PROOF_OF_STAKE);
+        return !IsProofOfStake();
     }
 
     bool IsProofOfStake() const
     {
-        if (UseLegacyCode(nHeight))
-          return IsProofOfStake_Legacy();
-        return (nFlags & BLOCK_PROOF_OF_STAKE);
+        return (nFlags & BLOCK_PROOF_OF_STAKE) || (nStatus & BLOCK_PROOF_OF_STAKE);
     }
 
     void SetProofOfStake()
     {
         nFlags |= BLOCK_PROOF_OF_STAKE;
-    }
-
-    bool IsProofOfWork_Legacy() const
-    {
-        return !IsProofOfStake_Legacy();
-    }
-
-    bool IsProofOfStake_Legacy() const
-    {
-        return (nStatus & BLOCK_PROOF_OF_STAKE);
     }
 
     void SetProofOfStake_Legacy()
@@ -379,7 +370,7 @@ public:
 
     /**
      * Returns true if there are nRequired or more blocks of minVersion or above
-     * in the last Params().ToCheckBlockUpgradeMajority() blocks, starting at pstart 
+     * in the last Params().GetMajorityBlockUpgradeToCheck() blocks, starting at pstart 
      * and going backwards.
      */
     static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired);
@@ -388,7 +379,7 @@ public:
     {
         if (UseLegacyCode(nHeight))
             return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
-                pprev, nHeight, IsProofOfStake_Legacy() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
+                pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
                 hashMerkleRoot.ToString(),
                 GetBlockHash().ToString());
         else
@@ -482,7 +473,7 @@ public:
                 const_cast<CDiskBlockIndex*>(this)->hashProofOfStake = uint256();
             }
             */
-        } 
+        }
 
         // block header
         READWRITE(this->nVersion);
@@ -500,12 +491,12 @@ public:
     uint256 GetBlockHash() const
     {
         CBlockHeader block;
-        block.nVersion        = nVersion;
-        block.hashPrevBlock   = hashPrev;
-        block.hashMerkleRoot  = hashMerkleRoot;
-        block.nTime           = nTime;
-        block.nBits           = nBits;
-        block.nNonce          = nNonce;
+        block.nVersion       = nVersion;
+        block.hashPrevBlock  = hashPrev;
+        block.hashMerkleRoot = hashMerkleRoot;
+        block.nTime          = nTime;
+        block.nBits          = nBits;
+        block.nNonce         = nNonce;
         block.nBirthdayA     = nBirthdayA;
         block.nBirthdayB     = nBirthdayB;
         return block.GetHash();
@@ -515,8 +506,8 @@ public:
     std::string ToString() const
     {
         return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, moneysupply=%d, type=%s, nStakeModifier=%x, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
-            pprev, pnext, nHeight, nMoneySupply, 
-            IsProofOfStake() ? "PoS" : "PoW", 
+            pprev, pnext, nHeight, nMoneySupply,
+            IsProofOfStake() ? "PoS" : "PoW",
             nStakeModifierOld.ToString(),
             nVersion, nTime, nBits, nNonce, nBirthdayA, nBirthdayB,
             hashMerkleRoot.ToString(),

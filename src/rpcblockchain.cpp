@@ -71,7 +71,7 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = chainActive.Next(blockindex);
+    CBlockIndex* pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
@@ -112,7 +112,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
 
-    result.push_back(Pair("moneysupply",ValueFromAmount(blockindex->nMoneySupply)));
+    result.push_back(Pair("moneysupply", ValueFromAmount(blockindex->nMoneySupply)));
 
     return result;
 }
@@ -174,8 +174,9 @@ UniValue mempoolToJSON(bool fVerbose = false)
     if (fVerbose) {
         LOCK(mempool.cs);
         UniValue o(UniValue::VOBJ);
-        BOOST_FOREACH (const CTxMemPoolEntry & e, mempool.mapTx) {
-            const uint256& hash = e.GetTx().GetHash();;
+        BOOST_FOREACH (const CTxMemPoolEntry& e, mempool.mapTx) {
+            const uint256& hash = e.GetTx().GetHash();
+            ;
             UniValue info(UniValue::VOBJ);
             info.push_back(Pair("size", (int)e.GetTxSize()));
             info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
@@ -191,7 +192,7 @@ UniValue mempoolToJSON(bool fVerbose = false)
             }
 
             UniValue depends(UniValue::VARR);
-            BOOST_FOREACH(const string& dep, setDepends) {
+            BOOST_FOREACH (const string& dep, setDepends) {
                 depends.push_back(dep);
             }
 
@@ -458,10 +459,8 @@ UniValue dumptxoutset(const UniValue& params, bool fHelp)
             "dumptxoutset\n"
             "\nDump the unspent transaction output set to a file \"dump_$BLOCKHEIGTH.csv\".\n"
             "Note this call may take some time.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("dumptxoutset", "")
-            + HelpExampleRpc("dumptxoutset", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("dumptxoutset", "") + HelpExampleRpc("dumptxoutset", ""));
 
     UniValue ret(UniValue::VOBJ);
 
@@ -609,7 +608,7 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
     LOCK(cs_main);
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("chain", Params().NetworkIDString()));
+    obj.push_back(Pair("chain", Params().GetNetworkIDString()));
     obj.push_back(Pair("blocks", (int)chainActive.Height()));
     obj.push_back(Pair("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1));
     obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
@@ -771,7 +770,7 @@ UniValue getfeeinfo(const UniValue& params, bool fHelp)
                 COutPoint prevout = tx.vin[j].prevout;
                 CTransaction txPrev;
                 uint256 hashBlock;
-                if(!GetTransaction(prevout.hash, txPrev, hashBlock, true))
+                if (!GetTransaction(prevout.hash, txPrev, hashBlock, true))
                     throw JSONRPCError(RPC_DATABASE_ERROR, "failed to read tx from disk");
                 nValueIn += txPrev.vout[prevout.n].nValue;
             }
@@ -804,8 +803,8 @@ UniValue getfeeinfo(const UniValue& params, bool fHelp)
 UniValue mempoolInfoToJSON()
 {
     UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("size", (int64_t) mempool.size()));
-    ret.push_back(Pair("bytes", (int64_t) mempool.GetTotalTxSize()));
+    ret.push_back(Pair("size", (int64_t)mempool.size()));
+    ret.push_back(Pair("bytes", (int64_t)mempool.GetTotalTxSize()));
     //ret.push_back(Pair("usage", (int64_t) mempool.DynamicMemoryUsage()));
 
     return ret;
@@ -904,4 +903,3 @@ UniValue reconsiderblock(const UniValue& params, bool fHelp)
 
     return NullUniValue;
 }
-

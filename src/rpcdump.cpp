@@ -129,7 +129,6 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
     assert(key.VerifyPubKey(pubkey));
     CKeyID vchAddress = pubkey.GetID();
     {
-        pwalletMain->MarkDirty();
         pwalletMain->SetAddressBook(vchAddress, strLabel, "receive");
 
         // Don't throw error in case a key is already there
@@ -208,8 +207,6 @@ UniValue importaddress(const UniValue& params, bool fHelp)
         // Don't throw error in case an address is already there
         if (pwalletMain->HaveWatchOnly(script))
             return NullUniValue;
-
-        pwalletMain->MarkDirty();
 
         if (!pwalletMain->AddWatchOnly(script))
             throw JSONRPCError(RPC_WALLET_ERROR, "Error adding address to wallet");
@@ -318,7 +315,6 @@ UniValue importwallet(const UniValue& params, bool fHelp)
 
     LogPrintf("Rescanning last %i blocks\n", chainActive.Height() - pindex->nHeight + 1);
     pwalletMain->ScanForWalletTransactions(pindex);
-    pwalletMain->MarkDirty();
 
     if (!fGood)
         throw JSONRPCError(RPC_WALLET_ERROR, "Error adding some keys to wallet");
@@ -518,7 +514,6 @@ UniValue bip38decrypt(const UniValue& params, bool fHelp)
     result.push_back(Pair("Address", CBitcoinAddress(pubkey.GetID()).ToString()));
     CKeyID vchAddress = pubkey.GetID();
     {
-        pwalletMain->MarkDirty();
         pwalletMain->SetAddressBook(vchAddress, "", "receive");
 
         // Don't throw error in case a key is already there

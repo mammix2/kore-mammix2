@@ -9,6 +9,7 @@
 #include "base58.h"
 #include "core_io.h"
 #include "init.h"
+#include "main.h"
 #include "net.h"
 #include "netbase.h"
 #include "rpcserver.h"
@@ -18,10 +19,10 @@
 #include "wallet.h"
 #include "walletdb.h"
 
-#include <stdint.h>
 #include "spork.h"
 #include <boost/assign/list_of.hpp>
 #include <boost/thread/thread.hpp>
+#include <stdint.h>
 
 #include <univalue.h>
 
@@ -345,7 +346,7 @@ UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
     return ret;
 }
 
-static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseIX = false)
+static void SendMoney(const CTxDestination& address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseIX = false)
 {
     // Check amount
     if (nValue <= 0)
@@ -381,7 +382,7 @@ static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtr
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
 }
 
-static void SendMoney_Legacy(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseIX = false)
+static void SendMoney_Legacy(const CTxDestination& address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseIX = false)
 {
     CAmount curBalance = pwalletMain->GetBalance();
 
@@ -421,19 +422,19 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
             "\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n" +
             HelpRequiringPassphrase() + "\n"
 
-            "\nArguments:\n"
-            "1. \"koreaddress\"  (string, required) The kore address to send to.\n"
-            "2. \"amount\"      (numeric, required) The amount in KORE to send. eg 0.1\n"
-            "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
-            "                             This is not part of the transaction, just kept in your wallet.\n"
-            "4. \"comment-to\"  (string, optional) A comment to store the name of the person or organization \n"
-            "                             to which you're sending the transaction. This is not part of the \n"
-            "                             transaction, just kept in your wallet.\n"
+                                        "\nArguments:\n"
+                                        "1. \"koreaddress\"  (string, required) The kore address to send to.\n"
+                                        "2. \"amount\"      (numeric, required) The amount in KORE to send. eg 0.1\n"
+                                        "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
+                                        "                             This is not part of the transaction, just kept in your wallet.\n"
+                                        "4. \"comment-to\"  (string, optional) A comment to store the name of the person or organization \n"
+                                        "                             to which you're sending the transaction. This is not part of the \n"
+                                        "                             transaction, just kept in your wallet.\n"
 
-            "\nResult:\n"
-            "\"transactionid\"  (string) The transaction id.\n"
+                                        "\nResult:\n"
+                                        "\"transactionid\"  (string) The transaction id.\n"
 
-            "\nExamples:\n" +
+                                        "\nExamples:\n" +
             HelpExampleCli("sendtoaddress", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" 0.1") +
             HelpExampleCli("sendtoaddress", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" 0.1 \"donation\" \"seans outpost\"") +
             HelpExampleRpc("sendtoaddress", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\", 0.1, \"donation\", \"seans outpost\""));
@@ -452,14 +453,14 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
     if (params.size() > 2 && !params[2].isNull() && !params[2].get_str().empty())
         wtx.mapValue["comment"] = params[2].get_str();
     if (params.size() > 3 && !params[3].isNull() && !params[3].get_str().empty())
-        wtx.mapValue["to"]      = params[3].get_str();
+        wtx.mapValue["to"] = params[3].get_str();
 
     bool fSubtractFeeFromAmount = false;
     if (params.size() > 4)
         fSubtractFeeFromAmount = params[4].get_bool();
 
     EnsureWalletIsUnlocked();
-    
+
     if (UseLegacyCode(chainActive.Height())) {
         SendMoney_Legacy(address.Get(), nAmount, fSubtractFeeFromAmount, wtx);
     } else {
@@ -478,19 +479,19 @@ UniValue sendtoaddressix(const UniValue& params, bool fHelp)
             "\nSend an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001\n" +
             HelpRequiringPassphrase() + "\n"
 
-            "\nArguments:\n"
-            "1. \"koreaddress\"  (string, required) The kore address to send to.\n"
-            "2. \"amount\"      (numeric, required) The amount in KORE to send. eg 0.1\n"
-            "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
-            "                             This is not part of the transaction, just kept in your wallet.\n"
-            "4. \"comment-to\"  (string, optional) A comment to store the name of the person or organization \n"
-            "                             to which you're sending the transaction. This is not part of the \n"
-            "                             transaction, just kept in your wallet.\n"
+                                        "\nArguments:\n"
+                                        "1. \"koreaddress\"  (string, required) The kore address to send to.\n"
+                                        "2. \"amount\"      (numeric, required) The amount in KORE to send. eg 0.1\n"
+                                        "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
+                                        "                             This is not part of the transaction, just kept in your wallet.\n"
+                                        "4. \"comment-to\"  (string, optional) A comment to store the name of the person or organization \n"
+                                        "                             to which you're sending the transaction. This is not part of the \n"
+                                        "                             transaction, just kept in your wallet.\n"
 
-            "\nResult:\n"
-            "\"transactionid\"  (string) The transaction id.\n"
+                                        "\nResult:\n"
+                                        "\"transactionid\"  (string) The transaction id.\n"
 
-            "\nExamples:\n" +
+                                        "\nExamples:\n" +
             HelpExampleCli("sendtoaddressix", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" 0.1") +
             HelpExampleCli("sendtoaddressix", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" 0.1 \"donation\" \"seans outpost\"") +
             HelpExampleRpc("sendtoaddressix", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\", 0.1, \"donation\", \"seans outpost\""));
@@ -572,15 +573,15 @@ UniValue signmessage(const UniValue& params, bool fHelp)
             "\nSign a message with the private key of an address" +
             HelpRequiringPassphrase() + "\n"
 
-            "\nArguments:\n"
-            "1. \"koreaddress\"  (string, required) The kore address to use for the private key.\n"
-            "2. \"message\"         (string, required) The message to create a signature of.\n"
+                                        "\nArguments:\n"
+                                        "1. \"koreaddress\"  (string, required) The kore address to use for the private key.\n"
+                                        "2. \"message\"         (string, required) The message to create a signature of.\n"
 
-            "\nResult:\n"
-            "\"signature\"          (string) The signature of the message encoded in base 64\n"
+                                        "\nResult:\n"
+                                        "\"signature\"          (string) The signature of the message encoded in base 64\n"
 
-            "\nExamples:\n"
-            "\nUnlock the wallet for 30 seconds\n" +
+                                        "\nExamples:\n"
+                                        "\nUnlock the wallet for 30 seconds\n" +
             HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
             "\nCreate the signature\n" +
             HelpExampleCli("signmessage", "\"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" \"my message\"") +
@@ -836,7 +837,24 @@ UniValue getbalance(const UniValue& params, bool fHelp)
     return ValueFromAmount(nBalance);
 }
 
-UniValue getunconfirmedbalance(const UniValue &params, bool fHelp)
+UniValue getstakedbalance(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "getstakedbalance\n"
+            
+            "\nResult:\n"
+            "amount              (numeric) The total amount in KORE staked that is not spendable yet.\n"
+
+            "\nExamples:\n"
+            "\nThe total staked amount in the server across all accounts\n" +
+            HelpExampleCli("getstakedbalance", "")
+        );
+    
+    return ValueFromAmount(pwalletMain->GetStakedBalance());
+}
+
+UniValue getunconfirmedbalance(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() > 0)
         throw runtime_error(
@@ -927,22 +945,22 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
             "The amount is a real and is rounded to the nearest 0.00000001." +
             HelpRequiringPassphrase() + "\n"
 
-            "\nArguments:\n"
-            "1. \"fromaccount\"       (string, required) The name of the account to send funds from. May be the default account using \"\".\n"
-            "2. \"tokoreaddress\"  (string, required) The kore address to send funds to.\n"
-            "3. amount                (numeric, required) The amount in KORE. (transaction fee is added on top).\n"
-            "4. minconf               (numeric, optional, default=1) Only use funds with at least this many confirmations.\n"
-            "5. \"comment\"           (string, optional) A comment used to store what the transaction is for. \n"
-            "                                     This is not part of the transaction, just kept in your wallet.\n"
-            "6. \"comment-to\"        (string, optional) An optional comment to store the name of the person or organization \n"
-            "                                     to which you're sending the transaction. This is not part of the transaction, \n"
-            "                                     it is just kept in your wallet.\n"
+                                        "\nArguments:\n"
+                                        "1. \"fromaccount\"       (string, required) The name of the account to send funds from. May be the default account using \"\".\n"
+                                        "2. \"tokoreaddress\"  (string, required) The kore address to send funds to.\n"
+                                        "3. amount                (numeric, required) The amount in KORE. (transaction fee is added on top).\n"
+                                        "4. minconf               (numeric, optional, default=1) Only use funds with at least this many confirmations.\n"
+                                        "5. \"comment\"           (string, optional) A comment used to store what the transaction is for. \n"
+                                        "                                     This is not part of the transaction, just kept in your wallet.\n"
+                                        "6. \"comment-to\"        (string, optional) An optional comment to store the name of the person or organization \n"
+                                        "                                     to which you're sending the transaction. This is not part of the transaction, \n"
+                                        "                                     it is just kept in your wallet.\n"
 
-            "\nResult:\n"
-            "\"transactionid\"        (string) The transaction id.\n"
+                                        "\nResult:\n"
+                                        "\"transactionid\"        (string) The transaction id.\n"
 
-            "\nExamples:\n"
-            "\nSend 0.01 KORE from the default account to the address, must have at least 1 confirmation\n" +
+                                        "\nExamples:\n"
+                                        "\nSend 0.01 KORE from the default account to the address, must have at least 1 confirmation\n" +
             HelpExampleCli("sendfrom", "\"\" \"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" 0.01") +
             "\nSend 0.01 from the tabby account to the given address, funds must have at least 6 confirmations\n" +
             HelpExampleCli("sendfrom", "\"tabby\" \"DMJRSsuU9zfyrvxVaAEFQqK4MxZg6vgeS6\" 0.01 6 \"donation\" \"seans outpost\"") +
@@ -988,36 +1006,32 @@ UniValue sendmany(const UniValue& params, bool fHelp)
             "\nSend multiple times. Amounts are double-precision floating point numbers." +
             HelpRequiringPassphrase() + "\n"
 
-            "\nArguments:\n"
-            "1. \"fromaccount\"         (string, required) The account to send the funds from, can be \"\" for the default account\n"
-            "2. \"amounts\"             (string, required) A json object with addresses and amounts\n"
-            "    {\n"
-            "      \"address\":amount   (numeric) The kore address is the key, the numeric amount in KORE is the value\n"
-            "      ,...\n"
-            "    }\n"
-            "3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.\n"
-            "4. \"comment\"             (string, optional) A comment\n"
-            "5. subtractfeefromamount   (string, optional) A json array with addresses.\n"
-            "                           The fee will be equally deducted from the amount of each selected address.\n"
-            "                           Those recipients will receive less kores than you enter in their corresponding amount field.\n"
-            "                           If no addresses are specified here, the sender pays the fee.\n"
-            "    [\n"
-            "      \"address\"            (string) Subtract fee from this address\n"
-            "      ,...\n"
-            "    ]\n"
-            "\nResult:\n"
-            "\"transactionid\"          (string) The transaction id for the send. Only 1 transaction is created regardless of \n"
-            "                                    the number of addresses.\n"
-            "\nExamples:\n"
-            "\nSend two amounts to two different addresses:\n"
-            + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\"") +
-            "\nSend two amounts to two different addresses setting the confirmation and comment:\n"
-            + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 6 \"testing\"") +
-            "\nSend two amounts to two different addresses, subtract fee from amount:\n"
-            + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 1 \"\" \"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\",\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
-            "\nAs a json rpc call\n"
-            + HelpExampleRpc("sendmany", "\"\", \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\", 6, \"testing\"")
-        );
+                                        "\nArguments:\n"
+                                        "1. \"fromaccount\"         (string, required) The account to send the funds from, can be \"\" for the default account\n"
+                                        "2. \"amounts\"             (string, required) A json object with addresses and amounts\n"
+                                        "    {\n"
+                                        "      \"address\":amount   (numeric) The kore address is the key, the numeric amount in KORE is the value\n"
+                                        "      ,...\n"
+                                        "    }\n"
+                                        "3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.\n"
+                                        "4. \"comment\"             (string, optional) A comment\n"
+                                        "5. subtractfeefromamount   (string, optional) A json array with addresses.\n"
+                                        "                           The fee will be equally deducted from the amount of each selected address.\n"
+                                        "                           Those recipients will receive less kores than you enter in their corresponding amount field.\n"
+                                        "                           If no addresses are specified here, the sender pays the fee.\n"
+                                        "    [\n"
+                                        "      \"address\"            (string) Subtract fee from this address\n"
+                                        "      ,...\n"
+                                        "    ]\n"
+                                        "\nResult:\n"
+                                        "\"transactionid\"          (string) The transaction id for the send. Only 1 transaction is created regardless of \n"
+                                        "                                    the number of addresses.\n"
+                                        "\nExamples:\n"
+                                        "\nSend two amounts to two different addresses:\n" +
+            HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\"") +
+            "\nSend two amounts to two different addresses setting the confirmation and comment:\n" + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 6 \"testing\"") +
+            "\nSend two amounts to two different addresses, subtract fee from amount:\n" + HelpExampleCli("sendmany", "\"\" \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 1 \"\" \"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\",\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
+            "\nAs a json rpc call\n" + HelpExampleRpc("sendmany", "\"\", \"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\\\":0.01,\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\", 6, \"testing\""));
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -1041,13 +1055,13 @@ UniValue sendmany(const UniValue& params, bool fHelp)
 
     CAmount totalAmount = 0;
     vector<string> keys = sendTo.getKeys();
-    BOOST_FOREACH(const string& name_, keys) {
+    BOOST_FOREACH (const string& name_, keys) {
         CBitcoinAddress address(name_);
         if (!address.IsValid())
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid KORE address: ")+name_);
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid KORE address: ") + name_);
 
         if (setAddress.count(address))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ")+name_);
+            throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ") + name_);
         setAddress.insert(address);
 
         CScript scriptPubKey = GetScriptForDestination(address.Get());
@@ -1339,7 +1353,7 @@ UniValue listreceivedbyaccount(const UniValue& params, bool fHelp)
     return ListReceived(params, true);
 }
 
-static void MaybePushAddress(UniValue & entry, const CTxDestination &dest)
+static void MaybePushAddress(UniValue& entry, const CTxDestination& dest)
 {
     CBitcoinAddress addr;
     if (addr.Set(dest))
@@ -1508,7 +1522,7 @@ UniValue listtransactions(const UniValue& params, bool fHelp)
 
     UniValue ret(UniValue::VARR);
 
-    const CWallet::TxItems & txOrdered = pwalletMain->wtxOrdered;
+    const CWallet::TxItems& txOrdered = pwalletMain->wtxOrdered;
 
     // iterate backwards until we have nCount items to return:
     for (CWallet::TxItems::const_reverse_iterator it = txOrdered.rbegin(); it != txOrdered.rend(); ++it) {
@@ -1533,7 +1547,7 @@ UniValue listtransactions(const UniValue& params, bool fHelp)
     vector<UniValue>::iterator first = arrTmp.begin();
     std::advance(first, nFrom);
     vector<UniValue>::iterator last = arrTmp.begin();
-    std::advance(last, nFrom+nCount);
+    std::advance(last, nFrom + nCount);
 
     if (last != arrTmp.end()) arrTmp.erase(last, arrTmp.end());
     if (first != arrTmp.begin()) arrTmp.erase(arrTmp.begin(), first);
@@ -1612,7 +1626,7 @@ UniValue listaccounts(const UniValue& params, bool fHelp)
         }
     }
 
-    const list<CAccountingEntry> & acentries = pwalletMain->laccentries;
+    const list<CAccountingEntry>& acentries = pwalletMain->laccentries;
     BOOST_FOREACH (const CAccountingEntry& entry, acentries)
         mapAccountBalances[entry.strAccount] += entry.nCreditDebit;
 
@@ -1819,10 +1833,10 @@ UniValue keypoolrefill(const UniValue& params, bool fHelp)
             "\nFills the keypool." +
             HelpRequiringPassphrase() + "\n"
 
-            "\nArguments\n"
-            "1. newsize     (numeric, optional, default=100) The new keypool size\n"
+                                        "\nArguments\n"
+                                        "1. newsize     (numeric, optional, default=100) The new keypool size\n"
 
-            "\nExamples:\n" +
+                                        "\nExamples:\n" +
             HelpExampleCli("keypoolrefill", "") + HelpExampleRpc("keypoolrefill", ""));
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
@@ -1911,8 +1925,8 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
     nWalletUnlockTime = GetTime() + nSleepTime;
 
     if (nSleepTime > 0) {
-        nWalletUnlockTime = GetTime () + nSleepTime;
-        RPCRunLater ("lockwallet", boost::bind (LockWallet, pwalletMain), nSleepTime);
+        nWalletUnlockTime = GetTime() + nSleepTime;
+        RPCRunLater("lockwallet", boost::bind(LockWallet, pwalletMain), nSleepTime);
     }
 
     return NullUniValue;
@@ -2294,16 +2308,16 @@ UniValue setstakesplitthreshold(const UniValue& params, bool fHelp)
             "\nThis will set the output size of your stakes to never be below this number\n" +
             HelpRequiringPassphrase() + "\n"
 
-            "\nArguments:\n"
-            "1. value   (numeric, required) Threshold value between 1 and 999999\n"
+                                        "\nArguments:\n"
+                                        "1. value   (numeric, required) Threshold value between 1 and 999999\n"
 
-            "\nResult:\n"
-            "{\n"
-            "  \"threshold\": n,    (numeric) Threshold value set\n"
-            "  \"saved\": true|false    (boolean) 'true' if successfully saved to the wallet file\n"
-            "}\n"
+                                        "\nResult:\n"
+                                        "{\n"
+                                        "  \"threshold\": n,    (numeric) Threshold value set\n"
+                                        "  \"saved\": true|false    (boolean) 'true' if successfully saved to the wallet file\n"
+                                        "}\n"
 
-            "\nExamples:\n" +
+                                        "\nExamples:\n" +
             HelpExampleCli("setstakesplitthreshold", "5000") + HelpExampleRpc("setstakesplitthreshold", "5000"));
 
     EnsureWalletIsUnlocked();

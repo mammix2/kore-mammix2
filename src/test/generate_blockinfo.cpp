@@ -5,7 +5,7 @@
 #include "tests_util.h"
 #include "utiltime.h"
 
-
+// #define GENERATE_BLOCK_INFO
 
 #include <boost/test/unit_test.hpp>
 
@@ -13,6 +13,7 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 
 BOOST_AUTO_TEST_SUITE(generate_blockinfo)
 
+#ifdef GENERATE_BLOCK_INFO
 /*
   This TEST CASE SHOULD BE USED ONLY WHEN YOU WANT TO CREATE DATA TO BLOCK INFO
   */
@@ -20,12 +21,12 @@ BOOST_AUTO_TEST_SUITE(generate_blockinfo)
 BOOST_AUTO_TEST_CASE(generate_old_pow)
 {
     Checkpoints::fEnabled = false;
-    int64_t oldTargetTimespan = Params().TargetTimespan();
-    int64_t oldTargetSpacing = Params().TargetSpacing();
-    int oldHeightToFork = Params().HeigthToFork();
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
-    int oldStakeMinAge = Params().StakeMinAge();
+    int64_t oldTargetTimespan = Params().GetTargetTimespan();
+    int64_t oldTargetSpacing = Params().GetTargetSpacing();
+    int oldHeightToFork = Params().HeightToFork();
+    int oldStakeMinConfirmations = Params().GetStakeMinConfirmations();
+    int oldCoinBaseMaturity = Params().GetCoinbaseMaturity();
+    int oldStakeMinAge = Params().GetStakeMinAge();
     int oldModifier = Params().GetModifierInterval();
 
     // confirmations    : 3
@@ -70,5 +71,7 @@ BOOST_AUTO_TEST_CASE(generate_old_pow)
     ModifiableParams()->setTargetTimespan(oldTargetTimespan);
     ModifiableParams()->setTargetSpacing(oldTargetSpacing);
 }
+
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -32,10 +32,10 @@ class CTxBudgetPayment;
 #define VOTE_NO 2
 
 enum class TrxValidationStatus {
-    InValid,         /** Transaction verification failed */
-    Valid,           /** Transaction successfully verified */
-    DoublePayment,   /** Transaction successfully verified, but includes a double-budget-payment */
-    VoteThreshold    /** If not enough masternodes have voted on a finalized budget */
+    InValid,       /** Transaction verification failed */
+    Valid,         /** Transaction successfully verified */
+    DoublePayment, /** Transaction successfully verified, but includes a double-budget-payment */
+    VoteThreshold  /** If not enough masternodes have voted on a finalized budget */
 };
 
 static const CAmount PROPOSAL_FEE_TX = (50 * COIN);
@@ -53,7 +53,7 @@ void DumpBudgets();
 int GetBudgetPaymentCycleBlocks();
 
 //Check the collateral transaction for the budget proposal/finalized budget
-bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, std::string& strError, int64_t& nTime, int& nConf, bool fBudgetFinalization=false);
+bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, std::string& strError, int64_t& nTime, int& nConf, bool fBudgetFinalization = false);
 
 //
 // CBudgetVote - Allow a masternode node to vote and broadcast throughout the network
@@ -362,14 +362,14 @@ public:
     bool GetPayeeAndAmount(int64_t nBlockHeight, CScript& payee, CAmount& nAmount)
     {
         LOCK(cs);
-        LogPrint("mnbudget","CBudgetManager::GetPayeeAndAmount \n");
+        LogPrint("mnbudget", "CBudgetManager::GetPayeeAndAmount \n");
         int i = nBlockHeight - GetBlockStart();
         if (i < 0) return false;
         if (i > (int)vecBudgetPayments.size() - 1) return false;
         payee = vecBudgetPayments[i].payee;
         nAmount = vecBudgetPayments[i].nAmount;
-        LogPrint("mnbudget","CBudgetManager::GetPayeeAndAmount payee %s \n",payee.ToString());
-        LogPrint("mnbudget","CBudgetManager::GetPayeeAndAmount nAmount %d \n",nAmount);
+        LogPrint("mnbudget", "CBudgetManager::GetPayeeAndAmount payee %s \n", payee.ToString());
+        LogPrint("mnbudget", "CBudgetManager::GetPayeeAndAmount nAmount %d \n", nAmount);
         return true;
     }
 
@@ -504,7 +504,7 @@ public:
     bool IsEstablished()
     {
         // Proposals must be at least a day old to make it into a budget
-        if (Params().NetworkID() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60 * 60 * 24));
+        if (Params().GetNetworkID() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60 * 60 * 24));
 
         // For testing purposes - 1 minute
         return (nTime < GetTime() - (60 * 1));

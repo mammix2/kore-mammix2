@@ -408,6 +408,7 @@ void scrypt_hash(const char* pass, unsigned int pLen, const char* salt, unsigned
 
 
 extern "C" void yescrypt_hash(const char *input, char *output);
+extern "C" void yescrypt_settestn(uint32_t n);
 
 class CHashWriterYescrypt: public CHashWriter
 {
@@ -424,7 +425,7 @@ public:
 
     uint256 GetHash() {
         uint256 result;
-        assert(buf.size() == 88);
+        assert(buf.size() == 89);
         yescrypt_hash((const char*)buf.data(), (char*)&result);
         return result;
     }

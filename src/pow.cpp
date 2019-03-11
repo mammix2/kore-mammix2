@@ -28,7 +28,7 @@ static arith_uint256 GetTargetLimit_Legacy(int64_t nTime, bool fProofOfStake)
 unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int64_t nFirstBlockTime)
 {
     int64_t nActualSpacing = pindexLast->GetBlockTime() - nFirstBlockTime;
-    int64_t nTargetSpacing = Params().TargetSpacing();
+    int64_t nTargetSpacing = Params().GetTargetSpacing();
 
     // Limit adjustment step
 
@@ -36,26 +36,25 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
         nActualSpacing = nTargetSpacing;
 
     // Retarget
-    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake_Legacy());
+    const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
     arith_uint256 bnNew, bnOld;
     bnNew.SetCompact(pindexLast->nBits);
     bnOld = bnNew;
-    bnNew *= ((Params().DifficultyAdjustmentInterval() - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-    bnNew /= ((Params().DifficultyAdjustmentInterval() + 1) * nTargetSpacing);
+    bnNew *= ((Params().GetDifficultyAdjustmentInterval() - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+    bnNew /= ((Params().GetDifficultyAdjustmentInterval() + 1) * nTargetSpacing);
 
     if (bnNew <= 0 || bnNew > bnPowLimit)
         bnNew = bnPowLimit;
 
     if (fDebug) {
         LogPrintf("RETARGET\n");
-        LogPrintf("params.nTargetSpacing = %d    nActualSpacing = %d\n", Params().TargetSpacing(), nActualSpacing);
+        LogPrintf("params.nTargetSpacing = %d    nActualSpacing = %d\n", Params().GetTargetSpacing(), nActualSpacing);
         LogPrintf("Before: %08x  %s\n", pindexLast->nBits, bnOld.ToString());
         LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.ToString());
     }
 
     return bnNew.GetCompact();
 }
-
 
 unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
@@ -75,20 +74,19 @@ unsigned int GetNextWorkRequired_Legacy(const CBlockIndex* pindexLast, const CBl
     return CalculateNextWorkRequired_Legacy(pindexPrev, pindexPrevPrev->GetBlockTime());
 }
 
-
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
     // Lico
     if (UseLegacyCode(pindexLast->nHeight))
-      return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
+        return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
 
     /* current difficulty formula, kore - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;
     const CBlockIndex* BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
     int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = Params().PastBlocksMin();
-    int64_t PastBlocksMax = Params().PastBlocksMax();
+    int64_t PastBlocksMin = Params().GetPastBlocksMin();
+    int64_t PastBlocksMax = Params().GetPastBlocksMax();
     int64_t CountBlocks = 0;
     uint256 PastDifficultyAverage;
     uint256 PastDifficultyAveragePrev;
@@ -97,13 +95,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return Params().ProofOfWorkLimit().GetCompact();
     }
 
-    if (pindexLast->nHeight > Params().LAST_POW_BLOCK() || !fProofOfStake) {
-        //uint256 bnTargetLimit = (~uint256(0) >> 24);
+    if (pindexLast->nHeight > Params().GetLastPoWBlock() || fProofOfStake) {
         uint256 bnTargetLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
-        int64_t nTargetSpacing = Params().TargetSpacing();
-        int64_t nTargetTimespan = Params().TargetTimespan();
-        //int64_t nTargetSpacing = 60;
-        //int64_t nTargetTimespan = 60 * 40;
+        int64_t nTargetSpacing = Params().GetTargetSpacing();
+        int64_t nTargetTimespan = Params().GetTargetTimespan();
 
         int64_t nActualSpacing = 0;
         if (pindexLast->nHeight != 0)
@@ -113,16 +108,19 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
             nActualSpacing = 1;
         int64_t nMyBlockSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
 
+        int64_t nNewSpacing = 0;
+        nNewSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
+
         // ppcoin: target change every block
         // ppcoin: retarget with exponential moving toward target spacing
         uint256 bnNew;
         bnNew.SetCompact(pindexLast->nBits);
 
         int64_t nInterval = nTargetTimespan / nTargetSpacing;
-        int64_t pastDueSpacing = nMyBlockSpacing-nActualSpacing > 0 ? nMyBlockSpacing-nActualSpacing : 0;
+        int64_t pastDueSpacing = nMyBlockSpacing - nActualSpacing > 0 ? nMyBlockSpacing - nActualSpacing : 0;
         int64_t howManyDue = pastDueSpacing / nTargetSpacing;
-        
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + pow(pastDueSpacing,howManyDue));
+
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + pow(pastDueSpacing, howManyDue));
         bnNew /= ((nInterval + 1) * nTargetSpacing);
 
         if (bnNew <= 0 || bnNew > bnTargetLimit)
@@ -160,9 +158,12 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         BlockReading = BlockReading->pprev;
     }
 
+    int64_t Diff = (pblock->nTime - BlockLastSolved->GetBlockTime());
+    nActualTimespan += Diff;
+
     uint256 bnNew(PastDifficultyAverage);
 
-    int64_t _nTargetTimespan = CountBlocks * Params().TargetSpacing();
+    int64_t _nTargetTimespan = CountBlocks * Params().GetTargetSpacing();
     if (fDebug) {
         LogPrintf("nActualTimespan: %d \n", nActualTimespan);
         LogPrintf("PastDifficultyAverage: %s \n", PastDifficultyAverage.ToString().c_str());
@@ -238,7 +239,7 @@ bool CheckProofOfWork_Legacy(uint256 hash, unsigned int nBits)
         LogPrintf("hash    : %s \n", UintToArith256(hash).ToString().c_str());
         LogPrintf("bnTarget: %s \n", bnTarget.ToString().c_str());
     }
-    
+
     // Check range
     if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(Params().ProofOfWorkLimit()))
         return false;

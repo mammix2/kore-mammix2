@@ -63,6 +63,7 @@ BITCOIN_TESTS =\
   test/multisig_tests.cpp \
   test/netbase_tests.cpp \
   test/pmt_tests.cpp \
+  test/pos_tests.cpp \
   test/reverselock_tests.cpp \
   test/rpc_tests.cpp \
   test/sanity_tests.cpp \
@@ -99,7 +100,7 @@ endif
 test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 test_test_kore_LDADD += $(LIBBITCOIN_CONSENSUS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(TOR_LIBS) $(ZLIB_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
-test_test_kore_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
+test_test_kore_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static -g
 
 if ENABLE_ZMQ
 test_test_kore_LDADD += $(ZMQ_LIBS)
@@ -108,6 +109,8 @@ endif
 if TARGET_WINDOWS
 test_test_kore_LDADD += -lgdi32 -lws2_32
 endif
+
+#test_test_kore_LDADD += -lprofiler
 
 nodist_test_test_kore_SOURCES = $(GENERATED_TEST_FILES)
 

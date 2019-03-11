@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "pos.h"
-#include "script/interpreter.h"
 #include "arith_uint256.h"
+#include "script/interpreter.h"
 
 // Stake Modifier (hash modifier of proof-of-stake):
 // The purpose of stake modifier is to prevent a txout (coin) owner from
@@ -43,7 +43,7 @@ uint256 ComputeStakeModifier_Legacy(const CBlockIndex* pindexPrev, const uint256
 //   quantities so as to generate blocks faster, degrading the system back into
 //   a proof-of-work situation.
 
-bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx)
+bool CheckStakeKernelHash_Legacy(const CBlockIndex* pindexPrev, unsigned int nBits, const CCoins* txPrev, const COutPoint& prevout, unsigned int nTimeTx)
 {
     // Weight
     int64_t nValueIn = txPrev->vout[prevout.n].nValue;
@@ -53,9 +53,9 @@ bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, con
     // Base target
     arith_uint256 bnTarget = arith_uint256().SetCompact(nBits);
 
-    if(fDebug) {
-      LogPrintf("CheckStakeKernelHash: pindexPrev->nStakeModifier:%u txPrev->nTime:%u \n", pindexPrev->nStakeModifier, txPrev->nTime);
-      LogPrintf("CheckStakeKernelHash: prevout.hash: %s prevout.n:%u nTimeTx:%u \n", prevout.hash.GetHex(), prevout.n, nTimeTx);
+    if (fDebug) {
+        LogPrintf("CheckStakeKernelHash: pindexPrev->nStakeModifier:%u txPrev->nTime:%u \n", pindexPrev->nStakeModifier, txPrev->nTime);
+        LogPrintf("CheckStakeKernelHash: prevout.hash: %s prevout.n:%u nTimeTx:%u \n", prevout.hash.GetHex(), prevout.n, nTimeTx);
     }
 
     // Calculate hash
@@ -63,18 +63,18 @@ bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, con
     ss << pindexPrev->nStakeModifierOld << txPrev->nTime << prevout.hash << prevout.n << nTimeTx;
     uint256 hashProofOfStake = ss.GetHash();
 
-    if(fDebug) LogPrintf("CheckStakeKernelHash: hashProofOfStake:%s nValueIn:%d target: %x \n", hashProofOfStake.GetHex(), nValueIn, bnTarget.GetCompact());
+    if (fDebug) LogPrintf("CheckStakeKernelHash: hashProofOfStake:%s nValueIn:%d target: %x \n", hashProofOfStake.GetHex(), nValueIn, bnTarget.GetCompact());
 
     // Now check if proof-of-stake hash meets target protocol
-    if (UintToArith256(hashProofOfStake) / nValueIn > bnTarget){
-		if(fDebug)LogPrintf("CheckStakeKernelHash() : hash does not meet protocol target   previous = %x  target = %x\n", nBits, bnTarget.GetCompact());
+    if (UintToArith256(hashProofOfStake) / nValueIn > bnTarget) {
+        if (fDebug) LogPrintf("CheckStakeKernelHash_Legacy() : hash does not meet protocol target   previous = %x  target = %x\n", nBits, bnTarget.GetCompact());
         return false;
-	}
+    }
 
     return true;
 }
 
-bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime)
+bool CheckKernel_Legacy(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, const COutPoint& prevout, int64_t* pBlockTime)
 {
     uint256 targetProofOfStake;
 
@@ -85,7 +85,7 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
 
     CBlockIndex* pIndex = NULL;
     BlockMap::iterator iter = mapBlockIndex.find(hashBlock);
-    if (iter != mapBlockIndex.end()) 
+    if (iter != mapBlockIndex.end())
         pIndex = iter->second;
 
     // Read block header
@@ -94,17 +94,17 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
         return false;
 
     // Maturity requirement
-    if (pindexPrev->nHeight - pIndex->nHeight < Params().COINBASE_MATURITY())
+    if (pindexPrev->nHeight - pIndex->nHeight < Params().GetCoinbaseMaturity())
         return false;
 
     if (pBlockTime)
         *pBlockTime = block.GetBlockTime();
 
     // Min age requirement
-    if (prevtx.nTime + Params().StakeMinAge() > nTime) // Min age requirement
+    if (prevtx.nTime + Params().GetStakeMinAge() > nTime) // Min age requirement
         return false;
 
-    return CheckStakeKernelHash(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), prevout, nTime);
+    return CheckStakeKernelHash_Legacy(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), prevout, nTime);
 }
 
 
@@ -113,7 +113,7 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
   to the method in the kernel.cpp
 */
 // Check kernel hash target and coinstake signature
-bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits, CValidationState &state)
+bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBits, CValidationState& state)
 {
     const CChainParams& chainparams = Params();
 
@@ -128,32 +128,32 @@ bool CheckProofOfStake_Legacy(CBlockIndex* pindexPrev, const CTransaction& tx, u
     uint256 hashBlock;
 
     if (!GetTransaction(txin.prevout.hash, prevtx, hashBlock, true))
-       return state.DoS(1, false, REJECT_INVALID, "read-txPrev-failed");
+        return state.DoS(1, false, REJECT_INVALID, "read-txPrev-failed");
 
     // Verify signature
     if (!VerifySignature(prevtx, tx, 0, SCRIPT_VERIFY_NONE, 0))
-       return state.DoS(100, error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString()));
+        return state.DoS(100, error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString()));
 
 
     CBlockIndex* pIndex = NULL;
     BlockMap::iterator iter = mapBlockIndex.find(hashBlock);
-    if (iter != mapBlockIndex.end()) 
+    if (iter != mapBlockIndex.end())
         pIndex = iter->second;
 
     // Read block header
     CBlock block;
     if (!ReadBlockFromDisk(block, pIndex))
-       return fDebug? error("CheckProofOfStake(): *** ReadBlockFromDisk failed at %d, hash=%s \n", pindexPrev->nHeight, pindexPrev->GetBlockHash().ToString()) : false;
+        return fDebug ? error("CheckProofOfStake(): *** ReadBlockFromDisk failed at %d, hash=%s \n", pindexPrev->nHeight, pindexPrev->GetBlockHash().ToString()) : false;
 
     // Min age requirement
-    if (pindexPrev->nHeight - pIndex->nHeight < Params().StakeMinConfirmations())
-       return state.DoS(100, error("%s: tried to stake at depth %d \n", __func__, pindexPrev->nHeight - pIndex->nHeight), REJECT_INVALID, "bad-cs-premature");
+    if (pindexPrev->nHeight - pIndex->nHeight < Params().GetStakeMinConfirmations())
+        return state.DoS(100, error("%s: tried to stake at depth %d \n", __func__, pindexPrev->nHeight - pIndex->nHeight), REJECT_INVALID, "bad-cs-premature");
 
-    if (prevtx.nTime + Params().StakeMinAge() > tx.nTime) // Min age requirement
-        return error("CheckProofOfStake() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d \n", prevtx.nTime, Params().StakeMinAge(), tx.nTime);
+    if (prevtx.nTime + Params().GetStakeMinAge() > tx.nTime) // Min age requirement
+        return error("CheckProofOfStake() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d \n", prevtx.nTime, Params().GetStakeMinAge(), tx.nTime);
 
-    if (!CheckStakeKernelHash(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), txin.prevout, tx.nTime))
-       return state.DoS(1, error("%s: CheckStakeKernelHash failed \n", __func__), REJECT_INVALID, "bad-cs-proofhash");
+    if (!CheckStakeKernelHash_Legacy(pindexPrev, nBits, new CCoins(prevtx, pindexPrev->nHeight), txin.prevout, tx.nTime))
+        return state.DoS(1, error("%s: CheckStakeKernelHash failed \n", __func__), REJECT_INVALID, "bad-cs-proofhash");
 
     return true;
 }
@@ -169,5 +169,5 @@ bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsig
     if (txin.prevout.hash != txFrom.GetHash())
         return false;
 
-    return VerifyScript(txin.scriptSig, txout.scriptPubKey, flags, TransactionSignatureChecker(&txTo, nIn),  NULL);
+    return VerifyScript(txin.scriptSig, txout.scriptPubKey, flags, TransactionSignatureChecker(&txTo, nIn), NULL);
 }

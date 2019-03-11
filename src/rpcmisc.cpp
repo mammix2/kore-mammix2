@@ -113,7 +113,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("connections", (int)vNodes.size()));
     obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : string())));
     obj.push_back(Pair("difficulty", (double)GetDifficulty()));
-    obj.push_back(Pair("testnet", Params().NetworkID() == CBaseChainParams::TESTNET));
+    obj.push_back(Pair("testnet", Params().GetNetworkID() == CBaseChainParams::TESTNET));
 
     // During inital block verification chainActive.Tip() might be not yet initialized
     if (chainActive.Tip() == NULL) {
@@ -121,7 +121,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
         return obj;
     }
 
-    obj.push_back(Pair("moneysupply",ValueFromAmount(chainActive.Tip()->nMoneySupply)));
+    obj.push_back(Pair("moneysupply", ValueFromAmount(chainActive.Tip()->nMoneySupply)));
 
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
@@ -223,9 +223,10 @@ private:
 public:
     DescribeAddressVisitor(isminetype mineIn) : mine(mineIn) {}
 
-    UniValue operator()(const CNoDestination &dest) const { return UniValue(UniValue::VOBJ); }
+    UniValue operator()(const CNoDestination& dest) const { return UniValue(UniValue::VOBJ); }
 
-    UniValue operator()(const CKeyID &keyID) const {
+    UniValue operator()(const CKeyID& keyID) const
+    {
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
         obj.push_back(Pair("isscript", false));
@@ -237,7 +238,8 @@ public:
         return obj;
     }
 
-    UniValue operator()(const CScriptID &scriptID) const {
+    UniValue operator()(const CScriptID& scriptID) const
+    {
         UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("isscript", true));
         if (mine != ISMINE_NO) {
@@ -546,7 +548,7 @@ UniValue setmocktime(const UniValue& params, bool fHelp)
             "1. timestamp  (integer, required) Unix seconds-since-epoch timestamp\n"
             "   Pass 0 to go back to using the system time.");
 
-    if (!Params().MineBlocksOnDemand())
+    if (!Params().ShouldMineBlocksOnDemand())
         throw runtime_error("setmocktime for regression testing (-regtest mode) only");
 
     LOCK(cs_main);

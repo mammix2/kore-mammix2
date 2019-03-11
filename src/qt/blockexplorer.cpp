@@ -216,7 +216,7 @@ std::string BlockToString(CBlockIndex* pBlock)
         if (tx.IsCoinBase())
             Reward += Out;
         else if (In < 0)
-            Fees = -Params().MaxMoneyOut();
+            Fees = -Params().GetMaxMoneyOut();
         else {
             Fees += In - Out;
             OutVolume += Out;
@@ -311,7 +311,7 @@ std::string TxToString(uint256 BlockHash, const CTransaction& tx)
             COutPoint Out = tx.vin[i].prevout;
             CTxOut PrevOut = getPrevOut(tx.vin[i].prevout);
             if (PrevOut.nValue < 0)
-                Input = -Params().MaxMoneyOut();
+                Input = -Params().GetMaxMoneyOut();
             else
                 Input += PrevOut.nValue;
             std::string InputsContentCells[] =

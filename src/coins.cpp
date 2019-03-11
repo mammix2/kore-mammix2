@@ -58,7 +58,7 @@ bool CCoins::Spend(int nPos)
     return Spend(out, undo);
 }
 
-bool CCoins::Spend_Legacy(uint32_t nPos) 
+bool CCoins::Spend_Legacy(uint32_t nPos)
 {
     if (nPos >= vout.size() || vout[nPos].IsNull())
         return false;
@@ -73,7 +73,7 @@ bool CCoinsView::HaveCoins(const uint256& txid) const { return false; }
 uint256 CCoinsView::GetBestBlock() const { return uint256(0); }
 bool CCoinsView::BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock) { return false; }
 bool CCoinsView::GetStats(CCoinsStats& stats) const { return false; }
-bool CCoinsView::DumpUTXO(string &fileSaved, string fileBaseName) { return false; }
+bool CCoinsView::DumpUTXO(string& fileSaved, string fileBaseName) { return false; }
 
 
 CCoinsViewBacked::CCoinsViewBacked(CCoinsView* viewIn) : base(viewIn) {}
@@ -83,7 +83,7 @@ uint256 CCoinsViewBacked::GetBestBlock() const { return base->GetBestBlock(); }
 void CCoinsViewBacked::SetBackend(CCoinsView& viewIn) { base = &viewIn; }
 bool CCoinsViewBacked::BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock) { return base->BatchWrite(mapCoins, hashBlock); }
 bool CCoinsViewBacked::GetStats(CCoinsStats& stats) const { return base->GetStats(stats); }
-bool CCoinsViewBacked::DumpUTXO(string &fileSaved, string fileBaseName) { return base->DumpUTXO(fileSaved, fileBaseName); }
+bool CCoinsViewBacked::DumpUTXO(string& fileSaved, string fileBaseName) { return base->DumpUTXO(fileSaved, fileBaseName); }
 
 CCoinsKeyHasher::CCoinsKeyHasher() : salt(GetRandHash()) {}
 
@@ -94,7 +94,9 @@ CCoinsViewCache::~CCoinsViewCache()
     assert(!hasModifier);
 }
 
-size_t CCoinsViewCache::DynamicMemoryUsage_Legacy() const {
+// TODO: Remove "_Legacy" name in method
+size_t CCoinsViewCache::DynamicMemoryUsage_Legacy() const
+{
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
 }
 
@@ -131,10 +133,10 @@ CCoinsModifier CCoinsViewCache::ModifyCoins_Legacy(const uint256& txid)
 {
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
-    size_t cachedCoinUsage = 0;    
-    if (fDebug) { 
+    size_t cachedCoinUsage = 0;
+    if (fDebug) {
         LogPrintf("Coins in the cache : %d \n", cacheCoins.size());
-        LogPrintf("ModifyCoins_Legacy txid: %s inserted ? %s \n",txid.ToString().c_str(), ret.second? "true" : "false");
+        LogPrintf("ModifyCoins_Legacy txid: %s inserted ? %s \n", txid.ToString().c_str(), ret.second ? "true" : "false");
     }
     if (ret.second) {
         if (!base->GetCoins(txid, ret.first->second.coins)) {
@@ -145,9 +147,9 @@ CCoinsModifier CCoinsViewCache::ModifyCoins_Legacy(const uint256& txid)
             // The parent view only has a pruned entry for this; mark it as fresh.
             ret.first->second.flags = CCoinsCacheEntry::FRESH;
         }
-    }  else {
+    } else {
         cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage_Legacy();
-    } 
+    }
     if (fDebug) LogPrintf("coin height=%d ntime=%d \n", ret.first->second.coins.nHeight, ret.first->second.coins.nTime);
 
     // Assume that whenever ModifyCoins is called, the entry will be modified.
@@ -159,9 +161,9 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
 {
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
-    if (fDebug) { 
+    if (fDebug) {
         LogPrintf("Coins in the cache : %d \n", cacheCoins.size());
-        LogPrintf("ModifyCoins_Legacy txid: %s inserted ? %s \n",txid.ToString().c_str(), ret.second? "true" : "false");
+        LogPrintf("ModifyCoins_Legacy txid: %s inserted ? %s \n", txid.ToString().c_str(), ret.second ? "true" : "false");
     }
     if (ret.second) {
         if (!base->GetCoins(txid, ret.first->second.coins)) {
@@ -179,7 +181,8 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
     return CCoinsModifier(*this, ret.first, 0);
 }
 
-CCoinsModifier CCoinsViewCache::ModifyNewCoins_Legacy(const uint256 &txid) {
+CCoinsModifier CCoinsViewCache::ModifyNewCoins_Legacy(const uint256& txid)
+{
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
     ret.first->second.coins.Clear();
@@ -208,7 +211,8 @@ bool CCoinsViewCache::HaveCoins(const uint256& txid) const
     return (it != cacheCoins.end() && !it->second.coins.vout.empty());
 }
 
-bool CCoinsViewCache::HaveCoinsInCache_Legacy(const uint256 &txid) const {
+bool CCoinsViewCache::HaveCoinsInCache_Legacy(const uint256& txid) const
+{
     CCoinsMap::const_iterator it = cacheCoins.find(txid);
     return it != cacheCoins.end();
 }
@@ -326,7 +330,7 @@ double CCoinsViewCache::GetPriority(const CTransaction& tx, int nHeight) const
     if (tx.IsCoinBase() || tx.IsCoinStake())
         return 0.0;
     double dResult = 0.0;
-    for (const CTxIn& txin:  tx.vin) {
+    for (const CTxIn& txin : tx.vin) {
         const CCoins* coins = AccessCoins(txin.prevout.hash);
         assert(coins);
         if (!coins->IsAvailable(txin.prevout.n)) continue;
@@ -337,19 +341,18 @@ double CCoinsViewCache::GetPriority(const CTransaction& tx, int nHeight) const
     return tx.ComputePriority(dResult);
 }
 
-double CCoinsViewCache::GetPriority_Legacy(const CTransaction &tx, int nHeight, CAmount &inChainInputValue) const
+double CCoinsViewCache::GetPriority_Legacy(const CTransaction& tx, int nHeight, CAmount& inChainInputValue) const
 {
     inChainInputValue = 0;
     if (tx.IsCoinBase() || tx.IsCoinStake())
         return 0.0;
     double dResult = 0.0;
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
-    {
+    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
         const CCoins* coins = AccessCoins(txin.prevout.hash);
         assert(coins);
         if (!coins->IsAvailable(txin.prevout.n)) continue;
         if (coins->nHeight <= nHeight) {
-            dResult += coins->vout[txin.prevout.n].nValue * (nHeight-coins->nHeight);
+            dResult += coins->vout[txin.prevout.n].nValue * (nHeight - coins->nHeight);
             inChainInputValue += coins->vout[txin.prevout.n].nValue;
         }
     }

@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_SUITE(script_tests)
 CMutableTransaction BuildCreditingTransaction(const CScript& scriptPubKey)
 {
     CMutableTransaction txCredit;
-    txCredit.nVersion = 1;
+    txCredit.nVersion = 2;
     txCredit.nLockTime = 0;
     txCredit.vin.resize(1);
     txCredit.vout.resize(1);
@@ -77,17 +77,20 @@ CMutableTransaction BuildCreditingTransaction(const CScript& scriptPubKey)
     return txCredit;
 }
 
-CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CMutableTransaction& txCredit)
+CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CMutableTransaction& txCredit, int flags = 0)
 {
     CMutableTransaction txSpend;
-    txSpend.nVersion = 1;
+    txSpend.nVersion = 2;
     txSpend.nLockTime = 0;
     txSpend.vin.resize(1);
     txSpend.vout.resize(1);
     txSpend.vin[0].prevout.hash = txCredit.GetHash();
     txSpend.vin[0].prevout.n = 0;
     txSpend.vin[0].scriptSig = scriptSig;
-    txSpend.vin[0].nSequence = std::numeric_limits<unsigned int>::max();
+    if (flags > 0 && flags & SCRIPT_VERIFY_CHECKSEQUENCEVERIFY)
+        txSpend.vin[0].nSequence = Params().GetStakeLockSequenceNumber();
+    else
+        txSpend.vin[0].nSequence = std::numeric_limits<unsigned int>::max();
     txSpend.vout[0].scriptPubKey = CScript();
     txSpend.vout[0].nValue = 0;
 
@@ -97,7 +100,7 @@ CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CMu
 void DoTest(const CScript& scriptPubKey, const CScript& scriptSig, int flags, bool expect, const std::string& message)
 {
     ScriptError err;
-    CMutableTransaction tx = BuildSpendingTransaction(scriptSig, BuildCreditingTransaction(scriptPubKey));
+    CMutableTransaction tx = BuildSpendingTransaction(scriptSig, BuildCreditingTransaction(scriptPubKey), flags);
     CMutableTransaction tx2 = tx;
     BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, flags, MutableTransactionSignatureChecker(&tx, 0), &err) == expect, message);
     BOOST_CHECK_MESSAGE(expect == (err == SCRIPT_ERR_OK), std::string(ScriptErrorString(err)) + ": " + message);
@@ -220,7 +223,7 @@ public:
         } else {
             creditTx = BuildCreditingTransaction(redeemScript);
         }
-        spendTx = BuildSpendingTransaction(CScript(), creditTx);
+        spendTx = BuildSpendingTransaction(CScript(), creditTx, flags);
     }
 
     TestBuilder& Add(const CScript& script)
@@ -563,6 +566,12 @@ BOOST_AUTO_TEST_CASE(script_build)
     good.push_back(TestBuilder(CScript() << OP_2 << ToByteVector(keys.pubkey1C) << ToByteVector(keys.pubkey1C) << OP_2 << OP_CHECKMULTISIG,
                                "2-of-2 with two identical keys and sigs pushed", SCRIPT_VERIFY_SIGPUSHONLY
                               ).Num(0).PushSig(keys.key1).PushSig(keys.key1));
+    good.push_back(TestBuilder(CScript() << Params().GetStakeLockSequenceNumber() << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
+                               "Timelock transaction", SCRIPT_VERIFY_CHECKSEQUENCEVERIFY
+                              ).Num(0).PushSig(keys.key1));
+    bad.push_back(TestBuilder(CScript() << Params().GetStakeLockSequenceNumber() + 1 << OP_CHECKSEQUENCEVERIFY << OP_DROP << ToByteVector(keys.pubkey1C) << OP_CHECKSIG,
+                               "Timelock transaction", SCRIPT_VERIFY_CHECKSEQUENCEVERIFY
+                              ).Num(0).PushSig(keys.key1));
 
 
     std::set<std::string> tests_good;
@@ -584,9 +593,11 @@ BOOST_AUTO_TEST_CASE(script_build)
 
     std::string strGood;
     std::string strBad;
-
+    int i = 0;
     BOOST_FOREACH(TestBuilder& test, good) {
         test.Test(true);
+        if (i++ == 30)
+            printf("%d",i);
         std::string str = test.GetJSON().write();
 #ifndef UPDATE_JSON_TESTS
         if (tests_good.count(str) == 0) {
@@ -595,8 +606,11 @@ BOOST_AUTO_TEST_CASE(script_build)
 #endif
         strGood += str + ",\n";
     }
+    i = 0;
     BOOST_FOREACH(TestBuilder& test, bad) {
         test.Test(false);
+        if (i++ == 42)
+            printf("%d",i);
         std::string str = test.GetJSON().write();
 #ifndef UPDATE_JSON_TESTS
         if (tests_bad.count(str) == 0) {
@@ -618,12 +632,16 @@ BOOST_AUTO_TEST_CASE(script_build)
 
 BOOST_AUTO_TEST_CASE(script_valid)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     // Read tests from test/data/script_valid.json
     // Format is an array of arrays
     // Inner arrays are [ "scriptSig", "scriptPubKey", "flags" ]
     // ... where scriptSig and scriptPubKey are stringified
     // scripts.
     UniValue tests = read_json(std::string(json_tests::script_valid, json_tests::script_valid + sizeof(json_tests::script_valid)));
+
+    int i = 0;
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
@@ -638,6 +656,8 @@ BOOST_AUTO_TEST_CASE(script_valid)
         string scriptSigString = test[0].get_str();
         CScript scriptSig = ParseScript(scriptSigString);
         string scriptPubKeyString = test[1].get_str();
+        if (i++ == 599)
+            printf("%d ", i);
         CScript scriptPubKey = ParseScript(scriptPubKeyString);
         unsigned int scriptflags = ParseScriptFlags(test[2].get_str());
 
@@ -647,6 +667,8 @@ BOOST_AUTO_TEST_CASE(script_valid)
 
 BOOST_AUTO_TEST_CASE(script_invalid)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     // Scripts that should evaluate as invalid
     UniValue tests = read_json(std::string(json_tests::script_invalid, json_tests::script_invalid + sizeof(json_tests::script_invalid)));
 
@@ -672,6 +694,8 @@ BOOST_AUTO_TEST_CASE(script_invalid)
 
 BOOST_AUTO_TEST_CASE(script_PushData)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     // Check that PUSHDATA1, PUSHDATA2, and PUSHDATA4 create the same value on
     // the stack as the 1-75 opcodes do.
     static const unsigned char direct[] = { 1, 0x5a };
@@ -734,6 +758,8 @@ sign_multisig(CScript scriptPubKey, const CKey &key, CTransaction transaction)
 
 BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG12)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     ScriptError err;
     CKey key1, key2, key3;
     key1.MakeNewKey(true);
@@ -764,6 +790,8 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG12)
 
 BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     ScriptError err;
     CKey key1, key2, key3, key4;
     key1.MakeNewKey(true);
@@ -833,6 +861,8 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23)
 
 BOOST_AUTO_TEST_CASE(script_combineSigs)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     // Test the CombineSignatures function
     CBasicKeyStore keystore;
     vector<CKey> keys;
@@ -942,6 +972,8 @@ BOOST_AUTO_TEST_CASE(script_combineSigs)
 
 BOOST_AUTO_TEST_CASE(script_standard_push)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     ScriptError err;
     for (int i=0; i<67000; i++) {
         CScript script;
@@ -963,6 +995,8 @@ BOOST_AUTO_TEST_CASE(script_standard_push)
 
 BOOST_AUTO_TEST_CASE(script_IsPushOnly_on_invalid_scripts)
 {
+    ModifiableParams()->setHeightToFork(0);
+
     // IsPushOnly returns false when given a script containing only pushes that
     // are invalid due to truncation. IsPushOnly() is consensus critical
     // because P2SH evaluation uses it, although this specific behavior should

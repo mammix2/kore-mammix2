@@ -77,7 +77,7 @@ static const unsigned int MAX_P2SH_SIGOPS = 15;
 static const unsigned int MAX_TX_SIGOPS_CURRENT = MAX_BLOCK_SIGOPS_CURRENT / 5;
 static const unsigned int MAX_TX_SIGOPS_LEGACY = MAX_BLOCK_SIGOPS_LEGACY / 5;
 /** The maximum number of sigops we're willing to relay/mine in a single tx */
-static const unsigned int MAX_STANDARD_TX_SIGOPS_LEGACY = MAX_BLOCK_SIGOPS_LEGACY/5;
+static const unsigned int MAX_STANDARD_TX_SIGOPS_LEGACY = MAX_BLOCK_SIGOPS_LEGACY / 5;
 /** Default for -maxorphantx, maximum number of orphan transactions kept in memory */
 static const unsigned int DEFAULT_MAX_ORPHAN_TRANSACTIONS = 100;
 /** Default for -limitancestorcount, max number of in-mempool ancestors */
@@ -127,7 +127,7 @@ static const unsigned int AVG_INVENTORY_BROADCAST_INTERVAL_LEGACY = 5;
 static const unsigned int AVG_ADDRESS_BROADCAST_INTERVAL_LEGACY = 30;
 static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE_LEGACY = 1000000;
 /** Enable bloom filter */
- static const bool DEFAULT_PEERBLOOMFILTERS = true;
+static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /** "reject" message codes */
 static const unsigned char REJECT_MALFORMED = 0x01;
@@ -334,8 +334,6 @@ bool DisconnectBlocksAndReprocess(int blocks);
 // ***TODO***
 double ConvertBitsToDouble(unsigned int nBits);
 CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue);
-int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZKOREStake=false);
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
 
 /**
  * Prune block and undo files (blk???.dat and undo???.dat) so that the disk space used is less than a user-defined target.
@@ -360,7 +358,7 @@ void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight
 void UnlinkPrunedFiles(std::set<int>& setFilesToPrune);
 
 bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
-bool ActivateBestChain_Legacy(CValidationState &state, const CChainParams& chainparams, const CBlock *pblock = NULL);
+bool ActivateBestChain_Legacy(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
 CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input);
 CAmount GetBlockValue(int nHeight);
 
@@ -368,7 +366,7 @@ CAmount GetBlockValue(int nHeight);
 CBlockIndex* InsertBlockIndex(uint256 hash);
 /** Abort with a message */
 bool AbortNode(const std::string& msg, const std::string& userMessage = "");
-bool AbortNode(CValidationState& state, const std::string& strMessage, const std::string& userMessage="");
+bool AbortNode(CValidationState& state, const std::string& strMessage, const std::string& userMessage = "");
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats& stats);
 /** Increase a node's misbehavior score. */
@@ -378,13 +376,9 @@ void FlushStateToDisk();
 /** Prune block files and flush state to disk. */
 void PruneAndFlush();
 
-
 /** (try to) add transaction to memory pool **/
-bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, 
-                        bool* pfMissingInputs, bool fRejectInsaneFee = false, bool ignoreFees = false);
-bool AcceptToMemoryPool_Legacy(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
-                        bool* pfMissingInputs, bool fOverrideMempoolLimit=false, bool fRejectAbsurdFee=false);
-
+bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool ignoreFees = false);
+bool AcceptToMemoryPool_Legacy(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, bool fRejectAbsurdFee = false);
 
 bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool isDSTX = false);
 
@@ -426,47 +420,52 @@ struct CDiskTxPos : public CDiskBlockPos {
         CDiskBlockPos::SetNull();
         nTxOffset = 0;
     }
-    friend bool operator<(const CDiskTxPos &a, const CDiskTxPos &b) {
-        return  (a.nFile < b.nFile || (
-                (a.nFile == b.nFile) && (a.nPos < b.nPos || (
-                        (a.nPos == b.nPos) && (a.nTxOffset < b.nTxOffset)))));
+    friend bool operator<(const CDiskTxPos& a, const CDiskTxPos& b)
+    {
+        return (a.nFile < b.nFile || ((a.nFile == b.nFile) && (a.nPos < b.nPos || ((a.nPos == b.nPos) && (a.nTxOffset < b.nTxOffset)))));
     }
 };
 
 // Legacy class
-struct CExtDiskTxPos : public CDiskTxPos
-{
+struct CExtDiskTxPos : public CDiskTxPos {
     unsigned int nHeight;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
         READWRITE(*(CDiskTxPos*)this);
         READWRITE(VARINT(nHeight));
     }
 
-    CExtDiskTxPos(const CDiskTxPos &pos, int nHeightIn) : CDiskTxPos(pos), nHeight(nHeightIn) {
+    CExtDiskTxPos(const CDiskTxPos& pos, int nHeightIn) : CDiskTxPos(pos), nHeight(nHeightIn)
+    {
     }
 
-    CExtDiskTxPos() {
+    CExtDiskTxPos()
+    {
         SetNull();
     }
 
-    void SetNull() {
+    void SetNull()
+    {
         CDiskTxPos::SetNull();
         nHeight = 0;
     }
 
-    friend bool operator==(const CExtDiskTxPos &a, const CExtDiskTxPos &b) {
+    friend bool operator==(const CExtDiskTxPos& a, const CExtDiskTxPos& b)
+    {
         return (a.nHeight == b.nHeight && a.nFile == b.nFile && a.nPos == b.nPos && a.nTxOffset == b.nTxOffset);
     }
 
-    friend bool operator!=(const CExtDiskTxPos &a, const CExtDiskTxPos &b) {
+    friend bool operator!=(const CExtDiskTxPos& a, const CExtDiskTxPos& b)
+    {
         return !(a == b);
     }
 
-    friend bool operator<(const CExtDiskTxPos &a, const CExtDiskTxPos &b) {
+    friend bool operator<(const CExtDiskTxPos& a, const CExtDiskTxPos& b)
+    {
         if (a.nHeight < b.nHeight) return true;
         if (a.nHeight > b.nHeight) return false;
         return ((const CDiskTxPos)a < (const CDiskTxPos)b);
@@ -522,18 +521,16 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight);
-void UpdateCoins_Legacy(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, int nHeight);
+void UpdateCoins_Legacy(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, int nHeight);
 
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
-
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx, CTransaction& tx);
 bool IsTransactionInChain(const uint256& txId, int& nHeightTx);
 bool IsBlockHashInChain(const uint256& hashBlock);
 bool ValidOutPoint(const COutPoint out, int nHeight);
 bool RecalculateKORESupply(int nHeightStart);
 bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError);
-
 
 /**
  * Check if transaction will be final in the next block to be created.
@@ -544,7 +541,7 @@ bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError
  */
 bool CheckFinalTx(const CTransaction& tx, int flags = -1);
 
-bool CheckFinalTx_Legacy(const CTransaction &tx, int flags);
+bool CheckFinalTx_Legacy(const CTransaction& tx, int flags);
 
 /**
  * Test whether the LockPoints height and time are still valid on the current chain
@@ -552,7 +549,7 @@ bool CheckFinalTx_Legacy(const CTransaction &tx, int flags);
 bool TestLockPointValidity(const LockPoints* lp);
 
 
-bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints* lp = NULL, bool useExistingLockPoints = false);
+bool CheckSequenceLocks(const CTransaction& tx, int flags, LockPoints* lp = NULL, bool useExistingLockPoints = false);
 
 /** Check for standard transaction types
  * @return True if all outputs (scriptPubKeys) use only standard transaction forms
@@ -560,7 +557,7 @@ bool CheckSequenceLocks(const CTransaction &tx, int flags, LockPoints* lp = NULL
 bool IsStandardTx(const CTransaction& tx, std::string& reason);
 
 bool IsFinalTx(const CTransaction& tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
-bool IsFinalTx_Legacy(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime);
+bool IsFinalTx_Legacy(const CTransaction& tx, int nBlockHeight, int64_t nBlockTime);
 
 /** Undo information for a CBlock */
 class CBlockUndo
@@ -628,8 +625,9 @@ int GetnHeight(const CBlockIndex* pIndex);
 /* Check if it is necessary to use the new code or old code */
 bool UseLegacyCode(const CBlockHeader & block);
 bool UseLegacyCode(int nHeight);
-bool IsLastBlockBeforeFork(int nHeight);
-bool IsFirstBlockAfterFork(int nHeight);
+bool UseLegacyCode();
+
+static const int32_t GetCurrentTransactionVersion();
 
 /** Functions for validating blocks and updating the block tree */
 
@@ -656,11 +654,10 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
 /** Context-independent validity checks */
 bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW = true);
 bool CheckBlock(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
-bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev);
 
 /** Convert CValidationState to a human-readable message for logging */
-std::string FormatStateMessage(const CValidationState &state);
-std::string FormatStateMessage_Legacy(const CValidationState &state);
+std::string FormatStateMessage(const CValidationState& state);
+std::string FormatStateMessage_Legacy(const CValidationState& state);
 bool CheckBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, bool fCheckPOW = true);
 bool CheckBlock_Legacy(const CBlock& block, const int height, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
@@ -669,8 +666,8 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
 bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindexPrev);
 
 extern VersionBitsCache versionbitscache;
-bool ContextualCheckBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, CBlockIndex * const pindexPrev);
-bool ContextualCheckBlock_Legacy(const CBlock& block, CValidationState& state, CBlockIndex *pindexPrev);
+bool ContextualCheckBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, CBlockIndex* const pindexPrev);
+bool ContextualCheckBlock_Legacy(const CBlock& block, CValidationState& state, CBlockIndex* pindexPrev);
 
 /** Check a block is completely valid from start to finish (only works on top of our current best block, with cs_main held) */
 bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
@@ -680,8 +677,8 @@ bool TestBlockValidity_Legacy(CValidationState& state, const CChainParams& chain
 bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** pindex, CDiskBlockPos* dbp = NULL, bool fAlreadyCheckedBlock = false);
 bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex = NULL);
 
-bool AcceptBlock_Legacy(CBlock& block, CValidationState& state, CBlockIndex **pindex, bool fRequested, CDiskBlockPos* dbp, const uint256& hash);
-bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, const uint256& hash, CBlockIndex **ppindex= NULL);
+bool AcceptBlock_Legacy(CBlock& block, CValidationState& state, CBlockIndex** pindex, bool fRequested, CDiskBlockPos* dbp, const uint256& hash);
+bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, const uint256& hash, CBlockIndex** ppindex = NULL);
 
 
 class CBlockFileInfo
@@ -755,17 +752,16 @@ private:
     std::string strRejectReason;
     unsigned char chRejectCode;
     bool corruptionPossible;
-    std::string strDebugMessage;    
+    std::string strDebugMessage;
 
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}
-    bool DoS(int level, bool ret = false, unsigned int chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false,
-    const std::string &strDebugMessageIn="")
+    bool DoS(int level, bool ret = false, unsigned int chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false, const std::string& strDebugMessageIn = "")
     {
         chRejectCode = chRejectCodeIn;
         strRejectReason = strRejectReasonIn;
         corruptionPossible = corruptionIn;
-        strDebugMessage = strDebugMessageIn;        
+        strDebugMessage = strDebugMessageIn;
         if (mode == MODE_ERROR)
             return ret;
         nDoS += level;
@@ -775,7 +771,7 @@ public:
     bool Invalid(bool ret = false,
         unsigned int _chRejectCode = 0,
         std::string _strRejectReason = "",
-        const std::string &_strDebugMessage="")
+        const std::string& _strDebugMessage = "")
     {
         return DoS(0, ret, _chRejectCode, _strRejectReason, false, _strDebugMessage);
     }
@@ -854,7 +850,7 @@ struct CBlockTemplate {
     CBlock block;
     std::vector<CAmount> vTxFees;
     std::vector<int64_t> vTxSigOps;
-    CBlockTemplate(const int32_t nVersion) : block(nVersion) {};
+    CBlockTemplate(const int32_t nVersion) : block(nVersion){};
 };
 
 #endif // BITCOIN_MAIN_H

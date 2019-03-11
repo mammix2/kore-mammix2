@@ -11,7 +11,6 @@ if TARGET_WINDOWS
 LIBS+=-lgdi32
 endif
 
-
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
@@ -310,13 +309,13 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/keccak.c \
   crypto/skein.c \
   crypto/common.h \
+  crypto/sha1.h \
   crypto/sha256.h \
   crypto/sha512.h \
   crypto/hmac_sha256.h \
   crypto/rfc6979_hmac_sha256.h \
   crypto/hmac_sha512.h \
   crypto/scrypt.h \
-  crypto/sha1.h \
   crypto/ripemd160.h \
   crypto/sph_blake.h \
   crypto/sph_bmw.h \
@@ -325,15 +324,15 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/sph_keccak.h \
   crypto/sph_skein.h \
   crypto/sph_types.h \
-  crypto/yescrypt/yescrypt.c \
-  crypto/yescrypt/yescrypt.h \
-  crypto/yescrypt/sha256_c.h \
   crypto/yescrypt/sha256.h \
+  crypto/yescrypt/sha256_c.h \
   crypto/yescrypt/sysendian.h \
   crypto/yescrypt/yescrypt-best_c.h \
   crypto/yescrypt/yescrypt-opt_c.h \
   crypto/yescrypt/yescrypt-platform_c.h \
-  crypto/yescrypt/yescrypt-simd_c.h
+  crypto/yescrypt/yescrypt-simd_c.h \
+  crypto/yescrypt/yescrypt.h \
+  crypto/yescrypt/yescrypt.c
 
 # common: shared between kored, and kore-qt and non-server tools
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)

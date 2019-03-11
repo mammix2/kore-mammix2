@@ -10,7 +10,11 @@
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 
+// #define RUN_FORK_TESTS
+
 BOOST_AUTO_TEST_SUITE(fork_afterwords)
+
+#ifdef RUN_FORK_TESTS
 
 BOOST_AUTO_TEST_CASE(after_fork)
 {
@@ -21,12 +25,12 @@ BOOST_AUTO_TEST_CASE(after_fork)
     }
 
     Checkpoints::fEnabled = false;
-    int64_t oldTargetTimespan = Params().TargetTimespan();
-    int64_t oldTargetSpacing = Params().TargetSpacing();
-    int oldHeightToFork = Params().HeigthToFork();
-    int oldStakeMinConfirmations = Params().StakeMinConfirmations();
-    int oldCoinBaseMaturity = Params().COINBASE_MATURITY();
-    int oldStakeMinAge = Params().StakeMinAge();
+    int64_t oldTargetTimespan = Params().GetTargetTimespan();
+    int64_t oldTargetSpacing = Params().GetTargetSpacing();
+    int oldHeightToFork = Params().HeightToFork();
+    int oldStakeMinConfirmations = Params().GetStakeMinConfirmations();
+    int oldCoinBaseMaturity = Params().GetCoinbaseMaturity();
+    int oldStakeMinAge = Params().GetStakeMinAge();
     int oldModifier = Params().GetModifierInterval();
     // confirmations    : 3
     // remember that the miminum spacing is 10 !!!
@@ -69,5 +73,7 @@ BOOST_AUTO_TEST_CASE(after_fork)
     ModifiableParams()->setTargetTimespan(oldTargetTimespan);
     ModifiableParams()->setTargetSpacing(oldTargetSpacing);
 }
+
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

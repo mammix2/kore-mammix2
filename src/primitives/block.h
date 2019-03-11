@@ -7,8 +7,8 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
-#include "primitives/transaction.h"
 #include "keystore.h"
+#include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
 
@@ -39,6 +39,7 @@ public:
     uint32_t nNonce;
     uint32_t nBirthdayA;
     uint32_t nBirthdayB;
+    bool fIsProofOfStake;
 
     CBlockHeader()
     {
@@ -54,7 +55,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
         READWRITE(this->nVersion);
         nVersion = this->nVersion;
         READWRITE(hashPrevBlock);
@@ -64,6 +66,8 @@ public:
         READWRITE(nNonce);
         READWRITE(nBirthdayA);
         READWRITE(nBirthdayB);
+        if (nVersion >= 2)
+            READWRITE(fIsProofOfStake);
     }
 
     void SetNull()
@@ -75,7 +79,8 @@ public:
         nBits = 0;
         nNonce = 0;
         nBirthdayA = 0;
-	    nBirthdayB = 0;
+        nBirthdayB = 0;
+        fIsProofOfStake = false;
     }
 
     bool IsNull() const
@@ -84,7 +89,7 @@ public:
     }
 
     uint256 GetHash() const;
-	
+
     //uint256 GetVerifiedHash() const;
     uint256 CalculateBestBirthdayHash();
 
@@ -93,7 +98,6 @@ public:
     {
         return (int64_t)nTime;
     }
-
 };
 
 
@@ -121,7 +125,7 @@ public:
         SetNull();
     }
 
-    CBlock(const CBlockHeader &header) : CBlockHeader(header.nVersion)
+    CBlock(const CBlockHeader& header) : CBlockHeader(header.nVersion)
     {
         SetNull();
         *((CBlockHeader*)this) = header;
@@ -130,11 +134,12 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
-	if(vtx.size() > 1 && vtx[1].IsCoinStake())
-		READWRITE(vchBlockSig);
+        if (vtx.size() > 1 && vtx[1].IsCoinStake())
+            READWRITE(vchBlockSig);
     }
 
     void SetNull()
@@ -142,7 +147,7 @@ public:
         CBlockHeader::SetNull();
         vtx.clear();
         vMerkleTree.clear();
-	    fChecked = false;
+        fChecked = false;
         payee = CScript();
         vchBlockSig.clear();
     }
@@ -151,21 +156,29 @@ public:
     {
         CBlockHeader block(nVersion);
         //block.nVersion       = nVersion;
-        block.hashPrevBlock  = hashPrevBlock;
+        block.hashPrevBlock = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
-	    block.nBirthdayA     = nBirthdayA;
-        block.nBirthdayB     = nBirthdayB; 
+        block.nTime = nTime;
+        block.nBits = nBits;
+        block.nNonce = nNonce;
+        block.nBirthdayA = nBirthdayA;
+        block.nBirthdayB = nBirthdayB;
+        block.fIsProofOfStake = fIsProofOfStake;
         return block;
     }
 
     // ppcoin: two types of block: proof-of-work or proof-of-stake
     bool IsProofOfStake() const
     {
-        // more than 1 transaction and the second transaction vtx[1] needs to be the stake.
-        return (vtx.size() > 1 && vtx[1].IsCoinStake());
+        if (vtx.size() <= 1)
+            return false;
+
+        if (vtx[0].IsCoinBase() && vtx[1].IsCoinStake())
+            return true & fIsProofOfStake;
+        else if (vtx[1].IsCoinStake())
+            return true & fIsProofOfStake;
+        else
+            return false;
     }
 
     bool IsProofOfWork() const
@@ -175,7 +188,7 @@ public:
 
     std::pair<COutPoint, unsigned int> GetProofOfStake() const
     {
-        return IsProofOfStake()? std::make_pair(vtx[1].vin[0].prevout, nTime) : std::make_pair(COutPoint(), (unsigned int)0);
+        return IsProofOfStake() ? std::make_pair(vtx[1].vin[0].prevout, nTime) : std::make_pair(COutPoint(), (unsigned int)0);
     }
 
     // Build the in-memory merkle tree for this block and return the merkle root.
@@ -188,7 +201,6 @@ public:
     static uint256 CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex);
     std::string ToString() const;
     void print() const;
-   
 };
 
 
@@ -196,8 +208,7 @@ public:
  * other node doesn't have the same branch, it can find a recent common trunk.
  * The further back it is, the further before the fork it may be.
  */
-struct CBlockLocator
-{
+struct CBlockLocator {
     std::vector<uint256> vHave;
 
     CBlockLocator() {}
@@ -210,7 +221,8 @@ struct CBlockLocator
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+    {
         if (!(nType & SER_GETHASH))
             READWRITE(nVersion);
         READWRITE(vHave);

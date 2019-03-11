@@ -16,16 +16,6 @@ among "make check" output, one of them being the final line of output.
 We do most of our testing on Linux systems with gcc.  The supplied
 Makefile assumes that you use gcc.
 
-As supplied, the "tests" program will allocate 3 GB of memory (for the
-ROM), so it should be used on a system with enough RAM (it may cause
-excessive swapping and other nasties if run on a system that is too
-small, such as on an older laptop).  On Linux systems with "huge pages"
-enabled, the program may end up requiring over 6 GB of RAM because it
-tests ROM initialization in two different ways, where the first test
-would end up using huge pages and the second test would not, so it might
-not be able to reuse the same 3 GB of memory for both tests despite of
-this memory being released back to the OS between the two tests.
-
 
 	ROM in SysV shared memory demo and benchmark.
 
@@ -33,14 +23,6 @@ Also included with this version of yescrypt are "initrom" and "userom"
 demo programs.  They're built by simply typing "make".  Please refer to
 PERFORMANCE-* text files for examples of system configuration and
 running of these programs.
-
-
-	ROM on SSD demo and benchmark.
-
-The "initrom" and "userom" programs accept up to three optional
-parameters, specifying ROM and RAM sizes and a filename for the ROM.
-With the latter, it is possible to put the ROM on an SSD, and to access
-it from there.  See PERFORMANCE-SSD for examples of such usage.
 
 
 	Alternate code versions and make targets.

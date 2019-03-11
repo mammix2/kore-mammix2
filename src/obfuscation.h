@@ -47,7 +47,7 @@ class CActiveMasternode;
 #define OBFUSCATION_RELAY_SIG 3
 
 static const CAmount OBFUSCATION_COLLATERAL = (10 * COIN);
-static const CAmount OBFUSCATION_POOL_MAX = ((MASTERNODE_MIN_COINS-0.01) * COIN);
+static const CAmount OBFUSCATION_POOL_MAX = ((MASTERNODE_MIN_COINS - 0.01) * COIN);
 
 extern CObfuscationPool obfuScationPool;
 extern CObfuScationSigner obfuScationSigner;
@@ -364,7 +364,7 @@ public:
 
     void InitCollateralAddress()
     {
-        SetCollateralAddress(Params().ObfuscationPoolDummyAddress());
+        SetCollateralAddress(Params().GetObfuscationPoolDummyAddress());
     }
 
     void SetMinBlockSpacing(int minBlockSpacingIn)
@@ -428,7 +428,7 @@ public:
     /// Get the maximum number of transactions for the pool
     int GetMaxPoolTransactions()
     {
-        return Params().PoolMaxTransactions();
+        return Params().GetPoolMaxTransactions();
     }
 
     /// Do we have enough users to take entries?

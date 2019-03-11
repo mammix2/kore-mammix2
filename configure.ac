@@ -207,6 +207,9 @@ if test "x$enable_debug" = xyes; then
     fi
 fi
 
+CFLAGS="$CFLAGS -march=native"
+CXXFLAGS="$CXXFLAGS -march=native"
+
 ERROR_CXXFLAGS=
 if test "x$enable_werror" = "xyes"; then
   if test "x$CXXFLAG_WERROR" = "x"; then

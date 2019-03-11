@@ -6,6 +6,7 @@
 
 #ifndef BITCOIN_MINER_H
 #define BITCOIN_MINER_H
+#include "amount.h"
 
 #include <stdint.h>
 
@@ -17,9 +18,12 @@ class CReserveKey;
 class CScript;
 class CWallet;
 
-static const bool DEFAULT_PRINTPRIORITY_LEGACY = false; 
+static const bool DEFAULT_PRINTPRIORITY_LEGACY = false;
 
 struct CBlockTemplate;
+
+CAmount GetBlockReward(CBlockIndex* pindexPrev);
+uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock);
 
 /** Run the miner threads */
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads);
@@ -33,7 +37,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 void IncrementExtraNonce_Legacy(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 /** Check mined block */
-void UpdateTime(CBlockHeader* block, const CBlockIndex* pindexPrev, bool fProofOfStake=false);
+void UpdateTime(CBlockHeader* block, const CBlockIndex* pindexPrev, bool fProofOfStake = false);
 
 void ThreadStakeMinter_Legacy(CWallet* pwallet);
 void BitcoinMiner(CWallet* pwallet, bool fProofOfStake);

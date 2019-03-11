@@ -269,8 +269,10 @@ const bool GetOpFromName(string str, opcodetype& opcode)
     else if (str == "OP_CHECKMULTISIG") opcode = OP_CHECKMULTISIG;
     else if (str == "OP_CHECKMULTISIGVERIFY") opcode = OP_CHECKMULTISIGVERIFY;
     else if (str == "OP_NOP1") opcode = OP_NOP1;
-    else if (str == "OP_NOP2") opcode = OP_NOP2;
-    else if (str == "OP_NOP3") opcode = OP_NOP3;
+    else if (str == "OP_CHECKLOCKTIMEVERIFY") opcode = OP_CHECKLOCKTIMEVERIFY;
+    else if (str == "OP_NOP2") opcode = OP_CHECKLOCKTIMEVERIFY;
+    else if (str == "OP_CHECKSEQUENCEVERIFY") opcode = OP_CHECKSEQUENCEVERIFY;
+    else if (str == "OP_NOP3") opcode = OP_CHECKSEQUENCEVERIFY;
     else if (str == "OP_NOP4") opcode = OP_NOP4;
     else if (str == "OP_NOP5") opcode = OP_NOP5;
     else if (str == "OP_NOP6") opcode = OP_NOP6;
