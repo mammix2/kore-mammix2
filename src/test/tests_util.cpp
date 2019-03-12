@@ -260,7 +260,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
             //cout << "CPUMiner : proof-of-stake block was signed " << pblock->GetHash().ToString() << endl;
             BOOST_CHECK(ProcessBlockFound(pblock, *pwallet, reservekey));
             LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake);
-
+            j++;
             continue;
         }
 
