@@ -10,6 +10,7 @@
 #include "init.h"
 #include "main.h"
 #include "masternode-sync.h"
+#include "miner.h"
 #include "net.h"
 #include "netbase.h"
 #include "rpcserver.h"
@@ -555,6 +556,45 @@ UniValue setmocktime(const UniValue& params, bool fHelp)
 
     RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
     SetMockTime(params[0].get_int64());
+
+    return NullUniValue;
+}
+
+UniValue setstaking(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "setstaking true|false \n"
+            "\nEnable|Disable wallet to stake coins\n"
+
+            "\nArguments:\n"
+            "1. true|false  (bool, required)\n"
+            "   true to enable.\n"
+            "   false to disable.\n"
+
+            "\nExamples:\n"
+            "\nStart Staking\n" +
+            HelpExampleCli("setstaking", "true") +
+            "\nStop Staking\n" +
+            HelpExampleCli("setstaking", "false"));
+        
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+
+    bool fStaking = true;
+    bool isStaking = true;
+    
+    if (mapArgs["-staking"] != "1") isStaking = false;
+
+    if (params.size() == 1)
+        fStaking = params[0].get_bool();
+
+    if (fStaking == isStaking) return strprintf("Staking = %s", fStaking);
+
+    mapArgs["-staking"] = (fStaking ? "1" : "0");
+
+    //TODO Save staking into kore.conf
+
+    StakingCoins(fStaking);
 
     return NullUniValue;
 }

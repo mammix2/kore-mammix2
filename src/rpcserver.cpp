@@ -328,6 +328,8 @@ static const CRPCCommand vRPCCommands[] =
         {"generating", "getgenerate", &getgenerate, true, false, false},
         {"generating", "gethashespersec", &gethashespersec, true, false, false},
         {"generating", "setgenerate", &setgenerate, true, true, false},
+        {"generating", "setstaking", &setstaking, true, true, false},
+
 #endif
 
         /* Raw transactions */
@@ -400,7 +402,7 @@ static const CRPCCommand vRPCCommands[] =
         {"wallet", "getnewpubkey", &getnewpubkey, true, false, true},
         {"wallet", "getrawchangeaddress", &getrawchangeaddress, true, false, true},
         {"wallet", "getreceivedbyaccount", &getreceivedbyaccount, false, false, true},
-        {"wallet", "getreceivedbyaddress", &getreceivedbyaddress, false, false, true},
+        {"wallet", "getreceivedbyaddress", &getreceivedbyaddress, false, false, true},        
         {"wallet", "getstakingstatus", &getstakingstatus, false, false, true},
         {"wallet", "getstakesplitthreshold", &getstakesplitthreshold, false, false, true},
         {"wallet", "gettransaction", &gettransaction, false, false, true},
