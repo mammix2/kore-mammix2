@@ -3435,7 +3435,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (listInputs.empty())
         return false;
 
-    if (GetAdjustedTime() - chainActive.Tip()->GetBlockTime() < Params().GetTargetSpacing() * 0.75)
+    if ((uint)(GetAdjustedTime() - chainActive.Tip()->GetBlockTime()) < (int)(Params().GetTargetSpacing() * 0.75))
         MilliSleep(Params().GetTargetSpacing() * 0.75 * 1000);
 
     CAmount nCredit;

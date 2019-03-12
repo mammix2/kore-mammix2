@@ -23,6 +23,8 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 
 BOOST_AUTO_TEST_CASE(quick_fork)
 {
+    SetMockTime(GetTime());
+    
     if (fDebug) {
         LogPrintf("*************************************************** \n");
         LogPrintf("**  Starting fork_kore_from_blockinfo/quick_fork ** \n");
@@ -51,8 +53,8 @@ BOOST_AUTO_TEST_CASE(quick_fork)
     ModifiableParams()->setStakeMinAge(0);
     ModifiableParams()->setTargetTimespan(1);
     ModifiableParams()->setEnableBigRewards(true);
-    SetMockTime(0);
-
+    ModifiableParams()->setLastPowBlock(minConfirmations + 2);
+    
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 

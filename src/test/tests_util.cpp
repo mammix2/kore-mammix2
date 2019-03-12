@@ -64,8 +64,6 @@ blockinfo_t blockinfo[] = {
     {0, 1552326458, 1552326099 , 538968063 , 19 , 1 , 0 , 0 , uint256("15868e9f0e2893b0cbc71da336c833687191cc154caec8a994832280cb3be6c3") , uint256("f687437b883b2c0689297a26b07e2e7c0d40b4f0faae8345ff64e944aa446b10") , 0 },                   // Block 2
     {0, 1552327987, 1552326482 , 537050656 , 71 , 1 , 2064757 , 13884784 , uint256("02a622f1e2a2c167156dd882448524e785756b92494ae46b46c64a2b25162cc2") , uint256("183eb70efbbc832a456cb94d9d3798df706501b0ab52f4daaadb05a0410ace13") , 0 }, // Block 3    
     {0, 1552328394, 1552328013 , 536942286 , 17 , 1 , 7892929 , 58159534 , uint256("00bfca079fd6a03b4d38048f70746257322c715fcb0abe4ce6e7399fd65efe3f") , uint256("220650be41d0259edc22a3c0ddc1e8aced3c229346352201953a7cf260fe9489") , 900000000000 }, // Block 4    
-
-    
     {0, 1551475584, 1551474450, 527027404, 63, 1, 21241524, 33555986, uint256("003044cffa95e38e9af9cee7251ca79227ba300395c67e82c45cd80167baab45"), uint256("254a60aa559088a997d0d0b59022d899a7dbbadc9d512905896d20b80f7560eb"), 1800000000000},   // Block 5
     {0, 1551476799, 1551475602, 537061937, 61, 1, 53340836, 58025984, uint256("0041034b9203fe319f48f9de026a20ea69dfe0e9347c71b7e4ac4b178a49da9d"), uint256("fb77c45bcfd87b9a4a0e4456c6b22f858cc79e186f6fa0a2d5e277101bd82318"), 2700000000000},   // Block 6
     {0, 1551483623, 1551476828, 536927768, 236, 1, 16990015, 43555895, uint256("0075f7051456d5a2a6f7e0dfcb992235fb422eff2c9e68b6e9c8e3b1358f978e"), uint256("531f7ed02da106f52ebf3ee37f8a16d5080a9a28015ed8e480ab440e956f61a2"), 3600000000000},  // Block 7
@@ -137,7 +135,7 @@ void InitializeLastCoinStakeSearchTime(CWallet* pwallet, CScript& scriptPubKey)
         return;
     CBlock* pblock = &pblocktemplate->block;
     SignBlock_Legacy(pwallet, pblock);
-    MilliSleep(30000);
+    SetMockTime(GetTime() + 30);
 }
 
 
@@ -185,7 +183,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
     int oldnHeight = chainActive.Tip()->nHeight;
 
     for (int j = startBlock; j < endBlock;) {
-        MilliSleep(Params().GetTargetSpacing() * 1000);
+        SetMockTime(GetTime() + Params().GetTargetSpacing());
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
             if ((GetTime() - nMintableLastCheck > Params().GetClientMintableCoinsInterval())) {
@@ -218,7 +216,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
             {
                 if (GetTime() - mapHashedBlocks[chainActive.Tip()->nHeight] < max(pwallet->nHashInterval, (unsigned int)1)) // wait half of the nHashDrift with max wait of 3 minutes
                 {
-                    MilliSleep(5000);
+                    SetMockTime(GetTime() + 5);
                     //cout << "BitcoinMiner Going out of Loop !!!" << endl;
                     continue;
                 }
@@ -247,7 +245,10 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
         // need to create a new block
         //BOOST_CHECK(pblocktemplate.get());
         if (!pblocktemplate.get())
+        {
+            SetMockTime(GetTime() + (Params().GetTargetSpacing() * 2));
             continue;
+        }
         CBlock* pblock = &pblocktemplate->block;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
         //Stake miner main
@@ -303,30 +304,6 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
                 //cout << "Looking for a solution with nounce " << pblock->nNonce << " hashesDone : " << nHashesDone << endl;
                 if ((pblock->nNonce & 0xFF) == 0)
                     break;
-            }
-
-            // Meter hashes/sec
-            static int64_t nHashCounter;
-            if (nHPSTimerStart == 0) {
-                nHPSTimerStart = GetTimeMillis();
-                nHashCounter = 0;
-            } else
-                nHashCounter += nHashesDone;
-            if (GetTimeMillis() - nHPSTimerStart > 4000) {
-                static CCriticalSection cs;
-                {
-                    LOCK(cs);
-                    if (GetTimeMillis() - nHPSTimerStart > 4000) {
-                        dHashesPerMin = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
-                        nHPSTimerStart = GetTimeMillis();
-                        nHashCounter = 0;
-                        static int64_t nLogTime;
-                        if (GetTime() - nLogTime > 30 * 60) {
-                            nLogTime = GetTime();
-                            //cout << "hashmeter %6.0f khash/s " << dHashesPerMin / 1000.0 << endl;
-                        }
-                    }
-                }
             }
 
             // Check for stop or if block needs to be rebuilt
@@ -445,7 +422,7 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
                 // we dont have extranounce for pos
                 LogBlockFound(pwallet, j, pblock, 0, true);
                 // Let's wait to generate the nextBlock
-                MilliSleep(Params().GetTargetSpacing() * 1000);
+                SetMockTime(GetTime() + Params().GetTargetSpacing());
             } else {
                 //cout << "NOT ABLE TO PROCESS BLOCK :" << j << endl;
             }
