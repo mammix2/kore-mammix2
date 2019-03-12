@@ -263,8 +263,8 @@ public:
         fRequireStandard                              = true;
         fSkipProofOfWorkCheck                         = false;
         nDefaultPort                                  = 10743;
-        nBudgetFeeConfirmations                       = 6;                // Number of confirmations for the finalization fee
-        nBudgetVoteUpdate                             = 60 * 60;          // can only change vote after 1 hour
+        nBudgetFeeConfirmations                       = 6;                   // Number of confirmations for the finalization fee
+        nBudgetVoteUpdate                             = 60 * 60;             // can only change vote after 1 hour
         nClientMintableCoinsInterval                  = 5 * 60;
         nEnsureMintableCoinsInterval                  = 1 * 60;
         nSubsidyHalvingInterval                       = 4000;
@@ -288,7 +288,7 @@ public:
         nMaxTipAge                                    = 24 * 60 * 60;
         nMinerConfirmationWindow                      = 50;                  // nPowTargetTimespan / nPowTargetSpacing
         nMinerThreads                                 = 0;
-        nModifierInterval                             = 60; // should be the same as nStakeMinConfirmations
+        nModifierInterval                             = 60;                  // should be the same as nStakeMinConfirmations
         nPastBlocksMax                                = 24;
         nPastBlocksMin                                = 24;
         nPoolMaxTransactions                          = 3;
@@ -301,7 +301,7 @@ public:
         nStartMasternodePayments                      = 1508884606;          //Genesis time
         nTargetTimespan                               = 1 * 60;
         nTargetSpacing                                = 1 * 60;              // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
-        nTargetSpacingForStake                        = nModifierInterval;                  // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
+        nTargetSpacingForStake                        = nModifierInterval;   // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
         /** Height or Time Based Activations **/
         nBlockEnforceInvalidUTXO                      = 902850;              //Start enforcing the invalid UTXO's
         nBlockEnforceSerialRange                      = 895400;              //Enforce serial range starting this block
@@ -442,7 +442,6 @@ public:
         vDeployments[DEPLOYMENT_TESTDUMMY].nTimeout   = 1230767999;                  // December 31, 2008
         strDevFundPubKey = "04fb16faf70501f5292a630bced3ec5ff4df277d637e855d129896066854e1d2c9d7cab8dbd5b98107594e74a005e127c66c13a918be477fd3827b872b33d25e03";
         strSporkKey = "04ca99e36f198eedd11b386cf2127a036ec1f0028c2b2a5ec0ff71aa2045c1c4494d45013467a5653eb64442a4d8f93ca62e00f5d9004a3a6469e72b8516ed4a99";
-        strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
         
         // sending rewards to this public key
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
