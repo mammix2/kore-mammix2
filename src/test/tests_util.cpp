@@ -184,7 +184,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
 
     int oldnHeight = chainActive.Tip()->nHeight;
 
-    for (int j = startBlock; j < endBlock; j++) {
+    for (int j = startBlock; j < endBlock;) {
         MilliSleep(Params().GetTargetSpacing() * 1000);
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
@@ -245,7 +245,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
 
         unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(scriptPubKey, pwallet, fProofOfStake));
         // need to create a new block
-        BOOST_CHECK(pblocktemplate.get());
+        //BOOST_CHECK(pblocktemplate.get());
         if (!pblocktemplate.get())
             continue;
         CBlock* pblock = &pblocktemplate->block;
@@ -346,6 +346,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
             // Changing pblock->nTime can change work required on testnet:
             hashTarget.SetCompact(pblock->nBits);
         }
+        j++;
     }
 
     // lets check if we have generated the munber of blocks requested

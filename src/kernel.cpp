@@ -319,7 +319,7 @@ bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t 
 bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockFrom, unsigned int& nTimeTx, CAmount stakeableBalance)
 {
     if (nTimeTx < nTimeBlockFrom)
-        return error("Stake() : nTime violation");
+        return error("Stake() : nTime violation => nTimeTx=%d nTimeBlockFrom=%d", nTimeTx, nTimeBlockFrom );
 
     if (nTimeBlockFrom + Params().GetStakeMinAge() > nTimeTx) // Min age requirement
         return error("Stake() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d",

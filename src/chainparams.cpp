@@ -273,7 +273,6 @@ public:
         nPastBlocksMin = 24;
         nPastBlocksMax = 24;
         nClientMintibleCoinsInterval = 5 * 60;
-        nClientMintibleCoinsInterval = 1 * 60;
         nMasternodeCountDrift = 20; // ONLY KORE
         nMaxMoneyOut = MAX_MONEY;
         nRuleChangeActivationThreshold = 1916; // 95% of 2016
@@ -402,8 +401,7 @@ public:
         nStakeMinAge                 = 30 * 60; // It will stake after 30 minutes
         nPastBlocksMin = 64;
         nPastBlocksMax = 64;
-        nClientMintibleCoinsInterval = 10; // Every 10 seconds
-        nClientMintibleCoinsInterval += 2;  // Additional 2 seconds
+        nClientMintibleCoinsInterval = 45; // Every 45 seconds
         fSkipProofOfWorkCheck = false;
         bnProofOfWorkLimit  = ~uint256(0) >> 3;
         bnProofOfStakeLimit = ~uint256(0) >> 4;
