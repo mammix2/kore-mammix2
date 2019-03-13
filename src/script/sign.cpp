@@ -224,14 +224,8 @@ bool SetSequenceForLockTxVIn(std::vector<CTxIn>& vIn)
 {
     BOOST_FOREACH (CTxIn& v, vIn)
     {
-        txnouttype whichType;
-        vector<valtype> vSolutions;
-        if (!Solver(v.prevPubKey, whichType, vSolutions))
-            return false;
-
-        if (whichType == TX_LOCKSTAKE && v.nSequence != Params().GetStakeLockSequenceNumber()) {
+        if (v.prevPubKey.IsStakeLockScript() && v.nSequence != Params().GetStakeLockSequenceNumber())
             v.nSequence = Params().GetStakeLockSequenceNumber();
-        }
     }
 
     return true;

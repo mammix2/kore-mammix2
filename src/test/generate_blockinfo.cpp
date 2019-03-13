@@ -5,7 +5,7 @@
 #include "tests_util.h"
 #include "utiltime.h"
 
-#define GENERATE_BLOCK_INFO
+// #define GENERATE_BLOCK_INFO
 
 #include <boost/test/unit_test.hpp>
 

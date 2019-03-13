@@ -24,6 +24,7 @@
 BOOST_AUTO_TEST_SUITE(pos_tests)
 
 #define RUN_INTEGRATION_TEST
+// #define LOG_INTEGRATION_TESTS
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 static const int MASTERNODES_AVAILABLE = 20;
@@ -86,8 +87,10 @@ static std::vector<CRecipient> PopulateWalletByWealth(double numberOfWallets, do
     std::uniform_int_distribution<int> distribution(1, 25);
     std::vector<CRecipient> vecSend;
 
+#ifdef LOG_INTEGRATION_TESTS
     printf("Distributing %.0f for %.0f wallets.\n", toDistribute, numberOfWallets);
     printf(" Creating transactions: 0%%");
+#endif
 
     for (int i = 0; i < numberOfWallets; i++) {
         CAmount val = 0;
@@ -129,12 +132,17 @@ static std::vector<CRecipient> PopulateWalletByWealth(double numberOfWallets, do
             vecSend.push_back(recipient);
         }
 
+#ifdef LOG_INTEGRATION_TESTS
         printf("\xd Creating transactions: %.2f%%", (i * 100) / numberOfWallets);
+#endif
 
         toDistribute -= val;
     }
 
+#ifdef LOG_INTEGRATION_TESTS
     printf("\xd Creating transactions: 100%% \t \n");
+#endif
+
     return vecSend;
 }
 
@@ -236,14 +244,15 @@ void StartPreMineAndWalletAllocation()
             case 3:
                 vecSend = PopulateWalletByWealth(69, 30000 * COIN); //1388, 2, true);
                 break;
-            default:
-                printf("No transactions done for case %d in block %d.\n", populate, i);
-                break;
             }
 
             if (wallets[0].CreateTransaction(vecSend, txNew, reserveKey, feeRate, failReason, (const CCoinControl*)__null, ALL_COINS, false, 0L))
                 if(wallets[0].CommitTransaction(txNew, reserveKey))
-                    printf("Transactions don e for case %d in block %d.\n", populate++, i);
+                {
+#ifdef LOG_INTEGRATION_TESTS
+                    printf("Transactions done for case %d in block %d.\n", populate++, i);
+#endif
+                }
         }
 
         i++;
@@ -289,10 +298,13 @@ BOOST_AUTO_TEST_CASE(pos_integration)
     currentSuply = chainActive.Tip()->nMoneySupply;
 
     WALLETS_AVAILABLE = walletCount + 1;
+
+#ifdef LOG_INTEGRATION_TESTS
     for (int i = 0; i < WALLETS_AVAILABLE; i++) {
         wallets[i].ScanForWalletTransactions(genesisBlock, true);
         printf("Balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
+#endif
 
     std::uniform_int_distribution<int> distribution(0, WALLETS_AVAILABLE - 1);
 
@@ -306,9 +318,10 @@ BOOST_AUTO_TEST_CASE(pos_integration)
         CWallet* wallet = &wallets[walletID];
         CReserveKey reservekey(wallet);
 
-        // BitcoinMiner(wallet, true);
         wallet->ScanForWalletTransactions(genesisBlock, true);
+#ifdef LOG_INTEGRATION_TESTS
         printf("Balance for wallet %d is %s.\n", walletID, FormatMoney(wallet->GetBalance()).c_str());
+#endif
         if (wallet->GetBalance() > 0 && wallet->MintableCoins()) {
             CBlockIndex* pindexPrev = chainActive.Tip();
 
@@ -323,7 +336,9 @@ BOOST_AUTO_TEST_CASE(pos_integration)
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
             if (!SignBlock(*pblock, *wallet)) {
+#ifdef LOG_INTEGRATION_TESTS
                 printf("BitcoinMiner(): Signing new block with UTXO key failed \n");
+#endif
                 continue;
             }
 
@@ -332,6 +347,7 @@ BOOST_AUTO_TEST_CASE(pos_integration)
 
             blockCount++;
 
+#ifdef LOG_INTEGRATION_TESTS
             if (nextToLastPoSWallet >= 0) {
                 int last = lastBlockStaked[nextToLastPoSWallet];
                 CAmount prevBalance = wallets[nextToLastPoSWallet].GetBalance();
@@ -343,17 +359,20 @@ BOOST_AUTO_TEST_CASE(pos_integration)
             lastBlockStaked[walletID] = blockCount;
             nextToLastPoSWallet = lastPoSWallet;
             lastPoSWallet = walletID;
+#endif
 
             _supply = chainActive.Tip()->nMoneySupply;
         }
 
-        if (blockCount == 215) break;
+        if (blockCount == 210) break;
     }
 
+#ifdef LOG_INTEGRATION_TESTS
     for (int i = 0; i < WALLETS_AVAILABLE; i++) {
         wallets[i].ScanForWalletTransactions(genesisBlock, true);
         printf("Final balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
+#endif
 
     delete[] wallets;
     delete[] masternodes;
