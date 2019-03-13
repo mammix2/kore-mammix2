@@ -61,12 +61,14 @@ isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey)
     case TX_PUBKEY:
     case TX_LOCKSTAKE:
         keyID = CPubKey(vSolutions[0]).GetID();
-        if (keystore.HaveKey(keyID)) {
-            if (whichType == TX_LOCKSTAKE)
+        if (whichType == TX_LOCKSTAKE) {
+            if (keystore.HaveKey(keyID))
                 return ISMINE_STAKE;
-                
-            return ISMINE_SPENDABLE;
+            else
+                return ISMINE_WATCH_ONLY_STAKE;
         }
+        else if (keystore.HaveKey(keyID))
+            return ISMINE_SPENDABLE;
         break;
     case TX_PUBKEYHASH:
         keyID = CKeyID(uint160(vSolutions[0]));

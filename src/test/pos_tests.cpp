@@ -134,7 +134,7 @@ static std::vector<CRecipient> PopulateWalletByWealth(double numberOfWallets, do
         toDistribute -= val;
     }
 
-    printf("\xd Creating transactions: 100%% \t \n");
+    printf("\xd Creating transactions: 100%%     \n");
     return vecSend;
 }
 
@@ -243,7 +243,7 @@ void StartPreMineAndWalletAllocation()
 
             if (wallets[0].CreateTransaction(vecSend, txNew, reserveKey, feeRate, failReason, (const CCoinControl*)__null, ALL_COINS, false, 0L))
                 if(wallets[0].CommitTransaction(txNew, reserveKey))
-                    printf("Transactions don e for case %d in block %d.\n", populate++, i);
+                    printf("Transactions done for case %d in block %d.\n", populate++, i);
         }
 
         i++;
@@ -347,15 +347,18 @@ BOOST_AUTO_TEST_CASE(pos_integration)
             _supply = chainActive.Tip()->nMoneySupply;
         }
 
-        if (blockCount == 525600) break;
+        if (blockCount == 210) break;
     }
+
+    SetMockTime(GetTime() + 500);
 
     for (int i = 0; i < WALLETS_AVAILABLE; i++) {
         wallets[i].ScanForWalletTransactions(genesisBlock, true);
         printf("Final balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
 
-    delete wallets;
+    delete[] wallets;
+    wallets = NULL;
     delete masternodes;
 }
 

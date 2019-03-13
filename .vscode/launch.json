@@ -109,6 +109,7 @@
             "name": "GUI Test Net",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/qt/kore-qt",
             "args": ["-debug", "-testnet","-par=1"],
             "stopAtEntry": true,
