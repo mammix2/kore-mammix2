@@ -18,6 +18,10 @@ BOOST_AUTO_TEST_SUITE(fork_afterwords)
 
 BOOST_AUTO_TEST_CASE(after_fork)
 {
+    // todo how to get this parameter from argument list ??
+    //bool logToStdout = GetBoolArg("-logtostdout", false);
+    bool logToStdout = true;
+
     if (fDebug) {
         LogPrintf("****************************************** \n");
         LogPrintf("**  Starting fork_afterwords/after_fork ** \n");
@@ -55,12 +59,12 @@ BOOST_AUTO_TEST_CASE(after_fork)
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 
     // generate pow blocks, so we can stake
-    GenerateBlocks(1, minConfirmations + 2, pwalletMain, scriptPubKey, false);
+    GenerateBlocks(1, minConfirmations + 2, pwalletMain, scriptPubKey, false, logToStdout);
 
     // we are just checking if we are able to generate PoS blocks after fork
     // lets exercise more than 64 blocks, this way we will see if the max
     // modifierinterval is working, it gets max(64 blocks)
-    GenerateBlocks(minConfirmations + 2, minConfirmations + 2 + 100, pwalletMain, scriptPubKey, true);
+    GenerateBlocks(minConfirmations + 2, minConfirmations + 2 + 100, pwalletMain, scriptPubKey, true, logToStdout);
 
     // Leaving old values
     Checkpoints::fEnabled = true;

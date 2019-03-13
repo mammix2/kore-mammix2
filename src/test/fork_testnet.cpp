@@ -13,12 +13,13 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 /* This testcase will take long time to run */
 BOOST_AUTO_TEST_SUITE(fork_testnet)
 
-// #define RUN_FORK_TESTS
+#define RUN_FORK_TESTS
 
 #ifdef RUN_FORK_TESTS
 
 BOOST_AUTO_TEST_CASE(testnet_parameters)
 {
+    SetMockTime(GetTime());
     if (fDebug) {
         LogPrintf("*********************************************** \n");
         LogPrintf("**  Starting fork_testnet/testnet_parameters ** \n");
@@ -55,7 +56,7 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
     ModifiableParams()->setStakeMinAge(nStakeMinAge);
     ModifiableParams()->setTargetTimespan(nTargetTimespan);
     ModifiableParams()->setEnableBigRewards(true);
-    SetMockTime(0);    
+    //SetMockTime(0);    
 
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
@@ -65,6 +66,7 @@ BOOST_AUTO_TEST_CASE(testnet_parameters)
 
     // lets generate new pow blocks
     int pow = minConfirmations + 2 + Params().GetStakeMinConfirmations() + 10;
+    ModifiableParams()->setLastPowBlock(pow);
     GenerateBlocks(minConfirmations + 2, pow, pwalletMain, scriptPubKey, false);
 
     // lets generate enought block and have 10 POS blocks confirmed

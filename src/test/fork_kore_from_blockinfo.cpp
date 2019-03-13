@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(quick_fork)
     ModifiableParams()->setStakeMinAge(0);
     ModifiableParams()->setTargetTimespan(1);
     ModifiableParams()->setEnableBigRewards(true);
-    ModifiableParams()->setLastPowBlock(minConfirmations + 2);
+    ModifiableParams()->setLastPowBlock(minConfirmations + 1);
     
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
