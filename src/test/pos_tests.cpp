@@ -23,7 +23,7 @@
 
 BOOST_AUTO_TEST_SUITE(pos_tests)
 
-//#define RUN_INTEGRATION_TEST
+#define RUN_INTEGRATION_TEST
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 static const int MASTERNODES_AVAILABLE = 20;
@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(pos_integration)
             _supply = chainActive.Tip()->nMoneySupply;
         }
 
-        if (blockCount == 525600) break;
+        if (blockCount == 215) break;
     }
 
     for (int i = 0; i < WALLETS_AVAILABLE; i++) {
@@ -355,8 +355,8 @@ BOOST_AUTO_TEST_CASE(pos_integration)
         printf("Final balance for wallet %d is %s.\n", i, FormatMoney(wallets[i].GetBalance()).c_str());
     }
 
-    delete wallets;
-    delete masternodes;
+    delete[] wallets;
+    delete[] masternodes;
 }
 
 #endif
