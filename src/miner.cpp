@@ -1330,7 +1330,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
 {
     LogPrintf("StakeMiner Legacy started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("stake-miner-legacy");
+    RenameThread("kore-pos-legacy");
 
     const CChainParams& chainparams = Params();
     boost::shared_ptr<CReserveScript> coinstakeScript;
@@ -1404,7 +1404,7 @@ void KoreMiner_Legacy()
     LogPrintf("KoreMiner_Legacy started\n");
     const CChainParams& chainparams = Params();
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("kore-miner-legacy");
+    RenameThread("kore-pow-legacy");
 
     unsigned int nExtraNonce = 0;
 
@@ -1577,7 +1577,6 @@ void StakingCoins(bool fStaking)
     }
 
     if (!fStaking){
-        stakingThreads->interrupt_all();
         return;
     }
 

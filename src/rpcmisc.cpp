@@ -25,6 +25,9 @@
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/program_options/detail/config_file.hpp>
+
 
 #include <univalue.h>
 
@@ -590,10 +593,41 @@ UniValue setstaking(const UniValue& params, bool fHelp)
 
     if (fStaking == isStaking) return strprintf("Staking = %s", fStaking);
 
-    mapArgs["-staking"] = (fStaking ? "1" : "0");
+    std::string stakingFlag = (fStaking ? "1" : "0");
 
-    //TODO Save staking into kore.conf
+    mapArgs["-staking"] = stakingFlag;
 
+    std::string strReplace = strprintf("staking=%s", (isStaking ? "1" : "0"));
+    std::string strNew = strprintf("staking=%s", stakingFlag);
+
+    boost::filesystem::ifstream streamConfig(GetConfigFile());
+    boost::filesystem::path pathConfig = GetConfigFile();
+    if(!streamConfig || !boost::filesystem::exists(pathConfig))
+        LogPrintf("Error opening files!");
+
+    std::set<string> setOptions;
+    setOptions.insert("*");
+
+    std::ostringstream strTemp;
+
+    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
+        // Don't overwrite existing settings so command line settings override kore.conf
+        std::string strKey =    it->string_key;
+        std::string strValue =  it->value[0];
+        if((strKey + "=" + strValue) == strReplace){
+            strTemp << strNew << std::endl;
+            continue;
+        }
+        strTemp << strKey << strValue << std::endl;
+    }
+    
+    std::ofstream newKoreConfig;
+    newKoreConfig.open(pathConfig.string().c_str(),fstream::out);
+
+    newKoreConfig << strTemp.str();
+
+    newKoreConfig.flush();
+	
     StakingCoins(fStaking);
 
     return NullUniValue;
