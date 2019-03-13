@@ -429,8 +429,7 @@ static void MutateTxSign(CMutableTransaction& tx, const string& flagStr)
         mergedTx.vin[i].prevPubKey = coins->vout[txin.prevout.n].scriptPubKey;
     }
 
-    if (!SetSequenceForLockTxVIn(mergedTx.vin))
-            throw runtime_error("Failed to set sequence to spend a stake locking tx");
+    SetSequenceForLockTxVIn(mergedTx.vin);
 
     // Sign what we can:
     for (unsigned int i = 0; i < mergedTx.vin.size(); i++)

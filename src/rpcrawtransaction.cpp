@@ -729,11 +729,7 @@ UniValue signrawtransaction(const UniValue& params, bool fHelp)
     }
 
 
-    if (!SetSequenceForLockTxVIn(mergedTx.vin))
-    {
-        result.push_back(Pair("complete", false));
-        result.push_back(Pair("errors", "Failed to set sequence to spend a stake locking tx"));
-    }
+    SetSequenceForLockTxVIn(mergedTx.vin);
 
     // Sign what we can:
     for (unsigned int i = 0; i < mergedTx.vin.size(); i++)

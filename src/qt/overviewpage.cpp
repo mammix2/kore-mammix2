@@ -129,7 +129,6 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
                                               currentWatchOnlyBalance(-1),
                                               currentWatchUnconfBalance(-1),
                                               currentWatchImmatureBalance(-1),
-                                              currentWatchStakedBalance(-1),
                                               txdelegate(new TxViewDelegate()),
                                               filter(0)
 {
@@ -185,7 +184,7 @@ OverviewPage::~OverviewPage()
     delete ui;
 }
 
-void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& stakedBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance, const CAmount& watchStakedBalance)
+void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance, const CAmount& stakedBalance, const CAmount& anonymizedBalance, const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
 {
     currentBalance = balance;
     currentUnconfirmedBalance = unconfirmedBalance;
@@ -195,7 +194,6 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     currentWatchOnlyBalance = watchOnlyBalance;
     currentWatchUnconfBalance = watchUnconfBalance;
     currentWatchImmatureBalance = watchImmatureBalance;
-    currentWatchStakedBalance = watchStakedBalance;
 
 
     ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, balance - immatureBalance, false, BitcoinUnits::separatorAlways));
@@ -209,7 +207,6 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelWatchAvailable->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchOnlyBalance, false, BitcoinUnits::separatorAlways));
     ui->labelWatchPending->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchUnconfBalance, false, BitcoinUnits::separatorAlways));
     ui->labelWatchImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchImmatureBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelWatchStaked->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchStakedBalance, false, BitcoinUnits::separatorAlways));
     ui->labelWatchTotal->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, watchOnlyBalance + watchUnconfBalance + watchImmatureBalance, false, BitcoinUnits::separatorAlways));
 
     // only show immature (newly mined) balance if it's non-zero, so as not to complicate things
@@ -220,15 +217,11 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     // only show staked (locked) balance if it's non-zero, so as not to complicate things
     // for the non-staking users
     bool showStaked = stakedBalance != 0;
-    bool showWatchOnlyStaked = watchStakedBalance != 0;
 
     // for symmetry reasons also show immature and staked label when the watch-only one is shown
     ui->labelImmature->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelImmatureText->setVisible(showImmature || showWatchOnlyImmature);
     ui->labelWatchImmature->setVisible(showWatchOnlyImmature); // show watch-only immature balance
-    ui->labelStaked->setVisible(showStaked || showWatchOnlyStaked);
-    ui->labelStakedText->setVisible(showStaked || showWatchOnlyStaked);
-    ui->labelWatchStaked->setVisible(showWatchOnlyStaked); // show watch-only staked balance
 
     updateObfuscationProgress();
 
@@ -252,7 +245,6 @@ void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly)
 
     if (!showWatchOnly) {
         ui->labelWatchImmature->hide();
-        ui->labelWatchStaked->hide();
     } else {
         ui->labelBalance->setIndent(20);
         ui->labelUnconfirmed->setIndent(20);
@@ -291,7 +283,7 @@ void OverviewPage::setWalletModel(WalletModel* model)
         // Keep up to date with wallet
         setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getStakedBalance(),
             model->getAnonymizedBalance(), model->getWatchBalance(), model->getWatchUnconfirmedBalance(),
-            model->getWatchImmatureBalance(), model->getWatchStakedBalance());
+            model->getWatchImmatureBalance());
         connect(model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this, SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
@@ -313,7 +305,7 @@ void OverviewPage::updateDisplayUnit()
         nDisplayUnit = walletModel->getOptionsModel()->getDisplayUnit();
         if (currentBalance != -1)
             setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance, currentStakedBalance, currentAnonymizedBalance,
-                currentWatchOnlyBalance, currentWatchUnconfBalance, currentWatchImmatureBalance, currentWatchStakedBalance);
+                currentWatchOnlyBalance, currentWatchUnconfBalance, currentWatchImmatureBalance);
 
         // Update txdelegate->unit with the current unit
         txdelegate->unit = nDisplayUnit;

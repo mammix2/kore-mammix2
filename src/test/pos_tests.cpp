@@ -23,7 +23,7 @@
 
 BOOST_AUTO_TEST_SUITE(pos_tests)
 
-#define RUN_INTEGRATION_TEST
+// #define RUN_INTEGRATION_TEST
 // #define LOG_INTEGRATION_TESTS
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
