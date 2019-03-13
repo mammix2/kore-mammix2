@@ -369,6 +369,24 @@ bool CScript::IsPayToScriptHash() const
             (*this)[22] == OP_EQUAL);
 }
 
+bool CScript::IsStakeLockScript() const
+{
+    if (this->size() < 41 || this->size() > 73)
+        return false;
+
+    if (!((*this)[0] == 0x03 &&
+          (*this)[1] == 0x01 &&
+          (*this)[2] == 0x00 &&
+          (*this)[3] == 0x40 &&
+          (*this)[4] == 0xB2 &&
+          (*this)[5] == 0x75))
+        return false;
+    
+    int scriptSize = (*this)[6] + 7;
+
+    return (*this)[scriptSize] == 0xAC;
+}
+
 bool CScript::IsPushOnly(const_iterator pc) const
 {
     while (pc < end())
