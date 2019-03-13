@@ -170,7 +170,7 @@ void ScanForWalletTransactions(CWallet* pwallet)
     // pwallet->ScanForWalletTransactions(genesisBlock, true);
 }
 
-void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake)
+void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake, bool logToStdout)
 {
     bool fGenerateBitcoins = false;
     bool fMintableCoins = false;
@@ -260,7 +260,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
             }
             //cout << "CPUMiner : proof-of-stake block was signed " << pblock->GetHash().ToString() << endl;
             BOOST_CHECK(ProcessBlockFound(pblock, *pwallet, reservekey));
-            LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake);
+            LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake, logToStdout);
             j++;
             continue;
         }
@@ -291,7 +291,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
                     //cout << "hash  : " << hash.GetHex() << endl;
                     //cout << "target: " << hashTarget.GetHex() << endl;
                     BOOST_CHECK(ProcessBlockFound(pblock, *pwallet, reservekey));
-                    LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake);
+                    LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake, logToStdout);
 
                     // In regression test mode, stop mining after a block is found. This
                     // allows developers to controllably generate a block on demand.
@@ -406,7 +406,7 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
     }
 }
 
-void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey)
+void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scriptPubKey, bool logToStdout)
 {
     const CChainParams& chainparams = Params();
 
@@ -420,7 +420,7 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
         if (SignBlock_Legacy(pwallet, pblock)) {
             if (ProcessBlockFound_Legacy(pblock, chainparams)) {
                 // we dont have extranounce for pos
-                LogBlockFound(pwallet, j, pblock, 0, true);
+                LogBlockFound(pwallet, j, pblock, 0, true, logToStdout);
                 // Let's wait to generate the nextBlock
                 SetMockTime(GetTime() + Params().GetTargetSpacing());
             } else {
@@ -456,7 +456,7 @@ void Create_NewTransaction(CBlock* pblock, const CBlockIndex* pindexPrev, const 
     pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 }
 
-void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blockInfo, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake)
+void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blockInfo, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake, bool logToStdout)
 {
     CBlockTemplate* pblocktemplate;
     const CChainParams& chainparams = Params();
@@ -480,6 +480,7 @@ void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
         pblock->nBirthdayA = blockinfo[i].nBirthdayA;
         pblock->nBirthdayB = blockinfo[i].nBirthdayB;
         CValidationState state;
+        /*
         cout << "Found Block === " << i+1 << " === " << endl;
         cout << "nTime         : " << pblock->nTime << endl;
         cout << "nNonce        : " << pblock->nNonce << endl;
@@ -490,6 +491,7 @@ void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
         cout << "Hash          : " << pblock->GetHash().ToString().c_str() << endl;
         cout << "hashMerkleRoot: " << pblock->hashMerkleRoot.ToString().c_str()  << endl;
         cout << "New Block values" << endl;
+        */
 
         if (fProofOfStake) {
             BOOST_CHECK(SignBlock_Legacy(pwallet, pblock));
@@ -505,9 +507,8 @@ void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
             //BOOST_CHECK(pblock->GetHash() == blockinfo[i].hash);
             //BOOST_CHECK(pblock->hashMerkleRoot == blockinfo[i].hashMerkleRoot);
             BOOST_CHECK(ProcessNewBlock_Legacy(state, chainparams, NULL, pblock, true, NULL));
-            LogBlockFound(pwallet, i + 1, pblock, blockinfo[i].extranonce, fProofOfStake);
         }
-
+        LogBlockFound(pwallet, i + 1, pblock, blockinfo[i].extranonce, fProofOfStake, logToStdout);
         BOOST_CHECK(state.IsValid());
         // we should get the same balance, depends the maturity
         // cout << "Block: " << i+1 << " time ("<< pblock->GetBlockTime() << ") Should have balance: " << blockinfo[i].balance << " Actual Balance: " << pwallet->GetBalance() << endl;
@@ -521,7 +522,7 @@ void CreateOldBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blo
     }
 }
 
-void createNewBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blockInfo, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake)
+void createNewBlocksFromBlockInfo(int startBlock, int endBlock, blockinfo_t& blockInfo, CWallet* pwallet, CScript& scriptPubKey, bool fProofOfStake, bool logToStdout)
 {
     CBlockTemplate* pblocktemplate;
     const CChainParams& chainparams = Params();
