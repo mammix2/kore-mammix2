@@ -21,7 +21,6 @@ BOOST_AUTO_TEST_SUITE(generate_blockinfo)
 BOOST_AUTO_TEST_CASE(generate_old_pow)
 {
     SetMockTime(GetTime());
-
     Checkpoints::fEnabled = false;
     int64_t oldTargetTimespan = Params().GetTargetTimespan();
     int64_t oldTargetSpacing = Params().GetTargetSpacing();
