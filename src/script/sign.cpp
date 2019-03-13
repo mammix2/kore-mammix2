@@ -220,6 +220,23 @@ bool SignSignature_Legacy(const CKeyStore& keystore, const CTransaction& txFrom,
     return SignSignature_Legacy(keystore, txout.scriptPubKey, txTo, nIn, nHashType);
 }
 
+bool SetSequenceForLockTxVIn(std::vector<CTxIn>& vIn)
+{
+    BOOST_FOREACH (CTxIn& v, vIn)
+    {
+        txnouttype whichType;
+        vector<valtype> vSolutions;
+        if (!Solver(v.prevPubKey, whichType, vSolutions))
+            return false;
+
+        if (whichType == TX_LOCKSTAKE && v.nSequence != Params().GetStakeLockSequenceNumber()) {
+            v.nSequence = Params().GetStakeLockSequenceNumber();
+        }
+    }
+
+    return true;
+}
+
 bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, int nHashType)
 {
     assert(nIn < txTo.vin.size());
@@ -250,10 +267,6 @@ bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CMutabl
         txin.scriptSig << static_cast<valtype>(subscript);
         //txin.scriptSig << valtype(subscript.begin(), subscript.end());
         if (!fSolved) return false;
-    } else if (whichType == TX_LOCKSTAKE && txin.nSequence != Params().GetStakeLockSequenceNumber()) {
-        txTo.vin[nIn].nSequence = Params().GetStakeLockSequenceNumber();
-
-        return SignSignature(keystore, fromPubKey, txTo, nIn, nHashType);
     }
 
     // Test solution

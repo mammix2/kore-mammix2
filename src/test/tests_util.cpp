@@ -336,6 +336,7 @@ void GeneratePOWLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
     unsigned int nExtraNonce = 0;
 
     for (int j = startBlock; j < endBlock; j++) {
+        SetMockTime(GetTime() + (Params().GetTargetSpacing() * 2));
         int lastBlock = chainActive.Tip()->nHeight;
         CAmount oldBalance = pwallet->GetBalance() + pwallet->GetImmatureBalance() + pwallet->GetUnconfirmedBalance();
         // Let-s make sure we have the correct spacing

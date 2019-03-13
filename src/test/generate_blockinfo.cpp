@@ -51,8 +51,7 @@ BOOST_AUTO_TEST_CASE(generate_old_pow)
     ModifiableParams()->setStakeModifierInterval(nModifierInterval);
     ModifiableParams()->setStakeMinAge(nStakeMinAge);
     ModifiableParams()->setTargetTimespan(nTargetTimespan);
-    ModifiableParams()->setEnableBigRewards(true);
-    //SetMockTime(0);    
+    ModifiableParams()->setEnableBigRewards(true); 
     
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
