@@ -113,11 +113,6 @@ CAmount WalletModel::getWatchImmatureBalance() const
     return wallet->GetImmatureWatchOnlyBalance();
 }
 
-CAmount WalletModel::getWatchStakedBalance() const
-{
-    return wallet->GetStakedWatchOnlyBalance();
-}
-
 void WalletModel::updateStatus()
 {
     EncryptionStatus newEncryptionStatus = getEncryptionStatus();
@@ -165,18 +160,16 @@ void WalletModel::checkBalanceChanged()
     CAmount newWatchOnlyBalance = 0;
     CAmount newWatchUnconfBalance = 0;
     CAmount newWatchImmatureBalance = 0;
-    CAmount newWatchStakedBalance = 0;
     if (haveWatchOnly()) {
         newWatchOnlyBalance = getWatchBalance();
         newWatchUnconfBalance = getWatchUnconfirmedBalance();
         newWatchImmatureBalance = getWatchImmatureBalance();
-        newWatchStakedBalance = getWatchStakedBalance();
     }
 
     if (cachedBalance != newBalance || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance ||
         cachedStakedBalance != newStakedBalance || cachedAnonymizedBalance != newAnonymizedBalance || cachedTxLocks != nCompleteTXLocks ||
         cachedWatchOnlyBalance != newWatchOnlyBalance || cachedWatchUnconfBalance != newWatchUnconfBalance ||
-        cachedWatchImmatureBalance != newWatchImmatureBalance || cachedWatchStakedBalance != newWatchStakedBalance)
+        cachedWatchImmatureBalance != newWatchImmatureBalance)
     {
         cachedBalance = newBalance;
         cachedUnconfirmedBalance = newUnconfirmedBalance;
@@ -187,9 +180,8 @@ void WalletModel::checkBalanceChanged()
         cachedWatchOnlyBalance = newWatchOnlyBalance;
         cachedWatchUnconfBalance = newWatchUnconfBalance;
         cachedWatchImmatureBalance = newWatchImmatureBalance;
-        cachedWatchStakedBalance = newWatchStakedBalance;
         emit balanceChanged(newBalance, newUnconfirmedBalance, newImmatureBalance, newStakedBalance, newAnonymizedBalance,
-            newWatchOnlyBalance, newWatchUnconfBalance, newWatchImmatureBalance, newWatchStakedBalance);
+            newWatchOnlyBalance, newWatchUnconfBalance, newWatchImmatureBalance);
     }
 }
 

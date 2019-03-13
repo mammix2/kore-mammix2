@@ -1428,30 +1428,6 @@ CAmount CWalletTx::GetDenominatedCredit(bool unconfirmed) const
     return nCredit;
 }
 
-CAmount CWalletTx::GetStakedWatchOnlyCredit() const
-{
-    if (pwallet == 0)
-        return 0;
-
-    CAmount nCredit = 0;
-    uint256 hashTx = GetHash();
-    for (unsigned int i = 0; i < vout.size(); i++) {
-        if (!pwallet->IsSpent(hashTx, i)) {
-            const CTxOut& txout = vout[i];
-            if (txout.IsCoinStake()) {
-                CAmount nOutCredit = pwallet->GetCredit(txout, ISMINE_WATCH_ONLY_STAKE);
-                if (nOutCredit > 0 && !IsStakeSpendable())
-                    nCredit += nOutCredit;
-            }
-
-            if (!MoneyRange(nCredit))
-                throw std::runtime_error("CWalletTx::GetStakedCredit() : value out of range");
-        }
-    }
-
-    return nCredit;
-}
-
 CAmount CWalletTx::GetImmatureWatchOnlyCredit() const
 {
     if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain())
@@ -1974,20 +1950,6 @@ CAmount CWallet::GetWatchOnlyBalance() const
     }
 
     return nTotal;
-}
-
-
-CAmount CWallet::GetStakedWatchOnlyBalance() const
-{
-    CAmount nTotal = 0;
-    {
-        LOCK2(cs_main, cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
-            const CWalletTx* pcoin = &(*it).second;
-            if (pcoin->IsTrusted())
-                nTotal += pcoin->GetStakedWatchOnlyCredit();
-        }
-    }
 }
 
 CAmount CWallet::GetUnconfirmedWatchOnlyBalance() const
@@ -3049,7 +3011,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend,
                 BOOST_FOREACH (const PAIRTYPE(const CWalletTx*, unsigned int) & coin, setCoins)
                 {
                     txNew.vin.push_back(CTxIn(coin.first->GetHash(), coin.second));
-                    txNew.vin[nIn++].prevPubKey = coin.first->vin[coin.second].prevPubKey;
+                    //if (coin.first->vin[coin.second].prevPubKey)
+                    txNew.vin[nIn++].prevPubKey = coin.first->vout[coin.second].scriptPubKey;
                 }
 
                 SetSequenceForLockTxVIn(txNew.vin);
