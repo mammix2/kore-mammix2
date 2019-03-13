@@ -2787,6 +2787,12 @@ bool CWallet::CreateCollateralTransaction(CMutableTransaction& txCollateral, std
         txCollateral.vout.push_back(vout3);
     }
 
+    if (!SetSequenceForLockTxVIn(txCollateral.vin))
+    {
+        strReason = "CObfuscationPool::Sign - Unable to solve collateral transaction! \n";
+        return false;
+    }
+
     int vinNumber = 0;
     BOOST_FOREACH (CTxIn v, txCollateral.vin) {
         if (!SignSignature(*this, v.prevPubKey, txCollateral, vinNumber, int(SIGHASH_ALL | SIGHASH_ANYONECANPAY))) {
@@ -3043,11 +3049,21 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend,
                     reservekey.ReturnKey();
 
                 // Fill vin
+                int nIn = 0;
                 BOOST_FOREACH (const PAIRTYPE(const CWalletTx*, unsigned int) & coin, setCoins)
+                {
                     txNew.vin.push_back(CTxIn(coin.first->GetHash(), coin.second));
+                    txNew.vin[nIn++].prevPubKey = coin.first->vin[coin.second].prevPubKey;
+                }
+
+                if (!SetSequenceForLockTxVIn(txNew.vin))
+                {
+                    strFailReason = _("SetSequenceForLockTxVIn failed");
+                    return false;
+                }
 
                 // Sign
-                int nIn = 0;
+                nIn = 0;
                 BOOST_FOREACH (const PAIRTYPE(const CWalletTx*, unsigned int) & coin, setCoins)
                     if (!SignSignature(*this, *coin.first, txNew, nIn++)) {
                         strFailReason = _("Signing transaction failed");
@@ -3599,12 +3615,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     int nIn = 0;
     txNew.nTime = nTxNewTime;
     txLock.nTime = nTxNewTime;
-    // txLock.nLockTime = nTxNewTime + (1 * 60 * 24); // Lock the coin for 1 day
 
+    if (!SetSequenceForLockTxVIn(txLock.vin))
+        return error("CreateCoinStake : failed to set sequence for lock tx vIn in locking tx");
+    
     for (CTxIn txIn : txLock.vin) {
         const CWalletTx* wtx = GetWalletTx(txIn.prevout.hash);
         if (!SignSignature(*this, *wtx, txLock, nIn++))
-            return error("CreateCoinStake : failed to sign coinstake");
+            return error("CreateCoinStake : failed to sign locking tx");
     }
 
     // Successfully generated coinstake
