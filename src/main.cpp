@@ -4156,6 +4156,7 @@ void static UpdateTip_Legacy(CBlockIndex* pindexNew)
                 }
             }
         }
+        /*
         LogPrintf("Signalling start --> \n");
         int BlocksToMeasure = Params().GetMajorityBlockUpgradeToCheck();
         for (int i = 0; i < BlocksToMeasure && pindex != NULL; i++)
@@ -4179,6 +4180,7 @@ void static UpdateTip_Legacy(CBlockIndex* pindexNew)
             CAlert::Notify(strMiscWarning, true);
             fWarned = true;
         }
+        */
     }
 }
 
@@ -5590,12 +5592,14 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     if (pcheckpoint && nHeight < pcheckpoint->nHeight)
         return state.DoS(0, error("%s : forked chain older than last checkpoint (height %d)", __func__, nHeight));
 
+   /* Lico, old kore doesn-t accept our block with version signalling
     // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
     if (block.nVersion & ~ CBlockHeader::SIGNALING_NEW_VERSION_MASK < CBlockHeader::POS_FORK_VERSION &&
         CBlockIndex::IsSuperMajority(CBlockHeader::POS_FORK_VERSION, pindexPrev, Params().RejectBlockOutdatedMajority())) {
         return state.Invalid(error("%s : rejected nVersion=1 block", __func__),
             REJECT_OBSOLETE, "bad-version");
     }
+    */
 
     return true;
 }

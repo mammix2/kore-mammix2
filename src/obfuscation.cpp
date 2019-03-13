@@ -2293,7 +2293,7 @@ void ThreadCheckObfuScationPool()
 
     unsigned int c = 0;
 
-    while (true) {
+    while (!ShutdownRequested()) {
         MilliSleep(1000);
         //LogPrintf("ThreadCheckObfuScationPool::check timeout\n");
 
