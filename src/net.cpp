@@ -1782,25 +1782,6 @@ void ThreadMessageHandler()
     }
 }
 
-// ppcoin: stake minter thread
-void static ThreadStakeMinter()
-{
-    boost::this_thread::interruption_point();
-    LogPrintf("ThreadStakeMinter started\n");
-    CWallet* pwallet = pwalletMain;
-    try {
-        BitcoinMiner(pwallet, true);
-
-        boost::this_thread::interruption_point();
-    } catch (std::exception& e) {
-        LogPrintf("ThreadStakeMinter() exception \n");
-    } catch (...) {
-        LogPrintf("ThreadStakeMinter() error \n");
-    }
-    LogPrintf("ThreadStakeMinter exiting,\n");
-}
-
-
 bool BindListenPort(const CService& addrBind, string& strError, bool fWhitelisted)
 {
     strError = "";
@@ -2002,10 +1983,7 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
     scheduler.scheduleEvery(&DumpData, DUMP_ADDRESSES_INTERVAL);
 
     // ppcoin:mint proof-of-stake blocks in the background
-    if (GetBoolArg("-staking", true)) {
-        threadGroup.create_thread(boost::bind(&ThreadStakeMinter_Legacy, pwalletMain));
-        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "stakemint", &ThreadStakeMinter));
-    }
+    if (GetBoolArg("-staking", false)) StakingCoins(true);
 }
 
 bool StopNode()

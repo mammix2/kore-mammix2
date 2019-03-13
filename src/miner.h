@@ -42,6 +42,8 @@ void UpdateTime(CBlockHeader* block, const CBlockIndex* pindexPrev, bool fProofO
 void ThreadStakeMinter_Legacy(CWallet* pwallet);
 void BitcoinMiner(CWallet* pwallet, bool fProofOfStake);
 void KoreMiner_Legacy();
+void ThreadStakeMinter();
+void StakingCoins(bool fStaking);
 
 extern double dHashesPerMin;
 extern int64_t nHPSTimerStart;

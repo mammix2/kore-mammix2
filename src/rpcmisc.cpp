@@ -10,6 +10,7 @@
 #include "init.h"
 #include "main.h"
 #include "masternode-sync.h"
+#include "miner.h"
 #include "net.h"
 #include "netbase.h"
 #include "rpcserver.h"
@@ -24,6 +25,9 @@
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/program_options/detail/config_file.hpp>
+
 
 #include <univalue.h>
 
@@ -555,6 +559,76 @@ UniValue setmocktime(const UniValue& params, bool fHelp)
 
     RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
     SetMockTime(params[0].get_int64());
+
+    return NullUniValue;
+}
+
+UniValue setstaking(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "setstaking true|false \n"
+            "\nEnable|Disable wallet to stake coins\n"
+
+            "\nArguments:\n"
+            "1. true|false  (bool, required)\n"
+            "   true to enable.\n"
+            "   false to disable.\n"
+
+            "\nExamples:\n"
+            "\nStart Staking\n" +
+            HelpExampleCli("setstaking", "true") +
+            "\nStop Staking\n" +
+            HelpExampleCli("setstaking", "false"));
+        
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+
+    bool fStaking = true;
+    bool isStaking = true;
+    
+    if (mapArgs["-staking"] != "1") isStaking = false;
+
+    if (params.size() == 1)
+        fStaking = params[0].get_bool();
+
+    if (fStaking == isStaking) return strprintf("Staking = %s", fStaking);
+
+    std::string stakingFlag = (fStaking ? "1" : "0");
+
+    mapArgs["-staking"] = stakingFlag;
+
+    std::string strReplace = strprintf("staking=%s", (isStaking ? "1" : "0"));
+    std::string strNew = strprintf("staking=%s", stakingFlag);
+
+    boost::filesystem::ifstream streamConfig(GetConfigFile());
+    boost::filesystem::path pathConfig = GetConfigFile();
+    if(!streamConfig || !boost::filesystem::exists(pathConfig))
+        LogPrintf("Error opening files!");
+
+    std::set<string> setOptions;
+    setOptions.insert("*");
+
+    std::ostringstream strTemp;
+
+    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
+        // Don't overwrite existing settings so command line settings override kore.conf
+        std::string strKey =    it->string_key;
+        std::string strValue =  it->value[0];
+        if((strKey + "=" + strValue) == strReplace){
+            strTemp << strNew << std::endl;
+            continue;
+        }
+        strTemp << strKey << strValue << std::endl;
+    }
+    
+    std::ofstream newKoreConfig;
+    newKoreConfig.open(pathConfig.string().c_str(),fstream::out);
+
+    newKoreConfig << strTemp.str();
+
+    newKoreConfig.flush();
+	
+    StakingCoins(fStaking);
 
     return NullUniValue;
 }
