@@ -23,6 +23,10 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 
 BOOST_AUTO_TEST_CASE(quick_fork)
 {
+    
+    // todo how to get this parameter from argument list ??
+    //bool logToStdout = GetBoolArg("-logtostdout", false);
+    bool logToStdout = true;
     SetMockTime(GetTime());
     
     if (fDebug) {
@@ -59,12 +63,12 @@ BOOST_AUTO_TEST_CASE(quick_fork)
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 
     // generate 4 pow blocks
-    CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false);
+    CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false, logToStdout);
 
     // generate 4 pos blocks
-    GeneratePOSLegacyBlocks(minConfirmations + 2, 9, pwalletMain, scriptPubKey);
+    GeneratePOSLegacyBlocks(minConfirmations + 2, 9, pwalletMain, scriptPubKey, logToStdout);
 
-    GenerateBlocks(9, 100, pwalletMain, scriptPubKey, true);
+    GenerateBlocks(9, 100, pwalletMain, scriptPubKey, true, logToStdout);
 
     // Leaving old values
     Checkpoints::fEnabled = true;

@@ -167,7 +167,7 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMer
 std::string CBlock::ToString() const
 {
     std::stringstream s;
-    s << "CBlock ============================>>>>\n";    
+    s << "CBlock ============================>>>>" << endl;
     s << strprintf("    hash=%s \n", GetHash().ToString());
     s << strprintf("    ver=%d \n", nVersion);
     s << strprintf("    hashPrevBlock=%s, \n", hashPrevBlock.ToString());
@@ -189,7 +189,7 @@ std::string CBlock::ToString() const
     for (unsigned int i = 0; i < vMerkleTree.size(); i++)
         s << "    " << vMerkleTree[i].ToString();
 
-    s << "CBlock <<<<============================\n";
+    s << endl << "CBlock <<<<============================" << endl;
     return s.str();
 }
 

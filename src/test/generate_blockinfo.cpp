@@ -57,8 +57,7 @@ BOOST_AUTO_TEST_CASE(generate_old_pow)
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 
-    //int totalOldPow = 30;
-    int totalOldPow = 5;
+    int totalOldPow = 30;
     // generate old pow blocks
     GeneratePOWLegacyBlocks(1,totalOldPow+1, pwalletMain, scriptPubKey, true);
  
