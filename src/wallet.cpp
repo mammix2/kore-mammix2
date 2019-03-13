@@ -2787,11 +2787,7 @@ bool CWallet::CreateCollateralTransaction(CMutableTransaction& txCollateral, std
         txCollateral.vout.push_back(vout3);
     }
 
-    if (!SetSequenceForLockTxVIn(txCollateral.vin))
-    {
-        strReason = "CObfuscationPool::Sign - Unable to solve collateral transaction! \n";
-        return false;
-    }
+    SetSequenceForLockTxVIn(txCollateral.vin);
 
     int vinNumber = 0;
     BOOST_FOREACH (CTxIn v, txCollateral.vin) {
@@ -3056,11 +3052,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend,
                     txNew.vin[nIn++].prevPubKey = coin.first->vin[coin.second].prevPubKey;
                 }
 
-                if (!SetSequenceForLockTxVIn(txNew.vin))
-                {
-                    strFailReason = _("SetSequenceForLockTxVIn failed");
-                    return false;
-                }
+                SetSequenceForLockTxVIn(txNew.vin);
 
                 // Sign
                 nIn = 0;
@@ -3616,8 +3608,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     txNew.nTime = nTxNewTime;
     txLock.nTime = nTxNewTime;
 
-    if (!SetSequenceForLockTxVIn(txLock.vin))
-        return error("CreateCoinStake : failed to set sequence for lock tx vIn in locking tx");
+    SetSequenceForLockTxVIn(txLock.vin);
     
     for (CTxIn txIn : txLock.vin) {
         const CWalletTx* wtx = GetWalletTx(txIn.prevout.hash);

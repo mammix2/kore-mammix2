@@ -220,15 +220,11 @@ bool SignSignature_Legacy(const CKeyStore& keystore, const CTransaction& txFrom,
     return SignSignature_Legacy(keystore, txout.scriptPubKey, txTo, nIn, nHashType);
 }
 
-bool SetSequenceForLockTxVIn(std::vector<CTxIn>& vIn)
+void SetSequenceForLockTxVIn(std::vector<CTxIn>& vIn)
 {
     BOOST_FOREACH (CTxIn& v, vIn)
-    {
         if (v.prevPubKey.IsStakeLockScript() && v.nSequence != Params().GetStakeLockSequenceNumber())
             v.nSequence = Params().GetStakeLockSequenceNumber();
-    }
-
-    return true;
 }
 
 bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, int nHashType)
