@@ -3093,6 +3093,7 @@ bool CWallet::CreateTransaction_Legacy(const vector<CRecipient>& vecSend, CWalle
     wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.BindWallet(this);
     CMutableTransaction txNew;
+    txNew.nVersion = 1;
 
     // Discourage fee sniping.
     //
