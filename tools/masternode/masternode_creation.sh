@@ -65,7 +65,7 @@ masternode_password=$control_wallet_password
 masternode_conf_file=`pwd`/$masternode_name.conf
 readme=`pwd`/$masternode_name.readme
 activation_file=`pwd`/$masternode_name.activation
-
+my_conf_file=$user_dir/.$coin/kore.conf
 if [ $# -eq 5 ]
 then
 cli_args="-$network -debug -rpcuser=$control_wallet_user -rpcpassword=$control_wallet_password"
@@ -157,10 +157,14 @@ echo "##  Updating this wallet masternode.conf file: $control_wallet #"
 new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
 echo "## $new_masternode"
 echo "$new_masternode" >> $control_wallet
-masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx"
+masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx $masternode_onion_address"
 echo "## command to activate this masternode: $masternode_activation_command" >> $masternode_conf_file
 echo "## The following is the masternode entry at masternode.conf "  >> $masternode_conf_file
 echo "## $new_masternode"   >> $masternode_conf_file
+
+echo "##########################################################################"
+echo "## "
+echo "addnode=$masternode_onion_address" >> $my_conf_file
 
 echo "##########################################################################"
 echo "## Let's wait for the Confirmations"
@@ -207,12 +211,9 @@ echo "##   1. Change your masternode $coin.conf with the parameters found here:"
 echo "##      $masternode_conf_file"  >> $readme
 echo "##   2. Restart your masternode"  >> $readme
 echo "##   3. Restart this control Wallet, so the local masternode.conf will take effect."  >> $readme
-echo "##   4. Make sure your masternode has connections and is in sync."  >> $readme
-echo "##        kore-cli -testnet mnsync status"   >> $readme
-echo "##        ** IsBlockchainSynced should be true"   >> $readme
-echo "##   5. Activate your masternode. Make sure your mastenode is in sync."  >> $readme
+echo "##   4. Activate your masternode. Make sure your mastenode is in sync."  >> $readme
 echo "##      execute this command: $activation_file"  >> $readme
-echo "##   6. Check if the masternode status"   >> $readme
+echo "##   5. Check if the masternode are enabled"   >> $readme
 echo "##        kore-cli -testnet masternode status"   >> $readme
 echo "##        ** The message has to be: \"Masternode successfully started\""   >> $readme
 echo "##"

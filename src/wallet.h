@@ -435,7 +435,6 @@ public:
     CAmount GetNormalizedAnonymizedBalance() const;
     CAmount GetDenominatedBalance(bool unconfirmed = false) const;
     CAmount GetWatchOnlyBalance() const;
-    CAmount GetStakedWatchOnlyBalance() const;
     CAmount GetUnconfirmedWatchOnlyBalance() const;
     CAmount GetImmatureWatchOnlyBalance() const;
     CAmount GetLockedWatchOnlyBalance() const;
@@ -879,7 +878,6 @@ public:
     // Return sum of unlocked coins
     CAmount GetLockedCredit() const;
     CAmount GetDenominatedCredit(bool unconfirmed) const;
-    CAmount GetStakedWatchOnlyCredit() const;
     CAmount GetImmatureWatchOnlyCredit() const;
     CAmount GetAvailableWatchOnlyCredit() const;
     CAmount GetLockedWatchOnlyCredit() const;

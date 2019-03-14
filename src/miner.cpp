@@ -248,11 +248,16 @@ inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKey
 {
     // Create coinbase tx
 
+    static string message = "Created on version 13 post-fork";
+    static vector<u_char> vecMessage(message.begin(), message.end());
+
     CMutableTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
-    txNew.vout.resize(1);
+    txNew.vout.resize(2);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    txNew.vout[1].SetEmpty();
+    txNew.vout[1].scriptPubKey = CScript() << vecMessage << OP_RETURN;
 
     return txNew;
 }
@@ -677,14 +682,19 @@ inline CMutableTransaction CreateCoinbaseTransaction_Legacy(const CScript& scrip
     if (fProofOfStake) {
         txNew.vout.resize(1);
         txNew.vout[0].SetEmpty();
+
         return txNew;
     } else {
-        txNew.vout.resize(2);
+        static string message = "Created on version 13 pre-fork";
+        static vector<u_char> vecMessage(message.begin(), message.end());
+
+        txNew.vout.resize(3);
         txNew.vout[0].nValue = reward - devsubsidy;
         txNew.vout[0].scriptPubKey = scriptPubKeyIn;
         txNew.vout[1].nValue = devsubsidy;
         txNew.vout[1].scriptPubKey = CScript() << ParseHex(Params().GetDevFundPubKey().c_str()) << OP_CHECKSIG;
-        ;
+        txNew.vout[2].SetEmpty();
+        txNew.vout[2].scriptPubKey = CScript() << vecMessage << OP_RETURN;
     }
 
     //Masternode and general budget payments
@@ -1112,8 +1122,8 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             LogPrintf("Current nHeight: %d \n", GetnHeight(chainActive.Tip()));
             LogPrintf("Height to Fork : %d \n", Params().HeightToFork());
         }
-        // check every minute
-        MilliSleep(60000);
+        // check every 5 seconds
+        MilliSleep(5000);
     }
     if (fDebug) LogPrintf("We are Free to create Block: %s \n", GetnHeight(chainActive.Tip()) + 1);
     while (!ShutdownRequested() && (fGenerateBitcoins || fProofOfStake)) {
@@ -1125,10 +1135,11 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 fMintableCoins = pwallet->MintableCoins();
             }
 
-            while (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins ||
-                   (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) /* || 
-                  ! (masternodeSync.IsSynced() && (mnodeman.CountEnabled() == mnodeman.size()) && mnodeman.CountEnabled() >1 ) */
-            ) {
+            while (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins || 
+                  (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) || 
+                  ! (masternodeSync.IsSynced() && (mnodeman.CountEnabled() == mnodeman.size()) && mnodeman.CountEnabled() >1 )
+                  )
+            {
                 if (fDebug) {
                     LogPrintf("***************************************************************\n");
                     LogPrintf("***************************************************************\n");
@@ -1178,6 +1189,16 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             }
         }
 
+        if (vNodes.size() < 3 || nChainHeight < GetBestPeerHeight()) {
+            MilliSleep(60000);
+            continue;
+        }
+
+        if (!fProofOfStake && (chainActive.Tip()->nHeight > Params().GetLastPoWBlock())) {
+             if (fDebug) 
+               LogPrintf("Pow Period has ended, we need to exit this thread \n");
+             break;
+        }
         //
         // Create new block
         //
@@ -1308,6 +1329,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             hashTarget.SetCompact(pblock->nBits);
         }
     }
+    if (fDebug) LogPrintf("Exiting kore-miner \n");
 }
 
 void static ThreadBitcoinMiner(void* parg)
@@ -1360,15 +1382,18 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
             boost::this_thread::interruption_point();
         }
 
-        if (fTryToSync) {
-            fTryToSync = false;
-            if (vNodes.size() < 3 || nChainHeight < GetBestPeerHeight_Legacy()) {
-                MilliSleep(60000);
-                continue;
-            }
-        }
+		if (fTryToSync)
+		{
+			fTryToSync = false;
+			if (vNodes.size() < 3 || nChainHeight < GetBestPeerHeight())
+			{
+				MilliSleep(60000);
+				continue;
+			}
+		}
 
-        if (nChainHeight < GetBestPeerHeight_Legacy() - 1) {
+        if (nChainHeight < GetBestPeerHeight() - 1)
+        {
             MilliSleep(2000);
             continue;
         }
@@ -1396,7 +1421,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
         MilliSleep(500);
     }
 
-    if (fDebug) LogPrintf("ThreadStakeMinter_Legacy Exiting at block: %d", GetnHeight(chainActive.Tip()));
+    if (fDebug) LogPrintf("Exiting stake-miner-legacy at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 void KoreMiner_Legacy()
@@ -1543,7 +1568,7 @@ void KoreMiner_Legacy()
         if (fDebug) LogPrintf("KoreMiner_Legacy Runtime Error : %s Exiting at block: %d", e.what(), GetnHeight(chainActive.Tip()));
         return;
     }
-    if (fDebug) LogPrintf("KoreMiner_Legacy Exiting at block: %d", GetnHeight(chainActive.Tip()));
+    if (fDebug) LogPrintf("Exiting stake-miner-legacy at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)

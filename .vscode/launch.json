@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "99829",
+            "processId": "50955",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -44,7 +44,7 @@
             "request": "launch",
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/kored",
-            "args": ["-testnet","-debug","-par=1"],
+            "args": ["-testnet","-debug","-par=1", "-reindex"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -134,8 +134,8 @@
             "request": "launch",
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/test/test_kore",
-            //"args": ["--log_level=test_suite", "--run_test=main_tests"],
-            "args": ["--log_level=test_suite", "--log_sink=stdout", "--run_test=pos_tests/pos_integration"],
+            //"args": ["--log_level=all", "--log_sink=stdout", "--run_test=generate_blockinfo/generate_old_pow"],
+            "args": ["--log_level=test_suite", "--log_sink=stdout", "--run=fork_kore_from_blockinfo/quick_fork"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

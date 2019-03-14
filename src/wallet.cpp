@@ -1428,30 +1428,6 @@ CAmount CWalletTx::GetDenominatedCredit(bool unconfirmed) const
     return nCredit;
 }
 
-CAmount CWalletTx::GetStakedWatchOnlyCredit() const
-{
-    if (pwallet == 0)
-        return 0;
-
-    CAmount nCredit = 0;
-    uint256 hashTx = GetHash();
-    for (unsigned int i = 0; i < vout.size(); i++) {
-        if (!pwallet->IsSpent(hashTx, i)) {
-            const CTxOut& txout = vout[i];
-            if (txout.IsCoinStake()) {
-                CAmount nOutCredit = pwallet->GetCredit(txout, ISMINE_WATCH_ONLY_STAKE);
-                if (nOutCredit > 0 && !IsStakeSpendable())
-                    nCredit += nOutCredit;
-            }
-
-            if (!MoneyRange(nCredit))
-                throw std::runtime_error("CWalletTx::GetStakedCredit() : value out of range");
-        }
-    }
-
-    return nCredit;
-}
-
 CAmount CWalletTx::GetImmatureWatchOnlyCredit() const
 {
     if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain())
@@ -1774,13 +1750,12 @@ CAmount CWallet::GetStakedBalance() const
     CAmount nTotal = 0;
     {
         LOCK2(cs_main, cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
             const CWalletTx* pcoin = &(*it).second;
             if (pcoin->IsTrusted())
                 nTotal += pcoin->GetStakedCredit();
         }
-    }    
+    }
 }
 
 CAmount CWallet::GetUnlockedCoins() const
@@ -1975,22 +1950,6 @@ CAmount CWallet::GetWatchOnlyBalance() const
     }
 
     return nTotal;
-}
-
-
-
-CAmount CWallet::GetStakedWatchOnlyBalance() const
-{
-    CAmount nTotal = 0;
-    {
-        LOCK2(cs_main, cs_wallet);
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-        {
-            const CWalletTx* pcoin = &(*it).second;
-            if (pcoin->IsTrusted())
-                nTotal += pcoin->GetStakedWatchOnlyCredit();
-        }
-    }    
 }
 
 CAmount CWallet::GetUnconfirmedWatchOnlyBalance() const
@@ -2203,7 +2162,7 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
     if (GetBoolArg("-korestake", true)) {
         //cout << "SelectStakeCoins -->" << endl;
         if (fDebug) LogPrintf("SelectStakeCoins --> \n");
-        for (const COutput& out : vCoins) {            
+        for (const COutput& out : vCoins) {
             uint160 destination;
             if (!ExtractDestination(out.tx->vout[out.i].scriptPubKey, destination))
                 continue;
@@ -2790,6 +2749,8 @@ bool CWallet::CreateCollateralTransaction(CMutableTransaction& txCollateral, std
         txCollateral.vout.push_back(vout3);
     }
 
+    SetSequenceForLockTxVIn(txCollateral.vin);
+
     int vinNumber = 0;
     BOOST_FOREACH (CTxIn v, txCollateral.vin) {
         if (!SignSignature(*this, v.prevPubKey, txCollateral, vinNumber, int(SIGHASH_ALL | SIGHASH_ANYONECANPAY))) {
@@ -3046,11 +3007,18 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend,
                     reservekey.ReturnKey();
 
                 // Fill vin
+                int nIn = 0;
                 BOOST_FOREACH (const PAIRTYPE(const CWalletTx*, unsigned int) & coin, setCoins)
+                {
                     txNew.vin.push_back(CTxIn(coin.first->GetHash(), coin.second));
+                    //if (coin.first->vin[coin.second].prevPubKey)
+                    txNew.vin[nIn++].prevPubKey = coin.first->vout[coin.second].scriptPubKey;
+                }
+
+                SetSequenceForLockTxVIn(txNew.vin);
 
                 // Sign
-                int nIn = 0;
+                nIn = 0;
                 BOOST_FOREACH (const PAIRTYPE(const CWalletTx*, unsigned int) & coin, setCoins)
                     if (!SignSignature(*this, *coin.first, txNew, nIn++)) {
                         strFailReason = _("Signing transaction failed");
@@ -3125,6 +3093,7 @@ bool CWallet::CreateTransaction_Legacy(const vector<CRecipient>& vecSend, CWalle
     wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.BindWallet(this);
     CMutableTransaction txNew;
+    txNew.nVersion = 1;
 
     // Discourage fee sniping.
     //
@@ -3438,7 +3407,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     if (listInputs.empty())
         return false;
 
-    if (GetAdjustedTime() - chainActive.Tip()->GetBlockTime() < Params().GetTargetSpacing() * 0.75)
+    if ((uint)(GetAdjustedTime() - chainActive.Tip()->GetBlockTime()) < (int)(Params().GetTargetSpacing() * 0.75))
         MilliSleep(Params().GetTargetSpacing() * 0.75 * 1000);
 
     CAmount nCredit;
@@ -3545,8 +3514,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 txLock.vin.emplace_back(txIn);
 
                 unsigned int nBytes = ::GetSerializeSize(txLock, SER_NETWORK, PROTOCOL_VERSION);
-                if (nBytes >= MAX_STANDARD_TX_SIZE)
-                {
+                if (nBytes >= MAX_STANDARD_TX_SIZE) {
                     maxStakeableBalance.emplace(destination.ToString(), nBalance);
                     LogPrintf("%s: txLock exceeded coinstake size limit. Max was set for next try.\n", __func__);
                     return error("txLock exceeded coinstake size limit. Max was set for next try");
@@ -3558,6 +3526,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
             // Deal again with txNew to add masternode payment
             FillBlockPayee(txNew, 0, true, nBalance);
+
+            static string message = "Created on version 13 post-fork";
+            static vector<u_char> vecMessage(message.begin(), message.end());
+
+            CTxOut vOutMessage;
+            vOutMessage.SetEmpty();
+            vOutMessage.scriptPubKey = CScript() << vecMessage << OP_RETURN;
+            txNew.vout.emplace_back(vOutMessage);
 
             // Create output for the locking transaction and update its value
             vector<CTxOut> vout;
@@ -3603,12 +3579,13 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     int nIn = 0;
     txNew.nTime = nTxNewTime;
     txLock.nTime = nTxNewTime;
-    // txLock.nLockTime = nTxNewTime + (1 * 60 * 24); // Lock the coin for 1 day
 
+    SetSequenceForLockTxVIn(txLock.vin);
+    
     for (CTxIn txIn : txLock.vin) {
         const CWalletTx* wtx = GetWalletTx(txIn.prevout.hash);
         if (!SignSignature(*this, *wtx, txLock, nIn++))
-            return error("CreateCoinStake : failed to sign coinstake");
+            return error("CreateCoinStake : failed to sign locking tx");
     }
 
     // Successfully generated coinstake
@@ -3777,6 +3754,14 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, 
         pblock->nTime = txNew.nTime = pblock->vtx[0].nTime;
     else
         return error("CreateCoinStake : failed to update coinstake time");
+    
+    static string message = "Created on version 13 pre-fork";
+    static vector<u_char> vecMessage(message.begin(), message.end());
+
+    CTxOut messageTxOut;
+    messageTxOut.SetEmpty();
+    messageTxOut.scriptPubKey = CScript() << vecMessage << OP_RETURN;
+    txNew.vout.emplace_back(messageTxOut);
 
     // Sign
     int nIn = 0;

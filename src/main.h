@@ -318,7 +318,7 @@ bool SendMessages_Fork(CNode* pto, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
-int GetBestPeerHeight_Legacy();
+int GetBestPeerHeight();
 
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
@@ -623,7 +623,7 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 int GetnHeight(const CBlockIndex* pIndex);
 
 /* Check if it is necessary to use the new code or old code */
-bool UseLegacyCode(const CBlock& block);
+bool UseLegacyCode(const CBlockHeader & block);
 bool UseLegacyCode(int nHeight);
 bool UseLegacyCode();
 
