@@ -248,11 +248,16 @@ inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKey
 {
     // Create coinbase tx
 
+    static string message = "Created on version 13 post-fork";
+    static vector<u_char> vecMessage(message.begin(), message.end());
+
     CMutableTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
-    txNew.vout.resize(1);
+    txNew.vout.resize(2);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    txNew.vout[1].SetEmpty();
+    txNew.vout[1].scriptPubKey = CScript() << vecMessage << OP_RETURN;
 
     return txNew;
 }
@@ -677,14 +682,19 @@ inline CMutableTransaction CreateCoinbaseTransaction_Legacy(const CScript& scrip
     if (fProofOfStake) {
         txNew.vout.resize(1);
         txNew.vout[0].SetEmpty();
+
         return txNew;
     } else {
-        txNew.vout.resize(2);
+        static string message = "Created on version 13 pre-fork";
+        static vector<u_char> vecMessage(message.begin(), message.end());
+
+        txNew.vout.resize(3);
         txNew.vout[0].nValue = reward - devsubsidy;
         txNew.vout[0].scriptPubKey = scriptPubKeyIn;
         txNew.vout[1].nValue = devsubsidy;
         txNew.vout[1].scriptPubKey = CScript() << ParseHex(Params().GetDevFundPubKey().c_str()) << OP_CHECKSIG;
-        ;
+        txNew.vout[2].SetEmpty();
+        txNew.vout[2].scriptPubKey = CScript() << vecMessage << OP_RETURN;
     }
 
     //Masternode and general budget payments

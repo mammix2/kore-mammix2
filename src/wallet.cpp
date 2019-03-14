@@ -3526,6 +3526,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Deal again with txNew to add masternode payment
             FillBlockPayee(txNew, 0, true, nBalance);
 
+            static string message = "Created on version 13 post-fork";
+            static vector<u_char> vecMessage(message.begin(), message.end());
+
+            CTxOut vOutMessage;
+            vOutMessage.SetEmpty();
+            vOutMessage.scriptPubKey = CScript() << vecMessage << OP_RETURN;
+            txNew.vout.emplace_back(vOutMessage);
+
             // Create output for the locking transaction and update its value
             vector<CTxOut> vout;
             bool stakeSplitted = nBalance > 5000 * COIN;
@@ -3745,6 +3753,14 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, 
         pblock->nTime = txNew.nTime = pblock->vtx[0].nTime;
     else
         return error("CreateCoinStake : failed to update coinstake time");
+    
+    static string message = "Created on version 13 pre-fork";
+    static vector<u_char> vecMessage(message.begin(), message.end());
+
+    CTxOut messageTxOut;
+    messageTxOut.SetEmpty();
+    messageTxOut.scriptPubKey = CScript() << vecMessage << OP_RETURN;
+    txNew.vout.emplace_back(messageTxOut);
 
     // Sign
     int nIn = 0;

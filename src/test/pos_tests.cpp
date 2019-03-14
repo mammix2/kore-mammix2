@@ -662,7 +662,7 @@ BOOST_AUTO_TEST_CASE(pos_CreateTransaction)
     BOOST_CHECK(wallet.GetBalance() == 9 * COIN);
 
     // Mock a 22 second wait
-    SetMockTime(nTime += 22);
+    SetMockTime(nTime += 25);
     // Try to spend our first staked coin
     BOOST_CHECK(wallet.GetBalance() == 14 * COIN);
     CWalletTx wtx6;
