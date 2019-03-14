@@ -1641,7 +1641,7 @@ void ThreadOpenAddedConnections()
                 OpenNetworkConnection(addr, &grant, strAddNode.c_str());
                 MilliSleep(500);
             }
-            MilliSleep(120000); // Retry every 2 minutes
+            MilliSleep(5000); // Retry every 5 seconds
         }
     }
 
@@ -1683,7 +1683,7 @@ void ThreadOpenAddedConnections()
             OpenNetworkConnection(CAddress(vserv[i % vserv.size()]), &grant);
             MilliSleep(500);
         }
-        MilliSleep(120000); // Retry every 2 minutes
+        MilliSleep(5000); // Retry every 5 seconds
     }
     if (fDebug) LogPrintf("Exiting addnode at block: %d", GetnHeight(chainActive.Tip()));
 }
