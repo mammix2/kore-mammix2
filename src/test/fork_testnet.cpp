@@ -13,7 +13,7 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 /* This testcase will take long time to run */
 BOOST_AUTO_TEST_SUITE(fork_testnet)
 
-#define RUN_FORK_TESTS
+// #define RUN_FORK_TESTS
 
 #ifdef RUN_FORK_TESTS
 

@@ -338,13 +338,13 @@ CAmount GetMasternodePayment(CAmount blockReward, CAmount stakedBalance, CBlockI
 {
     double moneySupplyDouble = pindexPrev->nMoneySupply;
     double blockRewardDouble = (double)blockReward;
-    double stakedBalanceDouble = (double)max(stakedBalance, 5000 * COIN);
+    double stakedBalanceDouble = (double)min(stakedBalance, 5000 * COIN);
 
-    double stakedBalanceSquare = pow(stakedBalance, 2);
+    double stakedBalanceSquare = pow(stakedBalanceDouble, 2);
     double stakedBalanceTimesConstant1 = 8.00011e-13 * stakedBalanceDouble;
     double stakedBalanceTimesConstant2 = 1.17928e-58 * stakedBalanceSquare;
     stakedBalanceTimesConstant2 *= moneySupplyDouble;
-    stakedBalanceDouble = stakedBalanceTimesConstant1 + stakedBalanceTimesConstant2 + 0.95;
+    stakedBalanceDouble = stakedBalanceTimesConstant1 + stakedBalanceTimesConstant2 - 0.95;
 
     return blockRewardDouble * stakedBalanceDouble;
 }
