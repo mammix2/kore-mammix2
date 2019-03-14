@@ -1319,6 +1319,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             hashTarget.SetCompact(pblock->nBits);
         }
     }
+    if (fDebug) LogPrintf("Exiting kore-miner \n");
 }
 
 void static ThreadBitcoinMiner(void* parg)
@@ -1410,7 +1411,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
         MilliSleep(500);
     }
 
-    if (fDebug) LogPrintf("ThreadStakeMinter_Legacy Exiting at block: %d", GetnHeight(chainActive.Tip()));
+    if (fDebug) LogPrintf("Exiting stake-miner-legacy at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 void KoreMiner_Legacy()
@@ -1557,7 +1558,7 @@ void KoreMiner_Legacy()
         if (fDebug) LogPrintf("KoreMiner_Legacy Runtime Error : %s Exiting at block: %d", e.what(), GetnHeight(chainActive.Tip()));
         return;
     }
-    if (fDebug) LogPrintf("KoreMiner_Legacy Exiting at block: %d", GetnHeight(chainActive.Tip()));
+    if (fDebug) LogPrintf("Exiting stake-miner-legacy at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)

@@ -1628,7 +1628,7 @@ void ThreadOpenAddedConnections()
     }
 
     if (HaveNameProxy()) {
-        while (true) {
+        while (!ShutdownRequested()) {
             list<string> lAddresses(0);
             {
                 LOCK(cs_vAddedNodes);
@@ -1645,7 +1645,7 @@ void ThreadOpenAddedConnections()
         }
     }
 
-    for (unsigned int i = 0; true; i++) {
+    for (unsigned int i = 0; !ShutdownRequested(); i++) {
         list<string> lAddresses(0);
         {
             LOCK(cs_vAddedNodes);
@@ -1685,6 +1685,7 @@ void ThreadOpenAddedConnections()
         }
         MilliSleep(120000); // Retry every 2 minutes
     }
+    if (fDebug) LogPrintf("Exiting addnode at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 // if successful, this moves the passed grant to the constructed node
