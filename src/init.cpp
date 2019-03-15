@@ -515,7 +515,7 @@ std::string HelpMessage(HelpMessageMode mode)
 
 #ifdef ENABLE_WALLET
     strUsage += HelpMessageGroup(_("Staking options:"));
-    strUsage += HelpMessageOpt("-staking=<n>", strprintf(_("Enable staking functionality (0-1, default: %u)"), 1));
+    strUsage += HelpMessageOpt("-staking=<n>", strprintf(_("Enable staking functionality (0-1, default: %u)"), 0));
     strUsage += HelpMessageOpt("-korestake=<n>", strprintf(_("Enable or disable staking functionality for KORE inputs (0-1, default: %u)"), 1));
     strUsage += HelpMessageOpt("-zkorestake=<n>", strprintf(_("Enable or disable staking functionality for zKORE inputs (0-1, default: %u)"), 1));
     strUsage += HelpMessageOpt("-reservebalance=<amt>", _("Keep the specified amount available for spending at all times (default: 0)"));
@@ -1978,7 +1978,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (pwalletMain)
         GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
     // Mine proof-of-stake blocks in the background
-    if (!GetBoolArg("-staking", true))
+    if (!GetBoolArg("-staking", false))
         LogPrintf("Staking disabled\n");
 #endif
 
