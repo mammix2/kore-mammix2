@@ -25,9 +25,6 @@
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/program_options/detail/config_file.hpp>
-
 
 #include <univalue.h>
 
@@ -137,11 +134,9 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
 #endif
     obj.push_back(Pair("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK())));
+
     bool nStaking = false;
-    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
-        nStaking = true;
-    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
-        nStaking = true;
+    if (mapArgs["-staking"] == "1") nStaking = true;
     obj.push_back(Pair("staking status", (nStaking ? "Staking Active" : "Staking Not Active")));
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
     return obj;
@@ -563,76 +558,6 @@ UniValue setmocktime(const UniValue& params, bool fHelp)
     return NullUniValue;
 }
 
-UniValue setstaking(const UniValue& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
-            "setstaking true|false \n"
-            "\nEnable|Disable wallet to stake coins\n"
-
-            "\nArguments:\n"
-            "1. true|false  (bool, required)\n"
-            "   true to enable.\n"
-            "   false to disable.\n"
-
-            "\nExamples:\n"
-            "\nStart Staking\n" +
-            HelpExampleCli("setstaking", "true") +
-            "\nStop Staking\n" +
-            HelpExampleCli("setstaking", "false"));
-        
-    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
-
-    bool fStaking = true;
-    bool isStaking = true;
-    
-    if (mapArgs["-staking"] != "1") isStaking = false;
-
-    if (params.size() == 1)
-        fStaking = params[0].get_bool();
-
-    if (fStaking == isStaking) return strprintf("Staking = %s", fStaking);
-
-    std::string stakingFlag = (fStaking ? "1" : "0");
-
-    mapArgs["-staking"] = stakingFlag;
-
-    std::string strReplace = strprintf("staking=%s", (isStaking ? "1" : "0"));
-    std::string strNew = strprintf("staking=%s", stakingFlag);
-
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
-    boost::filesystem::path pathConfig = GetConfigFile();
-    if(!streamConfig || !boost::filesystem::exists(pathConfig))
-        LogPrintf("Error opening files!");
-
-    std::set<string> setOptions;
-    setOptions.insert("*");
-
-    std::ostringstream strTemp;
-
-    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
-        // Don't overwrite existing settings so command line settings override kore.conf
-        std::string strKey =    it->string_key;
-        std::string strValue =  it->value[0];
-        if((strKey + "=" + strValue) == strReplace){
-            strTemp << strNew << std::endl;
-            continue;
-        }
-        strTemp << strKey << strValue << std::endl;
-    }
-    
-    std::ofstream newKoreConfig;
-    newKoreConfig.open(pathConfig.string().c_str(),fstream::out);
-
-    newKoreConfig << strTemp.str();
-
-    newKoreConfig.flush();
-	
-    StakingCoins(fStaking);
-
-    return NullUniValue;
-}
-
 #ifdef ENABLE_WALLET
 UniValue getstakingstatus(const UniValue& params, bool fHelp)
 {
@@ -681,3 +606,50 @@ UniValue getstakingstatus(const UniValue& params, bool fHelp)
     return obj;
 }
 #endif // ENABLE_WALLET
+
+UniValue getforkgstatus(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getforkgstatus\n"
+            "\nReturns an object containing various fork information.\n"
+
+            "\nResult:\n"
+            "{\n"
+            "  \"forkHeight\":              (intenger),         Block height set to Fork\n"
+            "  \"oldVersionCount\":         (intenger),         Block count of nodes running old version\n"
+            "  \"oldVersionPercentage\":    (intenger),         Percentage of old version blocks\n"
+            "  \"newVersionCount\":         (intenger),         Block count of nodes running new version\n"
+            "  \"newVersionPercentage\":    (intenger),         Percentage of new version blocks\n"
+            "  \"totalBlockVerified\":      (intenger),         Total blocks processed\n"
+            "  \"timeUntilFork\":           (intenger),         Median time until Fork - 1 Block/minute\n"
+            "}\n"
+
+            "\nExamples:\n" +
+            HelpExampleCli("getforkgstatus", "") + HelpExampleRpc("getforkgstatus", ""));
+
+    #ifdef ENABLE_WALLET
+        LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+    #else
+        LOCK(cs_main);
+    #endif
+
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("validtime", chainActive.Tip()->nTime > 1471482000));
+    obj.push_back(Pair("haveconnections", !vNodes.empty()));
+    if (pwalletMain) {
+        obj.push_back(Pair("walletunlocked", !pwalletMain->IsLocked()));
+        obj.push_back(Pair("mintablecoins", pwalletMain->MintableCoins()));
+        obj.push_back(Pair("enoughcoins", nReserveBalance <= pwalletMain->GetBalance()));
+    }
+    obj.push_back(Pair("mnsync", masternodeSync.IsSynced()));
+
+    bool nStaking = false;
+    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
+        nStaking = true;
+    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
+        nStaking = true;
+    obj.push_back(Pair("staking status", nStaking));
+
+    return obj;
+}
