@@ -2452,6 +2452,21 @@ CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue)
     return blockValue * 0.4;
 }
 
+CAmount GetMasternodePayment(CAmount blockReward, CAmount stakedBalance, CBlockIndex* pindexPrev)
+{
+    double moneySupplyDouble = pindexPrev->nMoneySupply;
+    double blockRewardDouble = (double)blockReward;
+    double stakedBalanceDouble = (double)min(stakedBalance, 5000 * COIN);
+
+    double stakedBalanceSquare = pow(stakedBalanceDouble, 2);
+    double stakedBalanceTimesConstant1 = 8.00011e-13 * stakedBalanceDouble;
+    double stakedBalanceTimesConstant2 = 1.17928e-58 * stakedBalanceSquare;
+    stakedBalanceTimesConstant2 *= moneySupplyDouble;
+    stakedBalanceDouble = 1 - stakedBalanceTimesConstant1 + stakedBalanceTimesConstant2 + 0.05;
+
+    return blockRewardDouble * stakedBalanceDouble;
+}
+
 int GetBestPeerHeight()
 {
     return std::max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate());
@@ -3347,17 +3362,18 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         nInputs += tx.vin.size();
         nSigOps += GetLegacySigOpCount(tx);
         if (nSigOps > nMaxBlockSigOps)
-            return state.DoS(100, error("ConnectBlock() : too many sigops"), REJECT_INVALID, "bad-blk-sigops");
+            return state.DoS(100, error("ConnectBlock(): too many sigops"), REJECT_INVALID, "bad-blk-sigops");
 
         if (!tx.IsCoinBase()) {
             if (!view.HaveInputs(tx))
-                return state.DoS(100, error("ConnectBlock() : inputs missing/spent"),
+                return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
                     REJECT_INVALID, "bad-txns-inputs-missingorspent");
 
             // Check that the inputs are not marked as invalid/fraudulent
             for (CTxIn in : tx.vin) {
                 if (!ValidOutPoint(in.prevout, pindex->nHeight)) {
-                    return state.DoS(100, error("%s : tried to spend invalid input %s in tx %s", __func__, in.prevout.ToString(), tx.GetHash().GetHex()), REJECT_INVALID, "bad-txns-invalid-inputs");
+                    return state.DoS(100, error("ConnectBlock(): tried to spend invalid input %s in tx %s", in.prevout.ToString(), tx.GetHash().GetHex()),
+                        REJECT_INVALID, "bad-txns-invalid-inputs");
                 }
             }
 
@@ -3366,7 +3382,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             // an incredibly-expensive-to-validate block.
             nSigOps += GetP2SHSigOpCount(tx, view);
             if (nSigOps > nMaxBlockSigOps)
-                return state.DoS(100, error("ConnectBlock() : too many sigops"), REJECT_INVALID, "bad-blk-sigops");
+                return state.DoS(100, error("ConnectBlock(): too many sigops"), REJECT_INVALID, "bad-blk-sigops");
 
             if (!tx.IsCoinStake())
                 nFees += view.GetValueIn(tx) - tx.GetValueOut();
@@ -3397,7 +3413,9 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     int64_t nTime1 = GetTimeMicros();
     nTimeConnect += nTime1 - nTimeStart;
-    LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs - 1), nTimeConnect * 0.000001);
+    LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n",
+        (unsigned)block.vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / block.vtx.size(),
+        nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs - 1), nTimeConnect * 0.000001);
 
     //PoW phase redistributed fees to miner. PoS stage destroys fees.
     CAmount nExpectedMint = GetBlockReward(pindex->pprev);
@@ -3406,15 +3424,17 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     //Check that the block does not overmint
     if (!IsBlockValueValid(block, nExpectedMint, pindex->nMint)) {
-        return state.DoS(100, error("ConnectBlock() : reward pays too much (actual=%s vs limit=%s)", FormatMoney(pindex->nMint), FormatMoney(nExpectedMint)),
+        return state.DoS(100, error("ConnectBlock(): reward pays too much (actual=%s vs limit=%s)", FormatMoney(pindex->nMint), FormatMoney(nExpectedMint)),
             REJECT_INVALID, "bad-cb-amount");
     }
 
     if (!control.Wait())
         return state.DoS(100, false);
+
     int64_t nTime2 = GetTimeMicros();
     nTimeVerify += nTime2 - nTimeStart;
-    LogPrint("bench", "    - Verify %u txins: %.2fms (%.3fms/txin) [%.2fs]\n", nInputs - 1, 0.001 * (nTime2 - nTimeStart), nInputs <= 1 ? 0 : 0.001 * (nTime2 - nTimeStart) / (nInputs - 1), nTimeVerify * 0.000001);
+    LogPrint("bench", "    - Verify %u txins: %.2fms (%.3fms/txin) [%.2fs]\n", nInputs - 1, 0.001 * (nTime2 - nTimeStart),
+        nInputs <= 1 ? 0 : 0.001 * (nTime2 - nTimeStart) / (nInputs - 1),nTimeVerify * 0.000001);
 
     //IMPORTANT NOTE: Nothing before this point should actually store to disk (or even memory)
     if (fJustCheck)
@@ -3425,7 +3445,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (pindex->GetUndoPos().IsNull()) {
             CDiskBlockPos pos;
             if (!FindUndoPos(state, pindex->nFile, pos, ::GetSerializeSize(blockundo, SER_DISK, CLIENT_VERSION) + 40))
-                return error("ConnectBlock() : FindUndoPos failed");
+                return error("ConnectBlock(): FindUndoPos failed");
             if (!blockundo.WriteToDisk(pos, pindex->pprev->GetBlockHash()))
                 return state.Abort("Failed to write undo data");
 
@@ -3438,9 +3458,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         setDirtyBlockIndex.insert(pindex);
     }
 
-    if (fTxIndex)
-        if (!pblocktree->WriteTxIndex(vPos))
-            return state.Abort("Failed to write transaction index");
+    if (fTxIndex && !pblocktree->WriteTxIndex(vPos))
+        return state.Abort("Failed to write transaction index");
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
@@ -5343,12 +5362,28 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
                 return state.DoS(100, error("CheckBlock(): more than one pubkey on lock tx"));
         }
 
-        // TODO: Second transaction must not create new coins
-        // CAmount valueIn = 0;
-        // for (unsigned int i = 0; i < block.vtx[1].vin.size(); i++)
-        //     valueIn += block.vtx[1].vin[i].prevout.IsMasternodeReward()
-        // if (block.vtx[1].GetValueOut() > valueIn)
-        //     return state.DoS(100, error("CheckBlock(): coins minting not allowed on locking tx"));
+        // The staked balance gives the target easing
+        CAmount stakedBalance = block.vtx[1].GetValueOut();
+        CKoreStake stakeInput;
+        CTransaction originTx;
+        uint256 hashBlock;
+        if (!GetTransaction(block.vtx[1].vin[0].prevout.hash, originTx, hashBlock, false))
+            return state.DoS(100, error("CheckBlock(): origin transaction not found"));
+        if (!stakeInput.SetInput(originTx, block.vtx[1].vin[0].prevout.n))
+            return state.DoS(100, error("CheckBlock(): unable to proccess origin transaction"));
+        uint64_t nStakeModifier = 0;
+        if (!stakeInput.GetModifier(nStakeModifier))
+            return state.DoS(100, error("failed to get kernel stake modifier"));
+        uint256 bnTargetPerCoinDay;
+        bnTargetPerCoinDay.SetCompact(block.nBits);
+        CBlockIndex* pindex = stakeInput.GetIndexFrom();
+        if (!pindex || pindex->nHeight < 1)
+            return state.DoS(100, error("failed to get block header from origin transaction"));
+        CBlockHeader originBlock = pindex->GetBlockHeader();
+        CDataStream ssUniqueID = stakeInput.GetUniqueness();
+        uint stakeTime = block.vtx[1].nTime;
+        if (!CheckStake(ssUniqueID, stakedBalance, nStakeModifier, bnTargetPerCoinDay, originBlock.GetBlockTime(), stakeTime))
+            return state.DoS(100, error("CheckBlock(): target was easier than it should be"));        
     }
 
     // ----------- swiftTX transaction scanning -----------

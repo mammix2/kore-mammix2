@@ -111,7 +111,8 @@ test_test_kore_LDADD += -lgdi32 -lws2_32
 endif
 
 if TARGET_LINUX
-#test_test_kore_LDADD += -lprofiler
+test_test_kore_LDFLAGS += -g
+test_test_kore_LDADD += -lprofiler
 endif
 
 nodist_test_test_kore_SOURCES = $(GENERATED_TEST_FILES)
