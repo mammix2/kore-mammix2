@@ -397,8 +397,8 @@ public:
         nClientMintableCoinsInterval                  = 45;                          // Every 45 seconds
         nCoinbaseMaturity = nStakeMinConfirmations    = 10;                          // Lico should be 25;
         nEnsureMintableCoinsInterval                  = 5;
-        nHeightToFork                                 = 40;
-        nLastPOWBlock                                 = 1000;                        // 1000
+        nHeightToFork                                 = 500;
+        nLastPOWBlock                                 = 200;                        // 1000
         nMajorityBlockUpgradeToCheck                  = 100;
         nMasternodeBudgetPaymentCycle                 = 30;                          // Every 60 blocks, it will check if it is necessary to pay. A superblock will have 140 cycle
         nMasternodeMinConfirmations                   = 2;
