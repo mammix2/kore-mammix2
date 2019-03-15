@@ -396,6 +396,7 @@ public:
         nBudgetVoteUpdate                             = 1 * 60;                      // can only change vote after 1 minute
         nClientMintableCoinsInterval                  = 45;                          // Every 45 seconds
         nCoinbaseMaturity = nStakeMinConfirmations    = 10;                          // Lico should be 25;
+        nDefaultPort                                  = 11743;
         nEnsureMintableCoinsInterval                  = 5;
         nHeightToFork                                 = 40;
         nLastPOWBlock                                 = 1000;                        // 1000
