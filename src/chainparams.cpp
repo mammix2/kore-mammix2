@@ -251,12 +251,12 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY]                = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY]                = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[PUBKEY_ADDRESS]                = std::vector<unsigned char>(1, 45);
-        base58Prefixes[SECRET_KEY]                    = std::vector<unsigned char>(1, 128);
         base58Prefixes[SCRIPT_ADDRESS]                = std::vector<unsigned char>(1, 85);
+        base58Prefixes[SECRET_KEY]                    = std::vector<unsigned char>(1, 128);
         bnProofOfStakeLimit                           = ~uint256(0) >> 16;
         bnProofOfWorkLimit                            = ~uint256(0) >> 3;
         fDefaultConsistencyChecks                     = false;
-        fEnableBigReward 							  = true;
+        fEnableBigReward 							  = false;
         fHeadersFirstSyncingActive                    = false;
         fMineBlocksOnDemand                           = false;
         fMiningRequiresPeers                          = true;
@@ -302,15 +302,14 @@ public:
         nBlockEnforceInvalidUTXO                      = 902850;              //Start enforcing the invalid UTXO's
         nHeightToFork                                 = 900000;              //Height to perform the fork
         nLastPOWBlock                                 = 1000;
+        strDevFundPubKey 				 			  = "04D410C4A7FEC6DBF6FEDC9721104ADA1571D5E3E4791085EFC083A9F3F4C007D240A6A647DDA0CA1466641B0739A86A67B97AC48484FC7CA88257804B7CE52ED2";
+        strSporkKey      				 			  = "0427E31B51989DB4DFEAB8C3901FB1862A621E6B0D4CF556E5C9AAD7283A46C915EC4508FB4F248534C3A03FC0475ED3785086B9C217E0F42ED4C8BF80ED2296C8";
+        strObfuscationPoolDummyAddress 	 			  = "KWFvN4Gb55dzG95cq3k5jXFmNVkJLftyjZ";
         vAlertPubKey                                  = ParseHex("042b0fb78026380244cc458a914dae461899b121f53bc42105d134158b9773e3fdadca67ca3015dc9c4ef9b9df91f2ef05b890a15cd2d2b85930d37376b2196002");
         // Deployment of BIP68, BIP112, and BIP113.
         vDeployments[DEPLOYMENT_CSV].bit 			  = 0;
         vDeployments[DEPLOYMENT_CSV].nStartTime       = 1462060800; 		 // May 1st, 2016
         vDeployments[DEPLOYMENT_CSV].nTimeout 	      = 1493596800;   		 // May 1st, 2017
-        strDevFundPubKey 				 			  = "04D410C4A7FEC6DBF6FEDC9721104ADA1571D5E3E4791085EFC083A9F3F4C007D240A6A647DDA0CA1466641B0739A86A67B97AC48484FC7CA88257804B7CE52ED2";
-        strSporkKey      				 			  = "0427E31B51989DB4DFEAB8C3901FB1862A621E6B0D4CF556E5C9AAD7283A46C915EC4508FB4F248534C3A03FC0475ED3785086B9C217E0F42ED4C8BF80ED2296C8";
-        strObfuscationPoolDummyAddress 	 			  = "KWFvN4Gb55dzG95cq3k5jXFmNVkJLftyjZ";
-
 
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1508884606, 22, 12624920, 58284520, 0x201fffff, 1, pow (7,2) * COIN);
@@ -318,8 +317,7 @@ public:
         printf("hashGenesisBlock for Mainnet: %s \n", nHashGenesisBlock.ToString().c_str());
         genesis.print();
         assert(nHashGenesisBlock == uint256("0x0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99"));
-        if (false)
-            MineNewGenesisBlock_Legacy();
+        //MineNewGenesisBlock_Legacy();
         assert(genesis.hashMerkleRoot == uint256S("0x53e2105c87e985ab3a3a3b3c6921f660f18535f935e447760758d4ed7c4c748c"));
         printf("hashMerkleRoot for Mainnet: %s \n", genesis.hashMerkleRoot.ToString().c_str());
 
@@ -327,17 +325,8 @@ public:
         vSeeds.push_back(CDNSSeedData("kore-dnsseed-1", "dnsseed.kore.life"));
         vSeeds.push_back(CDNSSeedData("kore-dnsseed-2", "dnsseed2.kore.life"));
         vSeeds.push_back(CDNSSeedData("kore-dnsseed-3", "dnsseed3.kore.life"));
-        vSeeds.push_back(CDNSSeedData("kore-dnsseed-4", "dnsseed4.kore.life"));
-
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 45);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 85);
-        base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1, 128);
-        base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();
-        base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
-        // Lico - Verify if it is necessary
-        // 	BIP44 coin type is from https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-        //base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x77).convert_to_container<std::vector<unsigned char> >();
-
+        vSeeds.push_back(CDNSSeedData("kore-dnsseed-4", "dnsseed4.kore.life"));				
+		
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
     }
 
@@ -381,8 +370,8 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY]                = boost::assign::list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >(); // Kore BIP32 pubkeys
         base58Prefixes[EXT_SECRET_KEY]                = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >(); // Kore BIP32 prvkeys
         base58Prefixes[PUBKEY_ADDRESS]                = std::vector<unsigned char>(1, 105);
-        base58Prefixes[SECRET_KEY]                    = std::vector<unsigned char>(1, 233);
         base58Prefixes[SCRIPT_ADDRESS]                = std::vector<unsigned char>(1, 190);
+        base58Prefixes[SECRET_KEY]                    = std::vector<unsigned char>(1, 233);
         bnProofOfStakeLimit                           = ~uint256(0) >> 4;
         bnProofOfWorkLimit                            = ~uint256(0) >> 3;
         fDefaultConsistencyChecks                     = false;
@@ -395,11 +384,11 @@ public:
         nBudgetFeeConfirmations                       = 2;                           // Number of confirmations for the finalization fee. We have to make this very short here because we only have a 8 block finalization window on testnet
         nBudgetVoteUpdate                             = 1 * 60;                      // can only change vote after 1 minute
         nClientMintableCoinsInterval                  = 45;                          // Every 45 seconds
-        nCoinbaseMaturity = nStakeMinConfirmations    = 10;                          // Lico should be 25;
+        nCoinbaseMaturity = nStakeMinConfirmations    = 25;                          // Lico should be 25;
         nDefaultPort                                  = 11743;
         nEnsureMintableCoinsInterval                  = 5;
-        nHeightToFork                                 = 40;
-        nLastPOWBlock                                 = 1000;                        // 1000
+        nHeightToFork                                 = 500;
+        nLastPOWBlock                                 = 200;                        // 1000
         nMajorityBlockUpgradeToCheck                  = 100;
         nMasternodeBudgetPaymentCycle                 = 30;                          // Every 60 blocks, it will check if it is necessary to pay. A superblock will have 140 cycle
         nMasternodeMinConfirmations                   = 2;
@@ -430,40 +419,33 @@ public:
         vDeployments[DEPLOYMENT_CSV].bit              = 0;
         vDeployments[DEPLOYMENT_CSV].nStartTime       = 1456790400;                  // March 1st, 2016
         vDeployments[DEPLOYMENT_CSV].nTimeout         = 1493596800;                  // May 1st, 2017
-        vDeployments[DEPLOYMENT_TESTDUMMY].bit        = 28;
-        vDeployments[DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601;                  // January 1, 2008
-        vDeployments[DEPLOYMENT_TESTDUMMY].nTimeout   = 1230767999;                  // December 31, 2008
         strDevFundPubKey = "04fb16faf70501f5292a630bced3ec5ff4df277d637e855d129896066854e1d2c9d7cab8dbd5b98107594e74a005e127c66c13a918be477fd3827b872b33d25e03";
         strSporkKey = "04ca99e36f198eedd11b386cf2127a036ec1f0028c2b2a5ec0ff71aa2045c1c4494d45013467a5653eb64442a4d8f93ca62e00f5d9004a3a6469e72b8516ed4a99";
         strObfuscationPoolDummyAddress = "jPt4RY7Nfs5XCWqCBmmDWAUza475KR42iU";
-        
+
         // sending rewards to this public key
         CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         const char* pszTimestamp = "https://bitcoinmagazine.com/articles/altcoins-steal-spotlight-bitcoin-reaches-new-highs/";
-        
+
         // genesis for momentum
         genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1541080950, 1237, 2500634, 64441706, 0x1f7fffff, 1, 49 * COIN);
-        
         // genesis for yescrytR32
         // genesis = CreateGenesisBlock(NULL, genesisOutputScript, 1533841307, 7 , 21828300, 63688767, 0x201fffff, 1, 49 * COIN);
         printf("hashMerkleRoot for TestNet: %s \n", genesis.hashMerkleRoot.ToString().c_str());
         // yescript32
         // assert(genesis.hashMerkleRoot == uint256("0x73bf9a836ff7c2fc79445a622ce5154bfde2811c57c397d6a3909bc97390174a"));
-        
         // Legacy testnet - momentum
         assert(genesis.hashMerkleRoot == uint256S("0x05f52634c417f226734231cbd54ad97b0ad524b59fe40add53648a3f27ccbd02"));
-        
-        // Activate only when creating a new genesis block
+
+        // Activate only when creating a new genesis block                
         // MineNewGenesisBlock_Legacy();
         nHashGenesisBlock = genesis.GetHash();
         printf("nHashGenesisBlock for TestNet: %s \n", nHashGenesisBlock.ToString().c_str());
-        
+
         // for yesscript32
         // assert(nHashGenesisBlock == uint256("0x0d7edba948672b6444b96155b79c22fc4da6dd1014a5f3a148594c60a12def23"));
-        
         // Legacy testnet - momentum
         assert(nHashGenesisBlock == uint256S("0x000cab5a4c6dc2ada269cf1bf70a4f8e146b140514a104c36de2976328f8419d"));
-        
         vFixedSeeds.clear();
         vSeeds.clear();
         vSeeds.push_back(CDNSSeedData("fuzzbawls.pw", "kore-testnet.seed.fuzzbawls.pw"));
