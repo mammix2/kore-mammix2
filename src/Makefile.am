@@ -235,13 +235,13 @@ libbitcoin_server_a_SOURCES = \
   pos.cpp \
   pow.cpp \
   rest.cpp \
-  rpcblockchain.cpp \
-  rpcmasternode.cpp \
-  rpcmasternode-budget.cpp \
-  rpcmining.cpp \
-  rpcmisc.cpp \
-  rpcnet.cpp \
-  rpcrawtransaction.cpp \
+  rpc/rpcblockchain.cpp \
+  rpc/rpcmasternode-budget.cpp \
+  rpc/rpcmasternode.cpp \
+  rpc/rpcmining.cpp \
+  rpc/rpcmisc.cpp \
+  rpc/rpcnet.cpp \
+  rpc/rpcrawtransaction.cpp \
   rpcserver.cpp \
   script/sigcache.cpp \
   sporkdb.cpp \
@@ -280,8 +280,8 @@ libbitcoin_wallet_a_SOURCES = \
   masternode-sync.cpp \
   masternodeconfig.cpp \
   masternodeman.cpp \
-  rpcdump.cpp \
-  rpcwallet.cpp \
+  rpc/rpcdump.cpp \
+  rpc/rpcwallet.cpp \
   kernel.cpp \
   wallet.cpp \
   wallet_ismine.cpp \

@@ -100,7 +100,7 @@ endif
 test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 test_test_kore_LDADD += $(LIBBITCOIN_CONSENSUS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(TOR_LIBS) $(ZLIB_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
-test_test_kore_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static -g
+test_test_kore_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 
 if ENABLE_ZMQ
 test_test_kore_LDADD += $(ZMQ_LIBS)

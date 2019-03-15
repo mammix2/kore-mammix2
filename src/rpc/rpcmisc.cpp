@@ -10,6 +10,7 @@
 #include "init.h"
 #include "main.h"
 #include "masternode-sync.h"
+#include "miner.h"
 #include "net.h"
 #include "netbase.h"
 #include "rpcserver.h"
@@ -133,11 +134,9 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
 #endif
     obj.push_back(Pair("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK())));
+
     bool nStaking = false;
-    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
-        nStaking = true;
-    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
-        nStaking = true;
+    if (mapArgs["-staking"] == "1") nStaking = true;
     obj.push_back(Pair("staking status", (nStaking ? "Staking Active" : "Staking Not Active")));
     obj.push_back(Pair("errors", GetWarnings("statusbar")));
     return obj;
@@ -607,3 +606,50 @@ UniValue getstakingstatus(const UniValue& params, bool fHelp)
     return obj;
 }
 #endif // ENABLE_WALLET
+
+UniValue getforkgstatus(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getforkgstatus\n"
+            "\nReturns an object containing various fork information.\n"
+
+            "\nResult:\n"
+            "{\n"
+            "  \"forkHeight\":              (intenger),         Block height set to Fork\n"
+            "  \"oldVersionCount\":         (intenger),         Block count of nodes running old version\n"
+            "  \"oldVersionPercentage\":    (intenger),         Percentage of old version blocks\n"
+            "  \"newVersionCount\":         (intenger),         Block count of nodes running new version\n"
+            "  \"newVersionPercentage\":    (intenger),         Percentage of new version blocks\n"
+            "  \"totalBlockVerified\":      (intenger),         Total blocks processed\n"
+            "  \"timeUntilFork\":           (intenger),         Median time until Fork - 1 Block/minute\n"
+            "}\n"
+
+            "\nExamples:\n" +
+            HelpExampleCli("getforkgstatus", "") + HelpExampleRpc("getforkgstatus", ""));
+
+    #ifdef ENABLE_WALLET
+        LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+    #else
+        LOCK(cs_main);
+    #endif
+
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("validtime", chainActive.Tip()->nTime > 1471482000));
+    obj.push_back(Pair("haveconnections", !vNodes.empty()));
+    if (pwalletMain) {
+        obj.push_back(Pair("walletunlocked", !pwalletMain->IsLocked()));
+        obj.push_back(Pair("mintablecoins", pwalletMain->MintableCoins()));
+        obj.push_back(Pair("enoughcoins", nReserveBalance <= pwalletMain->GetBalance()));
+    }
+    obj.push_back(Pair("mnsync", masternodeSync.IsSynced()));
+
+    bool nStaking = false;
+    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
+        nStaking = true;
+    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
+        nStaking = true;
+    obj.push_back(Pair("staking status", nStaking));
+
+    return obj;
+}

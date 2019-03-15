@@ -1352,7 +1352,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
 {
     LogPrintf("StakeMiner Legacy started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("stake-miner-legacy");
+    RenameThread("kore-pos-legacy");
 
     const CChainParams& chainparams = Params();
     boost::shared_ptr<CReserveScript> coinstakeScript;
@@ -1429,7 +1429,7 @@ void KoreMiner_Legacy()
     LogPrintf("KoreMiner_Legacy started\n");
     const CChainParams& chainparams = Params();
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("kore-miner-legacy");
+    RenameThread("kore-pow-legacy");
 
     unsigned int nExtraNonce = 0;
 
@@ -1569,6 +1569,45 @@ void KoreMiner_Legacy()
         return;
     }
     if (fDebug) LogPrintf("Exiting stake-miner-legacy at block: %d", GetnHeight(chainActive.Tip()));
+}
+
+// ppcoin: stake minter thread
+void ThreadStakeMinter()
+{
+    boost::this_thread::interruption_point();
+    LogPrintf("ThreadStakeMinter started\n");
+    CWallet* pwallet = pwalletMain;
+    try {
+        BitcoinMiner(pwallet, true);
+
+        boost::this_thread::interruption_point();
+    } catch (std::exception& e) {
+        LogPrintf("ThreadStakeMinter() exception \n");
+    } catch (...) {
+        LogPrintf("ThreadStakeMinter() error \n");
+    }
+    LogPrintf("ThreadStakeMinter exiting,\n");
+}
+
+void StakingCoins(bool fStaking)
+{
+    LogPrintf("StakingCoins");
+    static boost::thread_group* stakingThreads = NULL;
+    CWallet* pwallet = pwalletMain;
+
+    if (stakingThreads != NULL) {
+        stakingThreads->interrupt_all();
+        delete stakingThreads;
+        stakingThreads = NULL;
+    }
+
+    if (!fStaking){
+        return;
+    }
+
+    stakingThreads = new boost::thread_group();
+    stakingThreads->create_thread(boost::bind(&ThreadStakeMinter_Legacy, pwallet));
+    stakingThreads->create_thread(boost::bind(&TraceThread<void (*)()>, "stakemint", &ThreadStakeMinter));
 }
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
