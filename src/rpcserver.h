@@ -334,6 +334,7 @@ extern UniValue createmultisig(const UniValue& params, bool fHelp);
 extern UniValue verifymessage(const UniValue& params, bool fHelp);
 extern UniValue setmocktime(const UniValue& params, bool fHelp);
 extern UniValue getstakingstatus(const UniValue& params, bool fHelp);
+extern UniValue setstaking(const UniValue& params, bool fHelp); // Enable|Disable Staking
 
 bool StartRPC();
 void InterruptRPC();

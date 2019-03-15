@@ -31,6 +31,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
         {"stop", 0},
         {"setmocktime", 0},
         {"getaddednodeinfo", 0},
+        {"setstaking", 0}, // New setstaking rpc call
         {"setgenerate", 0},
         {"setgenerate", 1},
         {"getnetworkhashps", 0},

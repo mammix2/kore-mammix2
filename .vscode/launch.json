@@ -50,7 +50,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.1/gdb/data-directory",
+            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.2.1/gdb/data-directory",
             "additionalSOLibSearchPath": "/home/kore/EXPRESSKORE/depends/x86_64-pc-linux-gnu/lib;/usr/lib/x86_64-linux-gnu",
             "setupCommands": [
                 {
@@ -72,7 +72,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.1/gdb/data-directory",
+            "miDebuggerArgs": "--data-directory=/home/coredev/gdb-8.2.1/gdb/data-directory",
             "additionalSOLibSearchPath": "${workspaceFolder}/depends/x86_64-pc-linux-gnu/lib;/usr/lib/x86_64-linux-gnu",
             "setupCommands": [
                 {
@@ -95,7 +95,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.1/gdb/data-directory",
+            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.2.1/gdb/data-directory",
             "additionalSOLibSearchPath": "${workspaceFolder}/depends/x86_64-pc-linux-gnu/lib;/usr/lib/x86_64-linux-gnu",
             "setupCommands": [
                 {
@@ -117,7 +117,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.1/gdb/data-directory",
+            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.2.1/gdb/data-directory",
             "additionalSOLibSearchPath": "${workspaceFolder}/depends/x86_64-pc-linux-gnu/lib;/usr/lib/x86_64-linux-gnu",
             "setupCommands": [
                 {
@@ -141,6 +141,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            "miDebuggerArgs": "--data-directory=/home/kore/gdb-8.2.1/gdb/data-directory",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

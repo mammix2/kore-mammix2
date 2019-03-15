@@ -28,20 +28,22 @@ UniValue getpoolinfo(const UniValue& params, bool fHelp)
 
             "\nResult:\n"
             "{\n"
-            "  \"current\": \"addr\",    (string) KORE address of current masternode\n"
-            "  \"state\": xxxx,        (string) unknown\n"
-            "  \"entries\": xxxx,      (numeric) Number of entries\n"
-            "  \"accepted\": xxxx,     (numeric) Number of entries accepted\n"
+            "  \"current\": \"addr\",   (string) KORE address of current masternode\n"
+            "  \"state\": xxxx,         (string) unknown\n"
+            "  \"entries\": xxxx,       (numeric) Number of entries\n"
+            "  \"accepted\": xxxx,      (numeric) Number of entries accepted\n"
             "}\n"
 
             "\nExamples:\n" +
             HelpExampleCli("getpoolinfo", "") + HelpExampleRpc("getpoolinfo", ""));
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("current_masternode", mnodeman.GetCurrentMasterNode()->addr.ToString()));
-    obj.push_back(Pair("state", obfuScationPool.GetState()));
-    obj.push_back(Pair("entries", obfuScationPool.GetEntriesCount()));
-    obj.push_back(Pair("entries_accepted", obfuScationPool.GetCountEntriesAccepted()));
+    if (mnodeman.CountEnabled() > 0) {
+        obj.push_back(Pair("current_masternode", mnodeman.GetCurrentMasterNode()->addr.ToString()));
+        obj.push_back(Pair("state", obfuScationPool.GetState()));
+        obj.push_back(Pair("entries", obfuScationPool.GetEntriesCount()));
+        obj.push_back(Pair("entries_accepted", obfuScationPool.GetCountEntriesAccepted()));
+    }
     return obj;
 }
 
@@ -204,10 +206,10 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             "[\n"
             "  {\n"
             "    \"rank\": n,           (numeric) Masternode Rank (or 0 if not enabled)\n"
-            "    \"txhash\": \"hash\",    (string) Collateral transaction hash\n"
+            "    \"txhash\": \"hash\",  (string) Collateral transaction hash\n"
             "    \"outidx\": n,         (numeric) Collateral transaction output index\n"
             "    \"status\": s,         (string) Status (ENABLED/EXPIRED/REMOVE/etc)\n"
-            "    \"addr\": \"addr\",      (string) Masternode KORE address\n"
+            "    \"addr\": \"addr\",    (string) Masternode KORE address\n"
             "    \"version\": v,        (numeric) Masternode protocol version\n"
             "    \"lastseen\": ttt,     (numeric) The time in seconds since epoch (Jan 1 1970 GMT) of the last seen\n"
             "    \"activetime\": ttt,   (numeric) The time in seconds since epoch (Jan 1 1970 GMT) masternode has been active\n"
@@ -344,8 +346,8 @@ UniValue masternodecurrent (const UniValue& params, bool fHelp)
             "  \"protocol\": xxxx,        (numeric) Protocol version\n"
             "  \"txhash\": \"xxxx\",      (string) Collateral transaction hash\n"
             "  \"pubkey\": \"xxxx\",      (string) MN Public key\n"
-            "  \"lastseen\": xxx,       (numeric) Time since epoch of last seen\n"
-            "  \"activeseconds\": xxx,  (numeric) Seconds MN has been active\n"
+            "  \"lastseen\": xxx,         (numeric) Time since epoch of last seen\n"
+            "  \"activeseconds\": xxx,    (numeric) Seconds MN has been active\n"
             "}\n"
 
             "\nExamples:\n" +
@@ -363,7 +365,7 @@ UniValue masternodecurrent (const UniValue& params, bool fHelp)
         return obj;
     }
 
-    throw runtime_error("unknown");
+    throw runtime_error("No Masternode available");
 }
 
 UniValue masternodedebug (const UniValue& params, bool fHelp)
