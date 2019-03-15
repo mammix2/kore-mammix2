@@ -91,8 +91,8 @@ unsigned int nCoinCacheSize = 5000;
 bool fAlerts = DEFAULT_ALERTS;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT; // Legacy
 
-int nChainHeight = -1;                     // Legacy
-CMedianFilter<int> cPeerBlockCounts(5, 0); // Legacy
+int nChainHeight = -1;
+CMedianFilter<int> cPeerBlockCounts(5, 0);
 
 int64_t nReserveBalance = 0;
 
@@ -318,7 +318,7 @@ CNodeState* State(NodeId pnode)
 
 int GetHeight()
 {
-    while (true) {
+    while (!ShutdownRequested()) {
         TRY_LOCK(cs_main, lockMain);
         if (!lockMain) {
             MilliSleep(50);
@@ -2452,7 +2452,7 @@ CAmount GetMasternodePayment_Legacy(int nHeight, CAmount blockValue)
     return blockValue * 0.4;
 }
 
-int GetBestPeerHeight_Legacy()
+int GetBestPeerHeight()
 {
     return std::max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate());
 }
@@ -4057,9 +4057,9 @@ void PruneAndFlush()
 }
 
 
-bool UseLegacyCode(const CBlock& block)
+bool UseLegacyCode(const CBlockHeader & block)
 {
-    return block.nVersion == CBlockHeader::CURRENT_VERSION;
+  return (block.nVersion & ~CBlockHeader::SIGNALING_NEW_VERSION_MASK) <= (CBlockHeader::CURRENT_VERSION  & ~CBlockHeader::SIGNALING_NEW_VERSION_MASK);
 }
 
 bool UseLegacyCode(int nHeight)
@@ -4156,22 +4156,31 @@ void static UpdateTip_Legacy(CBlockIndex* pindexNew)
                 }
             }
         }
-        for (int i = 0; i < 100 && pindex != NULL; i++) {
-            int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
-            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
+        /*
+        LogPrintf("Signalling start --> \n");
+        int BlocksToMeasure = Params().GetMajorityBlockUpgradeToCheck();
+        for (int i = 0; i < BlocksToMeasure && pindex != NULL; i++)
+        {
+            //int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
+            LogPrintf(" block: %d version: %x \n", pindex->nHeight, pindex->nVersion);
+            if ((pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK) == CBlockHeader::SIGNALING_NEW_VERSION_MASK)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
+        LogPrintf("Signalling end <-- upgraded : %d \n", nUpgraded);
+        int currentVersionSignalingPercent = nUpgraded*100/BlocksToMeasure;
+        int versionMajorityPercent = Params().RejectBlockOutdatedMajority()*100/Params().GetMajorityBlockUpgradeToCheck();
+        string versionSignaling = "Please note that " + std::to_string(currentVersionSignalingPercent) + "% of blocks have new version. When it reaches " + std::to_string(versionMajorityPercent) + "%, blocks from version 1 will be discarded !!! If you have not updated, please do it asap." ;
         if (nUpgraded > 0)
-            LogPrintf("%s: %d of last 100 blocks have unexpected version\n", __func__, nUpgraded);
-        if (nUpgraded > 100 / 2) {
-            // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
-            strMiscWarning = _("Warning: Unknown block versions being mined! It's possible unknown rules are in effect");
-            if (!fWarned) {
-                CAlert::Notify(strMiscWarning, true);
-                fWarned = true;
-            }
+            LogPrintf("%s: %s \n", __func__, versionSignaling.c_str());
+        
+        // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
+        strMiscWarning = _(versionSignaling.c_str());
+        if (!fWarned) {
+            CAlert::Notify(strMiscWarning, true);
+            fWarned = true;
         }
+        */
     }
 }
 
@@ -5185,7 +5194,11 @@ int GetnHeight(const CBlockIndex* pIndex)
 
 bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW)
 {
-    if (fDebug) LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false");
+    if (fDebug) LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false" );
+    // Let's check if we are dealing with the correct block version
+    if (UseLegacyCode(block))
+      return state.DoS(50, error("CheckBlockHeader() : block version failed"),
+            REJECT_INVALID, "block-version");
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader(): proof of work failed"),
@@ -5579,18 +5592,14 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     if (pcheckpoint && nHeight < pcheckpoint->nHeight)
         return state.DoS(0, error("%s : forked chain older than last checkpoint (height %d)", __func__, nHeight));
 
+   /* Lico, old kore doesn-t accept our block with version signalling
     // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
-    if (block.nVersion < 2 &&
-        CBlockIndex::IsSuperMajority(2, pindexPrev, Params().GetMajorityBlockOutdatedReject())) {
+    if (block.nVersion & ~ CBlockHeader::SIGNALING_NEW_VERSION_MASK < CBlockHeader::POS_FORK_VERSION &&
+        CBlockIndex::IsSuperMajority(CBlockHeader::POS_FORK_VERSION, pindexPrev, Params().RejectBlockOutdatedMajority())) {
         return state.Invalid(error("%s : rejected nVersion=1 block", __func__),
             REJECT_OBSOLETE, "bad-version");
     }
-
-    // Reject block.nVersion=2 blocks when 95% (75% on testnet) of the network has upgraded:
-    if (block.nVersion < 3 && CBlockIndex::IsSuperMajority(3, pindexPrev, Params().GetMajorityBlockOutdatedReject())) {
-        return state.Invalid(error("%s : rejected nVersion=2 block", __func__),
-            REJECT_OBSOLETE, "bad-version");
-    }
+    */
 
     return true;
 }
@@ -5641,15 +5650,11 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
             return state.DoS(10, error("%s : contains a non-final transaction", __func__), REJECT_INVALID, "bad-txns-nonfinal");
         }
 
-    // Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
-    // if 750 of the last 1,000 blocks are version 2 or greater (51/100 if testnet):
-    if (block.nVersion >= 2 &&
-        CBlockIndex::IsSuperMajority(2, pindexPrev, Params().GetMajorityBlockUpgradeEnforce())) {
-        CScript expect = CScript() << nHeight;
-        if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
-            !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
-            return state.DoS(100, error("%s : block height mismatch in coinbase", __func__), REJECT_INVALID, "bad-cb-height");
-        }
+    // Enforce rule that the coinbase starts with serialized block height
+    CScript expect = CScript() << nHeight;
+    if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
+        !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
+        return state.DoS(100, error("%s : block height mismatch in coinbase", __func__), REJECT_INVALID, "bad-cb-height");
     }
 
     return true;
@@ -5981,7 +5986,7 @@ bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, uns
     unsigned int nToCheck = Params().GetMajorityBlockUpgradeToCheck();
     unsigned int nFound = 0;
     for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++) {
-        if (pstart->nVersion >= minVersion)
+        if ((pstart->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK) >= minVersion )
             ++nFound;
         pstart = pstart->pprev;
     }
@@ -8201,7 +8206,19 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             // it, if the remote node sends a ping once per second and this node takes 5
             // seconds to respond to each, the 5th ping the remote sends would appear to
             // return very quickly.
-            pfrom->PushMessage("pong", nonce);
+            pfrom->PushMessage(NetMsgType::PONG, nonce);
+            LogPrint("net", "%s has version : %d\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
+            if (pfrom->nVersion >= PING_INCLUDES_HEIGHT_VERSION)
+            {
+                int nPeerHeight;
+                vRecv >> nPeerHeight;
+
+                LOCK(cs_main);
+                cPeerBlockCounts.input(nPeerHeight);
+                pfrom->nChainHeight = nPeerHeight;
+
+                LogPrint("net", "%s has chain height %d\n", pfrom->addr.ToString().c_str(), nPeerHeight);
+            }
         }
     }
 
@@ -9170,8 +9187,9 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
             // seconds to respond to each, the 5th ping the remote sends would appear to
             // return very quickly.
             pfrom->PushMessage(NetMsgType::PONG, nonce);
-
-            if (pfrom->nVersion >= PING_INCLUDES_HEIGHT_VERSION) {
+            LogPrint("net", "%s has version : %d\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
+            if (pfrom->nVersion >= PING_INCLUDES_HEIGHT_VERSION)
+            {
                 int nPeerHeight;
                 vRecv >> nPeerHeight;
 
@@ -9361,12 +9379,7 @@ int ActiveProtocol()
             return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 #endif
 
-  /* Lico. just for comparison, previous protocol enforcement was checking for a block!
-    if ((unsigned int)chainActive.Tip()->nHeight >= PROTOCOL_ENFORCEMENT_BLOCK))
-        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;            
-*/
-
-  return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
+  return MIN_PEER_PROTO_VERSION;
 }
 
 // requires LOCK(cs_vRecvMsg)

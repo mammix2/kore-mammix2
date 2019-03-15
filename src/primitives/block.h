@@ -27,8 +27,12 @@ class CBlockHeader
 {
 public:
     // header
-    static const int32_t CURRENT_VERSION = 1;
-    static const int32_t POS_FORK_VERSION = 2;
+    // using the left  bit to signal a new version, not using the signal bit
+    //static const int32_t CURRENT_VERSION=0x40000001;
+    static const int32_t CURRENT_VERSION=1;
+    static const int32_t POS_FORK_VERSION=2;
+    //static const int32_t SIGNALING_NEW_VERSION_MASK=0x40000000;
+    static const int32_t SIGNALING_NEW_VERSION_MASK=0x00000000;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -168,13 +172,14 @@ public:
     // ppcoin: two types of block: proof-of-work or proof-of-stake
     bool IsProofOfStake() const
     {
+        bool isOldVersion = ((nVersion & ~SIGNALING_NEW_VERSION_MASK) < CBlockHeader::POS_FORK_VERSION);
         if (vtx.size() <= 1)
             return false;
 
         if (vtx[0].IsCoinBase() && vtx[1].IsCoinStake())
-            return true & fIsProofOfStake;
+            return isOldVersion ? true : fIsProofOfStake;
         else if (vtx[1].IsCoinStake())
-            return true & fIsProofOfStake;
+            return isOldVersion ? true : fIsProofOfStake;
         else
             return false;
     }

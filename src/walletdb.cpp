@@ -5,9 +5,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "walletdb.h"
-
 #include "base58.h"
+#include "init.h"
 #include "protocol.h"
 #include "serialize.h"
 #include "sync.h"
@@ -15,6 +14,7 @@
 #include "util.h"
 #include "utiltime.h"
 #include "wallet.h"
+#include "walletdb.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -861,7 +861,7 @@ void ThreadFlushWalletDB(const string& strFile)
     unsigned int nLastSeen = nWalletDBUpdated;
     unsigned int nLastFlushed = nWalletDBUpdated;
     int64_t nLastWalletUpdate = GetTime();
-    while (true) {
+    while (!ShutdownRequested()) {
         MilliSleep(500);
 
         if (nLastSeen != nWalletDBUpdated) {
@@ -899,6 +899,7 @@ void ThreadFlushWalletDB(const string& strFile)
             }
         }
     }
+    if (fDebug) LogPrintf("Exiting kore-wallet at block: %d", GetnHeight(chainActive.Tip()));
 }
 
 void NotifyBacked(const CWallet& wallet, bool fSuccess, string strMessage)
