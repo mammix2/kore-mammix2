@@ -7583,6 +7583,89 @@ void static ProcessGetData(CNode* pfrom)
     }
 }
 
+bool static ProcessMessageBlock(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
+{
+    LogPrintf("ProcessMessageBlock --> \n");
+    CBlock block;
+    vRecv >> block;
+    uint256 hashBlock = block.GetHash();
+    CInv inv(MSG_BLOCK, hashBlock);
+    LogPrint("net", "received block %s peer=%d\n", inv.hash.ToString(), pfrom->id);
+
+    //sometimes we will be sent their most recent block and its not the one we want, in that case tell where we are
+    if (!mapBlockIndex.count(block.hashPrevBlock)) {
+        if (find(pfrom->vBlockRequested.begin(), pfrom->vBlockRequested.end(), hashBlock) != pfrom->vBlockRequested.end()) {
+            //we already asked for this block, so lets work backwards and ask for the previous block
+            pfrom->PushMessage("getblocks", chainActive.GetLocator(), block.hashPrevBlock);
+            pfrom->vBlockRequested.push_back(block.hashPrevBlock);
+        } else {
+            //ask to sync to this block
+            pfrom->PushMessage("getblocks", chainActive.GetLocator(), hashBlock);
+            pfrom->vBlockRequested.push_back(hashBlock);
+        }
+    } else {
+        pfrom->AddInventoryKnown(inv);
+
+        CValidationState state;
+        if (!mapBlockIndex.count(block.GetHash())) {
+            ProcessNewBlock(state, pfrom, &block);
+            int nDoS;
+            if (state.IsInvalid(nDoS)) {
+                pfrom->PushMessage("reject", strCommand, state.GetRejectCode(),
+                    state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
+                if (nDoS > 0) {
+                    TRY_LOCK(cs_main, lockMain);
+                    if (lockMain) Misbehaving(pfrom->GetId(), nDoS);
+                }
+            }
+            //disconnect this node if its old protocol version
+            pfrom->DisconnectOldProtocol(ActiveProtocol(), strCommand);
+        } else {
+            LogPrint("net", "%s : Already processed block %s, skipping ProcessNewBlock()\n", __func__, block.GetHash().GetHex());
+        }
+    }
+    LogPrintf("ProcessMessageBlock <-- \n");
+}
+
+bool static ProcessMessageBlock_Legacy(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
+{
+    LogPrintf("ProcessMessageBlock_Legacy --> \n");
+
+    const CChainParams& chainparams = Params();
+
+    // If we are in the last block and a new block has arrived
+    // than it need to be processed by the new chain
+    if (chainActive.Height() == Params().HeightToFork() - 1)
+        return ProcessMessageBlock(pfrom, strCommand, vRecv, nTimeReceived);
+    CBlock block;
+    vRecv >> block;
+
+    CInv inv(MSG_BLOCK, block.GetHash());
+    LogPrint("net", "received block %s peer=%d\n", inv.hash.ToString(), pfrom->id);
+
+    pfrom->AddInventoryKnown(inv);
+
+    CValidationState state;
+    // Process all blocks from whitelisted peers, even if not requested,
+    // unless we're still syncing with the network.
+    // Such an unrequested block may still be processed, subject to the
+    // conditions in AcceptBlock().
+    bool forceProcessing = pfrom->fWhitelisted && !IsInitialBlockDownload();
+    ProcessNewBlock_Legacy(state, chainparams, pfrom, &block, forceProcessing, NULL);
+    int nDoS;
+    if (state.IsInvalid(nDoS)) {
+        assert(state.GetRejectCode() < REJECT_INTERNAL_LEGACY); // Blocks are never rejected with internal reject codes
+        pfrom->PushMessage(NetMsgType::REJECT, strCommand, (unsigned char)state.GetRejectCode(),
+            state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
+        if (nDoS > 0) {
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), nDoS);
+        }
+    }
+    LogPrintf("ProcessMessageBlock_Legacy <-- \n");
+}
+
+
 bool fRequestedSporksIDB = false;
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
@@ -8146,46 +8229,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         CheckBlockIndex();
     }
 
-    else if ((strCommand == "block" || strCommand == NetMsgType::BLOCK) && !fImporting && !fReindex) // Ignore blocks received while importing
+    else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
-        CBlock block;
-        vRecv >> block;
-        uint256 hashBlock = block.GetHash();
-        CInv inv(MSG_BLOCK, hashBlock);
-        LogPrint("net", "received block %s peer=%d\n", inv.hash.ToString(), pfrom->id);
-
-        //sometimes we will be sent their most recent block and its not the one we want, in that case tell where we are
-        if (!mapBlockIndex.count(block.hashPrevBlock)) {
-            if (find(pfrom->vBlockRequested.begin(), pfrom->vBlockRequested.end(), hashBlock) != pfrom->vBlockRequested.end()) {
-                //we already asked for this block, so lets work backwards and ask for the previous block
-                pfrom->PushMessage("getblocks", chainActive.GetLocator(), block.hashPrevBlock);
-                pfrom->vBlockRequested.push_back(block.hashPrevBlock);
-            } else {
-                //ask to sync to this block
-                pfrom->PushMessage("getblocks", chainActive.GetLocator(), hashBlock);
-                pfrom->vBlockRequested.push_back(hashBlock);
-            }
-        } else {
-            pfrom->AddInventoryKnown(inv);
-
-            CValidationState state;
-            if (!mapBlockIndex.count(block.GetHash())) {
-                ProcessNewBlock(state, pfrom, &block);
-                int nDoS;
-                if (state.IsInvalid(nDoS)) {
-                    pfrom->PushMessage("reject", strCommand, state.GetRejectCode(),
-                        state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
-                    if (nDoS > 0) {
-                        TRY_LOCK(cs_main, lockMain);
-                        if (lockMain) Misbehaving(pfrom->GetId(), nDoS);
-                    }
-                }
-                //disconnect this node if its old protocol version
-                pfrom->DisconnectOldProtocol(ActiveProtocol(), strCommand);
-            } else {
-                LogPrint("net", "%s : Already processed block %s, skipping ProcessNewBlock()\n", __func__, block.GetHash().GetHex());
-            }
-        }
+        ProcessMessageBlock(pfrom, strCommand, vRecv, nTimeReceived);
     }
 
 
@@ -8438,6 +8484,7 @@ bool CanDirectFetch()
 {
     return chainActive.Tip()->GetBlockTime() > GetAdjustedTime() - Params().GetTargetTimespan() * 20;
 }
+
 
 bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
@@ -9125,36 +9172,7 @@ bool static ProcessMessage_Legacy(CNode* pfrom, string strCommand, CDataStream& 
 
     else if (strCommand == NetMsgType::BLOCK && !fImporting && !fReindex) // Ignore blocks received while importing
     {
-        // If we are in the last block and a new block has arrived
-        // than it need to be processed by the new chain
-        if (chainActive.Height() == Params().HeightToFork() - 1)
-            return ProcessMessage(pfrom, strCommand, vRecv, nTimeReceived);
-        CBlock block;
-        vRecv >> block;
-
-        CInv inv(MSG_BLOCK, block.GetHash());
-        LogPrint("net", "received block %s peer=%d\n", inv.hash.ToString(), pfrom->id);
-
-        pfrom->AddInventoryKnown(inv);
-
-        CValidationState state;
-        // Process all blocks from whitelisted peers, even if not requested,
-        // unless we're still syncing with the network.
-        // Such an unrequested block may still be processed, subject to the
-        // conditions in AcceptBlock().
-        bool forceProcessing = pfrom->fWhitelisted && !IsInitialBlockDownload();
-        ProcessNewBlock_Legacy(state, chainparams, pfrom, &block, forceProcessing, NULL);
-        int nDoS;
-        if (state.IsInvalid(nDoS)) {
-            assert(state.GetRejectCode() < REJECT_INTERNAL_LEGACY); // Blocks are never rejected with internal reject codes
-            pfrom->PushMessage(NetMsgType::REJECT, strCommand, (unsigned char)state.GetRejectCode(),
-                state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
-            if (nDoS > 0) {
-                LOCK(cs_main);
-                Misbehaving(pfrom->GetId(), nDoS);
-            }
-        }
-
+        ProcessMessageBlock_Legacy(pfrom, strCommand, vRecv, nTimeReceived);
     }
 
 
