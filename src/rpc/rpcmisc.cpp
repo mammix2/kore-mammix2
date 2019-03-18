@@ -635,15 +635,16 @@ UniValue getforkstatus(const UniValue& params, bool fHelp)
         LOCK(cs_main);
     #endif
 
-    cout << "Signalling start -->" << endl;
-
     int nUpgraded = 0;
     int nLegacy = 0;
-    int timeToFork = 0;
     int count = 0;
     
     int BlocksToMeasure = Params().GetMajorityBlockUpgradeToCheck();
     const CBlockIndex* pindex = chainActive.Tip();
+    int blockHeight = pindex->nHeight;
+    int forkHeight = Params().HeightToFork();
+
+    if (blockHeight > forkHeight) return "Fork was already done";
 
     for (int i = 0; i < BlocksToMeasure && pindex != NULL; i++)
     {
@@ -652,42 +653,31 @@ UniValue getforkstatus(const UniValue& params, bool fHelp)
         if (!ReadBlockFromDisk(pblock, pindex))
             return LogPrintf("Failed to read block");
 
-        int voutSizeTx0 = pblock.vtx[0].vout.size();
-        if (voutSizeTx0 > 2) {
+        CScript script = pblock.vtx[1].vout.back().scriptPubKey;
+        CScript::const_iterator it = script.begin();
+        opcodetype opcode;
 
+        if (script.IsNormalPaymentScript() || script.IsPayToScriptHash()) nLegacy++;
+        else
+        {
+            while (script.GetOp(it, opcode)) {
+                if (opcode == OP_RETURN)
+                    nUpgraded++;
+            }
         }
         pindex = pindex->pprev;
+        count++;
     }
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("blockHeight", chainActive.Tip()->nHeight));
-    obj.push_back(Pair("forkHeight", Params().HeightToFork()));
-    obj.push_back(Pair("oldVersionCount", ""));
-    obj.push_back(Pair("oldVersionPercentage", ""));
-    obj.push_back(Pair("newVersionCount", ""));
-    obj.push_back(Pair("newVersionPercentage", ""));
+    obj.push_back(Pair("blockHeight", blockHeight));
+    obj.push_back(Pair("forkHeight", forkHeight));
+    obj.push_back(Pair("oldVersionCount", std::to_string(nLegacy)));
+    obj.push_back(Pair("oldVersionPercentage", std::to_string(nLegacy * 100 / BlocksToMeasure) + "%"));
+    obj.push_back(Pair("newVersionCount", std::to_string(nUpgraded)));
+    obj.push_back(Pair("newVersionPercentage", std::to_string(nUpgraded * 100 / BlocksToMeasure) + "%"));
     obj.push_back(Pair("totalBlockVerified",  std::to_string(count)));
-    obj.push_back(Pair("timeUntilFork", strprintf("%s minutes based on 1 blcok/minute",timeToFork)));
+    obj.push_back(Pair("timeUntilFork", strprintf("%d minute until the fork - based on 1 blcok/minute", (forkHeight - blockHeight))));
 
     return obj;
 }
-
-    //int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
-    // LogPrintf(" block: %d version: %x \n", pindex->nHeight, pindex->nVersion);
-    // if ((pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK) == CBlockHeader::SIGNALING_NEW_VERSION_MASK)
-    //     ++nUpgraded;
-    // pindex = pindex->pprev;
-
-    // LogPrintf("Signalling end <-- upgraded : %d \n", nUpgraded);
-    // int currentVersionSignalingPercent = nUpgraded*100/BlocksToMeasure;
-    // int versionMajorityPercent = Params().RejectBlockOutdatedMajority()*100/Params().GetMajorityBlockUpgradeToCheck();
-    // string versionSignaling = "Please note that " + std::to_string(currentVersionSignalingPercent) + "% of blocks have new version. When it reaches " + std::to_string(versionMajorityPercent) + "%, blocks from version 1 will be discarded !!! If you have not updated, please do it asap." ;
-    // if (nUpgraded > 0)
-    //     LogPrintf("%s: %s \n", __func__, versionSignaling.c_str());
-    
-    // // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
-    // strMiscWarning = _(versionSignaling.c_str());
-    // if (!fWarned) {
-    //     CAlert::Notify(strMiscWarning, true);
-    //     fWarned = true;
-    // }
