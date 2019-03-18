@@ -1020,11 +1020,11 @@ border: 1px solid #818181;
 border-radius: 1px;
 margin-right:43px;
 text-align: right;
-color:#818181;
+color:#000000;
 }
 
 QWidget .QFrame#frameObfuscation #formLayoutWidget .QProgressBar#obfuscationProgress::chunk {
-background-color: #3DE6F5;
+background-color: #90B8BA;
 width:1px;
 }
 
@@ -1091,7 +1091,7 @@ qproperty-geometry: rect(0 0 0 0);
 
 QWidget .QFrame#frameObfuscation .QPushButton#toggleObfuscation { /* Start Obfuscation Mixing */
 qproperty-geometry: rect(10 268 290 40);
-border-color: #382f44;
+border-color: #0AC9DA;
 border-radius:1px;
 font-size:15px;
 font-weight:bold;

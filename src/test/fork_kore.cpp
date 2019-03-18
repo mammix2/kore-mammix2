@@ -15,7 +15,7 @@
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 
-// #define RUN_THIS_TESTS
+// #define RUN_FORK_TESTS
 
 // struct RestartDataBaseTest
 // {
@@ -36,7 +36,7 @@ static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAb
 //BOOST_FIXTURE_TEST_SUITE(fork_kore, RestartDataBaseTest)
 BOOST_AUTO_TEST_SUITE(fork_kore)
 
-#ifdef RUN_THIS_TESTS
+#ifdef RUN_FORK_TESTS
 
 BOOST_AUTO_TEST_CASE(minimum_fork)
 {

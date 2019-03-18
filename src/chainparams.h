@@ -45,7 +45,6 @@ public:
     };
 
     enum DeploymentPos {
-        DEPLOYMENT_TESTDUMMY,
         DEPLOYMENT_CSV, // Deployment of BIP68, BIP112, and BIP113.
         // NOTE: Also add new deployments to VersionBitsDeploymentInfo in versionbits.cpp
         MAX_VERSION_BITS_DEPLOYMENTS
@@ -76,8 +75,6 @@ public:
     const std::vector<unsigned char>&      Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     const std::vector<CAddress>&           FixedSeeds() const                  { return vFixedSeeds; }
 
-    /** Allow mining of a min-difficulty block */
-    bool                      AllowMinDifficultyBlocks() const         { return fAllowMinDifficultyBlocks; }
     bool                      EnableBigRewards() const                 { return fEnableBigReward; }
     /** Make miner wait to have peers to avoid wasting work */
     bool                      DoesMiningRequiresPeers() const          { return fMiningRequiresPeers; }
@@ -95,10 +92,7 @@ public:
     int64_t                   GetEnsureMintableCoinsInterval() const   { return nEnsureMintableCoinsInterval; }
     int64_t                   GetInterval() const                      { return nTargetTimespan / nTargetSpacing; }
     int32_t                   GetLastPoWBlock() const                  { return nLastPOWBlock; }
-    /** Used to check majorities for block version upgrade */
-    int32_t                   GetMajorityBlockUpgradeEnforce() const   { return nMajorityBlockUpgradeEnforce; }
     int32_t                   GetMajorityBlockUpgradeToCheck() const   { return nMajorityBlockUpgradeToCheck; }
-    int32_t                   GetMajorityBlockOutdatedReject() const   { return nMajorityBlockOutdatedReject; }
     int64_t                   GetMasternodeBudgetPaymentCycle() const  { return nMasternodeBudgetPaymentCycle; }
     int64_t                   GetMasternodeCheckSeconds() const        { return nMasternodeCheckSeconds; }
     int64_t                   GetMasternodeCoinScore() const           { return nMasternodeCoinScore; }
@@ -125,7 +119,6 @@ public:
     uint32_t                  GetRuleChangeActivationThreshold() const { return nRuleChangeActivationThreshold; }
     std::string               GetSporkKey() const                      { return strSporkKey; }
     int64_t                   GetSporkKeyEnforceNew() const            { return nSporkKeyEnforceNew; }
-    int64_t                   GetSporkKeyRejectOld() const             { return nSporkKeyRejectOld; }
     int64_t                   GetStartMasternodePayments() const       { return nStartMasternodePayments; }
     int64_t                   GetPastBlocksMax() const                 { return nPastBlocksMax; }
     int64_t                   GetPastBlocksMin() const                 { return nPastBlocksMin; }
@@ -156,7 +149,6 @@ protected:
     uint256                    bnProofOfWorkLimit;
     uint256                    bnProofOfStakeLimit;
     bool                       fMiningRequiresPeers;
-    bool                       fAllowMinDifficultyBlocks;
     bool                       fDefaultConsistencyChecks;
     bool                       fRequireStandard;
     bool                       fMineBlocksOnDemand;
@@ -165,10 +157,6 @@ protected:
     bool                       fEnableBigReward;
     CBlock                     genesis;
     int32_t                    nBlockEnforceInvalidUTXO;
-    int32_t                    nBlockEnforceSerialRange;
-    int32_t                    nBlockFirstFraudulent;
-    int32_t                    nBlockLastGoodCheckpoint;
-    int32_t                    nBlockRecalculateAccumulators;
     int64_t                    nBudgetFeeConfirmations;
     int64_t                    nBudgetVoteUpdate;
     int64_t                    nClientMintableCoinsInterval; // PoS mining
@@ -181,11 +169,8 @@ protected:
     int32_t                    nMaxReorganizationDepth;
     int64_t                    nMaxTipAge;
     uint64_t                   nPruneAfterHeight; // Legacy
-    int32_t                    nSubsidyHalvingInterval;
     int32_t                    nLastPOWBlock;
-    int32_t                    nMajorityBlockUpgradeEnforce;
     int32_t                    nMajorityBlockUpgradeToCheck;
-    int32_t                    nMajorityBlockOutdatedReject;
     int64_t                    nMasternodeCheckSeconds;
     int64_t                    nMasternodeCoinScore;
     int32_t                    nMasternodeCountDrift;
@@ -208,7 +193,6 @@ protected:
     int32_t                    nPoolMaxTransactions;
     uint32_t                   nRuleChangeActivationThreshold;
     int64_t                    nSporkKeyEnforceNew;
-    int64_t                    nSporkKeyRejectOld;
     int64_t                    nStakeLockInterval;
     uint32_t                   nStakeMinAge;
     uint32_t                   nStakeMinConfirmations;
@@ -239,23 +223,16 @@ class CModifiableParams
 {
 public:
     //! Published setters to allow changing values in unit test cases
-    virtual void setAllowMinDifficultyBlocks(bool aAllowMinDifficultyBlocks) = 0;
     virtual void setCoinbaseMaturity(int aCoinbaseMaturity) = 0;
-    virtual void setDefaultConsistencyChecks(bool aDefaultConsistencyChecks) = 0;
     virtual void setEnableBigRewards(bool bigRewards) = 0;
-    virtual void setEnforceBlockUpgradeMajority(int anMajorityBlockUpgradeEnforce) = 0;
     virtual void setHeightToFork(int aHeightToFork) = 0;
     virtual void setLastPowBlock(int aLastPOWBlock) = 0;
-    virtual void setRejectBlockOutdatedMajority(int anMajorityBlockOutdatedReject) = 0;
-    virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
     virtual void setStakeLockInterval(int aStakeLockInterval) = 0;
     virtual void setStakeMinAge(int aStakeMinAge) = 0;
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) = 0;
     virtual void setStakeModifierInterval(int aStakeModifier) = 0;
-    virtual void setSubsidyHalvingInterval(int anSubsidyHalvingInterval) = 0;
     virtual void setTargetSpacing(uint aTargetSpacing) = 0;
     virtual void setTargetTimespan(uint aTargetTimespan) = 0;
-    virtual void setToCheckBlockUpgradeMajority(int anMajorityBlockUpgradeToCheck) = 0;
 };
 
 /**

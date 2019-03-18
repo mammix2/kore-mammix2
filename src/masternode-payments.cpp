@@ -196,28 +196,20 @@ bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue, CAmount nMin
 
     if (!masternodeSync.IsSynced()) { //there is no budget data to use to check anything
         //super blocks will always be on these blocks, max 100 per budgeting
-        if (nHeight % GetBudgetPaymentCycleBlocks() < 100) {
+        if (nHeight % GetBudgetPaymentCycleBlocks() < 100)
             return true;
-        } else {
-            if (nMinted > nExpectedValue) {
-                return false;
-            }
-        }
+        else if (nMinted > nExpectedValue)
+            return false;
+
     } else { // we're synced and have data so check the budget schedule
-
         //are these blocks even enabled
-        if (!IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)) {
+        if (!IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS))
             return nMinted <= nExpectedValue;
-        }
 
-        if (budget.IsBudgetPaymentBlock(nHeight)) {
-            //the value of the block is evaluated in CheckBlock
-            return true;
-        } else {
-            if (nMinted > nExpectedValue) {
-                return false;
-            }
-        }
+        if (budget.IsBudgetPaymentBlock(nHeight))
+            return true; //the value of the block is evaluated in CheckBlock
+        else if (nMinted > nExpectedValue)
+            return false;
     }
 
     return true;
@@ -333,22 +325,6 @@ std::string GetRequiredPaymentsString(int nBlockHeight)
         return masternodePayments.GetRequiredPaymentsString(nBlockHeight);
     }
 }
-
-CAmount GetMasternodePayment(CAmount blockReward, CAmount stakedBalance, CBlockIndex* pindexPrev)
-{
-    double moneySupplyDouble = pindexPrev->nMoneySupply;
-    double blockRewardDouble = (double)blockReward;
-    double stakedBalanceDouble = (double)max(stakedBalance, 5000 * COIN);
-
-    double stakedBalanceSquare = pow(stakedBalance, 2);
-    double stakedBalanceTimesConstant1 = 8.00011e-13 * stakedBalanceDouble;
-    double stakedBalanceTimesConstant2 = 1.17928e-58 * stakedBalanceSquare;
-    stakedBalanceTimesConstant2 *= moneySupplyDouble;
-    stakedBalanceDouble = stakedBalanceTimesConstant1 + stakedBalanceTimesConstant2 + 0.95;
-
-    return blockRewardDouble * stakedBalanceDouble;
-}
-
 
 void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, bool fProofOfStake, CAmount nstakedBallance)
 {
@@ -473,9 +449,8 @@ void CMasternodePayments::FillBlockPayee_Legacy(CMutableTransaction& txNew, int6
 int CMasternodePayments::GetMinMasternodePaymentsProto()
 {
     if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
-        return ActiveProtocol(); // Allow only updated peers
-    else
-        return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT; // Also allow old peers as long as they are allowed to run
+        return ActiveProtocol();                          // Allow only updated peers
+    else return MIN_PEER_PROTO_VERSION; // Also allow old peers as long as they are allowed to run
 }
 
 void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)

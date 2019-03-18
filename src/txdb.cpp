@@ -398,7 +398,10 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     pindexNew->prevoutStake      = diskindex.prevoutStake;
                     pindexNew->nStakeTime        = diskindex.nStakeTime;
                     pindexNew->hashProofOfStake  = diskindex.hashProofOfStake;
-                    bool isProofOfStake = pindexNew->IsProofOfStake();
+                    bool isProofOfStake = pindexNew->IsProofOfStake(); 
+
+                    LogPrintf("LoadBlockIndexGuts : useLegacy ?: %s \n", useLegacyCode ? "true" : "false");
+                    LogPrintf("LoadBlockIndexGuts block: %d, POS ? %s Status value %u \n", pindexNew->nHeight, isProofOfStake ? "true" : "false", pindexNew->nStatus);
                     if (!isProofOfStake && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
                         if (useLegacyCode) {
                             if (!CheckProofOfWork_Legacy(pindexNew->GetBlockHash(), pindexNew->nBits))

@@ -10,14 +10,18 @@
 
 static const string strSecret("5HxWvvfubhXpYYpS3tJkw6fq9jE9j18THftkZjHHfmFiWtmAbrj");
 
-// #define RUN_THIS_TESTS
+// #define RUN_FORK_TESTS
 
 BOOST_AUTO_TEST_SUITE(fork_afterwords)
 
-#ifdef RUN_THIS_TESTS
+#ifdef RUN_FORK_TESTS
 
 BOOST_AUTO_TEST_CASE(after_fork)
 {
+    // todo how to get this parameter from argument list ??
+    //bool logToStdout = GetBoolArg("-logtostdout", false);
+    bool logToStdout = true;
+
     if (fDebug) {
         LogPrintf("****************************************** \n");
         LogPrintf("**  Starting fork_afterwords/after_fork ** \n");
@@ -48,18 +52,19 @@ BOOST_AUTO_TEST_CASE(after_fork)
     ModifiableParams()->setStakeMinAge(0);
     ModifiableParams()->setTargetTimespan(1);
     ModifiableParams()->setEnableBigRewards(true);
+    //ModifiableParams()->setMineBlocksOnDemand(false);
     SetMockTime(0);
 
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 
     // generate pow blocks, so we can stake
-    GenerateBlocks(1, minConfirmations + 2, pwalletMain, scriptPubKey, false);
+    GenerateBlocks(1, minConfirmations + 2, pwalletMain, scriptPubKey, false, logToStdout);
 
     // we are just checking if we are able to generate PoS blocks after fork
     // lets exercise more than 64 blocks, this way we will see if the max
     // modifierinterval is working, it gets max(64 blocks)
-    GenerateBlocks(minConfirmations + 2, minConfirmations + 2 + 100, pwalletMain, scriptPubKey, true);
+    GenerateBlocks(minConfirmations + 2, minConfirmations + 2 + 100, pwalletMain, scriptPubKey, true, logToStdout);
 
     // Leaving old values
     Checkpoints::fEnabled = true;

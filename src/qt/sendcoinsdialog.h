@@ -56,7 +56,7 @@ public slots:
     void updateTabsAndLabels();
     void setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, 
 		            const CAmount& immatureBalance, const CAmount& stakedBalance, const CAmount& anonymizedBalance, const CAmount& watchBalance, 
-		            const CAmount& watchUnconfirmedBalance, const CAmount& watchImmatureBalance, const CAmount& watchStakedBalance);
+		            const CAmount& watchUnconfirmedBalance, const CAmount& watchImmatureBalance);
 
 private:
     Ui::SendCoinsDialog* ui;

@@ -284,6 +284,7 @@ static const CRPCCommand vRPCCommands[] =
     {"control",               "stop",                       &stop,                      true,     true,     false},
     {"control",               "getforkstatus",              &getforkstatus,             true,     false,    false},
 
+        {"network", "getonion", &getonion, true},
     /* P2P networking */
     {"network",               "getnetworkinfo",             &getnetworkinfo,            true,     false,    false},
     {"network",               "addnode",                    &addnode,                   true,     true,     false},

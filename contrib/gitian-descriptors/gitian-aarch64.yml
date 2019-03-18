@@ -1,8 +1,8 @@
 ---
-name: "kore-aarch64-0.12"
+name: "kore-aarch64-0.13"
 enable_cache: true
 suites:
-- "xenial"
+- "bionic"
 architectures:
 - "amd64"
 packages:
@@ -14,7 +14,7 @@ packages:
 - "g++-4.9-multilib"
 - "gcc-4.9-multilib"
 - "binutils-gold"
-- "git-core"
+- "git"
 - "pkg-config"
 - "autoconf"
 - "libtool"
