@@ -454,7 +454,7 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
 
 UniValue dumptxoutset(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() != 1)
         throw runtime_error(
             "dumptxoutset\n"
             "\nDump the unspent transaction output set to a file \"dump_$BLOCKHEIGTH.csv\".\n"
@@ -466,7 +466,7 @@ UniValue dumptxoutset(const UniValue& params, bool fHelp)
 
     FlushStateToDisk();
     string fileSaved;
-    string fileName = params.size() > 0 ? params[0].get_str() : NULL;
+    string fileName = params[0].get_str();
     if (pcoinsTip->DumpUTXO(fileSaved, fileName)) {
         ret.push_back(Pair("File exported to: ", fileSaved));
     }
@@ -556,7 +556,7 @@ UniValue gettxout(const UniValue& params, bool fHelp)
 
 UniValue verifychain(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
+    if (fHelp || params.size() != 1)
         throw runtime_error(
             "verifychain ( numblocks )\n"
             "\nVerifies blockchain database.\n"
@@ -575,7 +575,7 @@ UniValue verifychain(const UniValue& params, bool fHelp)
     int nCheckLevel = 4;
     int nCheckDepth = GetArg("-checkblocks", 288);
     if (params.size() > 0)
-        nCheckDepth = params[1].get_int();
+        nCheckDepth = params[0].get_int();
 
     fVerifyingBlocks = true;
     bool fVerified = CVerifyDB().VerifyDB(pcoinsTip, nCheckLevel, nCheckDepth);
@@ -733,11 +733,11 @@ UniValue getfeeinfo(const UniValue& params, bool fHelp)
 
             "\nResult:\n"
             "{\n"
-            "  \"txcount\": xxxxx                (numeric) Current tx count\n"
-            "  \"txbytes\": xxxxx                (numeric) Sum of all tx sizes\n"
-            "  \"ttlfee\": xxxxx                 (numeric) Sum of all fees\n"
-            "  \"feeperkb\": xxxxx               (numeric) Average fee per kb over the block range\n"
-            "  \"rec_highpriorityfee_perkb\": xxxxx    (numeric) Recommended fee per kb to use for a high priority tx\n"
+            "  \"txcount\": xxxxx                     (numeric) Current tx count\n"
+            "  \"txbytes\": xxxxx                     (numeric) Sum of all tx sizes\n"
+            "  \"ttlfee\": xxxxx                      (numeric) Sum of all fees\n"
+            "  \"feeperkb\": xxxxx                    (numeric) Average fee per kb over the block range\n"
+            "  \"rec_highpriorityfee_perkb\": xxxxx   (numeric) Recommended fee per kb to use for a high priority tx\n"
             "}\n"
 
             "\nExamples:\n" +

@@ -597,26 +597,24 @@ UniValue getstakingstatus(const UniValue& params, bool fHelp)
     obj.push_back(Pair("mnsync", masternodeSync.IsSynced()));
 
     bool nStaking = false;
-    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
-        nStaking = true;
-    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
-        nStaking = true;
+    if (mapArgs["-staking"] == "1") nStaking = true;
     obj.push_back(Pair("staking status", nStaking));
 
     return obj;
 }
 #endif // ENABLE_WALLET
 
-UniValue getforkgstatus(const UniValue& params, bool fHelp)
+UniValue getforkstatus(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
-            "getforkgstatus\n"
+            "getforkstatus\n"
             "\nReturns an object containing various fork information.\n"
 
             "\nResult:\n"
             "{\n"
-            "  \"forkHeight\":              (intenger),         Block height set to Fork\n"
+            "  \"blockHeight\":             (intenger),         The actual block height\n"
+            "  \"forkHeight\":              (intenger),         Block height set to fork\n"
             "  \"oldVersionCount\":         (intenger),         Block count of nodes running old version\n"
             "  \"oldVersionPercentage\":    (intenger),         Percentage of old version blocks\n"
             "  \"newVersionCount\":         (intenger),         Block count of nodes running new version\n"
@@ -626,7 +624,7 @@ UniValue getforkgstatus(const UniValue& params, bool fHelp)
             "}\n"
 
             "\nExamples:\n" +
-            HelpExampleCli("getforkgstatus", "") + HelpExampleRpc("getforkgstatus", ""));
+            HelpExampleCli("getforkstatus", "") + HelpExampleRpc("getforkstatus", ""));
 
     #ifdef ENABLE_WALLET
         LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
@@ -634,22 +632,49 @@ UniValue getforkgstatus(const UniValue& params, bool fHelp)
         LOCK(cs_main);
     #endif
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("validtime", chainActive.Tip()->nTime > 1471482000));
-    obj.push_back(Pair("haveconnections", !vNodes.empty()));
-    if (pwalletMain) {
-        obj.push_back(Pair("walletunlocked", !pwalletMain->IsLocked()));
-        obj.push_back(Pair("mintablecoins", pwalletMain->MintableCoins()));
-        obj.push_back(Pair("enoughcoins", nReserveBalance <= pwalletMain->GetBalance()));
-    }
-    obj.push_back(Pair("mnsync", masternodeSync.IsSynced()));
+    int nUpgraded = 0;
+    int nLegacy = 0;
+    int count = 0;
+    
+    int BlocksToMeasure = Params().GetMajorityBlockUpgradeToCheck();
+    const CBlockIndex* pindex = chainActive.Tip();
+    int blockHeight = pindex->nHeight;
+    int forkHeight = Params().HeightToFork();
 
-    bool nStaking = false;
-    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
-        nStaking = true;
-    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
-        nStaking = true;
-    obj.push_back(Pair("staking status", nStaking));
+    if (blockHeight > forkHeight) return "Fork was already done";
+
+    for (int i = 0; i < BlocksToMeasure && pindex != NULL; i++)
+    {
+        if (pindex->nHeight < 1) break;
+        CBlock pblock;
+        if (!ReadBlockFromDisk(pblock, pindex))
+            return LogPrintf("Failed to read block");
+
+        CScript script = pblock.vtx[1].vout.back().scriptPubKey;
+        CScript::const_iterator it = script.begin();
+        opcodetype opcode;
+
+        if (script.IsNormalPaymentScript() || script.IsPayToScriptHash()) nLegacy++;
+        else
+        {
+            while (script.GetOp(it, opcode)) {
+                if (opcode == OP_RETURN)
+                    nUpgraded++;
+            }
+        }
+        pindex = pindex->pprev;
+        count++;
+    }
+
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("blockHeight", blockHeight));
+    obj.push_back(Pair("forkHeight", forkHeight));
+    obj.push_back(Pair("oldVersionCount", std::to_string(nLegacy)));
+    obj.push_back(Pair("oldVersionPercentage", std::to_string(nLegacy * 100 / BlocksToMeasure) + "%"));
+    obj.push_back(Pair("newVersionCount", std::to_string(nUpgraded)));
+    obj.push_back(Pair("newVersionPercentage", std::to_string(nUpgraded * 100 / BlocksToMeasure) + "%"));
+    obj.push_back(Pair("totalBlockVerified",  std::to_string(count)));
+    obj.push_back(Pair("timeUntilFork", strprintf("%d minute until the fork - based on 1 blcok/minute", (forkHeight - blockHeight))));
 
     return obj;
 }
