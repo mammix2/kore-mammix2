@@ -597,10 +597,7 @@ UniValue getstakingstatus(const UniValue& params, bool fHelp)
     obj.push_back(Pair("mnsync", masternodeSync.IsSynced()));
 
     bool nStaking = false;
-    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
-        nStaking = true;
-    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
-        nStaking = true;
+    if (mapArgs["-staking"] == "1") nStaking = true;
     obj.push_back(Pair("staking status", nStaking));
 
     return obj;
