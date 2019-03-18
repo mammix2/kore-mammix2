@@ -158,7 +158,7 @@ UniValue setstaking(const UniValue& params, bool fHelp)
             strTemp << strNew << std::endl;
             continue;
         }
-        strTemp << strKey << strValue << std::endl;
+        strTemp << strKey << "=" << strValue << std::endl;
     }
     
     std::ofstream newKoreConfig;

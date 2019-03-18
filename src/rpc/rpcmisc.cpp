@@ -607,16 +607,17 @@ UniValue getstakingstatus(const UniValue& params, bool fHelp)
 }
 #endif // ENABLE_WALLET
 
-UniValue getforkgstatus(const UniValue& params, bool fHelp)
+UniValue getforkstatus(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
-            "getforkgstatus\n"
+            "getforkstatus\n"
             "\nReturns an object containing various fork information.\n"
 
             "\nResult:\n"
             "{\n"
-            "  \"forkHeight\":              (intenger),         Block height set to Fork\n"
+            "  \"blockHeight\":             (intenger),         The actual block height\n"
+            "  \"forkHeight\":              (intenger),         Block height set to fork\n"
             "  \"oldVersionCount\":         (intenger),         Block count of nodes running old version\n"
             "  \"oldVersionPercentage\":    (intenger),         Percentage of old version blocks\n"
             "  \"newVersionCount\":         (intenger),         Block count of nodes running new version\n"
@@ -626,7 +627,7 @@ UniValue getforkgstatus(const UniValue& params, bool fHelp)
             "}\n"
 
             "\nExamples:\n" +
-            HelpExampleCli("getforkgstatus", "") + HelpExampleRpc("getforkgstatus", ""));
+            HelpExampleCli("getforkstatus", "") + HelpExampleRpc("getforkstatus", ""));
 
     #ifdef ENABLE_WALLET
         LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
@@ -634,22 +635,59 @@ UniValue getforkgstatus(const UniValue& params, bool fHelp)
         LOCK(cs_main);
     #endif
 
-    UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("validtime", chainActive.Tip()->nTime > 1471482000));
-    obj.push_back(Pair("haveconnections", !vNodes.empty()));
-    if (pwalletMain) {
-        obj.push_back(Pair("walletunlocked", !pwalletMain->IsLocked()));
-        obj.push_back(Pair("mintablecoins", pwalletMain->MintableCoins()));
-        obj.push_back(Pair("enoughcoins", nReserveBalance <= pwalletMain->GetBalance()));
-    }
-    obj.push_back(Pair("mnsync", masternodeSync.IsSynced()));
+    cout << "Signalling start -->" << endl;
 
-    bool nStaking = false;
-    if (mapHashedBlocks.count(chainActive.Tip()->nHeight))
-        nStaking = true;
-    else if (mapHashedBlocks.count(chainActive.Tip()->nHeight - 1) && nLastCoinStakeSearchInterval)
-        nStaking = true;
-    obj.push_back(Pair("staking status", nStaking));
+    int nUpgraded = 0;
+    int nLegacy = 0;
+    int timeToFork = 0;
+    int count = 0;
+    
+    int BlocksToMeasure = Params().GetMajorityBlockUpgradeToCheck();
+    const CBlockIndex* pindex = chainActive.Tip();
+
+    for (int i = 0; i < BlocksToMeasure && pindex != NULL; i++)
+    {
+        if (pindex->nHeight < 1) break;
+        CBlock pblock;
+        if (!ReadBlockFromDisk(pblock, pindex))
+            return LogPrintf("Failed to read block");
+
+        int voutSizeTx0 = pblock.vtx[0].vout.size();
+        if (voutSizeTx0 > 2) {
+
+        }
+        pindex = pindex->pprev;
+    }
+
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("blockHeight", chainActive.Tip()->nHeight));
+    obj.push_back(Pair("forkHeight", Params().HeightToFork()));
+    obj.push_back(Pair("oldVersionCount", ""));
+    obj.push_back(Pair("oldVersionPercentage", ""));
+    obj.push_back(Pair("newVersionCount", ""));
+    obj.push_back(Pair("newVersionPercentage", ""));
+    obj.push_back(Pair("totalBlockVerified",  std::to_string(count)));
+    obj.push_back(Pair("timeUntilFork", strprintf("%s minutes based on 1 blcok/minute",timeToFork)));
 
     return obj;
 }
+
+    //int32_t nExpectedVersion = ComputeBlockVersion_Legacy(pindex->pprev);
+    // LogPrintf(" block: %d version: %x \n", pindex->nHeight, pindex->nVersion);
+    // if ((pindex->nVersion & CBlockHeader::SIGNALING_NEW_VERSION_MASK) == CBlockHeader::SIGNALING_NEW_VERSION_MASK)
+    //     ++nUpgraded;
+    // pindex = pindex->pprev;
+
+    // LogPrintf("Signalling end <-- upgraded : %d \n", nUpgraded);
+    // int currentVersionSignalingPercent = nUpgraded*100/BlocksToMeasure;
+    // int versionMajorityPercent = Params().RejectBlockOutdatedMajority()*100/Params().GetMajorityBlockUpgradeToCheck();
+    // string versionSignaling = "Please note that " + std::to_string(currentVersionSignalingPercent) + "% of blocks have new version. When it reaches " + std::to_string(versionMajorityPercent) + "%, blocks from version 1 will be discarded !!! If you have not updated, please do it asap." ;
+    // if (nUpgraded > 0)
+    //     LogPrintf("%s: %s \n", __func__, versionSignaling.c_str());
+    
+    // // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
+    // strMiscWarning = _(versionSignaling.c_str());
+    // if (!fWarned) {
+    //     CAlert::Notify(strMiscWarning, true);
+    //     fWarned = true;
+    // }

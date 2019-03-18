@@ -206,6 +206,7 @@ extern UniValue getblocktemplate(const UniValue& params, bool fHelp);
 extern UniValue submitblock(const UniValue& params, bool fHelp);
 extern UniValue estimatefee(const UniValue& params, bool fHelp);
 extern UniValue estimatepriority(const UniValue& params, bool fHelp);
+extern UniValue setstaking(const UniValue& params, bool fHelp); // Enable|Disable Staking
 
 extern UniValue getnewaddress(const UniValue& params, bool fHelp); // in rpcwallet.cpp
 extern UniValue getnewpubkey(const UniValue& params, bool fHelp);
@@ -333,7 +334,7 @@ extern UniValue createmultisig(const UniValue& params, bool fHelp);
 extern UniValue verifymessage(const UniValue& params, bool fHelp);
 extern UniValue setmocktime(const UniValue& params, bool fHelp);
 extern UniValue getstakingstatus(const UniValue& params, bool fHelp);
-extern UniValue setstaking(const UniValue& params, bool fHelp); // Enable|Disable Staking
+extern UniValue getforkstatus(const UniValue& params, bool fHelp);
 
 bool StartRPC();
 void InterruptRPC();
