@@ -388,6 +388,9 @@ int GetInputAgeIX(uint256 nTXHash, CTxIn& vin);
 bool GetCoinAge(const CTransaction& tx, unsigned int nTxTime, uint64_t& nCoinAge);
 int GetIXConfirmations(uint256 nTXHash);
 
+bool ProcessMessageHeaders_Legacy(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived);
+
+
 struct CNodeStateStats {
     int nMisbehavior;
     int nSyncHeight;
@@ -679,7 +682,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** pindex, C
 bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex = NULL);
 
 bool AcceptBlock_Legacy(CBlock& block, CValidationState& state, CBlockIndex** pindex, bool fRequested, CDiskBlockPos* dbp, const uint256& hash);
-bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, const uint256& hash, CBlockIndex** ppindex = NULL);
+bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex = NULL);
 
 
 class CBlockFileInfo
