@@ -9214,7 +9214,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->nPingUsecStart = GetTimeMicros();
             if (pto->nVersion > BIP0031_VERSION) {
                 pto->nPingNonceSent = nonce;
-                pto->PushMessage(NetMsgType::PING, nonce);
+                if (pto->nVersion >= PING_INCLUDES_HEIGHT_VERSION) {
+                    pto->PushMessage(NetMsgType::PING, nonce, nChainHeight);
+                } else {
+                    pto->PushMessage(NetMsgType::PING, nonce);
+                }
             } else {
                 // Peer is too old to support ping command with nonce, pong will never arrive.
                 pto->nPingNonceSent = 0;
