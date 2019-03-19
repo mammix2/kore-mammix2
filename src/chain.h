@@ -247,7 +247,7 @@ public:
         nStakeModifierChecksum = 0;
         hashProofOfStake       = uint256();
 
-        if (block.IsProofOfStake()) {
+        if (block.fIsProofOfStake) {
             SetProofOfStake();
             SetProofOfStake_Legacy();
             prevoutStake = block.vtx[1].vin[0].prevout;
@@ -288,6 +288,8 @@ public:
         block.nNonce         = nNonce;
         block.nBirthdayA     = nBirthdayA;
         block.nBirthdayB     = nBirthdayB;
+        if (nVersion == 2)
+            block.fIsProofOfStake = IsProofOfStake();
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
         return block;

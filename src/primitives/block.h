@@ -177,9 +177,9 @@ public:
             return false;
 
         if (vtx[0].IsCoinBase() && vtx[1].IsCoinStake())
-            return isOldVersion ? true : fIsProofOfStake;
+            return isOldVersion || fIsProofOfStake;
         else if (vtx[1].IsCoinStake())
-            return isOldVersion ? true : fIsProofOfStake;
+            return isOldVersion || fIsProofOfStake;
         else
             return false;
     }
