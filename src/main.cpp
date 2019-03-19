@@ -5078,18 +5078,27 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             if (block.vtx[1].vout[i].IsCoinStake())
                 return state.DoS(100, error("CheckBlock(): more than one locking vout"));
 
+        CTransaction originTx;
+        uint256 hashBlock;
+        if (!GetTransaction(block.vtx[1].vin[0].prevout.hash, originTx, hashBlock, false))
+            return state.DoS(100, error("CheckBlock(): origin transaction not found"));
+
         // Second transaction must lock coins from same pubkey as coinbase
         uint160 pubKeyID;
         ExtractDestination(block.vtx[0].vout[1].scriptPubKey, pubKeyID);
         uint160 lockPubKeyID;
-        ExtractDestination(block.vtx[1].vin[0].prevPubKey, lockPubKeyID);
+        ExtractDestination(originTx.vout[block.vtx[1].vin[0].prevout.n].scriptPubKey, lockPubKeyID);
         if (lockPubKeyID != pubKeyID)
             return state.DoS(100, error("CheckBlock(): locking pubkey different from coinbase pubkey"));
 
         // There must be only one pubkey on the locking transaction
         for (unsigned int i = 1; i < block.vtx[1].vin.size(); i++) {
+            CTransaction otherOriginTx;
+            uint256 otherHashBlock;
             pubKeyID.SetNull();
-            ExtractDestination(block.vtx[1].vin[0].prevPubKey, pubKeyID);
+            if (!GetTransaction(block.vtx[1].vin[i].prevout.hash, otherOriginTx, otherHashBlock, false))
+                return state.DoS(100, error("CheckBlock(): origin transaction not found"));
+            ExtractDestination(otherOriginTx.vout[block.vtx[1].vin[i].prevout.n].scriptPubKey, pubKeyID);
             if (lockPubKeyID != pubKeyID)
                 return state.DoS(100, error("CheckBlock(): more than one pubkey on lock"));
         }
@@ -5104,11 +5113,7 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
 
         // The staked balance gives the target easing
         CAmount stakedBalance = block.vtx[1].GetValueOut();
-        CKoreStake stakeInput;
-        CTransaction originTx;
-        uint256 hashBlock;
-        if (!GetTransaction(block.vtx[1].vin[0].prevout.hash, originTx, hashBlock, false))
-            return state.DoS(100, error("CheckBlock(): origin transaction not found"));
+        CKoreStake stakeInput;        
         if (!stakeInput.SetInput(originTx, block.vtx[1].vin[0].prevout.n))
             return state.DoS(100, error("CheckBlock(): unable to proccess origin transaction"));
         uint64_t nStakeModifier = 0;
@@ -5488,7 +5493,7 @@ static bool CheckIndexAgainstCheckpoint_Legacy(const CBlockIndex* pindexPrev, CV
     return true;
 }
 
-bool AcceptBlockHeader(const CBlock& block, CValidationState& state, CBlockIndex** ppindex)
+bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex)
 {
     if (UseLegacyCode(block)) {
         CBlockIndex*& pindex = *ppindex;

@@ -250,8 +250,10 @@ public:
         if (block.fIsProofOfStake) {
             SetProofOfStake();
             SetProofOfStake_Legacy();
-            prevoutStake = block.vtx[1].vin[0].prevout;
             nStakeTime   = block.nTime;
+            // TODO: Understand where the hell does it comes when only a block header is provided!
+            if (!block.vtx.empty())
+                prevoutStake = block.vtx[1].vin[0].prevout;
         } else {
             prevoutStake.SetNull();
             nStakeTime   = 0;
