@@ -8097,13 +8097,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         return true;
     }
 
-    if (pfrom->nVersion == 0) {
-        // Must have a version message before anything else
-        LOCK(cs_main);
-        Misbehaving(pfrom->GetId(), 1);
-        return false;
-    }
-
     if (!(nLocalServices & NODE_BLOOM) &&
         (strCommand == NetMsgType::FILTERLOAD ||
             strCommand == NetMsgType::FILTERADD ||
@@ -8117,8 +8110,15 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         }
     }
 
-    else if (strCommand == NetMsgType::VERSION)
+    if (strCommand == NetMsgType::VERSION)
         return ProcessMessageVersion(pfrom, strCommand, vRecv, nTimeReceived);
+
+    else if (pfrom->nVersion == 0) {
+        // Must have a version message before anything else
+        LOCK(cs_main);
+        Misbehaving(pfrom->GetId(), 1);
+        return false;
+    }
 
     else if (strCommand == NetMsgType::VERACK)
         return ProcessMessageVerAck(pfrom);
