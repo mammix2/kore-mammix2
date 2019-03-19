@@ -124,7 +124,6 @@ then
 fi
 
 echo "server=1" > $masternode_conf_file
-echo "daemon=1" >> $masternode_conf_file
 echo "addnode=$control_wallet_onion" >> $masternode_conf_file
 if [ $# -eq 5 ]
 then
@@ -137,7 +136,7 @@ echo "staking=0"  >> $masternode_conf_file
 echo "masternode=1"  >> $masternode_conf_file
 echo "masternodeprivkey=$masternode_private_key"  >> $masternode_conf_file
 echo "masternodeaddr=$masternode_onion_address"   >> $masternode_conf_file
-echo "masternode account= $masternode_account"    >> $masternode_conf_file
+echo "masternode_account= $masternode_account"    >> $masternode_conf_file
 echo "# sporkkey for testnet"
 echo "sporkkey=8pLecrnAhZjHZyKfqMAtN4rekdcBFrikTi1w1hXjuDRfV1Ygean"   >> $masternode_conf_file
 
@@ -157,10 +156,6 @@ echo "##  Updating this wallet masternode.conf file: $control_wallet #"
 new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
 echo "## $new_masternode"
 echo "$new_masternode" >> $control_wallet
-masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx $masternode_onion_address"
-echo "## command to activate this masternode: $masternode_activation_command" >> $masternode_conf_file
-echo "## The following is the masternode entry at masternode.conf "  >> $masternode_conf_file
-echo "## $new_masternode"   >> $masternode_conf_file
 
 echo "##########################################################################"
 echo "## "
