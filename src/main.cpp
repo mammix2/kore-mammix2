@@ -5488,7 +5488,7 @@ static bool CheckIndexAgainstCheckpoint_Legacy(const CBlockIndex* pindexPrev, CV
     return true;
 }
 
-bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex)
+bool AcceptBlockHeader(const CBlock& block, CValidationState& state, CBlockIndex** ppindex)
 {
     if (UseLegacyCode(block)) {
         CBlockIndex*& pindex = *ppindex;

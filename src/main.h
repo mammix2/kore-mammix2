@@ -663,7 +663,7 @@ bool TestBlockValidity_Legacy(CValidationState& state, const CChainParams& chain
 
 /** Store block on disk. If dbp is provided, the file is known to already reside on disk */
 bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** pindex, CDiskBlockPos* dbp = NULL, bool fAlreadyCheckedBlock = false);
-bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex = NULL);
+bool AcceptBlockHeader(const CBlock& block, CValidationState& state, CBlockIndex** ppindex = NULL);
 
 bool AcceptBlock_Legacy(CBlock& block, CValidationState& state, CBlockIndex** pindex, bool fRequested, CDiskBlockPos* dbp, const uint256& hash);
 bool AcceptBlockHeader_Legacy(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex = NULL);
