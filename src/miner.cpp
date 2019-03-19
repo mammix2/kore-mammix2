@@ -841,7 +841,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
                 continue;
             }
 
-            if (tx.IsCoinStake() || !IsFinalTx_Legacy(tx, nHeight, nLockTimeCutoff) || pblock->GetBlockTime() < (int64_t)tx.nTime)
+            if (tx.IsCoinStake() || !IsFinalTx(tx, nHeight, nLockTimeCutoff) || pblock->GetBlockTime() < (int64_t)tx.nTime)
                 continue;
 
             unsigned int nTxSigOps = iter->GetSigOpCount();

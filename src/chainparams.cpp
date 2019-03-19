@@ -385,9 +385,9 @@ public:
         nBudgetVoteUpdate                             = 1 * 60;                      // can only change vote after 1 minute
         nClientMintableCoinsInterval                  = 45;                          // Every 45 seconds
         nCoinbaseMaturity = nStakeMinConfirmations    = 25;                          // Lico should be 25;
-        nDefaultPort                                  = 11743;
+        nDefaultPort                                  = 11769;
         nEnsureMintableCoinsInterval                  = 5;
-        nHeightToFork                                 = 500;
+        nHeightToFork                                 = 405;
         nLastPOWBlock                                 = 200;                        // 1000
         nMajorityBlockUpgradeToCheck                  = 100;
         nMasternodeBudgetPaymentCycle                 = 30;                          // Every 60 blocks, it will check if it is necessary to pay. A superblock will have 140 cycle

@@ -95,7 +95,7 @@ CCoinsViewCache::~CCoinsViewCache()
 }
 
 // TODO: Remove "_Legacy" name in method
-size_t CCoinsViewCache::DynamicMemoryUsage_Legacy() const
+size_t CCoinsViewCache::DynamicMemoryUsage() const
 {
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
 }
@@ -115,7 +115,7 @@ CCoinsMap::const_iterator CCoinsViewCache::FetchCoins(const uint256& txid) const
         // version as fresh.
         ret->second.flags = CCoinsCacheEntry::FRESH;
     }
-    cachedCoinsUsage += ret->second.coins.DynamicMemoryUsage_Legacy();
+    cachedCoinsUsage += ret->second.coins.DynamicMemoryUsage();
     return ret;
 }
 
@@ -148,7 +148,7 @@ CCoinsModifier CCoinsViewCache::ModifyCoins_Legacy(const uint256& txid)
             ret.first->second.flags = CCoinsCacheEntry::FRESH;
         }
     } else {
-        cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage_Legacy();
+        cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage();
     }
     if (fDebug) LogPrintf("coin height=%d ntime=%d \n", ret.first->second.coins.nHeight, ret.first->second.coins.nTime);
 
@@ -244,7 +244,7 @@ bool CCoinsViewCache::BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlockIn
                     assert(it->second.flags & CCoinsCacheEntry::FRESH);
                     CCoinsCacheEntry& entry = cacheCoins[it->first];
                     entry.coins.swap(it->second.coins);
-                    cachedCoinsUsage += entry.coins.DynamicMemoryUsage_Legacy();
+                    cachedCoinsUsage += entry.coins.DynamicMemoryUsage();
                     entry.flags = CCoinsCacheEntry::DIRTY | CCoinsCacheEntry::FRESH;
                 }
             } else {
@@ -252,13 +252,13 @@ bool CCoinsViewCache::BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlockIn
                     // The grandparent does not have an entry, and the child is
                     // modified and being pruned. This means we can just delete
                     // it from the parent.
-                    cachedCoinsUsage -= itUs->second.coins.DynamicMemoryUsage_Legacy();
+                    cachedCoinsUsage -= itUs->second.coins.DynamicMemoryUsage();
                     cacheCoins.erase(itUs);
                 } else {
                     // A normal modification.
-                    cachedCoinsUsage -= itUs->second.coins.DynamicMemoryUsage_Legacy();
+                    cachedCoinsUsage -= itUs->second.coins.DynamicMemoryUsage();
                     itUs->second.coins.swap(it->second.coins);
-                    cachedCoinsUsage += itUs->second.coins.DynamicMemoryUsage_Legacy();
+                    cachedCoinsUsage += itUs->second.coins.DynamicMemoryUsage();
                     itUs->second.flags |= CCoinsCacheEntry::DIRTY;
                 }
             }
@@ -278,11 +278,11 @@ bool CCoinsViewCache::Flush()
     return fOk;
 }
 
-void CCoinsViewCache::Uncache_Legacy(const uint256& hash)
+void CCoinsViewCache::Uncache(const uint256& hash)
 {
     CCoinsMap::iterator it = cacheCoins.find(hash);
     if (it != cacheCoins.end() && it->second.flags == 0) {
-        cachedCoinsUsage -= it->second.coins.DynamicMemoryUsage_Legacy();
+        cachedCoinsUsage -= it->second.coins.DynamicMemoryUsage();
         cacheCoins.erase(it);
     }
 }
@@ -325,23 +325,7 @@ bool CCoinsViewCache::HaveInputs(const CTransaction& tx) const
     return true;
 }
 
-double CCoinsViewCache::GetPriority(const CTransaction& tx, int nHeight) const
-{
-    if (tx.IsCoinBase() || tx.IsCoinStake())
-        return 0.0;
-    double dResult = 0.0;
-    for (const CTxIn& txin : tx.vin) {
-        const CCoins* coins = AccessCoins(txin.prevout.hash);
-        assert(coins);
-        if (!coins->IsAvailable(txin.prevout.n)) continue;
-        if (coins->nHeight < nHeight) {
-            dResult += coins->vout[txin.prevout.n].nValue * (nHeight - coins->nHeight);
-        }
-    }
-    return tx.ComputePriority(dResult);
-}
-
-double CCoinsViewCache::GetPriority_Legacy(const CTransaction& tx, int nHeight, CAmount& inChainInputValue) const
+double CCoinsViewCache::GetPriority(const CTransaction& tx, int nHeight, CAmount& inChainInputValue) const
 {
     inChainInputValue = 0;
     if (tx.IsCoinBase() || tx.IsCoinStake())
@@ -376,6 +360,6 @@ CCoinsModifier::~CCoinsModifier()
         cache.cacheCoins.erase(it);
     } else {
         // If the coin still exists after the modification, add the new usage
-        cache.cachedCoinsUsage += it->second.coins.DynamicMemoryUsage_Legacy();
+        cache.cachedCoinsUsage += it->second.coins.DynamicMemoryUsage();
     }
 }

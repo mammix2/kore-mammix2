@@ -301,19 +301,8 @@ bool ProcessMessages(CNode* pfrom);
  * Send queued protocol messages to be sent to a give node.
  *
  * @param[in]   pto             The node which we are sending messages to.
- * @param[in]   fSendTrickle    When true send the trickled data, otherwise trickle the data until true.
  */
-bool SendMessages(CNode* pto, bool fSendTrickle);
-/**
- * Send queued protocol messages to be sent to a give node.
- *
- * @param[in]   pto             The node which we are sending messages to.
- */
-bool SendMessages_Legacy(CNode* pto);
-
-// This function will be registered and when called will direct the message
-// to the right code.
-bool SendMessages_Fork(CNode* pto, bool fSendTrickle);
+bool SendMessages(CNode* pto);
 
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
@@ -378,8 +367,7 @@ void FlushStateToDisk();
 void PruneAndFlush();
 
 /** (try to) add transaction to memory pool **/
-bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool ignoreFees = false);
-bool AcceptToMemoryPool_Legacy(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, bool fRejectAbsurdFee = false);
+bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, bool fRejectAbsurdFee = false, bool ignoreFees = false);
 
 bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool isDSTX = false);
 
@@ -387,9 +375,6 @@ int GetInputAge(CTxIn& vin);
 int GetInputAgeIX(uint256 nTXHash, CTxIn& vin);
 bool GetCoinAge(const CTransaction& tx, unsigned int nTxTime, uint64_t& nCoinAge);
 int GetIXConfirmations(uint256 nTXHash);
-
-bool ProcessMessageHeaders_Legacy(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived);
-
 
 struct CNodeStateStats {
     int nMisbehavior;
@@ -561,7 +546,6 @@ bool CheckSequenceLocks(const CTransaction& tx, int flags, LockPoints* lp = NULL
 bool IsStandardTx(const CTransaction& tx, std::string& reason);
 
 bool IsFinalTx(const CTransaction& tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
-bool IsFinalTx_Legacy(const CTransaction& tx, int nBlockHeight, int64_t nBlockTime);
 
 /** Undo information for a CBlock */
 class CBlockUndo

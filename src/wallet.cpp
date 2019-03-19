@@ -5025,7 +5025,7 @@ bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree, bool fRejectInsaneFee, bool 
 {
     CValidationState state;
     bool fAccepted = UseLegacyCode(chainActive.Height()) ?
-                         ::AcceptToMemoryPool_Legacy(mempool, state, *this, fLimitFree, NULL, false, fRejectInsaneFee) :
+                         ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL, false, fRejectInsaneFee) :
                          ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL, fRejectInsaneFee, ignoreFees);
 
     if (!fAccepted)

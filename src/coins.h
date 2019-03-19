@@ -302,7 +302,7 @@ public:
         return true;
     }
 
-    size_t DynamicMemoryUsage_Legacy() const
+    size_t DynamicMemoryUsage() const
     {
         size_t ret = memusage::DynamicUsage(vout);
         BOOST_FOREACH (const CTxOut& out, vout) {
@@ -511,14 +511,14 @@ public:
      * Removes the transaction with the given hash from the cache, if it is
      * not modified.
      */
-    void Uncache_Legacy(const uint256& txid);
+    void Uncache(const uint256& txid);
 
 
     //! Calculate the size of the cache (in number of transactions)
     unsigned int GetCacheSize() const;
 
     //! Calculate the size of the cache (in bytes)
-    size_t DynamicMemoryUsage_Legacy() const;
+    size_t DynamicMemoryUsage() const;
 
     /** 
      * Amount of kore coming in to a transaction
@@ -534,8 +534,7 @@ public:
     bool HaveInputs(const CTransaction& tx) const;
 
     //! Return priority of tx at height nHeight
-    double GetPriority(const CTransaction& tx, int nHeight) const;
-    double GetPriority_Legacy(const CTransaction& tx, int nHeight, CAmount& inChainInputValue) const;
+    double GetPriority(const CTransaction& tx, int nHeight, CAmount& inChainInputValue) const;
 
     const CTxOut& GetOutputFor(const CTxIn& input) const;
 
