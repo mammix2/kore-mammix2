@@ -312,7 +312,13 @@ bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t 
     uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
 
     // Now check if proof-of-stake hash meets target protocol
-    return hashProofOfStake < (bnCoinDayWeight * bnTarget);
+    bool canStake = hashProofOfStake < (bnCoinDayWeight * bnTarget);
+
+    if (fDebug)
+        LogPrintf("CheckStake: hashProofOfStake=%s, nValueIn=%s, nStakeModifier=%u, bnTarget=%s, bnCoinDayWeight=%s, nTimeBlockFrom=%u, nTimeTx=%u, %s",
+            hashProofOfStake.ToString(), nValueIn, nStakeModifier, bnTarget.ToString(), bnCoinDayWeight.ToString(), nTimeBlockFrom, nTimeTx, canStake ? "Can stake" : "Can't stake");
+
+    return canStake;
 }
 
 

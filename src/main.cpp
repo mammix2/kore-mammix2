@@ -5830,7 +5830,12 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
     // Preliminary checks
     int64_t nStartTime = GetTimeMillis();
     // we will be processing the next tip block
-    bool checked = CheckBlock(*pblock, GetnHeight(chainActive.Tip()) + 1, state);
+    int heigth = chainActive.GetHeigthByHash(pblock->GetHash());
+    
+    if (heigth == -1)
+        heigth = chainActive.Height() + 1;
+
+    bool checked = CheckBlock(*pblock, heigth, state);
 
     if (!CheckBlockSignature(*pblock))
         return error("ProcessNewBlock() : bad proof-of-stake block signature");
