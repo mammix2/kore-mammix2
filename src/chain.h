@@ -526,15 +526,6 @@ private:
     std::vector<CBlockIndex*> vChain;
 
 public:
-    int GetHeigthByHash(const uint256& hash)
-    {
-        for (std::vector<CBlockIndex*>::iterator it = vChain.begin(); it != vChain.end(); ++it)
-            if (hash == (*it)->GetBlockHash())
-                return (*it)->nHeight;
-        
-        return -1;
-    }
-
     /** Returns the index entry for the genesis block of this chain, or NULL if none. */
     CBlockIndex* Genesis() const
     {

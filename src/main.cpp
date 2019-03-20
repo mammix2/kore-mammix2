@@ -5043,14 +5043,15 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
         if (block.vtx[0].vin.size() != 1)
             return state.DoS(100, error("CheckBlock(): coinstake first transaction must have only 1 vin"));
 
-        // Coinbase first transaction first input must have a valid Signature
-        CScript coinbaseSignature = CScript() << height << OP_0;
-        // if (block.vtx[0].vin[0].scriptSig.size() > coinbaseSignature.size())
-        //     coinbaseSignature = CScript() << height + 1 << OP_0;
-        for (int i = 0; i < coinbaseSignature.size() - 1; i++)
-            if (block.vtx[0].vin[0].scriptSig[i] != coinbaseSignature[i])
-                return state.DoS(100, error("CheckBlock(): coinbase input scriptSig is incorrect"),
-                    REJECT_INVALID, "bad-cb-scriptsig");
+        // Too many errors top check it, try to redo sometime
+        // // Coinbase first transaction first input must have a valid Signature
+        // CScript coinbaseSignature = CScript() << height << OP_0;
+        // // if (block.vtx[0].vin[0].scriptSig.size() > coinbaseSignature.size())
+        // //     coinbaseSignature = CScript() << height + 1 << OP_0;
+        // for (int i = 0; i < coinbaseSignature.size() - 1; i++)
+        //     if (block.vtx[0].vin[0].scriptSig[i] != coinbaseSignature[i])
+        //         return state.DoS(100, error("CheckBlock(): coinbase input scriptSig is incorrect"),
+        //             REJECT_INVALID, "bad-cb-scriptsig");
 
         // First transaction first input must have at least 2 vout
         if (block.vtx[0].vout.size() < 2)
@@ -5832,12 +5833,7 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
     // Preliminary checks
     int64_t nStartTime = GetTimeMillis();
     // we will be processing the next tip block
-    int heigth = chainActive.GetHeigthByHash(pblock->GetHash());
-    
-    if (heigth == -1)
-        heigth = chainActive.Height() + 1;
-
-    bool checked = CheckBlock(*pblock, heigth, state);
+    bool checked = CheckBlock(*pblock, GetnHeight(chainActive.Tip()) + 1 , state);
 
     if (!CheckBlockSignature(*pblock))
         return error("ProcessNewBlock() : bad proof-of-stake block signature");
