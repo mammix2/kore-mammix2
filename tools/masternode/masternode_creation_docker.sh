@@ -156,7 +156,8 @@ echo "##  Updating this wallet masternode.conf file: $control_wallet #"
 new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
 echo "## $new_masternode"
 echo "$new_masternode" >> $control_wallet
-
+masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx $masternode_onion_address"
+echo "## $new_masternode"   >> $masternode_conf_file
 echo "##########################################################################"
 echo "## "
 echo "addnode=$masternode_onion_address" >> $my_conf_file
