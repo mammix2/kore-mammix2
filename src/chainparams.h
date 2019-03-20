@@ -64,6 +64,7 @@ public:
     virtual const Checkpoints::CCheckpointData& GetCheckpoints() const = 0;
 
     const std::vector<unsigned char>&      AlertKey() const                    { return vAlertPubKey; }
+    const int32_t                          HeightToBanOldWallets() const       { return nHeightToBanOldWallets; }
     const int32_t                          HeightToFork() const                { return nHeightToFork; };
     const uint256&                         HashGenesisBlock() const            { return nHashGenesisBlock; }
     const MessageStartChars&               MessageStart() const                { return pchMessageStart; }
@@ -164,6 +165,7 @@ protected:
     int32_t                    nDefaultPort;
     int64_t                    nEnsureMintableCoinsInterval;
     uint256                    nHashGenesisBlock;
+    int32_t                    nHeightToBanOldWallets;
     int32_t                    nHeightToFork;    
     MessageStartChars          pchMessageStart;
     int32_t                    nMaxReorganizationDepth;

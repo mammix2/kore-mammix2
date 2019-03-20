@@ -4954,10 +4954,6 @@ int GetnHeight(const CBlockIndex* pIndex)
 bool CheckBlockHeader(const CBlockHeader& block, const int nHeight, CValidationState& state, bool fCheckPOW)
 {
     if (fDebug) LogPrintf("CheckBlockHeader fCheckPOW: %s \n", fCheckPOW ? "true" : "false");
-    // Let's check if we are dealing with the correct block version
-    if (UseLegacyCode(block))
-        return state.DoS(50, error("CheckBlockHeader() : block version failed"),
-            REJECT_INVALID, "block-version");
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits))
         return state.DoS(50, error("CheckBlockHeader(): proof of work failed"),
@@ -4983,6 +4979,8 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
 {
     if (UseLegacyCode(height))
         return CheckBlock_Legacy(block, height, state, fCheckPOW, fCheckMerkleRoot);
+    else if (block.nVersion < CBlockHeader::POS_FORK_VERSION)
+        return state.Invalid(error("CheckBlock(): block version smaller than 2"), REJECT_INVALID, "bad-block-version");
 
     // These are checks that are independent of context.
     bool fBlockIsProofOfStake = block.IsProofOfStake();
@@ -7160,7 +7158,8 @@ bool static ProcessMessageBlock(CNode* pfrom, string strCommand, CDataStream& vR
         pfrom->AddInventoryKnown(inv);
 
         CValidationState state;
-        if (UseLegacyCode(block))
+        CBlockIndex* prevBlockIndex = mapBlockIndex[block.hashPrevBlock];
+        if (UseLegacyCode(prevBlockIndex->nHeight + 1))
         {            
             // Process all blocks from whitelisted peers, even if not requested,
             // unless we're still syncing with the network.
@@ -7860,11 +7859,13 @@ bool static ProcessMessageVersion(CNode* pfrom, string strCommand, CDataStream& 
     CAddress addrFrom;
     uint64_t nNonce = 1;
     vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-    if (pfrom->nVersion < MIN_PEER_PROTO_VERSION) {
+
+    int minVersion = UseLegacyCode() ? MIN_PEER_PROTO_VERSION_PRE_FORK : MIN_PEER_PROTO_VERSION;
+    if (pfrom->nVersion < minVersion) {
         // disconnect from peers older than this proto version
         LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
         pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
-            strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
+            strprintf("Version must be %d or greater", minVersion));
         pfrom->fDisconnect = true;
         return false;
     }
@@ -8103,6 +8104,14 @@ bool static ProcessMessageGetAddr(CNode* pfrom)
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
+    if (chainActive.Height() + Params().HeightToBanOldWallets() > Params().HeightToFork() && pfrom->nVersion < MIN_PEER_PROTO_VERSION)
+    {
+        pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE, strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
+        Misbehaving(pfrom->GetId(), 1000);
+        pfrom->fDisconnect = true;
+        return false;
+    }
+
     RandAddSeedPerfmon();
 
     LogPrint("net", "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->id);
@@ -8221,7 +8230,7 @@ int ActiveProtocol()
             return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 #endif
 
-  return MIN_PEER_PROTO_VERSION;
+    return UseLegacyCode() ? MIN_PEER_PROTO_VERSION_PRE_FORK : MIN_PEER_PROTO_VERSION;
 }
 
 // requires LOCK(cs_vRecvMsg)

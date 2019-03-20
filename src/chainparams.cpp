@@ -300,6 +300,7 @@ public:
         nTargetSpacingForStake                        = nModifierInterval;   // [nStakeMinConfirmations-1, max(nStakeMinConfirmations-1, any bigger value)]
         /** Height or Time Based Activations **/
         nBlockEnforceInvalidUTXO                      = 902850;              //Start enforcing the invalid UTXO's
+        nHeightToBanOldWallets                        = 1440;                //Ban old nodes the day before
         nHeightToFork                                 = 900000;              //Height to perform the fork
         nLastPOWBlock                                 = 1000;
         strDevFundPubKey 				 			  = "04D410C4A7FEC6DBF6FEDC9721104ADA1571D5E3E4791085EFC083A9F3F4C007D240A6A647DDA0CA1466641B0739A86A67B97AC48484FC7CA88257804B7CE52ED2";
@@ -387,6 +388,7 @@ public:
         nCoinbaseMaturity = nStakeMinConfirmations    = 25;                          // Lico should be 25;
         nDefaultPort                                  = 11743;
         nEnsureMintableCoinsInterval                  = 5;
+        nHeightToBanOldWallets                        = 10;
         nHeightToFork                                 = 400;
         nLastPOWBlock                                 = 200;                        // 1000
         nMajorityBlockUpgradeToCheck                  = 100;
