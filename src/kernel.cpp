@@ -315,7 +315,7 @@ bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t 
     bool canStake = hashProofOfStake < (bnCoinDayWeight * bnTarget);
 
     if (fDebug)
-        LogPrintf("CheckStake: hashProofOfStake=%s, nValueIn=%s, nStakeModifier=%u, bnTarget=%s, bnCoinDayWeight=%s, nTimeBlockFrom=%u, nTimeTx=%u, %s",
+        LogPrintf("CheckStake: hashProofOfStake=%s, nValueIn=%s, nStakeModifier=%u, bnTarget=%s, bnCoinDayWeight=%s, nTimeBlockFrom=%u, nTimeTx=%u, %s\n",
             hashProofOfStake.ToString(), nValueIn, nStakeModifier, bnTarget.ToString(), bnCoinDayWeight.ToString(), nTimeBlockFrom, nTimeTx, canStake ? "Can stake" : "Can't stake");
 
     return canStake;
