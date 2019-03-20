@@ -8104,14 +8104,6 @@ bool static ProcessMessageGetAddr(CNode* pfrom)
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
-    if (chainActive.Height() + Params().HeightToBanOldWallets() > Params().HeightToFork() && pfrom->nVersion < MIN_PEER_PROTO_VERSION)
-    {
-        pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE, strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
-        Misbehaving(pfrom->GetId(), 1000);
-        pfrom->fDisconnect = true;
-        return false;
-    }
-
     RandAddSeedPerfmon();
 
     LogPrint("net", "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->id);
@@ -8140,6 +8132,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         // Must have a version message before anything else
         LOCK(cs_main);
         Misbehaving(pfrom->GetId(), 1);
+        return false;
+    }
+
+    else if (chainActive.Height() + Params().HeightToBanOldWallets() > Params().HeightToFork() && pfrom->nVersion < MIN_PEER_PROTO_VERSION)
+    {
+        pfrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE, strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
+        Misbehaving(pfrom->GetId(), 1000);
+        pfrom->fDisconnect = true;
         return false;
     }
 
