@@ -101,13 +101,11 @@ bool CKoreStake::CreateTxOut(CWallet* pwallet, CTxOut& txOut)
 
 bool CKoreStake::GetModifier(uint64_t& nStakeModifier)
 {
-    int nStakeModifierHeight = 0;
-    int64_t nStakeModifierTime = 0;
     GetIndexFrom();
     if (!pindexFrom)
         return error("%s: failed to get index from", __func__);
 
-    if (!GetKernelStakeModifier(pindexFrom->GetBlockHash(), nStakeModifier, nStakeModifierHeight, nStakeModifierTime, false))
+    if (!GetKernelStakeModifier(pindexFrom->GetBlockHash(), nStakeModifier, false))
         return error("GetModifier(): failed to get kernel stake modifier \n");
 
     return true;

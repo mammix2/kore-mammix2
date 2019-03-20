@@ -5116,15 +5116,15 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
         CKoreStake stakeInput;        
         if (!stakeInput.SetInput(originTx, block.vtx[1].vin[0].prevout.n))
             return state.DoS(100, error("CheckBlock(): unable to proccess origin transaction"));
-        uint64_t nStakeModifier;
-        bool isGeneratedStakeModifier;
-        if (!ComputeNextStakeModifier(chainActive[height - 1], nStakeModifier, isGeneratedStakeModifier))
-            return state.DoS(10, error("CheckBlock(): failed to compute stake modifier"));
         uint256 bnTargetPerCoinDay;
         bnTargetPerCoinDay.SetCompact(block.nBits);
         CBlockIndex* pindex = stakeInput.GetIndexFrom();
         if (!pindex || pindex->nHeight < 1)
             return state.DoS(100, error("CheckBlock(): failed to get block header from origin transaction"));
+        uint64_t nStakeModifier;
+        bool isGeneratedStakeModifier;
+        if (!stakeInput.GetModifier(nStakeModifier))
+            return state.DoS(10, error("CheckBlock(): failed to get stake modifier"));
         CBlockHeader originBlock = pindex->GetBlockHeader();
         CDataStream ssUniqueID = stakeInput.GetUniqueness();
         uint stakeTime = block.vtx[1].nTime;

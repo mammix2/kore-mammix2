@@ -248,7 +248,7 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
 
 // The stake modifier used to hash for a stake kernel is chosen as the stake
 // modifier about a selection interval later than the coin generating the kernel
-bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int& nStakeModifierHeight, int64_t& nStakeModifierTime, bool fPrintProofOfStake)
+bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, bool fPrintProofOfStake)
 {
     nStakeModifier = 0;
     if (!mapBlockIndex.count(hashBlockFrom))
@@ -262,14 +262,12 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
         // some fields in the database yet, like nFlags, nStakeModifier
         pindexFrom = chainActive[Params().HeightToFork() - 1];
         nStakeModifier = uint64_t("stakemodifier");
-        nStakeModifierHeight = pindexFrom->nHeight;
-        nStakeModifierTime = pindexFrom->GetBlockTime();
 
         return true;
     }
 
-    nStakeModifierHeight = pindexFrom->nHeight;
-    nStakeModifierTime = pindexFrom->GetBlockTime();
+    int32_t nStakeModifierHeight = pindexFrom->nHeight;
+    int64_t nStakeModifierTime = pindexFrom->GetBlockTime();
     int64_t nStakeModifierSelectionInterval = GetStakeModifierSelectionInterval(pindexFrom->nHeight);
     int64_t nTargetTime = pindexFrom->GetBlockTime() + nStakeModifierSelectionInterval;
     const CBlockIndex* pindex = pindexFrom;
