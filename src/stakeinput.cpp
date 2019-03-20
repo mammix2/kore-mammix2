@@ -105,7 +105,7 @@ bool CKoreStake::GetModifier(uint64_t& nStakeModifier)
     if (!pindexFrom)
         return error("%s: failed to get index from", __func__);
 
-    if (!GetKernelStakeModifier(pindexFrom->GetBlockHash(), nStakeModifier, false))
+    if (!GetKernelStakeModifier(pindexFrom->GetBlockHash(), nStakeModifier, true))
         return error("GetModifier(): failed to get kernel stake modifier \n");
 
     return true;

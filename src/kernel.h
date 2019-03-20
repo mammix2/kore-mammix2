@@ -11,6 +11,7 @@
 
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
 static const unsigned int MODIFIER_INTERVAL = 60;
+static const uint64_t PREDEFINED_MODIFIER = 18030109;
 extern unsigned int nModifierInterval;
 extern unsigned int getIntervalVersion();
 

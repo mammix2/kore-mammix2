@@ -407,8 +407,8 @@ public:
         nPastBlocksMax                                = 64;
         nPastBlocksMin                                = 64;
         nPoolMaxTransactions                          = 2;
-        nStakeLockInterval                            = 30 * 60;                     // Stake remains locked for 30 minutes
-        nStakeMinAge                                  = 30 * 60;                     // It will stake after 30 minutes
+        nStakeLockInterval                            = 5 * 60;                     // Stake remains locked for 30 minutes
+        nStakeMinAge                                  = 5 * 60;                     // It will stake after 30 minutes
         nStartMasternodePayments                      = 1533841307;                  //genesis block time
         nSporkKeyEnforceNew                           = 1521604800;                  //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nTargetTimespan                               = 1 * 60;                      // KORE: 1 minute

@@ -116,7 +116,7 @@ void StartStakeModifier_Legacy(CBlockIndex* pindexNew)
     if (pindexNew->nHeight < Params().GetLastPoWBlock()) {
         //Give a stake modifier to the first block
         // Lets give a stake modifier to the last block
-        uint64_t nStakeModifier = uint64_t("stakemodifier");
+        uint64_t nStakeModifier = PREDEFINED_MODIFIER; //uint64_t("stakemodifier");
         pindexNew->SetStakeModifier(nStakeModifier, true);
         pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
 
@@ -153,8 +153,8 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
     if (pindexPrev->nHeight == 0 || Params().HeightToFork() == pindexPrev->nHeight + 1) {
         //Give a stake modifier to the first block
         // Lets give a stake modifier First Block After Fork
-        fGeneratedStakeModifier = true;
-        nStakeModifier = uint64_t("stakemodifier");
+        fGeneratedStakeModifier = true;        
+        nStakeModifier = PREDEFINED_MODIFIER; //uint64_t("stakemodifier");
         return true;
     }
 
@@ -261,7 +261,9 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, boo
         // we will no be able to store the last kore block, once we don't have
         // some fields in the database yet, like nFlags, nStakeModifier
         pindexFrom = chainActive[Params().HeightToFork() - 1];
-        nStakeModifier = uint64_t("stakemodifier");
+        nStakeModifier = PREDEFINED_MODIFIER; //uint64_t("stakemodifier");
+
+        LogPrintf("GetKernelStakeModifier(): pindexFrom->nHeight=%d, nStakeModifier=%u\n", pindexFrom->nHeight, nStakeModifier);
 
         return true;
     }
@@ -312,9 +314,13 @@ bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t 
     // Now check if proof-of-stake hash meets target protocol
     bool canStake = hashProofOfStake < (bnCoinDayWeight * bnTarget);
 
+    CHashWriter ss1(SER_GETHASH, 0);
+    ss1 << ssUniqueID;
+    uint256 test = ss1.GetHash();
+
     if (fDebug)
-        LogPrintf("CheckStake: hashProofOfStake=%s, nValueIn=%s, nStakeModifier=%u, bnTarget=%s, bnCoinDayWeight=%s, nTimeBlockFrom=%u, nTimeTx=%u, %s\n",
-            hashProofOfStake.ToString(), nValueIn, nStakeModifier, bnTarget.ToString(), bnCoinDayWeight.ToString(), nTimeBlockFrom, nTimeTx, canStake ? "Can stake" : "Can't stake");
+        LogPrintf("CheckStake: ssUniqueID=%s, hashProofOfStake=%s, nValueIn=%s, nStakeModifier=%u, bnTarget=%s, bnCoinDayWeight=%s, nTimeBlockFrom=%u, nTimeTx=%u, %s\n",
+            test.ToString(), hashProofOfStake.ToString(), nValueIn, nStakeModifier, bnTarget.ToString(), bnCoinDayWeight.ToString(), nTimeBlockFrom, nTimeTx, canStake ? "Can stake" : "Can't stake");
 
     return canStake;
 }
