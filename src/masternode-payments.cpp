@@ -448,9 +448,9 @@ void CMasternodePayments::FillBlockPayee_Legacy(CMutableTransaction& txNew, int6
 
 int CMasternodePayments::GetMinMasternodePaymentsProto()
 {
-    if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
-        return ActiveProtocol();                          // Allow only updated peers
-    else return MIN_PEER_PROTO_VERSION; // Also allow old peers as long as they are allowed to run
+    // if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+    return ActiveProtocol();                          // Allow only updated peers
+    // else return MIN_PEER_PROTO_VERSION; // Also allow old peers as long as they are allowed to run
 }
 
 void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
