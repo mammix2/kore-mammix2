@@ -5668,6 +5668,9 @@ static bool AcceptBlock_Legacy(const CBlock& block, CValidationState& state, CBl
 
     if (fCheckForPruning)
         FlushStateToDisk(state, FLUSH_STATE_NONE); // we just allocated more disk space for block files
+
+    if (fDebug) LogPrintf("AcceptBlock_Legacy block: %d<-- \n",nHeight);
+
     return true;
 }
 
@@ -5760,7 +5763,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
         return state.Abort(std::string("System error: ") + e.what());
     }
 
-    if (fDebug) LogPrintf("AcceptBlock <-- \n");
+    if (fDebug) LogPrintf("AcceptBlock block: %d<-- \n",nHeight);
     return true;
 }
 
