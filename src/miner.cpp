@@ -149,101 +149,6 @@ inline CBlockIndex* GetParentIndex(CBlockIndex* index)
 {
     return index->pprev;
 }
-/*
-uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
-{
-    // current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io
-    const CBlockIndex* BlockLastSolved = pindexLast;
-    const CBlockIndex* BlockReading = pindexLast;
-    int64_t nActualTimespan = 0;
-    int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = 24;
-    int64_t PastBlocksMax = 24;
-    int64_t CountBlocks = 0;
-    uint256 PastDifficultyAverage;
-    uint256 PastDifficultyAveragePrev;
-
-    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
-        return Params().ProofOfStakeLimit().GetCompact();
-    }
-
-    if (pindexLast->nHeight + 1 > Params().GetLastPoWBlock()) {
-        uint256 bnTargetLimit = (~uint256(0) >> 24);
-        int64_t nTargetSpacing = 60;
-        int64_t nTargetTimespan = 60 * 40;
-
-        int64_t nActualSpacing = 0;
-        if (pindexLast->nHeight != 0)
-            nActualSpacing = pindexLast->GetBlockTime() - pindexLast->pprev->GetBlockTime();
-
-        if (nActualSpacing < 0)
-            nActualSpacing = 1;
-
-        int64_t nNewSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
-
-        // ppcoin: target change every block
-        // ppcoin: retarget with exponential moving toward target spacing
-        uint256 bnNew;
-        bnNew.SetCompact(pindexLast->nBits);
-
-        int64_t nInterval = nTargetTimespan / nTargetSpacing;
-        bnNew *= ((nInterval - 1) * nTargetSpacing + (nActualSpacing * nNewSpacing));
-        bnNew /= ((nInterval + 1) * nTargetSpacing);
-
-        if (bnNew <= 0 || bnNew > bnTargetLimit)
-            bnNew = bnTargetLimit;
-
-        return bnNew.GetCompact();
-    }
-
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
-        if (PastBlocksMax > 0 && i > PastBlocksMax) {
-            break;
-        }
-        CountBlocks++;
-
-        if (CountBlocks <= PastBlocksMin) {
-            if (CountBlocks == 1) {
-                PastDifficultyAverage.SetCompact(BlockReading->nBits);
-            } else {
-                PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (uint256().SetCompact(BlockReading->nBits))) / (CountBlocks + 1);
-            }
-            PastDifficultyAveragePrev = PastDifficultyAverage;
-        }
-
-        if (LastBlockTime > 0) {
-            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
-            nActualTimespan += Diff;
-        }
-        LastBlockTime = BlockReading->GetBlockTime();
-
-        if (BlockReading->pprev == NULL) {
-            assert(BlockReading);
-            break;
-        }
-        BlockReading = BlockReading->pprev;
-    }
-
-    uint256 bnNew(PastDifficultyAverage);
-
-    int64_t _nTargetTimespan = CountBlocks * Params().GetTargetSpacing();
-
-    if (nActualTimespan < _nTargetTimespan / 3)
-        nActualTimespan = _nTargetTimespan / 3;
-    if (nActualTimespan > _nTargetTimespan * 3)
-        nActualTimespan = _nTargetTimespan * 3;
-
-    // Retarget
-    bnNew *= nActualTimespan;
-    bnNew /= _nTargetTimespan;
-
-    if (bnNew > Params().ProofOfStakeLimit()) {
-        bnNew = Params().ProofOfStakeLimit();
-    }
-
-    return bnNew.GetCompact();
-}
-*/
 
 uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
@@ -273,14 +178,11 @@ uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bo
 
         int64_t nActualSpacing = 0;
         if (pindexLast->nHeight != 0)
-            nActualSpacing = pindexLast->GetBlockTime() - pindexLast->pprev->GetBlockTime();
+            nActualSpacing = pindexLast->GetMedianTimePast(); // pindexLast->GetBlockTime() - pindexLast->pprev->GetBlockTime();
 
         if (nActualSpacing < 0)
             nActualSpacing = 1;
         int64_t nMyBlockSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
-
-        int64_t nNewSpacing = 0;
-        nNewSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
 
         // ppcoin: target change every block
         // ppcoin: retarget with exponential moving toward target spacing
@@ -298,6 +200,7 @@ uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bo
             bnNew = bnTargetLimit;
 
         if (fDebug) LogPrintf("GetNextWorkRequired: %s \n", bnNew.ToString().c_str());
+        
         return bnNew.GetCompact();
     }
 

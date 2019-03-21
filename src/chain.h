@@ -307,7 +307,7 @@ public:
         return (int64_t)nTime;
     }
 
-    enum { nMedianTimeSpan = 11 };
+    enum { nMedianTimeSpan = 60 };
 
     int64_t GetMedianTimePast() const
     {
