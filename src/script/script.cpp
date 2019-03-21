@@ -3,6 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "chainparams.h"
 #include "script.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
@@ -371,12 +372,14 @@ bool CScript::IsPayToScriptHash() const
 
 bool CScript::IsStakeLockScript() const
 {
+    static CScript stakeLockNumber = CScript() << Params().GetStakeLockSequenceNumber();
+
     if (this->size() < 41 || this->size() > 73)
         return false;
 
-    if (!((*this)[0] == 0x03 &&
-          (*this)[1] == 0x01 &&
-          (*this)[2] == 0x00 &&
+    if (!((*this)[0] == stakeLockNumber[0] && // 0x03 &&
+          (*this)[1] == stakeLockNumber[1] && // 0x01 &&
+          (*this)[2] == stakeLockNumber[2] && // 0x00 &&
           (*this)[3] == 0x40 &&
           (*this)[4] == 0xB2 &&
           (*this)[5] == 0x75))
