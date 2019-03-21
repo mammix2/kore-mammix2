@@ -92,7 +92,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     uint256 PastDifficultyAveragePrev;
 
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
-        return Params().ProofOfWorkLimit().GetCompact();
+        return fProofOfStake ?  Params().ProofOfStakeLimit().GetCompact() : Params().ProofOfWorkLimit().GetCompact();
     }
 
     if (pindexLast->nHeight > Params().GetLastPoWBlock() || fProofOfStake) {

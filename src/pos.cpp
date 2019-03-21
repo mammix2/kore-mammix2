@@ -63,7 +63,10 @@ bool CheckStakeKernelHash_Legacy(const CBlockIndex* pindexPrev, unsigned int nBi
     ss << pindexPrev->nStakeModifierOld << txPrev->nTime << prevout.hash << prevout.n << nTimeTx;
     uint256 hashProofOfStake = ss.GetHash();
 
-    if (fDebug) LogPrintf("CheckStakeKernelHash: hashProofOfStake:%s nValueIn:%d target: %x \n", hashProofOfStake.GetHex(), nValueIn, bnTarget.GetCompact());
+    if (fDebug) {
+        LogPrintf("CheckStakeKernelHash: hashProofOfStake: %s \n", (UintToArith256(hashProofOfStake) /nValueIn).ToString().c_str(), nValueIn);
+        LogPrintf("CheckStakeKernelHash: target: %x \n", bnTarget.GetCompact());
+    }
 
     // Now check if proof-of-stake hash meets target protocol
     if (UintToArith256(hashProofOfStake) / nValueIn > bnTarget) {

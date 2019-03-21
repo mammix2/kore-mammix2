@@ -142,17 +142,17 @@ void UpdateTime(CBlockHeader* pblock, const CBlockIndex* pindexPrev, bool fProof
         pblock->nTime = nNewTime;
 
     // Updating time can change work required:
-    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, fProofOfStake);
+    pblock->nBits = GetNextTarget(pindexPrev, pblock, fProofOfStake);
 }
 
 inline CBlockIndex* GetParentIndex(CBlockIndex* index)
 {
     return index->pprev;
 }
-
+/*
 uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
 {
-    /* current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
+    // current difficulty formula, pivx - DarkGravity v3, written by Evan Duffield - evan@dashpay.io
     const CBlockIndex* BlockLastSolved = pindexLast;
     const CBlockIndex* BlockReading = pindexLast;
     int64_t nActualTimespan = 0;
@@ -243,6 +243,126 @@ uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
 
     return bnNew.GetCompact();
 }
+*/
+
+uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
+{
+    // Lico
+    if (UseLegacyCode(pindexLast->nHeight))
+        return GetNextWorkRequired_Legacy(pindexLast, pblock, fProofOfStake);
+
+    /* current difficulty formula, kore - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
+    const CBlockIndex* BlockLastSolved = pindexLast;
+    const CBlockIndex* BlockReading = pindexLast;
+    int64_t nActualTimespan = 0;
+    int64_t LastBlockTime = 0;
+    int64_t PastBlocksMin = Params().GetPastBlocksMin();
+    int64_t PastBlocksMax = Params().GetPastBlocksMax();
+    int64_t CountBlocks = 0;
+    uint256 PastDifficultyAverage;
+    uint256 PastDifficultyAveragePrev;
+
+    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || BlockLastSolved->nHeight < PastBlocksMin) {
+        return fProofOfStake ?  Params().ProofOfStakeLimit().GetCompact() : Params().ProofOfWorkLimit().GetCompact();
+    }
+
+    if (pindexLast->nHeight > Params().GetLastPoWBlock() || fProofOfStake) {
+        uint256 bnTargetLimit = fProofOfStake ? Params().ProofOfStakeLimit() : Params().ProofOfWorkLimit();
+        int64_t nTargetSpacing = Params().GetTargetSpacing();
+        int64_t nTargetTimespan = Params().GetTargetTimespan();
+
+        int64_t nActualSpacing = 0;
+        if (pindexLast->nHeight != 0)
+            nActualSpacing = pindexLast->GetBlockTime() - pindexLast->pprev->GetBlockTime();
+
+        if (nActualSpacing < 0)
+            nActualSpacing = 1;
+        int64_t nMyBlockSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
+
+        int64_t nNewSpacing = 0;
+        nNewSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
+
+        // ppcoin: target change every block
+        // ppcoin: retarget with exponential moving toward target spacing
+        uint256 bnNew;
+        bnNew.SetCompact(pindexLast->nBits);
+
+        int64_t nInterval = nTargetTimespan / nTargetSpacing;
+        int64_t pastDueSpacing = nMyBlockSpacing - nActualSpacing > 0 ? nMyBlockSpacing - nActualSpacing : 0;
+        int64_t howManyDue = pastDueSpacing / nTargetSpacing;
+
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + pow(pastDueSpacing, howManyDue));
+        bnNew /= ((nInterval + 1) * nTargetSpacing);
+
+        if (bnNew <= 0 || bnNew > bnTargetLimit)
+            bnNew = bnTargetLimit;
+
+        if (fDebug) LogPrintf("GetNextWorkRequired: %s \n", bnNew.ToString().c_str());
+        return bnNew.GetCompact();
+    }
+
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
+        if (PastBlocksMax > 0 && i > PastBlocksMax) {
+            break;
+        }
+        CountBlocks++;
+
+        if (CountBlocks <= PastBlocksMin) {
+            if (CountBlocks == 1) {
+                PastDifficultyAverage.SetCompact(BlockReading->nBits);
+            } else {
+                PastDifficultyAverage = ((PastDifficultyAveragePrev * CountBlocks) + (uint256().SetCompact(BlockReading->nBits))) / (CountBlocks + 1);
+            }
+            PastDifficultyAveragePrev = PastDifficultyAverage;
+        }
+
+        if (LastBlockTime > 0) {
+            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+            nActualTimespan += Diff;
+        }
+        LastBlockTime = BlockReading->GetBlockTime();
+
+        if (BlockReading->pprev == NULL) {
+            assert(BlockReading);
+            break;
+        }
+        BlockReading = BlockReading->pprev;
+    }
+
+    int64_t Diff = (pblock->nTime - BlockLastSolved->GetBlockTime());
+    nActualTimespan += Diff;
+
+    uint256 bnNew(PastDifficultyAverage);
+
+    int64_t _nTargetTimespan = CountBlocks * Params().GetTargetSpacing();
+    if (fDebug) {
+        LogPrintf("nActualTimespan: %d \n", nActualTimespan);
+        LogPrintf("PastDifficultyAverage: %s \n", PastDifficultyAverage.ToString().c_str());
+        LogPrintf("_nTargetTimespan : %d \n", _nTargetTimespan);
+    }
+
+    if (nActualTimespan < _nTargetTimespan / 3)
+        nActualTimespan = _nTargetTimespan / 3;
+    if (nActualTimespan > _nTargetTimespan * 3)
+        nActualTimespan = _nTargetTimespan * 3;
+
+
+    // Retarget
+    bnNew *= nActualTimespan;
+    bnNew /= _nTargetTimespan;
+
+    if (bnNew > Params().ProofOfWorkLimit()) {
+        bnNew = Params().ProofOfWorkLimit();
+    }
+
+    if (fDebug) {
+        LogPrintf("nActualTimespan: %d \n", nActualTimespan);
+        LogPrintf("GetNextWorkRequired: %s \n", bnNew.ToString().c_str());
+    }
+
+    return bnNew.GetCompact();
+}
+
 
 inline CMutableTransaction CreateCoinbaseTransaction(const CScript& scriptPubKeyIn)
 {
@@ -400,9 +520,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         pblock->nTime = GetAdjustedTime();
         CBlockIndex* pindexPrev = chainActive.Tip();
-        pblock->nBits = GetNextTarget(pindexPrev, pblock);
+        pblock->nBits = GetNextTarget(pindexPrev, pblock, fProofOfStake);
         int64_t nSearchTime = pblock->nTime; // search to current time
-
+        if (fDebug)
+            LogPrintf("%s(): Current nBits=%x", __func__, pblock->nBits);
         if (nSearchTime >= nLastCoinStakeSearchTime) {
             if (pwallet->CreateCoinStake(*pwallet, pblock->nBits, nSearchTime - nLastCoinStakeSearchTime, txCoinbase, txCoinStake, nTxNewTime, fProofOfStake, key)) {
                 pblock->nTime = nTxNewTime;
@@ -650,7 +771,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         pblock->hashPrevBlock = pindexPrev->GetBlockHash();
         if (!fProofOfStake) {
             UpdateTime(pblock, pindexPrev, fProofOfStake);
-            pblock->nBits = GetNextTarget(pindexPrev, pblock);
+            pblock->nBits = GetNextTarget(pindexPrev, pblock, fProofOfStake);
         }
         pblock->nNonce = 0;
 
@@ -1239,7 +1360,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             ProcessBlockFound(pblock, *pwallet, reservekey);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
-            MilliSleep(500);
+            MilliSleep(Params().GetTargetSpacingForStake());
             continue;
         }
 
@@ -1272,6 +1393,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                     LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
                     ProcessBlockFound(pblock, *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);
+                    MilliSleep(Params().GetTargetSpacing());
 
                     // In regression test mode, stop mining after a block is found. This
                     // allows developers to controllably generate a block on demand.
@@ -1416,6 +1538,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             ProcessBlockFound_Legacy(pblock, chainparams);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
+            MilliSleep(Params().GetTargetSpacingForStake());
         }
 
         MilliSleep(500);
@@ -1514,6 +1637,7 @@ void KoreMiner_Legacy()
                         SetThreadPriority(THREAD_PRIORITY_NORMAL);
                         ProcessBlockFound_Legacy(pblock, chainparams);
                         SetThreadPriority(THREAD_PRIORITY_LOWEST);
+                        MilliSleep(Params().GetTargetSpacing());
                         break;
                     }
                 }
