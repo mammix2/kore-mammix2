@@ -183,7 +183,7 @@ int64_t GetMedianTimeSpacing(const CBlockIndex* pindexLast)
     return nActualTimespan/CountBlocks;
 }
 
-uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
+uint32_t GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
     // Lico
     if (UseLegacyCode(pindexLast->nHeight))
