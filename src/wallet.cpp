@@ -1211,7 +1211,7 @@ CAmount CWalletTx::GetCredit(const isminefilter& filter) const
 // coin will be accepted on the mempool of any other node.
 bool CWalletTx::IsStakeSpendable() const
 {
-    uint medianPassedTime = (GetTime() + chainActive.Tip()->GetMedianTimePast() - (2 * this->nTime)) / 2;
+    uint32_t medianPassedTime = (GetTime() + chainActive.Tip()->GetMedianTimePast() - (2 * this->nTime)) / 2;
 
     return medianPassedTime >= Params().GetStakeLockInterval();
 }
@@ -3498,7 +3498,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             txLock.vin.emplace_back(txIn);
 
             // Select any other coin that belongs to the same pubkey until the max tx count is met
-            uint txInCount = 0;
+            uint32_t txInCount = 0;
             CAmount nBalance = stakeInput->GetValue();
             for (std::unique_ptr<CStakeInput>& otherStakeInput : listInputs) {
                 if (otherStakeInput == stakeInput)
