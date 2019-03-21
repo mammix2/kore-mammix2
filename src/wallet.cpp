@@ -2176,13 +2176,19 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
             //use the block time
             int64_t nTxTime = out.tx->GetTxTime();
 
-            //check for min age
             if (GetAdjustedTime() - nTxTime < Params().GetStakeMinAge())
                 continue;
-
-            //check that it is matured
+                
             if (out.nDepth < Params().GetCoinbaseMaturity())
-                continue;
+            {
+                if (out.tx->IsCoinStake())
+                {
+                    if (!out.tx->IsStakeSpendable())
+                        continue;
+                }
+                else
+                    continue;
+            }
 
             //add to our stake set
             nAmountSelected += out.tx->vout[out.i].nValue;

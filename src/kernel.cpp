@@ -319,8 +319,8 @@ bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t 
     uint256 test = ss1.GetHash();
 
     if (fDebug) {    
-        LogPrintf("CheckStake hash:   %s", hashProofOfStake.ToString().c_str());
-        LogPrintf("CheckStake target: %s", (bnCoinDayWeight * bnTarget).ToString().c_str());        
+        LogPrintf("CheckStake hash:   %s\n", hashProofOfStake.ToString());
+        LogPrintf("CheckStake target: %s\n", (bnCoinDayWeight * bnTarget).ToString());        
         LogPrintf("CheckStake: ssUniqueID=%s, hashProofOfStake=%s, nValueIn=%s, nStakeModifier=%u, bnTarget=%s, bnCoinDayWeight=%s, nTimeBlockFrom=%u, nTimeTx=%u, %s\n",
             test.ToString(), hashProofOfStake.ToString(), nValueIn, nStakeModifier, bnTarget.ToString(), bnCoinDayWeight.ToString(), nTimeBlockFrom, nTimeTx, canStake ? "Can stake" : "Can't stake");
     }
