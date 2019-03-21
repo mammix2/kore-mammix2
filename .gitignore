@@ -150,3 +150,5 @@ qa/pull-tester/test.*/*
 .idea
 CMakeLists.txt
 cmake-build-debug
+
+\.vscode/ipch/

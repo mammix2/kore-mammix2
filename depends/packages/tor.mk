@@ -4,9 +4,14 @@ $(package)_download_path=https://dist.torproject.org
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=1a171081f02b9a6ff9e28c0898defb7670e5bbb3bdbcaddfcf4e4304aedd164a
 $(package)_dependencies=zlib libevent openssl
+$(package)_patches=remove_libcap.patch
 
 define $(package)_set_vars
-$(package)_config_opts=--disable-asciidoc --disable-tool-name-check --disable-seccomp --with-openssl-dir=$(host_prefix)/etc/openssl
+  $(package)_config_opts=--disable-asciidoc --disable-tool-name-check --disable-seccomp --with-openssl-dir=$(host_prefix)/etc/openssl
+endef
+
+define $(package)_preprocess_cmds
+  patch -p1 < $($(package)_patch_dir)/remove_libcap.patch
 endef
 
 define $(package)_config_cmds
