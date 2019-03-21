@@ -566,9 +566,9 @@ public:
     virtual void setStakeMinAge(int aStakeMinAge) { nStakeMinAge = aStakeMinAge; }
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) { nStakeMinConfirmations = aStakeMinConfirmations; };
     virtual void setStakeModifierInterval(int aStakeModifier) { nModifierInterval = aStakeModifier; }
-    virtual void setTargetTimespan(uint aTargetTimespan) { nTargetTimespan = aTargetTimespan; };
+    virtual void setTargetTimespan(uint32_t aTargetTimespan) { nTargetTimespan = aTargetTimespan; };
     // PoS may fail to create new Blocks, if we try to set this to less than 10
-    virtual void setTargetSpacing(uint aTargetSpacing) { nTargetSpacing = aTargetSpacing; };
+    virtual void setTargetSpacing(uint32_t aTargetSpacing) { nTargetSpacing = aTargetSpacing; };
 };
 static CUnitTestParams unitTestParams;
 

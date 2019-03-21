@@ -35,7 +35,7 @@ static CAmount _supply = 2000000 * COIN;
 static int walletCount = 1;
 static CAmount currentSuply;
 static std::default_random_engine generator;
-static uint genesisTime;
+static uint32_t genesisTime;
 int blockCount = 200;
 int lastPoSWallet = -1;
 int nextToLastPoSWallet = -1;
@@ -310,7 +310,7 @@ BOOST_AUTO_TEST_CASE(pos_integration)
 
     int64_t mockTime = GetTime();
     while (_supply < MAX_MONEY) {
-        uint nExtraNonce = 0;
+        uint32_t nExtraNonce = 0;
         int walletID = 0;
         if (blockCount > 202)
             walletID = distribution(generator);
