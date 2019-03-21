@@ -150,6 +150,39 @@ inline CBlockIndex* GetParentIndex(CBlockIndex* index)
     return index->pprev;
 }
 
+int64_t GetMedianTimeSpacing(const CBlockIndex* pindexLast)
+{
+    if (pindexLast->nHeight != 0)
+      return 0;
+    int64_t nActualTimespan = 0;
+    const CBlockIndex* BlockReading = pindexLast;
+    int64_t CountBlocks = 0;
+    int64_t LastBlockTime = 0;
+    int64_t PastBlocksMin = Params().GetPastBlocksMin();
+    int64_t PastBlocksMax = Params().GetPastBlocksMax();
+
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
+        if (PastBlocksMax > 0 && i > PastBlocksMax) {
+            break;
+        }
+        CountBlocks++;
+
+        if (LastBlockTime > 0) {
+            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+            nActualTimespan += Diff;
+        }
+        LastBlockTime = BlockReading->GetBlockTime();
+
+        if (BlockReading->pprev == NULL) {
+            assert(BlockReading);
+            break;
+        }
+        BlockReading = BlockReading->pprev;
+    }
+
+    return nActualTimespan/CountBlocks;
+}
+
 uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
     // Lico
@@ -176,12 +209,7 @@ uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bo
         int64_t nTargetSpacing = Params().GetTargetSpacing();
         int64_t nTargetTimespan = Params().GetTargetTimespan();
 
-        int64_t nActualSpacing = 0;
-        if (pindexLast->nHeight != 0)
-            nActualSpacing = pindexLast->GetMedianTimePast(); // pindexLast->GetBlockTime() - pindexLast->pprev->GetBlockTime();
-
-        if (nActualSpacing < 0)
-            nActualSpacing = 1;
+        int64_t nMedianTimeSpacing = GetMedianTimeSpacing(pindexLast);
         int64_t nMyBlockSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
 
         // ppcoin: target change every block
@@ -190,10 +218,10 @@ uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bo
         bnNew.SetCompact(pindexLast->nBits);
 
         int64_t nInterval = nTargetTimespan / nTargetSpacing;
-        int64_t pastDueSpacing = nMyBlockSpacing - nActualSpacing > 0 ? nMyBlockSpacing - nActualSpacing : 0;
+        int64_t pastDueSpacing = nMyBlockSpacing - nMedianTimeSpacing > 0 ? nMyBlockSpacing - nMedianTimeSpacing : 0;
         int64_t howManyDue = pastDueSpacing / nTargetSpacing;
 
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + pow(pastDueSpacing, howManyDue));
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nMedianTimeSpacing + pow(pastDueSpacing, howManyDue));
         bnNew /= ((nInterval + 1) * nTargetSpacing);
 
         if (bnNew <= 0 || bnNew > bnTargetLimit)

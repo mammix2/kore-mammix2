@@ -64,7 +64,7 @@ bool CheckStakeKernelHash_Legacy(const CBlockIndex* pindexPrev, unsigned int nBi
     uint256 hashProofOfStake = ss.GetHash();
 
     if (fDebug) {
-        LogPrintf("CheckStakeKernelHash: hashProofOfStake: %s \n", (UintToArith256(hashProofOfStake) /nValueIn).ToString().c_str(), nValueIn);
+        LogPrintf("CheckStakeKernelHash: hashProofOfStake: %s \n", (UintToArith256(hashProofOfStake) /nValueIn).ToString().c_str());
         LogPrintf("CheckStakeKernelHash: target: %x \n", bnTarget.GetCompact());
     }
 

@@ -62,7 +62,7 @@ masternode_name=$2
 masternode_onion_address=$3
 masternode_user=$control_wallet_user
 masternode_password=$control_wallet_password
-masternode_conf_file=/KORE/tools/masternode//$masternode_name.conf
+masternode_conf_file=/KORE/tools/masternode/$masternode_name.conf
 readme=/KORE/tools/masternode/$masternode_name.readme
 activation_file=/KORE/tools/masternode/$masternode_name.activation
 my_conf_file=$user_dir/.$coin/kore.conf
@@ -156,7 +156,7 @@ echo "##  Updating this wallet masternode.conf file: $control_wallet #"
 new_masternode="$masternode_name $masternode_onion_address:$masternode_port $masternode_private_key $masternode_tx $nValue"
 echo "## $new_masternode"
 echo "$new_masternode" >> $control_wallet
-masternode_activation_command="`pwd`/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx $masternode_onion_address"
+masternode_activation_command="/KORE/tools/masternode/masternode_activation.sh $dir/kore-cli \"$cli_args\" $masternode_name $masternode_tx $masternode_onion_address"
 echo "## $new_masternode"   >> $masternode_conf_file
 echo "##########################################################################"
 echo "## "
