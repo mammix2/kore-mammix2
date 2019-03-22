@@ -18,12 +18,21 @@ using namespace std;
 
 static int64_t nMockTime = 0; //! For unit testing
 
+#ifdef __APPLE__
+std::chrono::system_clock::time_point GetEpochTimePoint() {
+    std::tm t = {};
+    std::istringstream ss("1970-01-01T00:00:00Z");
+    ss >> std::get_time(&t, "%Y-%m-%dT%H:%M:%SZ");
+    return chrono::system_clock::from_time_t(std::mktime(&t));
+};
+#else
 std::chrono::high_resolution_clock::time_point GetEpochTimePoint() {
     std::tm t = {};
     std::istringstream ss("1970-01-01T00:00:00Z");
     ss >> std::get_time(&t, "%Y-%m-%dT%H:%M:%SZ");
     return chrono::high_resolution_clock::from_time_t(std::mktime(&t));
 };
+#endif
 
 int64_t GetTime()
 {
@@ -39,17 +48,29 @@ void SetMockTime(int64_t nMockTimeIn)
 
 int64_t GetTimeSeconds()
 {
+#ifdef __APPLE__
+    return (chrono::system_clock::now() - GetEpochTimePoint()) / chrono::seconds(1);
+#else
     return (chrono::high_resolution_clock::now() - GetEpochTimePoint()) / chrono::seconds(1);
+#endif
 }
 
 int64_t GetTimeMillis()
 {
+#ifdef __APPLE__
+    return (chrono::system_clock::now() - GetEpochTimePoint()) / chrono::milliseconds(1);
+#else
     return (chrono::high_resolution_clock::now() - GetEpochTimePoint()) / chrono::milliseconds(1);
+#endif
 }
 
 int64_t GetTimeMicros()
 {
+#ifdef __APPLE__
+    return (chrono::system_clock::now() - GetEpochTimePoint()) / chrono::microseconds(1);
+#else
     return (chrono::high_resolution_clock::now() - GetEpochTimePoint()) / chrono::microseconds(1);
+#endif
 }
 
 void MilliSleep(int64_t n)

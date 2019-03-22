@@ -524,7 +524,11 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     if (!lpval.isNull()) {
         // Wait to respond until either the best block changes, OR a minute has passed and there are more transactions
         uint256 hashWatchedChain;
+#ifdef __APPLE__
+        std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> checktxtime;
+#else
         std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::milliseconds> checktxtime;
+#endif
         unsigned int nTransactionsUpdatedLastLP;
 
         if (lpval.isStr()) {
