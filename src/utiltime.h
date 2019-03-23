@@ -11,7 +11,12 @@
 #include <stdint.h>
 #include <string>
 
+#ifdef __APPLE__
+std::chrono::system_clock::time_point GetEpochTimePoint();
+#else
 std::chrono::high_resolution_clock::time_point GetEpochTimePoint();
+#endif
+
 int64_t GetTime();
 int64_t GetTimeSeconds();
 int64_t GetTimeMillis();

@@ -524,7 +524,11 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     if (!lpval.isNull()) {
         // Wait to respond until either the best block changes, OR a minute has passed and there are more transactions
         uint256 hashWatchedChain;
+#ifdef __APPLE__
+        std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> checktxtime;
+#else
         std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::milliseconds> checktxtime;
+#endif
         unsigned int nTransactionsUpdatedLastLP;
 
         if (lpval.isStr()) {
@@ -542,8 +546,11 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         // Release the wallet and main lock while waiting
         LEAVE_CRITICAL_SECTION(cs_main);
         {
+#ifdef __APPLE__
+            checktxtime = std::chrono::time_point_cast<std::chrono::milliseconds>(chrono::system_clock::now()) + chrono::minutes(1);
+#else
             checktxtime = std::chrono::time_point_cast<std::chrono::milliseconds>(chrono::high_resolution_clock::now()) + chrono::minutes(1);
-
+#endif
             std::unique_lock<std::mutex> lock(csBestBlock);
             while (chainActive.Tip()->GetBlockHash() == hashWatchedChain && IsRPCRunning()) {
                 if (cvBlockChange.wait_until(lock, checktxtime) != cv_status::timeout) {

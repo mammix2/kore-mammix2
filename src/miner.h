@@ -23,7 +23,7 @@ static const bool DEFAULT_PRINTPRIORITY_LEGACY = false;
 struct CBlockTemplate;
 
 CAmount GetBlockReward(CBlockIndex* pindexPrev);
-uint GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
+uint32_t GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
 
 /** Run the miner threads */
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads);

@@ -150,9 +150,10 @@ endif
 endif
 
 if USE_ECMULT_STATIC_PRECOMPUTATION
-CC_FOR_BUILD = $(CC)
-CPPFLAGS_FOR_BUILD =-I$(top_srcdir)
-CFLAGS_FOR_BUILD = -Wall -Wextra -Wno-unused-function
+CPPFLAGS_FOR_BUILD =
+CFLAGS_FOR_BUILD =
+CPPFLAGS_FOR_BUILD +=-I$(top_srcdir)
+CFLAGS_FOR_BUILD += -Wall -Wextra -Wno-unused-function
 
 gen_context_OBJECTS = gen_context.o
 gen_context_BIN = gen_context$(BUILD_EXEEXT)

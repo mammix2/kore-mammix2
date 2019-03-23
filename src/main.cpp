@@ -5126,7 +5126,7 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
             return state.DoS(10, error("CheckBlock(): failed to get stake modifier"));
         CBlockHeader originBlock = pindex->GetBlockHeader();
         CDataStream ssUniqueID = stakeInput.GetUniqueness();
-        uint stakeTime = block.vtx[1].nTime;
+        uint32_t stakeTime = block.vtx[1].nTime;
         if (!CheckStake(ssUniqueID, stakedBalance, nStakeModifier, bnTargetPerCoinDay, originBlock.GetBlockTime(), stakeTime))
             return state.DoS(100, error("CheckBlock(): target was easier than it should be"));
     }

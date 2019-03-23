@@ -233,8 +233,8 @@ public:
     virtual void setStakeMinAge(int aStakeMinAge) = 0;
     virtual void setStakeMinConfirmations(int aStakeMinConfirmations) = 0;
     virtual void setStakeModifierInterval(int aStakeModifier) = 0;
-    virtual void setTargetSpacing(uint aTargetSpacing) = 0;
-    virtual void setTargetTimespan(uint aTargetTimespan) = 0;
+    virtual void setTargetSpacing(uint32_t aTargetSpacing) = 0;
+    virtual void setTargetTimespan(uint32_t aTargetTimespan) = 0;
 };
 
 /**

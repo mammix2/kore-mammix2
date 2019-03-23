@@ -25,14 +25,14 @@ packages:
 - "python"
 reference_datetime: "2015-06-01 00:00:00"
 remotes:
-- "url": "https://github.com/kore-core/kore.git"
+- "url": "https://github.com/mammix2/kore.git"
   "dir": "kore"
 files: []
 script: |
 
   WRAP_DIR=$HOME/wrapped
   HOSTS="aarch64-linux-gnu"
-  CONFIGFLAGS="--enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests"
+  CONFIGFLAGS="--enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests  --disable-tests "
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="date ar ranlib nm"
   HOST_CFLAGS="-O2 -g"
