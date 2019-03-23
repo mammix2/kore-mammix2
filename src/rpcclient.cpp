@@ -142,7 +142,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
         {"searchdzkore", 0},
         {"searchdzkore", 1},
         {"searchdzkore", 2},
-        {"getfeeinfo", 0}
+        {"getfeeinfo", 0},
+        {"getchaintxstats", 0}
     };
 
 class CRPCConvertTable

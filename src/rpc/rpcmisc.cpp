@@ -54,18 +54,19 @@ UniValue getinfo(const UniValue& params, bool fHelp)
 
             "\nResult:\n"
             "{\n"
-            "  \"version\": xxxxx,           (numeric) the server version\n"
-            "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
-            "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total kore balance of the wallet (excluding zerocoins)\n"
-            "  \"zerocoinbalance\": xxxxxxx, (numeric) the total zerocoin balance of the wallet\n"
-            "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
-            "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
-            "  \"connections\": xxxxx,       (numeric) the number of connections\n"
-            "  \"proxy\": \"host:port\",     (string, optional) the proxy used by the server\n"
-            "  \"difficulty\": xxxxxx,       (numeric) the current difficulty\n"
-            "  \"testnet\": true|false,      (boolean) if the server is using testnet or not\n"
-            "  \"moneysupply\" : \"supply\"       (numeric) The money supply when this block was added to the blockchain\n"
+            "  \"version\": xxxxx,              (numeric) the server version\n"
+            "  \"protocolversion\": xxxxx,      (numeric) the protocol version\n"
+            "  \"walletversion\": xxxxx,        (numeric) the wallet version\n"
+            "  \"balance\": xxxxxxx,            (numeric) the total kore balance of the wallet (excluding zerocoins)\n"
+            "  \"zerocoinbalance\": xxxxxxx,    (numeric) the total zerocoin balance of the wallet\n"
+            "  \"blocks\": xxxxxx,              (numeric) the current number of blocks processed in the server\n"
+            "  \"verificationprogress\": xxxx,  (numeric) estimate of verification progress [0..1]\n"
+            "  \"timeoffset\": xxxxx,           (numeric) the time offset\n"
+            "  \"connections\": xxxxx,          (numeric) the number of connections\n"
+            "  \"proxy\": \"host:port\",        (string, optional) the proxy used by the server\n"
+            "  \"difficulty\": xxxxxx,          (numeric) the current difficulty\n"
+            "  \"testnet\": true|false,         (boolean) if the server is using testnet or not\n"
+            "  \"moneysupply\" : \"supply\"     (numeric) The money supply when this block was added to the blockchain\n"
             "  \"zKOREsupply\" :\n"
             "  {\n"
             "     \"1\" : n,            (numeric) supply of 1 zKORE denomination\n"
@@ -78,13 +79,13 @@ UniValue getinfo(const UniValue& params, bool fHelp)
             "     \"5000\" : n,         (numeric) supply of 5000 zKORE denomination\n"
             "     \"total\" : n,        (numeric) The total supply of all zKORE denominations\n"
             "  }\n"
-            "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"
-            "  \"keypoolsize\": xxxx,        (numeric) how many new keys are pre-generated\n"
-            "  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in kore/kb\n"
-            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for non-free transactions in kore/kb\n"
+            "  \"keypoololdest\": xxxxxx,       (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"
+            "  \"keypoolsize\": xxxx,           (numeric) how many new keys are pre-generated\n"
+            "  \"unlocked_until\": ttt,         (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
+            "  \"paytxfee\": x.xxxx,            (numeric) the transaction fee set in kore/kb\n"
+            "  \"relayfee\": x.xxxx,            (numeric) minimum relay fee for non-free transactions in kore/kb\n"
             "  \"staking status\": true|false,  (boolean) if the wallet is staking or not\n"
-            "  \"errors\": \"...\"           (string) any error messages\n"
+            "  \"errors\": \"...\"              (string) any error messages\n"
             "}\n"
 
             "\nExamples:\n" +
@@ -95,7 +96,10 @@ UniValue getinfo(const UniValue& params, bool fHelp)
 #else
     LOCK(cs_main);
 #endif
+    double verificationProgress = 0;
 
+    if (chainActive.Tip()->nHeight > 0)
+        verificationProgress = (masternodeSync.IsBlockchainSynced()) ? 1.0 : Checkpoints::GuessVerificationProgress(chainActive.Tip());
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
@@ -110,6 +114,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     }
 #endif
     obj.push_back(Pair("blocks", (int)chainActive.Height()));
+    obj.push_back(Pair("verificationprogress", verificationProgress));
     obj.push_back(Pair("timeoffset", GetTimeOffset()));
     obj.push_back(Pair("connections", (int)vNodes.size()));
     obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : string())));
