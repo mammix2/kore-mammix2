@@ -5,7 +5,7 @@
 #include "tests_util.h"
 #include "utiltime.h"
 
-// #define GENERATE_BLOCK_INFO
+#define GENERATE_BLOCK_INFO
 
 #include <boost/test/unit_test.hpp>
 
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(generate_old_pow)
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
 
-    int totalOldPow = 30;
+    int totalOldPow = 5;
     // generate old pow blocks
     GeneratePOWLegacyBlocks(1,totalOldPow+1, pwalletMain, scriptPubKey, true);
  

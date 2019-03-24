@@ -11,6 +11,7 @@
 #include "pow.h"
 #include "support/csviterator.h"
 #include "uint256.h"
+#include "util.h"
 #include <fstream>
 #include <iostream>
 
@@ -34,8 +35,14 @@ void static BatchWriteCoins(CLevelDBBatch& batch, const uint256& hash, const CCo
 {
     if (coins.IsPruned())
         batch.Erase(make_pair(DB_COINS, hash));
-    else
+    else {
         batch.Write(make_pair(DB_COINS, hash), coins);
+        if (fDebug) {
+          LogPrintf("BatchWriteCoins hash :%s \n", hash.ToString());
+          LogPrintf("BatchWriteCoins coins:%s \n", coins.ToString());
+        }
+
+    }
 }
 
 void static BatchWriteHashBestChain(CLevelDBBatch& batch, const uint256& hash)
@@ -79,10 +86,12 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock)
         CCoinsMap::iterator itOld = it++;
         mapCoins.erase(itOld);
     }
-    if (hashBlock != uint256(0))
+    if (hashBlock != uint256(0)) {
+        LogPrintf("Writing Best Chain hash: %s \n", hashBlock.ToString());
         BatchWriteHashBestChain(batch, hashBlock);
+    }
 
-    LogPrint("coindb", "Committing %u changed transactions (out of %u) to coin database...\n", (unsigned int)changed, (unsigned int)count);
+    LogPrintf("Committing %u changed transactions (out of %u) to coin database...\n", (unsigned int)changed, (unsigned int)count);
     return db.WriteBatch(batch);
 }
 
@@ -272,7 +281,11 @@ bool CBlockTreeDB::WriteBatchSync(const std::vector<std::pair<int, const CBlockF
     }
     batch.Write(DB_LAST_BLOCK, nLastFile);
     for (std::vector<const CBlockIndex*>::const_iterator it = blockinfo.begin(); it != blockinfo.end(); it++) {
-        batch.Write(make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()), CDiskBlockIndex(*it));
+        CDiskBlockIndex blockIndex(*it);
+         if (fDebug)
+          LogPrintf("CDiskBlockIndex :%s \n", blockIndex.ToString());
+
+        batch.Write(make_pair(DB_BLOCK_INDEX, (*it)->GetBlockHash()), blockIndex);
     }
     return WriteBatch(batch, true);
 }
@@ -369,6 +382,8 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 CDiskBlockIndex diskindex;
                 if (pcursor->GetValue(diskindex)) {
                     // Construct block index object
+                    if(diskindex.nHeight == 400)
+                        printf("hey %s", "beautiful");
                     bool useLegacyCode = UseLegacyCode(diskindex.nHeight);
                     LogPrintf("Reading Block: %d \n", diskindex.nHeight);
                     LogPrintf("BlockInfo %s \n", diskindex.ToString());
@@ -402,6 +417,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
 
                     LogPrintf("LoadBlockIndexGuts : useLegacy ?: %s \n", useLegacyCode ? "true" : "false");
                     LogPrintf("LoadBlockIndexGuts block: %d, POS ? %s Status value %u \n", pindexNew->nHeight, isProofOfStake ? "true" : "false", pindexNew->nStatus);
+                    LogPrintf("LoadBlockIndexGuts BLOCK: %s \n", pindexNew->ToString());
                     if (!isProofOfStake && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
                         if (useLegacyCode) {
                             if (!CheckProofOfWork_Legacy(pindexNew->GetBlockHash(), pindexNew->nBits))

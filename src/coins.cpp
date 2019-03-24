@@ -94,7 +94,6 @@ CCoinsViewCache::~CCoinsViewCache()
     assert(!hasModifier);
 }
 
-// TODO: Remove "_Legacy" name in method
 size_t CCoinsViewCache::DynamicMemoryUsage() const
 {
     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;
@@ -159,11 +158,13 @@ CCoinsModifier CCoinsViewCache::ModifyCoins_Legacy(const uint256& txid)
 
 CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
 {
+    if (txid.ToString() == "b5f5580e459252fd1bf6547b62daf70af8100fc0b835b524b30b95aa2f48f6d3")
+        cout << "here here";
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
     if (fDebug) {
         LogPrintf("Coins in the cache : %d \n", cacheCoins.size());
-        LogPrintf("ModifyCoins_Legacy txid: %s inserted ? %s \n", txid.ToString().c_str(), ret.second ? "true" : "false");
+        LogPrintf("ModifyCoins txid: %s inserted ? %s \n", txid.ToString().c_str(), ret.second ? "true" : "false");
     }
     if (ret.second) {
         if (!base->GetCoins(txid, ret.first->second.coins)) {

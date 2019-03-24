@@ -14,6 +14,8 @@
 #include "serialize.h"
 #include "uint256.h"
 #include "undo.h"
+#include "util.h"
+
 
 #include <assert.h>
 #include <stdint.h>
@@ -171,6 +173,26 @@ public:
         return !(a == b);
     }
 
+    std::string ToString() const
+    {
+        std::stringstream s;
+        s << "CCoins (" << endl;
+        s << "   nHeight   : " << nHeight << endl;
+        s << "   nVersion  : " << nVersion << endl;
+        s << "   nTime     : " << nTime << endl;
+        s << "   fCoinBase : " << (fCoinBase ? "true" : "false") << endl;
+        s << "   fCoinStake: " << (fCoinStake ? "true" : "false") << endl;
+        s << "   vout      : size: " << vout.size() << endl;
+        for (unsigned int i = 0; i < vout.size(); i++)
+        {
+            s << "       vout[" << i << "] : " << vout[i].ToString() << endl;
+        }
+        s << "   )" << endl;
+
+        return s.str();
+    }
+
+
     void CalcMaskSize(unsigned int& nBytes, unsigned int& nNonzeroBytes) const;
 
     bool IsCoinBase() const
@@ -204,7 +226,12 @@ public:
                 nSize += ::GetSerializeSize(CTxOutCompressor(REF(vout[i])), nType, nVersion);
         // height
         nSize += ::GetSerializeSize(VARINT(nHeight), nType, nVersion);
+        // ntime
         nSize += ::GetSerializeSize(nTime, nType, nVersion);
+        if (fDebug) {
+          LogPrintf("CCoins::GetSerializeSize MaskSize: %d MaskCode: %d first: %s second: %s code: %d \n", nMaskSize, nMaskCode, (fFirst ? "true" : "false"), (fSecond ? "true" : "false"),  nCode);
+          LogPrintf("CCoins::GetSerializeSize %s \n", this->ToString());
+        }
         return nSize;
     }
 
@@ -238,6 +265,9 @@ public:
         ::Serialize(s, VARINT(nHeight), nType, nVersion);
         // time
         ::Serialize(s, nTime, nType, nVersion);
+        if (fDebug) {
+          LogPrintf("CCoins::Serialize MaskSize: %d MaskCode: %d first: %s second: %s code: %d \n", nMaskSize, nMaskCode, (fFirst ? "true" : "false"), (fSecond ? "true" : "false"),  nCode);
+        }
     }
 
     template <typename Stream>

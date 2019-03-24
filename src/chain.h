@@ -185,6 +185,7 @@ public:
     unsigned int nNonce;
     uint32_t nBirthdayA;
     uint32_t nBirthdayB;
+    bool fIsProofOfStake;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
@@ -220,6 +221,7 @@ public:
         nNonce                 = 0;
         nBirthdayA             = 0;
         nBirthdayB             = 0;
+        fIsProofOfStake        = 0;
     }
 
     CBlockIndex()
@@ -238,6 +240,8 @@ public:
         nNonce                 = block.nNonce;
         nBirthdayA             = block.nBirthdayA;
         nBirthdayB             = block.nBirthdayB;
+        if (nVersion == 2)
+            fIsProofOfStake        = block.fIsProofOfStake;
         bnChainTrust           = uint256();
         nMint                  = 0;
         nMoneySupply           = 0;
@@ -387,8 +391,8 @@ public:
                 hashMerkleRoot.ToString(),
                 GetBlockHash().ToString());
         else
-            return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, merkle=%s, hashBlock=%s)",
-                pprev, nHeight, IsProofOfStake() ? "PoS" : "PoW", nStakeModifierOld.ToString(),
+            return strprintf("CBlockIndex(pprev=%p, nHeight=%d, type=%s, nStakeModifierOld=%x, nStakeModifier=%x, merkle=%s, hashBlock=%s)",
+                pprev, nHeight, fIsProofOfStake ? "PoS" : "PoW", nStakeModifierOld.ToString(), nStakeModifier,
                 hashMerkleRoot.ToString(),
                 GetBlockHash().ToString());
     }
@@ -490,6 +494,8 @@ public:
         READWRITE(nNonce);
         READWRITE(nBirthdayA);
         READWRITE(nBirthdayB);
+        if (!useLegacyCode)
+            READWRITE(fIsProofOfStake);       
     }
 
     uint256 GetBlockHash() const
@@ -503,19 +509,32 @@ public:
         block.nNonce         = nNonce;
         block.nBirthdayA     = nBirthdayA;
         block.nBirthdayB     = nBirthdayB;
+        if (nVersion >= 2)
+            block.fIsProofOfStake = fIsProofOfStake;
         return block.GetHash();
     }
 
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, moneysupply=%d, type=%s, nStakeModifier=%x, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
-            pprev, pnext, nHeight, nMoneySupply,
-            IsProofOfStake() ? "PoS" : "PoW",
-            nStakeModifierOld.ToString(),
-            nVersion, nTime, nBits, nNonce, nBirthdayA, nBirthdayB,
-            hashMerkleRoot.ToString(),
-            GetBlockHash().ToString());
+        if (UseLegacyCode(nHeight))
+            return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, moneysupply=%d, type=%s, nStakeModifier=%s, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
+                pprev, pnext, nHeight, nMoneySupply,
+                IsProofOfStake() ? "PoS" : "PoW",
+                nStakeModifierOld.ToString(),
+                nVersion, nTime, nBits, nNonce, nBirthdayA, nBirthdayB,
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
+        else
+
+            return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, moneysupply=%d, type=%s, nStakeModifierOld=%s, nStakeModifier=%x, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
+                pprev, pnext, nHeight, nMoneySupply,
+                fIsProofOfStake ? "PoS" : "PoW",
+                nStakeModifierOld.ToString(),
+                nStakeModifier,
+                nVersion, nTime, nBits, nNonce, nBirthdayA, nBirthdayB,
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
     }
 };
 

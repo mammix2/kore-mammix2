@@ -86,7 +86,7 @@ uint256 CTxOut::GetHash() const
 std::string CTxOut::ToString() const
 {
 	if (IsEmpty()) return "CTxOut(empty)";
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey));
+    return strprintf("CTxOut(nValue=%d, scriptPubKey=%s)", nValue, HexStr(scriptPubKey));
 }
 
 bool CTxOut::IsCoinStake() const

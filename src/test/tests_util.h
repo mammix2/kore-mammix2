@@ -28,6 +28,7 @@ extern blockinfo_t blockinfo[];
 
 void InitializeDBTest();
 void FinalizeDBTest(bool shutdown);
+void CheckDatabaseState(CWallet* pwalletMain);
 
 void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake, bool logToStdout=false);
 

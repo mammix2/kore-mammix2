@@ -2144,6 +2144,7 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex)
         return false;
     if (block.GetHash() != pindex->GetBlockHash()) {
         LogPrintf("%s : block=%s index=%s\n", __func__, block.GetHash().ToString().c_str(), pindex->GetBlockHash().ToString().c_str());
+        LogPrintf("    %s \n", block.ToString());
         return error("ReadBlockFromDisk(CBlock&, CBlockIndex*) : GetHash() doesn't match index");
     }
     return true;
@@ -2463,7 +2464,8 @@ void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCach
         txundo.vprevout.reserve(tx.vin.size());
         BOOST_FOREACH (const CTxIn& txin, tx.vin) {
             txundo.vprevout.push_back(CTxInUndo());
-            bool ret = inputs.ModifyCoins(txin.prevout.hash)->Spend(txin.prevout, txundo.vprevout.back());
+            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
+            bool ret = coins->Spend(txin.prevout, txundo.vprevout.back());
             assert(ret);
         }
     }
@@ -2844,6 +2846,8 @@ bool DisconnectBlock_Legacy(const CBlock& block, CValidationState& state, const 
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
         const CTransaction& tx = block.vtx[i];
         uint256 hash = tx.GetHash();
+        if (hash.ToString() == "b5f5580e459252fd1bf6547b62daf70af8100fc0b835b524b30b95aa2f48f6d3")
+          cout << "here here";
         LogPrintf("tx Hash %s pos=%d\n", hash.ToString().c_str(), i);
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
@@ -3289,9 +3293,6 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
     if (!CheckBlock_Legacy(block, GetnHeight(pindex), state, !fJustCheck, !fJustCheck))
         return false;
 
-    // verify that the view's current state corresponds to the previous block
-    uint256 hashPrevBlock = pindex->pprev == NULL ? uint256() : pindex->pprev->GetBlockHash();
-    assert(hashPrevBlock == view.GetBestBlock());
 
     // Special case for the genesis block, skipping connection of its transactions
     // (its coinbase is unspendable)
@@ -3301,12 +3302,25 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
         return true;
     }
 
+    // verify that the view's current state corresponds to the previous block
+    uint256 hashPrevBlock = pindex->pprev == NULL ? uint256() : pindex->pprev->GetBlockHash();
+    if (fDebug)
+      LogPrintf("ConnectBlock_Legacy block height: %d hashPrevBlock: %s", pindex->nHeight, hashPrevBlock.ToString());
+    assert(hashPrevBlock == view.GetBestBlock());
+
+
     // Check proof-of-stake
     if (block.IsProofOfStake()) {
         const COutPoint& prevout = block.vtx[1].vin[0].prevout;
         const CCoins* coins = view.AccessCoins(prevout.hash);
         if (!coins)
             return state.DoS(100, error("%s: kernel input unavailable", __func__), REJECT_INVALID, "bad-cs-kernel");
+
+        if (fDebug) {
+          LogPrintf("ConnectBlock_Legacy - Coin found hash: %s \n", prevout.hash.ToString());
+          LogPrintf("   %s \n", coins->ToString());          
+        }
+
 
         // Check proof-of-stake min confirmations
         if (pindex->nHeight - coins->nHeight < Params().GetStakeMinConfirmations())
@@ -6198,6 +6212,8 @@ bool static LoadBlockIndexDB()
 
     // If this is written true before the next client init, then we know the shutdown process failed
     pblocktree->WriteFlag("shutdown", false);
+
+    uint256 opa = pcoinsTip->GetBestBlock();
 
     // Load pointer to end of best chain
     BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());

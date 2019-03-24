@@ -38,6 +38,9 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
     // Retarget
     const arith_uint256 bnPowLimit = GetTargetLimit_Legacy(pindexLast->GetBlockTime(), pindexLast->IsProofOfStake());
     arith_uint256 bnNew, bnOld;
+    if ((Params().GetNetworkID() == CBaseChainParams::TESTNET || Params().GetNetworkID() == CBaseChainParams::UNITTEST) && pindexLast->nHeight < 100) {
+        return bnPowLimit.GetCompact();
+    }
     bnNew.SetCompact(pindexLast->nBits);
     bnOld = bnNew;
     bnNew *= ((Params().GetDifficultyAdjustmentInterval() - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
