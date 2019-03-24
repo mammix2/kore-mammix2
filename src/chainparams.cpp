@@ -390,7 +390,7 @@ public:
         nEnsureMintableCoinsInterval                  = 5;
         nHeightToBanOldWallets                        = 10;
         nHeightToFork                                 = 50;
-        nLastPOWBlock                                 = 200;                        // 1000
+        nLastPOWBlock                                 = 30;                        // 1000
         nMajorityBlockUpgradeToCheck                  = 100;
         nMasternodeBudgetPaymentCycle                 = 30;                          // Every 60 blocks, it will check if it is necessary to pay. A superblock will have 140 cycle
         nMasternodeMinConfirmations                   = 2;
