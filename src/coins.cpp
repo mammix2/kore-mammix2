@@ -229,6 +229,14 @@ void CCoinsViewCache::SetBestBlock(const uint256& hashBlockIn)
 {
     hashBlock = hashBlockIn;
 }
+void CCoinsViewCache::Log()
+{
+    LogPrintf("Logging Coins Cache --> \n");
+    for (CCoinsMap::iterator it = cacheCoins.begin(); it != cacheCoins.end();it++) {
+        LogPrintf("%s \n", (*it).second.coins.ToString());
+    }
+    LogPrintf("Logging Coins Cache <-- \n");
+}
 
 bool CCoinsViewCache::BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlockIn)
 {

@@ -134,7 +134,7 @@
             "request": "launch",
             "preLaunchTask": "Makefile",
             "program": "${workspaceFolder}/src/test/test_kore",
-            "args": ["--log_level=all", "--log_sink=stdout", "--run_test=fork_kore_from_blockinfo/quick_fork"],
+            "args": ["--log_level=all", "--log_sink=stdout", "--run_test=fork_kore_from_blockinfo/check_database_pow_pos"],
             //"args": ["--log_level=all", "--log_sink=stdout", "--run_test=generate_blockinfo/generate_old_pow"],
             //"args": ["--log_level=test_suite", "--log_sink=stdout"],
             "stopAtEntry": false,

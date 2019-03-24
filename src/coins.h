@@ -490,6 +490,8 @@ public:
     CCoinsViewCache(CCoinsView* baseIn);
     ~CCoinsViewCache();
 
+    void Log();
+
     // Standard CCoinsView methods
     bool GetCoins(const uint256& txid, CCoins& coins) const;
     bool HaveCoins(const uint256& txid) const;

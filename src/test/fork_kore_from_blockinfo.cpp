@@ -6,6 +6,7 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "init.h"
+#include "main.h" // pcoinsTip;
 #include "tests_util.h"
 #include "util.h"
 #include "utiltime.h"
@@ -182,7 +183,7 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pow)
     ModifiableParams()->setStakeMinAge(0);
     ModifiableParams()->setTargetTimespan(1);
     ModifiableParams()->setEnableBigRewards(true);
-    ModifiableParams()->setLastPowBlock(minConfirmations + 1);
+    ModifiableParams()->setLastPowBlock(20);
     
     ScanForWalletTransactions(pwalletMain);
     CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
@@ -191,7 +192,7 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pow)
     CreateOldBlocksFromBlockInfo(1, 9, blockinfo[0], pwalletMain, scriptPubKey, false, logToStdout);
 
     // generate new pow
-    GenerateBlocks(9, 20, pwalletMain, scriptPubKey, true, logToStdout);
+    GenerateBlocks(9, 20, pwalletMain, scriptPubKey, false, logToStdout);
 
     CheckDatabaseState(pwalletMain);
 
@@ -251,8 +252,12 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos)
     // generate 4 pow blocks
     CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false, logToStdout);
 
+    // Lets check how it the cachedCoins
+    pcoinsTip->Log();
     // generate 1 pos blocks
     GeneratePOSLegacyBlocks(minConfirmations + 2, 6, pwalletMain, scriptPubKey, logToStdout);
+
+    pcoinsTip->Log();
 
     CheckDatabaseState(pwalletMain);
 
