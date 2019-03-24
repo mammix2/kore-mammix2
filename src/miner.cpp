@@ -730,6 +730,7 @@ inline CMutableTransaction CreateCoinbaseTransaction_Legacy(const CScript& scrip
     txNew.vin[0].prevout.SetNull();
     txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
     txNew.nTime = GetAdjustedTime();
+    txNew.SetVersion(1);    
 
     if (fProofOfStake) {
         txNew.vout.resize(1);
@@ -969,6 +970,7 @@ CBlockTemplate* CreateNewBlock_Legacy(const CChainParams& chainparams, const CSc
         if (!fProofOfStake && !TestBlockValidity_Legacy(state, chainparams, *pblock, pindexPrev, false, false)) {
             throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s", __func__, FormatStateMessage_Legacy(state)));
         }
+        if (fDebug) LogPrintf("Block Created : %s \n", pblock->ToString());
     }
     return pblocktemplate.release();
 }

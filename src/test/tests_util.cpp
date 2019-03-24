@@ -266,7 +266,6 @@ blockinfo_t blockinfo[] = {
 void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake, bool logToStdout)
 {
     std::stringstream str;
-    str << pblock->ToString().c_str() << endl;
     str << "{" << fProofOfStake << ", ";
     str << pblock->nTime << ", ";
     str << pblock->vtx[0].nTime << " , ";
@@ -279,15 +278,15 @@ void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned i
     str << "uint256(\"" << pblock->hashMerkleRoot.ToString().c_str() << "\") , ";
     str << pwallet->GetBalance() << " },";
     str << " // Block " << blockNumber << endl;
-    cout << str.str();
 
-
-    if (logToStdout)
+    if (logToStdout) {
+        cout << pblock->ToString().c_str() << endl;
         cout << str.str();
+    }
 
     if (fDebug) {
         LogPrintf("%s \n", str.str());
-            LogPrintf("Block %d %s \n", blockNumber, (pblock->IsProofOfStake() ? " (PoS) " : " (PoW) "));
+        LogPrintf("Block %d %s \n", blockNumber, (pblock->IsProofOfStake() ? " (PoS) " : " (PoW) "));
         LogPrintf(" nTime               : %u \n", pblock->nTime);
         LogPrintf(" hash                : %s \n", pblock->GetHash().ToString().c_str());
         LogPrintf(" StakeModifier       : %u \n", chainActive.Tip()->nStakeModifier);
