@@ -143,125 +143,349 @@ void FinalizeDBTest(bool shutdown)
 
 /*
 CBlock ============================>>>>
-    hash=0c4b7b9d1ee2b602889210f846c5aad1136d804b2c8b9123bf0fc3d09b20dc59
-    ver=1
-    hashPrevBlock=0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99,
-    hashMerkleRoot=93fa82e59aec389489e594a24c0765f51a82409b246a4002742c0e976f9b23f3,
-    nTime=1553349553,
-    nBits=201fffff,
-    nNonce=3,
-    nBirthdayA=103360,
-    nBirthdayB=47071114,
-    vchBlockSig=,
-    Vtx : size 1
-    CTransaction(hash=93fa82e59a, ver=2,  nTime=1553349553, vin.size=1, vout.size=3, nLockTime=0)
+    hash=0f1d9c8d3cc8cd3dc9cac4e393dec1e7fc7caf2e7f60918caa32c93700b54a95 
+    ver=1 
+    hashPrevBlock=0aab10677b4fe0371a67f99e78a69e7d9fa03a1c7d48747978da405dc5abeb99, 
+    hashMerkleRoot=283a74c16816416ac46e0bda045e009fbeb04b61c23eb92ea15d35966374214e, 
+    nTime=1553431167, 
+    nBits=201fffff, 
+    nNonce=6, 
+    nBirthdayA=51845350, 
+    nBirthdayB=53515334, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=283a74c168, ver=1,  nTime=1553431167, vin.size=1, vout.size=3, nLockTime=0)
     CTxIn(COutPoint(0000000000, 4294967295), coinbase 510101)
-    CTxOut(nValue=9000.00000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
-    CTxOut(nValue=1000.00000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
-    CTxOut(nValue=0.00000000, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
 
-  vMerkleTree:     vMerkleTree : size 1
-    93fa82e59aec389489e594a24c0765f51a82409b246a4002742c0e976f9b23f3
+  vMerkleTree:     vMerkleTree : size 1 
+    283a74c16816416ac46e0bda045e009fbeb04b61c23eb92ea15d35966374214e
 CBlock <<<<============================
-{0, 1553349553, 1553349553 , 538968063 , 3 , 1 , 103360 , 47071114 , uint256("0c4b7b9d1ee2b602889210f846c5aad1136d804b2c8b9123bf0fc3d09b20dc59") , uint256("93fa82e59aec389489e594a24c0765f51a82409b246a4002742c0e976f9b23f3") , 0 }, // Block 1
+
+{0, 1553431167, 1553431167 , 538968063 , 6 , 1 , 51845350 , 53515334 , uint256("0f1d9c8d3cc8cd3dc9cac4e393dec1e7fc7caf2e7f60918caa32c93700b54a95") , uint256("283a74c16816416ac46e0bda045e009fbeb04b61c23eb92ea15d35966374214e") , 0 }, // Block 1
+
 CBlock ============================>>>>
-    hash=028b879ab893ad10346f917269df71e6859454048dde5e175ae4a4545ab83699
-    ver=1
-    hashPrevBlock=0c4b7b9d1ee2b602889210f846c5aad1136d804b2c8b9123bf0fc3d09b20dc59,
-    hashMerkleRoot=9063abcde8e0eb929aa10d4a99255ab9fee6c327a223c6606c3902fc58fa62cf,
-    nTime=1553349573,
-    nBits=201fffff,
-    nNonce=1,
-    nBirthdayA=18592727,
-    nBirthdayB=66015663,
-    vchBlockSig=,
-    Vtx : size 1
-    CTransaction(hash=9063abcde8, ver=2,  nTime=1553349573, vin.size=1, vout.size=3, nLockTime=0)
+    hash=107aab84ec63a96209af139c522c9e26cc1ce3c2991cbd234cdff3f148be13d4 
+    ver=1 
+    hashPrevBlock=0f1d9c8d3cc8cd3dc9cac4e393dec1e7fc7caf2e7f60918caa32c93700b54a95, 
+    hashMerkleRoot=387dae07ab324b98e2bcd8331eded8915d89a2074d1716e703b29630e98c044f, 
+    nTime=1553431187, 
+    nBits=201fffff, 
+    nNonce=18, 
+    nBirthdayA=0, 
+    nBirthdayB=0, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=387dae07ab, ver=1,  nTime=1553431187, vin.size=1, vout.size=3, nLockTime=0)
     CTxIn(COutPoint(0000000000, 4294967295), coinbase 520101)
-    CTxOut(nValue=9000.00000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
-    CTxOut(nValue=1000.00000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
-    CTxOut(nValue=0.00000000, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
 
-  vMerkleTree:     vMerkleTree : size 1
-    9063abcde8e0eb929aa10d4a99255ab9fee6c327a223c6606c3902fc58fa62cf
+  vMerkleTree:     vMerkleTree : size 1 
+    387dae07ab324b98e2bcd8331eded8915d89a2074d1716e703b29630e98c044f
 CBlock <<<<============================
-{0, 1553349573, 1553349573 , 538968063 , 1 , 1 , 18592727 , 66015663 , uint256("028b879ab893ad10346f917269df71e6859454048dde5e175ae4a4545ab83699") , uint256("9063abcde8e0eb929aa10d4a99255ab9fee6c327a223c6606c3902fc58fa62cf") , 0 }, // Block 2
+
+{0, 1553431187, 1553431187 , 538968063 , 18 , 1 , 0 , 0 , uint256("107aab84ec63a96209af139c522c9e26cc1ce3c2991cbd234cdff3f148be13d4") , uint256("387dae07ab324b98e2bcd8331eded8915d89a2074d1716e703b29630e98c044f") , 0 }, // Block 2
 CBlock ============================>>>>
-    hash=05ac7e4e70c54ad567d8bd6493abdd0bddd24c4a15d7ebc766ff5b2a02068351
-    ver=1
-    hashPrevBlock=028b879ab893ad10346f917269df71e6859454048dde5e175ae4a4545ab83699,
-    hashMerkleRoot=6d34d59c695e735ec39ff84c2bf785874e4254c2efb69b8c3314ddb96affb77f,
-    nTime=1553349593,
-    nBits=201fffff,
-    nNonce=14,
-    nBirthdayA=0,
-    nBirthdayB=0,
-    vchBlockSig=,
-    Vtx : size 1
-    CTransaction(hash=6d34d59c69, ver=2,  nTime=1553349593, vin.size=1, vout.size=3, nLockTime=0)
+    hash=02252b1bbf3c4d4395e9d91f65a7d6f39b0bbca5b5f37d815eea23812596f116 
+    ver=1 
+    hashPrevBlock=107aab84ec63a96209af139c522c9e26cc1ce3c2991cbd234cdff3f148be13d4, 
+    hashMerkleRoot=5cb269175f939f4bb2cf64b89152723fc993cc40a012490891eaae22d6b97dea, 
+    nTime=1553431207, 
+    nBits=201fffff, 
+    nNonce=13, 
+    nBirthdayA=9910726, 
+    nBirthdayB=18271698, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=5cb269175f, ver=1,  nTime=1553431207, vin.size=1, vout.size=3, nLockTime=0)
     CTxIn(COutPoint(0000000000, 4294967295), coinbase 530101)
-    CTxOut(nValue=9000.00000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
-    CTxOut(nValue=1000.00000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
-    CTxOut(nValue=0.00000000, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
 
-  vMerkleTree:     vMerkleTree : size 1
-    6d34d59c695e735ec39ff84c2bf785874e4254c2efb69b8c3314ddb96affb77f
+  vMerkleTree:     vMerkleTree : size 1 
+    5cb269175f939f4bb2cf64b89152723fc993cc40a012490891eaae22d6b97dea
 CBlock <<<<============================
-{0, 1553349593, 1553349593 , 538968063 , 14 , 1 , 0 , 0 , uint256("05ac7e4e70c54ad567d8bd6493abdd0bddd24c4a15d7ebc766ff5b2a02068351") , uint256("6d34d59c695e735ec39ff84c2bf785874e4254c2efb69b8c3314ddb96affb77f") , 0 }, // Block 3
+
+{0, 1553431207, 1553431207 , 538968063 , 13 , 1 , 9910726 , 18271698 , uint256("02252b1bbf3c4d4395e9d91f65a7d6f39b0bbca5b5f37d815eea23812596f116") , uint256("5cb269175f939f4bb2cf64b89152723fc993cc40a012490891eaae22d6b97dea") , 0 }, // Block 3
 CBlock ============================>>>>
-    hash=09bfeea176cd27daef27ac873ac786a7ff5439c7ce5c0449e441ed58dca85ebf
-    ver=1
-    hashPrevBlock=05ac7e4e70c54ad567d8bd6493abdd0bddd24c4a15d7ebc766ff5b2a02068351,
-    hashMerkleRoot=561dbcbee44b70c94823ef417714ec6fa8dcb01564e978e0683d7e85228f3a74,
-    nTime=1553349613,
-    nBits=201fffff,
-    nNonce=1,
-    nBirthdayA=0,
-    nBirthdayB=0,
-    vchBlockSig=,
-    Vtx : size 1
-    CTransaction(hash=561dbcbee4, ver=2,  nTime=1553349613, vin.size=1, vout.size=3, nLockTime=0)
+    hash=0cae580325c780b52d1e4367ac896cf826ff1511547d6be545c7840d87899114 
+    ver=1 
+    hashPrevBlock=02252b1bbf3c4d4395e9d91f65a7d6f39b0bbca5b5f37d815eea23812596f116, 
+    hashMerkleRoot=7bbe3e96ef9ca80cb66ca9ef73eb9c5e3384ad05d8374f240442195f8e2d8be3, 
+    nTime=1553431227, 
+    nBits=201fffff, 
+    nNonce=5, 
+    nBirthdayA=19067498, 
+    nBirthdayB=51658456, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=7bbe3e96ef, ver=1,  nTime=1553431227, vin.size=1, vout.size=3, nLockTime=0)
     CTxIn(COutPoint(0000000000, 4294967295), coinbase 540101)
-    CTxOut(nValue=9000.00000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
-    CTxOut(nValue=1000.00000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
-    CTxOut(nValue=0.00000000, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
 
-  vMerkleTree:     vMerkleTree : size 1
-    561dbcbee44b70c94823ef417714ec6fa8dcb01564e978e0683d7e85228f3a74
+  vMerkleTree:     vMerkleTree : size 1 
+    7bbe3e96ef9ca80cb66ca9ef73eb9c5e3384ad05d8374f240442195f8e2d8be3
 CBlock <<<<============================
-{0, 1553349613, 1553349613 , 538968063 , 1 , 1 , 0 , 0 , uint256("09bfeea176cd27daef27ac873ac786a7ff5439c7ce5c0449e441ed58dca85ebf") , uint256("561dbcbee44b70c94823ef417714ec6fa8dcb01564e978e0683d7e85228f3a74") , 900000000000 }, // Block 4
+
+{0, 1553431227, 1553431227 , 538968063 , 5 , 1 , 19067498 , 51658456 , uint256("0cae580325c780b52d1e4367ac896cf826ff1511547d6be545c7840d87899114") , uint256("7bbe3e96ef9ca80cb66ca9ef73eb9c5e3384ad05d8374f240442195f8e2d8be3") , 900000000000 }, // Block 4
 CBlock ============================>>>>
-    hash=0bf516d19099a85a641e22c441000ced92dc33287d2000e4c20f5e33cacc110b
-    ver=1
-    hashPrevBlock=09bfeea176cd27daef27ac873ac786a7ff5439c7ce5c0449e441ed58dca85ebf,
-    hashMerkleRoot=53c7f9eb1fa3ef94cb2f0de80022c56e8e6550cb8dd56ac7f159acda7083c2b0,
-    nTime=1553349633,
-    nBits=201fffff,
-    nNonce=4,
-    nBirthdayA=14417357,
-    nBirthdayB=64909763,
-    vchBlockSig=,
-    Vtx : size 1
-    CTransaction(hash=53c7f9eb1f, ver=2,  nTime=1553349633, vin.size=1, vout.size=3, nLockTime=0)
+    hash=072eb9afa2bbe57a2a0ba63b1efbe969174352b3e5c79328e511e32a1cd3387d 
+    ver=1 
+    hashPrevBlock=0cae580325c780b52d1e4367ac896cf826ff1511547d6be545c7840d87899114, 
+    hashMerkleRoot=1d34fbae18d949fbe0252e5f6f52411d37ed45f5dc2e01607a166d654c8169ab, 
+    nTime=1553431247, 
+    nBits=201fffff, 
+    nNonce=11, 
+    nBirthdayA=0, 
+    nBirthdayB=0, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=1d34fbae18, ver=1,  nTime=1553431247, vin.size=1, vout.size=3, nLockTime=0)
     CTxIn(COutPoint(0000000000, 4294967295), coinbase 550101)
-    CTxOut(nValue=9000.00000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
-    CTxOut(nValue=1000.00000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
-    CTxOut(nValue=0.00000000, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
 
-  vMerkleTree:     vMerkleTree : size 1
-    53c7f9eb1fa3ef94cb2f0de80022c56e8e6550cb8dd56ac7f159acda7083c2b0
+  vMerkleTree:     vMerkleTree : size 1 
+    1d34fbae18d949fbe0252e5f6f52411d37ed45f5dc2e01607a166d654c8169ab
 CBlock <<<<============================
-{0, 1553349633, 1553349633 , 538968063 , 4 , 1 , 14417357 , 64909763 , uint256("0bf516d19099a85a641e22c441000ced92dc33287d2000e4c20f5e33cacc110b") , uint256("53c7f9eb1fa3ef94cb2f0de80022c56e8e6550cb8dd56ac7f159acda7083c2b0") , 1800000000000 }, // Block 5
+
+{0, 1553431247, 1553431247 , 538968063 , 11 , 1 , 0 , 0 , uint256("072eb9afa2bbe57a2a0ba63b1efbe969174352b3e5c79328e511e32a1cd3387d") , uint256("1d34fbae18d949fbe0252e5f6f52411d37ed45f5dc2e01607a166d654c8169ab") , 1800000000000 }, // Block 5
+CBlock ============================>>>>
+    hash=03423cb0018affcfb9452473df7aaf4762b7510b1767eb9d88dea59b261b7fc4 
+    ver=1 
+    hashPrevBlock=072eb9afa2bbe57a2a0ba63b1efbe969174352b3e5c79328e511e32a1cd3387d, 
+    hashMerkleRoot=b75a1ff164b2b807871305963ec461b17f63d1f8a95c93a3f5d404d8e9da7b11, 
+    nTime=1553431267, 
+    nBits=201fffff, 
+    nNonce=4, 
+    nBirthdayA=0, 
+    nBirthdayB=0, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=b75a1ff164, ver=1,  nTime=1553431267, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 560101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    b75a1ff164b2b807871305963ec461b17f63d1f8a95c93a3f5d404d8e9da7b11
+CBlock <<<<============================
+
+{0, 1553431267, 1553431267 , 538968063 , 4 , 1 , 0 , 0 , uint256("03423cb0018affcfb9452473df7aaf4762b7510b1767eb9d88dea59b261b7fc4") , uint256("b75a1ff164b2b807871305963ec461b17f63d1f8a95c93a3f5d404d8e9da7b11") , 2700000000000 }, // Block 6
+CBlock ============================>>>>
+    hash=119f013ab1d6be26ed7075eec6c96de59a50da481d513d2b08cfb1597319f431 
+    ver=1 
+    hashPrevBlock=03423cb0018affcfb9452473df7aaf4762b7510b1767eb9d88dea59b261b7fc4, 
+    hashMerkleRoot=f6b04f1c9c529973a1919a4348187e5c6a9e76541265ee13949c86c3d7167230, 
+    nTime=1553431287, 
+    nBits=201fffff, 
+    nNonce=2, 
+    nBirthdayA=0, 
+    nBirthdayB=0, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=f6b04f1c9c, ver=1,  nTime=1553431287, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 570101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    f6b04f1c9c529973a1919a4348187e5c6a9e76541265ee13949c86c3d7167230
+CBlock <<<<============================
+
+{0, 1553431287, 1553431287 , 538968063 , 2 , 1 , 0 , 0 , uint256("119f013ab1d6be26ed7075eec6c96de59a50da481d513d2b08cfb1597319f431") , uint256("f6b04f1c9c529973a1919a4348187e5c6a9e76541265ee13949c86c3d7167230") , 3600000000000 }, // Block 7
+CBlock ============================>>>>
+    hash=07601619c49dc71f6984b6914334484bded5bf1fa3c6aa335cd0a2e82eb92830 
+    ver=1 
+    hashPrevBlock=119f013ab1d6be26ed7075eec6c96de59a50da481d513d2b08cfb1597319f431, 
+    hashMerkleRoot=e70df2d3c92c12eb4573d95ad5a01ad335f53b853f51538b01ea8339f1b9c5cd, 
+    nTime=1553431307, 
+    nBits=201fffff, 
+    nNonce=9, 
+    nBirthdayA=18700191, 
+    nBirthdayB=25291895, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=e70df2d3c9, ver=1,  nTime=1553431307, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 580101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    e70df2d3c92c12eb4573d95ad5a01ad335f53b853f51538b01ea8339f1b9c5cd
+CBlock <<<<============================
+
+{0, 1553431307, 1553431307 , 538968063 , 9 , 1 , 18700191 , 25291895 , uint256("07601619c49dc71f6984b6914334484bded5bf1fa3c6aa335cd0a2e82eb92830") , uint256("e70df2d3c92c12eb4573d95ad5a01ad335f53b853f51538b01ea8339f1b9c5cd") , 4500000000000 }, // Block 8
+CBlock ============================>>>>
+    hash=0ea0ad704b03f3b2fe953f8c23db043f660e3f24ed4ce8483d4dc53797119baf 
+    ver=1 
+    hashPrevBlock=07601619c49dc71f6984b6914334484bded5bf1fa3c6aa335cd0a2e82eb92830, 
+    hashMerkleRoot=52c3a6613d0de34bcd41828c6f03bcd814e287d08f46c31022eac0cf2b6aaa03, 
+    nTime=1553431327, 
+    nBits=201fffff, 
+    nNonce=6, 
+    nBirthdayA=25384411, 
+    nBirthdayB=43369449, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=52c3a6613d, ver=1,  nTime=1553431327, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 590101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    52c3a6613d0de34bcd41828c6f03bcd814e287d08f46c31022eac0cf2b6aaa03
+CBlock <<<<============================
+
+{0, 1553431327, 1553431327 , 538968063 , 6 , 1 , 25384411 , 43369449 , uint256("0ea0ad704b03f3b2fe953f8c23db043f660e3f24ed4ce8483d4dc53797119baf") , uint256("52c3a6613d0de34bcd41828c6f03bcd814e287d08f46c31022eac0cf2b6aaa03") , 5400000000000 }, // Block 9
+CBlock ============================>>>>
+    hash=04a473ccc463700aa652b695cf4c4ba771f602e56a2e1c8fa3211cf3ffd9f8bb 
+    ver=1 
+    hashPrevBlock=0ea0ad704b03f3b2fe953f8c23db043f660e3f24ed4ce8483d4dc53797119baf, 
+    hashMerkleRoot=033593578ad159074b3757d350034a7121fe257fb03ecbec3de86bfca60bf63c, 
+    nTime=1553431347, 
+    nBits=201fffff, 
+    nNonce=2, 
+    nBirthdayA=19096856, 
+    nBirthdayB=54986782, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=033593578a, ver=1,  nTime=1553431347, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 5a0101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    033593578ad159074b3757d350034a7121fe257fb03ecbec3de86bfca60bf63c
+CBlock <<<<============================
+
+{0, 1553431347, 1553431347 , 538968063 , 2 , 1 , 19096856 , 54986782 , uint256("04a473ccc463700aa652b695cf4c4ba771f602e56a2e1c8fa3211cf3ffd9f8bb") , uint256("033593578ad159074b3757d350034a7121fe257fb03ecbec3de86bfca60bf63c") , 6300000000000 }, // Block 10
+CBlock ============================>>>>
+    hash=0559717d7507f322630fff794ba30c5e3bfd1238cb05c22106362d07cb8725c6 
+    ver=1 
+    hashPrevBlock=04a473ccc463700aa652b695cf4c4ba771f602e56a2e1c8fa3211cf3ffd9f8bb, 
+    hashMerkleRoot=bc81ba0c52eb8666604ae29c6d56823a5bb72f622ee5b1a88a774961b85ff720, 
+    nTime=1553431367, 
+    nBits=201fffff, 
+    nNonce=4, 
+    nBirthdayA=33170299, 
+    nBirthdayB=65785478, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=bc81ba0c52, ver=1,  nTime=1553431367, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 5b0101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    bc81ba0c52eb8666604ae29c6d56823a5bb72f622ee5b1a88a774961b85ff720
+CBlock <<<<============================
+
+{0, 1553431367, 1553431367 , 538968063 , 4 , 1 , 33170299 , 65785478 , uint256("0559717d7507f322630fff794ba30c5e3bfd1238cb05c22106362d07cb8725c6") , uint256("bc81ba0c52eb8666604ae29c6d56823a5bb72f622ee5b1a88a774961b85ff720") , 7200000000000 }, // Block 11
+CBlock ============================>>>>
+    hash=1ce80a9da65026c2c17e05651e85fb687eb118352f4f40bdb0bc4a0cf97ab7ba 
+    ver=1 
+    hashPrevBlock=0559717d7507f322630fff794ba30c5e3bfd1238cb05c22106362d07cb8725c6, 
+    hashMerkleRoot=af524765d4faa9682b47d8abe5900a46377b40b3377216b04253de04213b2865, 
+    nTime=1553431387, 
+    nBits=201fffff, 
+    nNonce=15, 
+    nBirthdayA=0, 
+    nBirthdayB=0, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=af524765d4, ver=1,  nTime=1553431387, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 5c0101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    af524765d4faa9682b47d8abe5900a46377b40b3377216b04253de04213b2865
+CBlock <<<<============================
+
+{0, 1553431387, 1553431387 , 538968063 , 15 , 1 , 0 , 0 , uint256("1ce80a9da65026c2c17e05651e85fb687eb118352f4f40bdb0bc4a0cf97ab7ba") , uint256("af524765d4faa9682b47d8abe5900a46377b40b3377216b04253de04213b2865") , 8100000000000 }, // Block 12
+
+CBlock ============================>>>>
+    hash=05c4a54c127e07c96d00f417b2dd59f8471ed99dc80318875d29924412a0da52 
+    ver=1 
+    hashPrevBlock=1ce80a9da65026c2c17e05651e85fb687eb118352f4f40bdb0bc4a0cf97ab7ba, 
+    hashMerkleRoot=6af5a5b978237bf0df6f352a99307c1aeda47a0c0be7dc865d5174003e0fe153, 
+    nTime=1553431407, 
+    nBits=201fffff, 
+    nNonce=1, 
+    nBirthdayA=17325978, 
+    nBirthdayB=18828871, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=6af5a5b978, ver=1,  nTime=1553431407, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 5d0101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    6af5a5b978237bf0df6f352a99307c1aeda47a0c0be7dc865d5174003e0fe153
+CBlock <<<<============================
+
+{0, 1553431407, 1553431407 , 538968063 , 1 , 1 , 17325978 , 18828871 , uint256("05c4a54c127e07c96d00f417b2dd59f8471ed99dc80318875d29924412a0da52") , uint256("6af5a5b978237bf0df6f352a99307c1aeda47a0c0be7dc865d5174003e0fe153") , 9000000000000 }, // Block 13
+CBlock ============================>>>>
+    hash=05b8b9e1b1b37571341c58df5fd4facf9a0f50639de078fa63279c3a2cc9a00e 
+    ver=1 
+    hashPrevBlock=05c4a54c127e07c96d00f417b2dd59f8471ed99dc80318875d29924412a0da52, 
+    hashMerkleRoot=3741e99159b6d87203d8df4e777a913d5f7a4357f584b1c2ba11c8b276bc44f2, 
+    nTime=1553431427, 
+    nBits=201fffff, 
+    nNonce=1, 
+    nBirthdayA=42369479, 
+    nBirthdayB=43637928, 
+    vchBlockSig=, 
+    Vtx : size 1 
+    CTransaction(hash=3741e99159, ver=1,  nTime=1553431427, vin.size=1, vout.size=3, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 5e0101)
+    CTxOut(nValue=900000000000, scriptPubKey=76a914ff197b14e502ab41f3bc8ccb48c4abac9eab35bc88ac)
+    CTxOut(nValue=100000000000, scriptPubKey=4104d410c4a7fec6dbf6fedc9721104ada1571d5e3e4791085efc083a9f3f4c007d240a6a647dda0ca1466641b0739a86a67b97ac48484fc7ca88257804b7ce52ed2ac)
+    CTxOut(nValue=0, scriptPubKey=1e43726561746564206f6e2076657273696f6e203133207072652d666f726b6a)
+
+  vMerkleTree:     vMerkleTree : size 1 
+    3741e99159b6d87203d8df4e777a913d5f7a4357f584b1c2ba11c8b276bc44f2
+CBlock <<<<============================
+
+{0, 1553431427, 1553431427 , 538968063 , 1 , 1 , 42369479 , 43637928 , uint256("05b8b9e1b1b37571341c58df5fd4facf9a0f50639de078fa63279c3a2cc9a00e") , uint256("3741e99159b6d87203d8df4e777a913d5f7a4357f584b1c2ba11c8b276bc44f2") , 9900000000000 }, // Block 14
+
 */
 
 blockinfo_t blockinfo[] = {
-{0, 1553349553, 1553349553 , 538968063 , 3 , 1 , 103360 , 47071114 , uint256("0c4b7b9d1ee2b602889210f846c5aad1136d804b2c8b9123bf0fc3d09b20dc59") , uint256("93fa82e59aec389489e594a24c0765f51a82409b246a4002742c0e976f9b23f3") , 0 }, // Block 1
-{0, 1553349573, 1553349573 , 538968063 , 1 , 1 , 18592727 , 66015663 , uint256("028b879ab893ad10346f917269df71e6859454048dde5e175ae4a4545ab83699") , uint256("9063abcde8e0eb929aa10d4a99255ab9fee6c327a223c6606c3902fc58fa62cf") , 0 }, // Block 2
-{0, 1553349593, 1553349593 , 538968063 , 14 , 1 , 0 , 0 , uint256("05ac7e4e70c54ad567d8bd6493abdd0bddd24c4a15d7ebc766ff5b2a02068351") , uint256("6d34d59c695e735ec39ff84c2bf785874e4254c2efb69b8c3314ddb96affb77f") , 0 }, // Block 3
-{0, 1553349613, 1553349613 , 538968063 , 1 , 1 , 0 , 0 , uint256("09bfeea176cd27daef27ac873ac786a7ff5439c7ce5c0449e441ed58dca85ebf") , uint256("561dbcbee44b70c94823ef417714ec6fa8dcb01564e978e0683d7e85228f3a74") , 900000000000 }, // Block 4
-{0, 1553349633, 1553349633 , 538968063 , 4 , 1 , 14417357 , 64909763 , uint256("0bf516d19099a85a641e22c441000ced92dc33287d2000e4c20f5e33cacc110b") , uint256("53c7f9eb1fa3ef94cb2f0de80022c56e8e6550cb8dd56ac7f159acda7083c2b0") , 1800000000000 }, // Block 5
-};
+{0, 1553431167, 1553431167 , 538968063 , 6 , 1 , 51845350 , 53515334 , uint256("0f1d9c8d3cc8cd3dc9cac4e393dec1e7fc7caf2e7f60918caa32c93700b54a95") , uint256("283a74c16816416ac46e0bda045e009fbeb04b61c23eb92ea15d35966374214e") , 0 }, // Block 1
+{0, 1553431187, 1553431187 , 538968063 , 18 , 1 , 0 , 0 , uint256("107aab84ec63a96209af139c522c9e26cc1ce3c2991cbd234cdff3f148be13d4") , uint256("387dae07ab324b98e2bcd8331eded8915d89a2074d1716e703b29630e98c044f") , 0 }, // Block 2
+{0, 1553431207, 1553431207 , 538968063 , 13 , 1 , 9910726 , 18271698 , uint256("02252b1bbf3c4d4395e9d91f65a7d6f39b0bbca5b5f37d815eea23812596f116") , uint256("5cb269175f939f4bb2cf64b89152723fc993cc40a012490891eaae22d6b97dea") , 0 }, // Block 3
+{0, 1553431227, 1553431227 , 538968063 , 5 , 1 , 19067498 , 51658456 , uint256("0cae580325c780b52d1e4367ac896cf826ff1511547d6be545c7840d87899114") , uint256("7bbe3e96ef9ca80cb66ca9ef73eb9c5e3384ad05d8374f240442195f8e2d8be3") , 900000000000 }, // Block 4
+{0, 1553431247, 1553431247 , 538968063 , 11 , 1 , 0 , 0 , uint256("072eb9afa2bbe57a2a0ba63b1efbe969174352b3e5c79328e511e32a1cd3387d") , uint256("1d34fbae18d949fbe0252e5f6f52411d37ed45f5dc2e01607a166d654c8169ab") , 1800000000000 }, // Block 5
+{0, 1553431267, 1553431267 , 538968063 , 4 , 1 , 0 , 0 , uint256("03423cb0018affcfb9452473df7aaf4762b7510b1767eb9d88dea59b261b7fc4") , uint256("b75a1ff164b2b807871305963ec461b17f63d1f8a95c93a3f5d404d8e9da7b11") , 2700000000000 }, // Block 6
+{0, 1553431287, 1553431287 , 538968063 , 2 , 1 , 0 , 0 , uint256("119f013ab1d6be26ed7075eec6c96de59a50da481d513d2b08cfb1597319f431") , uint256("f6b04f1c9c529973a1919a4348187e5c6a9e76541265ee13949c86c3d7167230") , 3600000000000 }, // Block 7
+{0, 1553431307, 1553431307 , 538968063 , 9 , 1 , 18700191 , 25291895 , uint256("07601619c49dc71f6984b6914334484bded5bf1fa3c6aa335cd0a2e82eb92830") , uint256("e70df2d3c92c12eb4573d95ad5a01ad335f53b853f51538b01ea8339f1b9c5cd") , 4500000000000 }, // Block 8
+{0, 1553431327, 1553431327 , 538968063 , 6 , 1 , 25384411 , 43369449 , uint256("0ea0ad704b03f3b2fe953f8c23db043f660e3f24ed4ce8483d4dc53797119baf") , uint256("52c3a6613d0de34bcd41828c6f03bcd814e287d08f46c31022eac0cf2b6aaa03") , 5400000000000 }, // Block 9
+{0, 1553431347, 1553431347 , 538968063 , 2 , 1 , 19096856 , 54986782 , uint256("04a473ccc463700aa652b695cf4c4ba771f602e56a2e1c8fa3211cf3ffd9f8bb") , uint256("033593578ad159074b3757d350034a7121fe257fb03ecbec3de86bfca60bf63c") , 6300000000000 }, // Block 10
+{0, 1553431367, 1553431367 , 538968063 , 4 , 1 , 33170299 , 65785478 , uint256("0559717d7507f322630fff794ba30c5e3bfd1238cb05c22106362d07cb8725c6") , uint256("bc81ba0c52eb8666604ae29c6d56823a5bb72f622ee5b1a88a774961b85ff720") , 7200000000000 }, // Block 11
+{0, 1553431387, 1553431387 , 538968063 , 15 , 1 , 0 , 0 , uint256("1ce80a9da65026c2c17e05651e85fb687eb118352f4f40bdb0bc4a0cf97ab7ba") , uint256("af524765d4faa9682b47d8abe5900a46377b40b3377216b04253de04213b2865") , 8100000000000 }, // Block 12
+{0, 1553431407, 1553431407 , 538968063 , 1 , 1 , 17325978 , 18828871 , uint256("05c4a54c127e07c96d00f417b2dd59f8471ed99dc80318875d29924412a0da52") , uint256("6af5a5b978237bf0df6f352a99307c1aeda47a0c0be7dc865d5174003e0fe153") , 9000000000000 }, // Block 13
+{0, 1553431427, 1553431427 , 538968063 , 1 , 1 , 42369479 , 43637928 , uint256("05b8b9e1b1b37571341c58df5fd4facf9a0f50639de078fa63279c3a2cc9a00e") , uint256("3741e99159b6d87203d8df4e777a913d5f7a4357f584b1c2ba11c8b276bc44f2") , 9900000000000 }, // Block 14
 
+};
 
 void LogBlockFound(CWallet* pwallet, int blockNumber, CBlock* pblock, unsigned int nExtraNonce, bool fProofOfStake, bool logToStdout)
 {
