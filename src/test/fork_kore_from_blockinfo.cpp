@@ -322,7 +322,7 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos_newpos)
 
 
     // generate 1 new pos blocks
-    GenerateBlocks(50, 70, pwalletMain, scriptPubKey, true, logToStdout);
+    GenerateBlocks(50, 60, pwalletMain, scriptPubKey, true, logToStdout);
 
     CheckDatabaseState(pwalletMain);
 
