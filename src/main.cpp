@@ -2463,61 +2463,25 @@ void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCach
     if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         BOOST_FOREACH (const CTxIn& txin, tx.vin) {
-            txundo.vprevout.push_back(CTxInUndo());
             CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
-            bool ret = coins->Spend(txin.prevout, txundo.vprevout.back());
-            assert(ret);
-        }
-    }
-
-    // add outputs
-    inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
-}
-
-void UpdateCoins_Legacy(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight)
-{
-    // mark inputs spent
-    if (!tx.IsCoinBase()) {
-        txundo.vprevout.reserve(tx.vin.size());
-        BOOST_FOREACH (const CTxIn& txin, tx.vin) {
-            CCoinsModifier coins = inputs.ModifyCoins_Legacy(txin.prevout.hash);
             unsigned nPos = txin.prevout.n;
 
             if (nPos >= coins->vout.size() || coins->vout[nPos].IsNull())
                 assert(false);
             // mark an outpoint spent, and construct undo information
             txundo.vprevout.push_back(CTxInUndo(coins->vout[nPos]));
-            /*
-            coins->Spend_Legacy(nPos);
-            if (coins->vout.size() == 0) {
-                CTxInUndo& undo = txundo.vprevout.back();
-                undo.nHeight = coins->nHeight;
-                undo.fCoinBase = coins->fCoinBase;
-                undo.fCoinStake = coins->fCoinStake;
-                undo.nVersion = coins->nVersion;
-                undo.nTime = coins->nTime;
-            }
-            */
-            inputs.Log();
             bool ret = coins->Spend(txin.prevout, txundo.vprevout.back());
-            inputs.Log();
         }
         // add outputs
-        inputs.ModifyNewCoins_Legacy(tx.GetHash())->FromTx(tx, nHeight);
+        inputs.ModifyNewCoins(tx.GetHash())->FromTx(tx, nHeight);
     } else {
         // add outputs for coinbase tx
         // In this case call the full ModifyCoins which will do a database
         // lookup to be sure the coins do not already exist otherwise we do not
         // know whether to mark them fresh or not.  We want the duplicate coinbases
         // before BIP30 to still be properly overwritten.
-        inputs.ModifyCoins_Legacy(tx.GetHash())->FromTx(tx, nHeight);
+        inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
     }
-}
-
-void UpdateCoins_Legacy(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, int nHeight)
-{
-    CTxUndo txundo;
-    UpdateCoins_Legacy(tx, state, inputs, txundo, nHeight);
 }
 
 bool CScriptCheck::operator()()
@@ -2777,7 +2741,7 @@ static bool ApplyTxInUndo_Legacy(const CTxInUndo& undo, CCoinsViewCache& view, c
 {
     bool fClean = true;
 
-    CCoinsModifier coins = view.ModifyCoins_Legacy(out.hash);
+    CCoinsModifier coins = view.ModifyCoins(out.hash);
     if (undo.nHeight != 0) {
         // undo data contains height: this is the last output of the prevout tx being spent
         if (!coins->IsPruned())
@@ -2857,7 +2821,7 @@ bool DisconnectBlock_Legacy(const CBlock& block, CValidationState& state, const 
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
         {
-            CCoinsModifier outs = view.ModifyCoins_Legacy(hash);
+            CCoinsModifier outs = view.ModifyCoins(hash);
             outs->ClearUnspendable();
 
             CCoins outsBlock(tx, pindex->nHeight);
@@ -3441,7 +3405,7 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
         }
-        UpdateCoins_Legacy(tx, state, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
+        UpdateCoins(tx, state, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
 
         //vPos.push_back(std::make_pair(tx.GetHash(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
@@ -3849,6 +3813,7 @@ static const int32_t GetCurrentTransactionVersion()
 }
 
 /** Update chainActive and related internal data structures. */
+/*
 void static UpdateTip(CBlockIndex* pindexNew)
 {
     chainActive.SetTip(pindexNew);
@@ -3888,9 +3853,10 @@ void static UpdateTip(CBlockIndex* pindexNew)
         }
     }
 }
+*/
 
 /** Update chainActive and related internal data structures. */
-void static UpdateTip_Legacy(CBlockIndex* pindexNew)
+void static UpdateTip(CBlockIndex* pindexNew)
 {
     const CChainParams& chainParams = Params();
     chainActive.SetTip(pindexNew);
@@ -3957,6 +3923,7 @@ void static UpdateTip_Legacy(CBlockIndex* pindexNew)
 }
 
 /** Disconnect chainActive's tip. */
+/*
 bool static DisconnectTip(CValidationState& state)
 {
     CBlockIndex* pindexDelete = chainActive.Tip();
@@ -3997,9 +3964,10 @@ bool static DisconnectTip(CValidationState& state)
     }
     return true;
 }
+*/
 
 /** Disconnect chainActive's tip. You probably want to call mempool.removeForReorg and manually re-limit mempool size after this, with cs_main held. */
-bool static DisconnectTip_Legacy(CValidationState& state)
+bool static DisconnectTip(CValidationState& state)
 {
     CBlockIndex* pindexDelete = chainActive.Tip();
     assert(pindexDelete);
@@ -4038,7 +4006,7 @@ bool static DisconnectTip_Legacy(CValidationState& state)
     // block that were added back and cleans up the mempool state.
     mempool.UpdateTransactionsFromBlock(vHashUpdate);
     // Update chainActive and related variables.
-    UpdateTip_Legacy(pindexDelete->pprev);
+    UpdateTip(pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
     BOOST_FOREACH (const CTransaction& tx, block.vtx) {
@@ -4057,87 +4025,9 @@ static int64_t nTimePostConnect = 0;
  * Connect a new block to chainActive. pblock is either NULL or a pointer to a CBlock
  * corresponding to pindexNew, to bypass loading it again from disk.
  */
-bool static ConnectTip(CValidationState& state, CBlockIndex* pindexNew, CBlock* pblock, bool fAlreadyChecked)
+bool static ConnectTip(CValidationState& state, CBlockIndex* pindexNew, const CBlock* pblock)
 {
-    assert(pindexNew->pprev == chainActive.Tip());
-    mempool.check(pcoinsTip);
-    CCoinsViewCache view(pcoinsTip);
-
-    if (pblock == NULL)
-        fAlreadyChecked = false;
-
-    // Read block from disk.
-    int64_t nTime1 = GetTimeMicros();
-    CBlock block;
-    if (!pblock) {
-        if (!ReadBlockFromDisk(block, pindexNew))
-            return state.Abort("Failed to read block");
-        pblock = &block;
-    }
-    // Apply the block atomically to the chain state.
-    int64_t nTime2 = GetTimeMicros();
-    nTimeReadFromDisk += nTime2 - nTime1;
-    int64_t nTime3;
-    LogPrint("bench", "  - Load block from disk: %.2fms [%.2fs]\n", (nTime2 - nTime1) * 0.001, nTimeReadFromDisk * 0.000001);
-    {
-        CInv inv(MSG_BLOCK, pindexNew->GetBlockHash());
-        bool rv = ConnectBlock(*pblock, state, pindexNew, view, false, fAlreadyChecked);
-        GetMainSignals().BlockChecked(*pblock, state);
-        if (!rv) {
-            if (state.IsInvalid())
-                InvalidBlockFound(pindexNew, state);
-            return error("ConnectTip() : ConnectBlock %s failed", pindexNew->GetBlockHash().ToString());
-        }
-        mapBlockSource.erase(inv.hash);
-        nTime3 = GetTimeMicros();
-        nTimeConnectTotal += nTime3 - nTime2;
-        LogPrint("bench", "  - Connect total: %.2fms [%.2fs]\n", (nTime3 - nTime2) * 0.001, nTimeConnectTotal * 0.000001);
-        assert(view.Flush());
-    }
-    int64_t nTime4 = GetTimeMicros();
-    nTimeFlush += nTime4 - nTime3;
-    LogPrint("bench", "  - Flush: %.2fms [%.2fs]\n", (nTime4 - nTime3) * 0.001, nTimeFlush * 0.000001);
-
-    // Write the chain state to disk, if necessary. Always write to disk if this is the first of a new file.
-    FlushStateMode flushMode = FLUSH_STATE_IF_NEEDED;
-    if (pindexNew->pprev && (pindexNew->GetBlockPos().nFile != pindexNew->pprev->GetBlockPos().nFile))
-        flushMode = FLUSH_STATE_ALWAYS;
-    if (!FlushStateToDisk(state, flushMode))
-        return false;
-    int64_t nTime5 = GetTimeMicros();
-    nTimeChainState += nTime5 - nTime4;
-    LogPrint("bench", "  - Writing chainstate: %.2fms [%.2fs]\n", (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
-
-    // Remove conflicting transactions from the mempool.
-    list<CTransaction> txConflicted;
-    mempool.removeForBlock(pblock->vtx, pindexNew->nHeight, txConflicted);
-    mempool.check(pcoinsTip);
-    // Update chainActive & related variables.
-    UpdateTip(pindexNew);
-    // Tell wallet about transactions that went from mempool
-    // to conflicted:
-    BOOST_FOREACH (const CTransaction& tx, txConflicted) {
-        SyncWithWallets(tx, NULL);
-    }
-    // ... and about transactions that got confirmed:
-    BOOST_FOREACH (const CTransaction& tx, pblock->vtx) {
-        SyncWithWallets(tx, pblock);
-    }
-
-    int64_t nTime6 = GetTimeMicros();
-    nTimePostConnect += nTime6 - nTime5;
-    nTimeTotal += nTime6 - nTime1;
-    LogPrint("bench", "  - Connect postprocess: %.2fms [%.2fs]\n", (nTime6 - nTime5) * 0.001, nTimePostConnect * 0.000001);
-    LogPrint("bench", "- Connect block: %.2fms [%.2fs]\n", (nTime6 - nTime1) * 0.001, nTimeTotal * 0.000001);
-    return true;
-}
-
-/**
- * Connect a new block to chainActive. pblock is either NULL or a pointer to a CBlock
- * corresponding to pindexNew, to bypass loading it again from disk.
- */
-bool static ConnectTip_Legacy(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexNew, const CBlock* pblock)
-{
+    const CChainParams& chainParams = Params();
     assert(pindexNew->pprev == chainActive.Tip());
     // Read block from disk.
     int64_t nTime1 = GetTimeMicros();
@@ -4180,7 +4070,7 @@ bool static ConnectTip_Legacy(CValidationState& state, const CChainParams& chain
     list<CTransaction> txConflicted;
     mempool.removeForBlock(pblock->vtx, pindexNew->nHeight, txConflicted, !IsInitialBlockDownload());
     // Update chainActive & related variables.
-    UpdateTip_Legacy(pindexNew);
+    UpdateTip(pindexNew);
     // Tell wallet about transactions that went from mempool
     // to conflicted:
     BOOST_FOREACH (const CTransaction& tx, txConflicted) {
@@ -4359,6 +4249,7 @@ static void PruneBlockIndexCandidates()
  * Try to make some progress towards making pindexMostWork the active block.
  * pblock is either NULL or a pointer to a CBlock corresponding to pindexMostWork.
  */
+/*
 static bool ActivateBestChainStep(CValidationState& state, CBlockIndex* pindexMostWork, CBlock* pblock, bool fAlreadyChecked)
 {
     AssertLockHeld(cs_main);
@@ -4425,12 +4316,13 @@ static bool ActivateBestChainStep(CValidationState& state, CBlockIndex* pindexMo
 
     return true;
 }
+*/
 
 /**
  * Try to make some progress towards making pindexMostWork the active block.
  * pblock is either NULL or a pointer to a CBlock corresponding to pindexMostWork.
  */
-static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexMostWork, const CBlock* pblock)
+static bool ActivateBestChainStep(CValidationState& state, CBlockIndex* pindexMostWork, const CBlock* pblock)
 {
     AssertLockHeld(cs_main);
     bool fInvalidFound = false;
@@ -4440,7 +4332,7 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
     // Disconnect active blocks which are no longer in the best chain.
     bool fBlocksDisconnected = false;
     while (chainActive.Tip() && chainActive.Tip() != pindexFork) {
-        if (!DisconnectTip_Legacy(state))
+        if (!DisconnectTip(state))
             return false;
         fBlocksDisconnected = true;
     }
@@ -4462,7 +4354,7 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
         nHeight = nTargetHeight;
         // Connect new blocks.
         BOOST_REVERSE_FOREACH (CBlockIndex* pindexConnect, vpindexToConnect) {
-            if (!ConnectTip_Legacy(state, chainparams, pindexConnect, pindexConnect == pindexMostWork ? pblock : NULL)) {
+            if (!ConnectTip(state, pindexConnect, pindexConnect == pindexMostWork ? pblock : NULL)) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
                     if (!state.CorruptionPossible())
@@ -4506,6 +4398,7 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
  * or an activated best chain. pblock is either NULL or a pointer to a block
  * that is already loaded (to avoid loading it again from disk).
  */
+/*
 bool ActivateBestChain(CValidationState& state, CBlock* pblock, bool fAlreadyChecked)
 {
     CBlockIndex* pindexNewTip = NULL;
@@ -4570,13 +4463,14 @@ bool ActivateBestChain(CValidationState& state, CBlock* pblock, bool fAlreadyChe
 
     return true;
 }
+*/
 
 /**
  * Make the best chain active, in multiple steps. The result is either failure
  * or an activated best chain. pblock is either NULL or a pointer to a block
  * that is already loaded (to avoid loading it again from disk).
  */
-bool ActivateBestChain_Legacy(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock)
+bool ActivateBestChain(CValidationState& state, const CBlock* pblock)
 {
     CBlockIndex* pindexMostWork = NULL;
     do {
@@ -4596,7 +4490,7 @@ bool ActivateBestChain_Legacy(CValidationState& state, const CChainParams& chain
             // Whether we have anything to do at all.
             if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip())
                 return true;
-            if (!ActivateBestChainStep_Legacy(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL))
+            if (!ActivateBestChainStep(state, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL))
                 return false;
             pindexNewTip = chainActive.Tip();
             pindexFork = chainActive.FindFork(pindexOldTip);
@@ -5872,7 +5766,7 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
             return error("%s : AcceptBlock FAILED block", __func__);
     }
 
-    if (!ActivateBestChain(state, pblock, checked))
+    if (!ActivateBestChain(state, pblock))
         return error("%s : ActivateBestChain failed", __func__);
 
     if (!fLiteMode) {
@@ -5940,7 +5834,7 @@ bool ProcessNewBlock_Legacy(CValidationState& state, const CChainParams& chainpa
             return error("%s: AcceptBlock FAILED", __func__);
     }
 
-    if (!ActivateBestChain_Legacy(state, chainparams, pblock))
+    if (!ActivateBestChain(state, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
     if (!fLiteMode) {

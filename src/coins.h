@@ -519,7 +519,6 @@ public:
      * allowed.
      */
     CCoinsModifier ModifyCoins(const uint256& txid);
-    CCoinsModifier ModifyCoins_Legacy(const uint256& txid);
 
     /**
      * Return a modifiable reference to a CCoins. Assumes that no entry with the given
@@ -530,7 +529,7 @@ public:
      * would not properly overwrite the first coinbase of the pair. Simultaneous modifications
      * are not allowed.
      */
-    CCoinsModifier ModifyNewCoins_Legacy(const uint256& txid);
+    CCoinsModifier ModifyNewCoins(const uint256& txid);
 
     /**
      * Push the modifications applied to this cache to its base.

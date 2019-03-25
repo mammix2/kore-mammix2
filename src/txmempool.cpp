@@ -856,7 +856,8 @@ void CTxMemPool::check_Legacy(const CCoinsViewCache* pcoins) const
         else {
             CValidationState state;
             assert(CheckInputs(tx, state, mempoolDuplicate, false, 0, false, NULL));
-            UpdateCoins_Legacy(tx, state, mempoolDuplicate, 1000000);
+            CTxUndo undoDummy;
+            UpdateCoins(tx, state, mempoolDuplicate, undoDummy, 1000000);
         }
     }
     unsigned int stepsSinceLastRemove = 0;
@@ -870,7 +871,8 @@ void CTxMemPool::check_Legacy(const CCoinsViewCache* pcoins) const
             assert(stepsSinceLastRemove < waitingOnDependants.size());
         } else {
             assert(CheckInputs(entry->GetTx(), state, mempoolDuplicate, false, 0, false, NULL));
-            UpdateCoins_Legacy(entry->GetTx(), state, mempoolDuplicate, 1000000);
+            CTxUndo undoDummy;
+            UpdateCoins(entry->GetTx(), state, mempoolDuplicate, undoDummy, 1000000);
             stepsSinceLastRemove = 0;
         }
     }
