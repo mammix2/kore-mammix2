@@ -2459,21 +2459,19 @@ void static InvalidBlockFound(CBlockIndex* pindex, const CValidationState& state
 
 void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight)
 {
-    if (tx.GetVersion() < 2) {
-        // mark inputs spent
-        if (!tx.IsCoinBase()) {
-            txundo.vprevout.reserve(tx.vin.size());
-            BOOST_FOREACH (const CTxIn& txin, tx.vin) {
-                txundo.vprevout.push_back(CTxInUndo());
-                CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
-                bool ret = coins->Spend(txin.prevout, txundo.vprevout.back());
-                assert(ret);
-            }
+    // mark inputs spent
+    if (!tx.IsCoinBase()) {
+        txundo.vprevout.reserve(tx.vin.size());
+        BOOST_FOREACH (const CTxIn& txin, tx.vin) {
+            txundo.vprevout.push_back(CTxInUndo());
+            CCoinsModifier coins = inputs.ModifyCoins(txin.prevout.hash);
+            bool ret = coins->Spend(txin.prevout, txundo.vprevout.back());
+            assert(ret);
         }
-
-        // add outputs
-        inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
     }
+
+    // add outputs
+    inputs.ModifyCoins(tx.GetHash())->FromTx(tx, nHeight);
 }
 
 void UpdateCoins_Legacy(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight)

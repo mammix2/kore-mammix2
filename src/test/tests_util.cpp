@@ -29,8 +29,8 @@ CCoinsViewCache* SaveDatabaseState()
 {
     // This method is based on the PrepareShutdown
     
-    if (pwalletMain)
-        bitdb.Flush(false);        
+    //if (pwalletMain)
+    //    bitdb.Flush(false);        
 
     {
         LOCK(cs_main);
@@ -43,10 +43,12 @@ CCoinsViewCache* SaveDatabaseState()
 
         delete pcoinsTip;
         pcoinsTip = NULL;
+        delete pcoinsdbview;
+        delete pblocktree;
     }
 
-    //if (pwalletMain)
-    //    bitdb.Flush(true);
+    if (pwalletMain)
+        bitdb.Flush(false);
 
     //delete pwalletMain;
     //pwalletMain = NULL;
@@ -59,17 +61,18 @@ bool ReadDatabaseState()
     std::string strLoadError;
     UnloadBlockIndex();
 
-
-
+//  Gives segmentation fault ! 
 /*
-  Gives segmentation fault ! 
 #ifdef ENABLE_WALLET
     bitdb.MakeMock();
 #endif
 */
-    pcoinsdbview = new CCoinsViewDB(1 << 23, true);
-    pblocktree = new CBlockTreeDB(1 << 20, true);
-    pcoinsTip = new CCoinsViewCache(pcoinsdbview);
+    {
+        // LOCK(cs_main);
+        pcoinsdbview = new CCoinsViewDB(1 << 23, false);
+        pblocktree = new CBlockTreeDB(1 << 20, false);
+        pcoinsTip = new CCoinsViewCache(pcoinsdbview);
+    }
 
     if (!LoadBlockIndex()) {
         strLoadError = _("Error loading block database");
@@ -106,14 +109,15 @@ void CheckDatabaseState(CWallet* pwalletMain)
     BOOST_CHECK(ReadDatabaseState());
 }
 
-void InitializeDBTest()
+void InitializeDBTest(const boost::filesystem::path & path)
 {
     
 #ifdef ENABLE_WALLET
     bitdb.MakeMock();
 #endif
-    pcoinsdbview = new CCoinsViewDB(1 << 23, true);
-    pblocktree = new CBlockTreeDB(1 << 20, true);
+    boost::filesystem::create_directories(path / "unittest" / "blocks");
+    pcoinsdbview = new CCoinsViewDB(1 << 23, false);
+    pblocktree = new CBlockTreeDB(1 << 20, false);
     pcoinsTip = new CCoinsViewCache(pcoinsdbview);
     InitBlockIndex();
 #ifdef ENABLE_WALLET
