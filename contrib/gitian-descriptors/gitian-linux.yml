@@ -31,7 +31,7 @@ packages:
 - "faketime"
 - "bsdmainutils"
 - "ca-certificates"
-- "python"
+- "python3"
 remotes:
 - "url": "https://github.com/mammix2/kore.git"
   "dir": "kore"
