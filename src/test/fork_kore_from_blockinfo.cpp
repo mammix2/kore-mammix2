@@ -273,6 +273,71 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos)
     ModifiableParams()->setTargetSpacing(oldTargetSpacing);
 }
 
+BOOST_AUTO_TEST_CASE(check_database_pow_newpos)
+{
+    
+    // todo how to get this parameter from argument list ??
+    //bool logToStdout = GetBoolArg("-logtostdout", false);
+    bool logToStdout = true;
+    SetMockTime(GetTime());
+    
+    if (fDebug) {
+        LogPrintf("*************************************************** \n");
+        LogPrintf("**  Starting fork_kore_from_blockinfo/quick_fork ** \n");
+        LogPrintf("*************************************************** \n");
+    }
+
+    Checkpoints::fEnabled = false;
+    int64_t oldTargetTimespan = Params().GetTargetTimespan();
+    int64_t oldTargetSpacing = Params().GetTargetSpacing();
+    int oldHeightToFork = Params().HeightToFork();
+    int oldStakeMinConfirmations = Params().GetStakeMinConfirmations();
+    int oldCoinBaseMaturity = Params().GetCoinbaseMaturity();
+    int oldStakeMinAge = Params().GetStakeMinAge();
+    int oldModifier = Params().GetModifierInterval();
+    // confirmations    : 3
+    // remember that the miminum spacing is 10 !!!
+    // spacing          : [confirmations-1, max(confirmations-1, value)]
+    // modifierInterval : [spacing, spacing)]
+    // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
+    int minConfirmations = 3;
+    ModifiableParams()->setHeightToFork(5);
+    ModifiableParams()->setStakeMinConfirmations(minConfirmations);
+    ModifiableParams()->setTargetSpacing(minConfirmations - 1);
+    ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
+    ModifiableParams()->setCoinbaseMaturity(minConfirmations); 
+    ModifiableParams()->setStakeMinAge(0);
+    ModifiableParams()->setTargetTimespan(1);
+    ModifiableParams()->setEnableBigRewards(true);
+    ModifiableParams()->setLastPowBlock(minConfirmations + 1);
+    
+    ScanForWalletTransactions(pwalletMain);
+    CScript scriptPubKey = GenerateSamePubKeyScript4Wallet(strSecret, pwalletMain);
+
+    // generate 4 pow blocks
+    CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false, logToStdout);
+
+    // Lets check how it the cachedCoins
+    pcoinsTip->Log();
+    // generate 1 new pos blocks
+    GenerateBlocks(minConfirmations + 2, 6, pwalletMain, scriptPubKey, true, logToStdout);
+
+    pcoinsTip->Log();
+
+    CheckDatabaseState(pwalletMain);
+
+    // Leaving old values
+    Checkpoints::fEnabled = true;
+    ModifiableParams()->setHeightToFork(oldHeightToFork);
+    ModifiableParams()->setEnableBigRewards(false);
+    ModifiableParams()->setCoinbaseMaturity(oldCoinBaseMaturity);
+    ModifiableParams()->setStakeMinAge(oldStakeMinAge);
+    ModifiableParams()->setStakeModifierInterval(oldModifier);
+    ModifiableParams()->setStakeMinConfirmations(oldStakeMinConfirmations);
+    ModifiableParams()->setTargetTimespan(oldTargetTimespan);
+    ModifiableParams()->setTargetSpacing(oldTargetSpacing);
+}
+
 #endif
 
 BOOST_AUTO_TEST_SUITE_END()

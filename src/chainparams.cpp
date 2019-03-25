@@ -385,7 +385,7 @@ public:
         nBudgetFeeConfirmations                       = 2;                           // Number of confirmations for the finalization fee. We have to make this very short here because we only have a 8 block finalization window on testnet
         nBudgetVoteUpdate                             = 1 * 60;                      // can only change vote after 1 minute
         nClientMintableCoinsInterval                  = 45;                          // Every 45 seconds
-        nCoinbaseMaturity = nStakeMinConfirmations    = 5;                           // Lico should be 25;
+        nCoinbaseMaturity = nStakeMinConfirmations    = 10;                           // Lico should be 25;
         nDefaultPort                                  = 11743;
         nEnsureMintableCoinsInterval                  = 5;
         nHeightToBanOldWallets                        = 10;
