@@ -8,36 +8,37 @@ EXTRA_LIBRARIES += qt/libbitcoinqt.a
 # kore qt core #
 QT_TS = \
   qt/locale/kore_bg.ts \
-  qt/locale/kore_ca.ts \
-  qt/locale/kore_cs.ts \
-  qt/locale/kore_da.ts \
-  qt/locale/kore_de.ts \
   qt/locale/kore_en.ts \
-  qt/locale/kore_en_US.ts \
-  qt/locale/kore_es.ts \
-  qt/locale/kore_es_ES.ts \
-  qt/locale/kore_fi.ts \
   qt/locale/kore_fr_FR.ts \
-  qt/locale/kore_hi_IN.ts \
-  qt/locale/kore_hr.ts \
-  qt/locale/kore_hr_HR.ts \
-  qt/locale/kore_it.ts \
   qt/locale/kore_ja.ts \
-  qt/locale/kore_ko_KR.ts \
-  qt/locale/kore_lt_LT.ts \
-  qt/locale/kore_nl.ts \
-  qt/locale/kore_pl.ts \
-  qt/locale/kore_pt.ts \
   qt/locale/kore_pt_BR.ts \
-  qt/locale/kore_ro_RO.ts \
-  qt/locale/kore_ru.ts \
-  qt/locale/kore_sk.ts \
   qt/locale/kore_sv.ts \
+  qt/locale/kore_zh_TW.ts \
+  qt/locale/kore_ca.ts \
+  qt/locale/kore_en_US.ts \
+  qt/locale/kore_hi_IN.ts \
+  qt/locale/kore_ko_KR.ts \
+  qt/locale/kore_pt.ts \
   qt/locale/kore_tr.ts \
+  qt/locale/kore_cs.ts \
+  qt/locale/kore_es_ES.ts \
+  qt/locale/kore_hr_HR.ts \
+  qt/locale/kore_lt_LT.ts \
+  qt/locale/kore_ro_RO.ts \
   qt/locale/kore_uk.ts \
+  qt/locale/kore_da.ts \
+  qt/locale/kore_es.ts \
+  qt/locale/kore_hr.ts \
+  qt/locale/kore_nl.ts \
+  qt/locale/kore_ru.ts \
   qt/locale/kore_vi.ts \
-  qt/locale/kore_zh_CN.ts \
-  qt/locale/kore_zh_TW.ts
+  qt/locale/kore_de.ts \
+  qt/locale/kore_fi.ts \
+  qt/locale/kore_it.ts \
+  qt/locale/kore_pl.ts \
+  qt/locale/kore_sk.ts \
+  qt/locale/kore_zh_CN.ts 
+
 
 QT_FORMS_UI = \
   qt/forms/addressbookpage.ui \
@@ -203,6 +204,7 @@ RES_ICONS = \
   qt/res/icons/bitcoin.png \
   qt/res/icons/bitcoin_testnet.ico \
   qt/res/icons/bitcoin_testnet.png \
+  qt/res/icons/bittrex.png \
   qt/res/icons/browse.png \
   qt/res/icons/clock1.png \
   qt/res/icons/clock2.png \
@@ -216,46 +218,50 @@ RES_ICONS = \
   qt/res/icons/connect3_16.png \
   qt/res/icons/connect4_16.png \
   qt/res/icons/debugwindow.png \
-  qt/res/icons/edit.png \
   qt/res/icons/editcopy.png \
   qt/res/icons/editpaste.png \
+  qt/res/icons/edit.png \
   qt/res/icons/explorer.png \
   qt/res/icons/export.png \
-  qt/res/icons/eye.png \
   qt/res/icons/eye_minus.png \
   qt/res/icons/eye_plus.png \
+  qt/res/icons/eye.png \
   qt/res/icons/filesave.png \
   qt/res/icons/history.png \
+  qt/res/icons/import.png \
   qt/res/icons/key.png \
   qt/res/icons/lock_closed.png \
   qt/res/icons/lock_open.png \
   qt/res/icons/masternodes.png \
+  qt/res/icons/notsynced.png \
   qt/res/icons/overview.png \
+  qt/res/icons/privacy.png \
   qt/res/icons/qrcode.png \
   qt/res/icons/quit.png \
-  qt/res/icons/receive.png \
   qt/res/icons/receive_dark.png \
-  qt/res/icons/privacy.png \
+  qt/res/icons/receive.png \
   qt/res/icons/remove.png \
-  qt/res/icons/send.png \
   qt/res/icons/send_dark.png \
+  qt/res/icons/send.png \
   qt/res/icons/staking_active.png \
   qt/res/icons/staking_inactive.png \
   qt/res/icons/synced.png \
   qt/res/icons/trade.png \
+  qt/res/icons/transaction0_dark.png \
   qt/res/icons/transaction0.png \
   qt/res/icons/transaction2.png \
   qt/res/icons/transaction_conflicted.png \
   qt/res/icons/tx_inout.png \
   qt/res/icons/tx_input.png \
-  qt/res/icons/tx_output.png \
   qt/res/icons/tx_mined.png \
+  qt/res/icons/tx_output.png \
   qt/res/icons/unit_kore.png \
   qt/res/icons/unit_mkore.png \
-  qt/res/icons/unit_ukore.png \
   qt/res/icons/unit_tkore.png \
   qt/res/icons/unit_tmkore.png \
-  qt/res/icons/unit_tukore.png
+  qt/res/icons/unit_tukore.png \
+  qt/res/icons/unit_ukore.png
+
 
 BITCOIN_QT_CPP = \
   qt/bantablemodel.cpp \
@@ -324,21 +330,22 @@ BITCOIN_QT_CPP += \
 endif
 
 RES_IMAGES = \
-  qt/res/images/about.png \
-  qt/res/images/splash.png \
-  qt/res/images/splash_testnet.png \
-  qt/res/images/kore_logo_horizontal.png \
-  qt/res/images/downArrow_dark.png \
-  qt/res/images/downArrow_small_dark.png \
-  qt/res/images/downArrow_small.png \
-  qt/res/images/upArrow_small_dark.png \
-  qt/res/images/upArrow_small.png \
-  qt/res/images/leftArrow_small_dark.png \
-  qt/res/images/rightArrow_small_dark.png \
-  qt/res/images/qtreeview_selected.png \
-  qt/res/images/walletFrame.png \
-  qt/res/images/walletFrame_bg.png \
-  qt/res/images/walletFrame_bg.png
+	qt/res/images/about.png \
+	qt/res/images/downArrow_small.png \
+	qt/res/images/rightArrow_small_dark.png \
+	qt/res/images/upArrow_small.png \
+	qt/res/images/banner.png \
+	qt/res/images/kore_logo_horizontal.png \
+	qt/res/images/splash.png \
+	qt/res/images/walletFrame_bg.png \
+	qt/res/images/downArrow_dark.png \
+	qt/res/images/leftArrow_small_dark.png \
+	qt/res/images/splash_testnet.png \
+	qt/res/images/walletFrame.png \	
+	qt/res/images/downArrow_small_dark.png \
+	qt/res/images/qtreeview_selected.png \
+	qt/res/images/upArrow_small_dark.png
+
 
 RES_CSS = \
   qt/res/css/default.css
