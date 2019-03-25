@@ -1,6 +1,7 @@
 ---
 name: "kore-win-0.13"
 enable_cache: true
+distro: "ubuntu"
 suites:
 - "bionic"
 architectures:
@@ -27,6 +28,8 @@ remotes:
   "dir": "kore"
 files: []
 script: |
+  set -e -o pipefail
+
   WRAP_DIR=$HOME/wrapped
   HOSTS="i686-w64-mingw32 x86_64-w64-mingw32"
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests  --disable-tests"
@@ -153,18 +156,18 @@ script: |
 
     CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}"
     make ${MAKEOPTS}
-    make ${MAKEOPTS} -C src
+    make ${MAKEOPTS} -C src check-security
     make deploy
     make install DESTDIR=${INSTALLPATH}
     rename 's/-setup\.exe$/-setup-unsigned.exe/' *-setup.exe
     cp -f kore-*setup*.exe $OUTDIR/
     cd installed
-    # mv ${DISTNAME}/bin/*.dll ${DISTNAME}/lib/ # temporarily disabled for Zerocoin
-    # find . -name "lib*.la" -delete            # temporarily disabled for Zerocoin
-    # find . -name "lib*.a" -delete             # temporarily disabled for Zerocoin
+    mv ${DISTNAME}/bin/*.dll ${DISTNAME}/lib/
+    find . -name "lib*.la" -delete
+    find . -name "lib*.a" -delete
     rm -rf ${DISTNAME}/lib/pkgconfig
     find ${DISTNAME}/bin -type f -executable -exec ${i}-objcopy --only-keep-debug {} {}.dbg \; -exec ${i}-strip -s {} \; -exec ${i}-objcopy --add-gnu-debuglink={}.dbg {} \;
-    # find ${DISTNAME}/lib -type f -exec ${i}-objcopy --only-keep-debug {} {}.dbg \; -exec ${i}-strip -s {} \; -exec ${i}-objcopy --add-gnu-debuglink={}.dbg {} \;
+    find ${DISTNAME}/lib -type f -exec ${i}-objcopy --only-keep-debug {} {}.dbg \; -exec ${i}-strip -s {} \; -exec ${i}-objcopy --add-gnu-debuglink={}.dbg {} \;
     find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i}.zip
     find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i}-debug.zip
     cd ../../

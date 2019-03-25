@@ -1,6 +1,7 @@
 ---
 name: "kore-linux-0.13"
 enable_cache: true
+distro: "ubuntu"
 suites:
 - "bionic"
 architectures:
@@ -36,6 +37,7 @@ remotes:
   "dir": "kore"
 files: []
 script: |
+  set -e -o pipefail
 
   WRAP_DIR=$HOME/wrapped
   HOSTS="i686-pc-linux-gnu x86_64-linux-gnu aarch64-linux-gnu"
@@ -172,26 +174,16 @@ script: |
 
     CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS} CFLAGS="${HOST_CFLAGS}" CXXFLAGS="${HOST_CXXFLAGS}" LDFLAGS="${HOST_LDFLAGS}"
     make ${MAKEOPTS}
-    make ${MAKEOPTS} -C src
-
-    #TODO: This is a quick hack that disables symbol checking for arm.
-    #      Instead, we should investigate why these are popping up.
-    #      For aarch64, we'll need to bump up the min GLIBC version, as the abi
-    #      support wasn't introduced until 2.17.
-    case $i in
-       aarch64-*) : ;;
-       arm-*) : ;;
-       riscv64-*) : ;;
-       *) make ${MAKEOPTS} -C src ;;
-    esac
-
+    make ${MAKEOPTS} -C src check-security
+    make ${MAKEOPTS} -C src check-symbols
     make install DESTDIR=${INSTALLPATH}
     cd installed
     find . -name "lib*.la" -delete
     find . -name "lib*.a" -delete
     rm -rf ${DISTNAME}/lib/pkgconfig
-    find ${DISTNAME}/bin -type f -executable -exec ../contrib/devtools/split-debug.sh {} {} {}.dbg \;
-    # find ${DISTNAME}/lib -type f -exec ../contrib/devtools/split-debug.sh {} {} {}.dbg \;
+    find ${DISTNAME}/bin -type f -executable -print0 | xargs -0 -n1 -I{} ../contrib/devtools/split-debug.sh {} {} {}.dbg
+    find ${DISTNAME}/lib -type f -print0 | xargs -0 -n1 -I{} ../contrib/devtools/split-debug.sh {} {} {}.dbg
+    cp ../doc/README.md ${DISTNAME}/
     find ${DISTNAME} -not -name "*.dbg" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
     find ${DISTNAME} -name "*.dbg" | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}-debug.tar.gz
     cd ../../
