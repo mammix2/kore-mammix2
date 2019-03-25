@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos)
     ModifiableParams()->setTargetSpacing(oldTargetSpacing);
 }
 
-BOOST_AUTO_TEST_CASE(check_database_pow_newpos)
+BOOST_AUTO_TEST_CASE(check_database_pow_pos_newpos)
 {
     
     // todo how to get this parameter from argument list ??
@@ -300,8 +300,8 @@ BOOST_AUTO_TEST_CASE(check_database_pow_newpos)
     // spacing          : [confirmations-1, max(confirmations-1, value)]
     // modifierInterval : [spacing, spacing)]
     // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-    int minConfirmations = 3;
-    ModifiableParams()->setHeightToFork(5);
+    int minConfirmations = 25;
+    ModifiableParams()->setHeightToFork(50);
     ModifiableParams()->setStakeMinConfirmations(minConfirmations);
     ModifiableParams()->setTargetSpacing(minConfirmations - 1);
     ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
@@ -317,12 +317,12 @@ BOOST_AUTO_TEST_CASE(check_database_pow_newpos)
     // generate 4 pow blocks
     CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false, logToStdout);
 
-    // Lets check how it the cachedCoins
-    pcoinsTip->Log();
-    // generate 1 new pos blocks
-    GenerateBlocks(minConfirmations + 2, 6, pwalletMain, scriptPubKey, true, logToStdout);
+    // generate 1 pos blocks
+    GeneratePOSLegacyBlocks(minConfirmations + 2, 50, pwalletMain, scriptPubKey, logToStdout);
 
-    pcoinsTip->Log();
+
+    // generate 1 new pos blocks
+    GenerateBlocks(50, 70, pwalletMain, scriptPubKey, true, logToStdout);
 
     CheckDatabaseState(pwalletMain);
 

@@ -49,9 +49,6 @@ CCoinsViewCache* SaveDatabaseState()
 
     if (pwalletMain)
         bitdb.Flush(false);
-
-    //delete pwalletMain;
-    //pwalletMain = NULL;
         
 }
 
@@ -61,18 +58,9 @@ bool ReadDatabaseState()
     std::string strLoadError;
     UnloadBlockIndex();
 
-//  Gives segmentation fault ! 
-/*
-#ifdef ENABLE_WALLET
-    bitdb.MakeMock();
-#endif
-*/
-    {
-        // LOCK(cs_main);
-        pcoinsdbview = new CCoinsViewDB(1 << 23, false);
-        pblocktree = new CBlockTreeDB(1 << 20, false);
-        pcoinsTip = new CCoinsViewCache(pcoinsdbview);
-    }
+    pcoinsdbview = new CCoinsViewDB(1 << 23, false);
+    pblocktree = new CBlockTreeDB(1 << 20, false);
+    pcoinsTip = new CCoinsViewCache(pcoinsdbview);
 
     if (!LoadBlockIndex()) {
         strLoadError = _("Error loading block database");
@@ -93,11 +81,6 @@ bool ReadDatabaseState()
         LogPrintf("ReadDatabaseState %s \n", strLoadError);
         return false;
     }
-
-    //bool fFirstRun;
-    //pwalletMain = new CWallet("wallet.dat");
-    //pwalletMain->LoadWallet(fFirstRun);
-    
 
     return true;
 }
@@ -989,7 +972,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
                     }
                 }
 
-                MilliSleep(5000);
+                SetMockTime(GetTime() + 5000);
                 boost::this_thread::interruption_point();
 
                 if (!fGenerateBitcoins && !fProofOfStake) {
@@ -1204,9 +1187,9 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
 
     InitializeLastCoinStakeSearchTime(pwallet, scriptPubKey);
 
-    for (int j = startBlock; j < endBlock; j++) {
+    for (int j = startBlock; j < endBlock; ) {
         unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock_Legacy(chainparams, scriptPubKey, pwallet, true));
-        if (!pblocktemplate.get())
+        if (!pblocktemplate.get()) 
             return;
         CBlock* pblock = &pblocktemplate->block;
         if (SignBlock_Legacy(pwallet, pblock)) {
@@ -1215,9 +1198,12 @@ void GeneratePOSLegacyBlocks(int startBlock, int endBlock, CWallet* pwallet, CSc
                 LogBlockFound(pwallet, j, pblock, 0, true, logToStdout);
                 // Let's wait to generate the nextBlock
                 SetMockTime(GetTime() + Params().GetTargetSpacing());
+                j++;
             } else {
-                //cout << "NOT ABLE TO PROCESS BLOCK :" << j << endl;
+                cout << "Error PROCESS BLOCK :" << j << endl;
             }
+        } else {
+            cout << "Error Signing the block: " << j << endl;
         }
     }
 }
