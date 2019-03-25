@@ -150,15 +150,18 @@ UniValue setstaking(const UniValue& params, bool fHelp)
 
     std::ostringstream strTemp;
 
-    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
-        // Don't overwrite existing settings so command line settings override kore.conf
-        std::string strKey =    it->string_key;
-        std::string strValue =  it->value[0];
-        if((strKey + "=" + strValue) == strReplace){
-            strTemp << strNew << std::endl;
-            continue;
+    if (streamConfig.peek() == std::ifstream::traits_type::eof())
+        strTemp << strNew << std::endl;
+    else {
+        for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
+            std::string strKey =    it->string_key;
+            std::string strValue =  it->value[0];
+            if((strKey + "=" + strValue) == strReplace){
+                strTemp << strNew << std::endl;
+                continue;
+            }
+            strTemp << strKey << "=" << strValue << std::endl;
         }
-        strTemp << strKey << "=" << strValue << std::endl;
     }
     
     std::ofstream newKoreConfig;
