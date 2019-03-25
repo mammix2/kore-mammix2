@@ -1470,6 +1470,10 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
         if (SignBlock_Legacy(pwallet, pblock)) {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             ProcessBlockFound_Legacy(pblock, chainparams);
+                // Successfully generated coinstake
+            LogPrintf("cached Coins After ProcessBlockFound_Legacy \n");
+            pcoinsTip->Log();
+
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
             //MilliSleep(Params().GetTargetSpacingForStake() * 1000);
         }
@@ -1503,6 +1507,11 @@ void KoreMiner_Legacy()
 
         // This thread should exit, if it has reached last
         while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()) + 1)) {
+            if (chainActive.Tip()->nHeight > Params().GetLastPoWBlock() ) {
+                if (fDebug)
+                    LogPrintf("Pow Period has ended, we need to exit this thread \n");
+                break;
+            }
             if (chainparams.DoesMiningRequiresPeers()) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.

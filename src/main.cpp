@@ -2487,6 +2487,7 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState& state, CCoinsV
                 assert(false);
             // mark an outpoint spent, and construct undo information
             txundo.vprevout.push_back(CTxInUndo(coins->vout[nPos]));
+            /*
             coins->Spend_Legacy(nPos);
             if (coins->vout.size() == 0) {
                 CTxInUndo& undo = txundo.vprevout.back();
@@ -2496,6 +2497,10 @@ void UpdateCoins_Legacy(const CTransaction& tx, CValidationState& state, CCoinsV
                 undo.nVersion = coins->nVersion;
                 undo.nTime = coins->nTime;
             }
+            */
+            inputs.Log();
+            bool ret = coins->Spend(txin.prevout, txundo.vprevout.back());
+            inputs.Log();
         }
         // add outputs
         inputs.ModifyNewCoins_Legacy(tx.GetHash())->FromTx(tx, nHeight);
@@ -3293,7 +3298,6 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
     if (!CheckBlock_Legacy(block, GetnHeight(pindex), state, !fJustCheck, !fJustCheck))
         return false;
 
-
     // Special case for the genesis block, skipping connection of its transactions
     // (its coinbase is unspendable)
     if (block.GetHash() == Params().HashGenesisBlock()) {
@@ -3301,13 +3305,11 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
             view.SetBestBlock(pindex->GetBlockHash());
         return true;
     }
-
     // verify that the view's current state corresponds to the previous block
     uint256 hashPrevBlock = pindex->pprev == NULL ? uint256() : pindex->pprev->GetBlockHash();
     if (fDebug)
       LogPrintf("ConnectBlock_Legacy block height: %d hashPrevBlock: %s", pindex->nHeight, hashPrevBlock.ToString());
     assert(hashPrevBlock == view.GetBestBlock());
-
 
     // Check proof-of-stake
     if (block.IsProofOfStake()) {
@@ -3470,7 +3472,6 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
             return state.DoS(100, error("ConnectBlock(): coinstake pays too much (actual=%d vs limit=%d)", nActualStakeReward, blockReward), REJECT_INVALID, "bad-cs-amount");
     }
 
-
     CAmount reward = block.IsProofOfStake() ? nActualStakeReward : block.vtx[0].GetValueOut();
 
     if (block.IsProofOfStake()) {
@@ -3511,7 +3512,6 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
         pindex->RaiseValidity(BLOCK_VALID_SCRIPTS);
         setDirtyBlockIndex.insert(pindex);
     }
-
     if (fTxIndex)
         if (!pblocktree->WriteTxIndex(vPosTxid))
             return AbortNode(state, "Failed to write transaction index");
@@ -3522,7 +3522,6 @@ bool ConnectBlock_Legacy(const CBlock& block, CValidationState& state, CBlockInd
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
-
     int64_t nTime5 = GetTimeMicros();
     nTimeIndex += nTime5 - nTime4;
     LogPrint("bench", "    - Index writing: %.2fms [%.2fs]\n", 0.001 * (nTime5 - nTime4), nTimeIndex * 0.000001);
@@ -4168,14 +4167,12 @@ bool static ConnectTip_Legacy(CValidationState& state, const CChainParams& chain
         LogPrint("bench", "  - Connect total: %.2fms [%.2fs]\n", (nTime3 - nTime2) * 0.001, nTimeConnectTotal * 0.000001);
         assert(view.Flush());
     }
-
     int64_t nTime4 = GetTimeMicros();
     nTimeFlush += nTime4 - nTime3;
     LogPrint("bench", "  - Flush: %.2fms [%.2fs]\n", (nTime4 - nTime3) * 0.001, nTimeFlush * 0.000001);
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED))
         return false;
-
     int64_t nTime5 = GetTimeMicros();
     nTimeChainState += nTime5 - nTime4;
     LogPrint("bench", "  - Writing chainstate: %.2fms [%.2fs]\n", (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
@@ -4193,7 +4190,6 @@ bool static ConnectTip_Legacy(CValidationState& state, const CChainParams& chain
     BOOST_FOREACH (const CTransaction& tx, pblock->vtx) {
         SyncWithWallets(tx, pblock);
     }
-
     int64_t nTime6 = GetTimeMicros();
     nTimePostConnect += nTime6 - nTime5;
     nTimeTotal += nTime6 - nTime1;
@@ -4448,7 +4444,6 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
             return false;
         fBlocksDisconnected = true;
     }
-
     // Build list of new blocks to connect.
     std::vector<CBlockIndex*> vpindexToConnect;
     bool fContinue = true;
@@ -4481,7 +4476,7 @@ static bool ActivateBestChainStep_Legacy(CValidationState& state, const CChainPa
                     return false;
                 }
             } else {
-                PruneBlockIndexCandidates();
+               PruneBlockIndexCandidates();
                 if (!pindexOldTip || chainActive.Tip()->nChainWork > pindexOldTip->nChainWork) {
                     // We're in a better position than we were. Return temporarily to release the lock.
                     fContinue = false;
@@ -4601,10 +4596,8 @@ bool ActivateBestChain_Legacy(CValidationState& state, const CChainParams& chain
             // Whether we have anything to do at all.
             if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip())
                 return true;
-
             if (!ActivateBestChainStep_Legacy(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL))
                 return false;
-
             pindexNewTip = chainActive.Tip();
             pindexFork = chainActive.FindFork(pindexOldTip);
             fInitialDownload = IsInitialBlockDownload();
@@ -4655,7 +4648,6 @@ bool ActivateBestChain_Legacy(CValidationState& state, const CChainParams& chain
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
         return false;
     }
-
     return true;
 }
 
