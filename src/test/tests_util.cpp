@@ -952,6 +952,8 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
     int oldnHeight = chainActive.Tip()->nHeight;
 
     for (int j = startBlock; j < endBlock;) {
+        if (j == endBlock - 1)
+            LogPrintf("a %s", "b");
         SetMockTime(GetTime() + Params().GetTargetSpacing());
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins

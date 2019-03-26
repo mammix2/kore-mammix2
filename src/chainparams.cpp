@@ -262,7 +262,7 @@ public:
         fMiningRequiresPeers                          = true;
         fRequireStandard                              = true;
         fSkipProofOfWorkCheck                         = false;
-        nDefaultPort                                  = 10743;
+        nDefaultPort                                  = 10769;
         nBudgetFeeConfirmations                       = 6;                   // Number of confirmations for the finalization fee
         nBudgetVoteUpdate                             = 60 * 60;             // can only change vote after 1 hour
         nClientMintableCoinsInterval                  = 5 * 60;

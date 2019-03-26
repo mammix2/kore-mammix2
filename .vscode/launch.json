@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "attach",
             "program": "${workspaceFolder}/src/kored",
-            "processId": "12186",
+            "processId": "32502",
             "MIMode": "gdb",
             "setupCommands": [
                 {

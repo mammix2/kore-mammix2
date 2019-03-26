@@ -381,9 +381,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
             if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
                 CDiskBlockIndex diskindex;
                 if (pcursor->GetValue(diskindex)) {
-                    // Construct block index object
-                    if(diskindex.nHeight == 400)
-                        printf("hey %s", "beautiful");
+                    // Construct block index object=
                     bool useLegacyCode = UseLegacyCode(diskindex.nHeight);
                     LogPrintf("Reading Block: %d \n", diskindex.nHeight);
                     LogPrintf("BlockInfo %s \n", diskindex.ToString());
