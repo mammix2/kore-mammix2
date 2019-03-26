@@ -217,8 +217,8 @@ static const Checkpoints::CCheckpointData data = {
 
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
     boost::assign::map_list_of
-    (0,     uint256("0x000ce3b76d9435adbc2713c62239cea20fe6bf0f69ed4d4f5c95ef07018a0450"))
-    (36500, uint256("0xb6584cf0dec619db96620558e390055843e0bea2c40585ae51af5fccf3794104"));
+    (0,     uint256("0x000ce3b76d9435adbc2713c62239cea20fe6bf0f69ed4d4f5c95ef07018a0450"));
+    // (36500, uint256("0xb6584cf0dec619db96620558e390055843e0bea2c40585ae51af5fccf3794104"));
 
 static const Checkpoints::CCheckpointData dataTestnet = {
     &mapCheckpointsTestnet,
@@ -392,7 +392,7 @@ public:
         nBudgetVoteUpdate                             = 1 * 60;                      // can only change vote after 1 minute
         nClientMintableCoinsInterval                  = 15;                          // Every 45 seconds
         nCoinbaseMaturity = nStakeMinConfirmations    = 10;                           // Lico should be 25;
-        nDefaultPort                                  = 11769;
+        nDefaultPort                                  = 11743;
         nEnsureMintableCoinsInterval                  = 5;
         nHeightToBanOldWallets                        = 10;
         nHeightToFork                                 = 100;
