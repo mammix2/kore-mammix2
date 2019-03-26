@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos)
     // modifierInterval : [spacing, spacing)]
     // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
     int minConfirmations = 3;
-    ModifiableParams()->setHeightToFork(5);
+    ModifiableParams()->setHeightToFork(50);
     ModifiableParams()->setStakeMinConfirmations(minConfirmations);
     ModifiableParams()->setTargetSpacing(minConfirmations - 1);
     ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos)
     // Lets check how it the cachedCoins
     pcoinsTip->Log();
     // generate 1 pos blocks
-    GeneratePOSLegacyBlocks(minConfirmations + 2, 12, pwalletMain, scriptPubKey, logToStdout);
+    GeneratePOSLegacyBlocks(minConfirmations + 2, 6, pwalletMain, scriptPubKey, logToStdout);
 
     pcoinsTip->Log();
 
@@ -300,8 +300,8 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos_newpos)
     // spacing          : [confirmations-1, max(confirmations-1, value)]
     // modifierInterval : [spacing, spacing)]
     // pow blocks       : [confirmations + 1, max(confirmations+1, value)], this way we will have 2 modifiers
-    int minConfirmations = 25;
-    ModifiableParams()->setHeightToFork(50);
+    int minConfirmations = 3;
+    ModifiableParams()->setHeightToFork(6);
     ModifiableParams()->setStakeMinConfirmations(minConfirmations);
     ModifiableParams()->setTargetSpacing(minConfirmations - 1);
     ModifiableParams()->setStakeModifierInterval(minConfirmations - 1);
@@ -318,21 +318,16 @@ BOOST_AUTO_TEST_CASE(check_database_pow_pos_newpos)
     CreateOldBlocksFromBlockInfo(1, minConfirmations + 2, blockinfo[0], pwalletMain, scriptPubKey, false, logToStdout);
 
     // generate 1 pos blocks
-    GeneratePOSLegacyBlocks(minConfirmations + 2, 50, pwalletMain, scriptPubKey, logToStdout);
-
+    GeneratePOSLegacyBlocks(minConfirmations + 2, 6, pwalletMain, scriptPubKey, logToStdout);
 
     // generate 1 new pos blocks
-    GenerateBlocks(50, 55, pwalletMain, scriptPubKey, true, logToStdout);
+    GenerateBlocks(6, 7, pwalletMain, scriptPubKey, true, logToStdout);
 
     uint256 oldTipHash = chainActive.Tip()->GetBlockHash();
-    LogPrintf("Old tip before save = %s\n", oldTipHash.ToString());
 
     CheckDatabaseState(pwalletMain);
 
     uint256 newTipHash = chainActive.Tip()->GetBlockHash();
-    LogPrintf("Old tip before save = %s\n", oldTipHash.ToString());
-    LogPrintf("New tip after read = %s\n", newTipHash.ToString());
-
     BOOST_ASSERT(oldTipHash == newTipHash);
 
     // Leaving old values

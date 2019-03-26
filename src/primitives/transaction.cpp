@@ -90,14 +90,9 @@ std::string CTxOut::ToString() const
 }
 
 bool CTxOut::IsCoinStake() const
-    {
-        vector<vector<unsigned char> > vSolutions;
-        txnouttype whichType;
-        if (!Solver(scriptPubKey, whichType, vSolutions))
-            return false;
-
-        return whichType == TX_LOCKSTAKE;
-    }
+{
+    return scriptPubKey.IsStakeLockScript();
+}
 
 CMutableTransaction::CMutableTransaction() : nVersion(2), nTime(0), nLockTime(0) {}
 CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.GetVersion()), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}

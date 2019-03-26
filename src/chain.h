@@ -518,8 +518,8 @@ public:
     std::string ToString() const
     {
         if (UseLegacyCode(nHeight))
-            return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, moneysupply=%d, type=%s, nStakeModifier=%s, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
-                pprev, pnext, nHeight, nMoneySupply,
+            return strprintf("CBlockIndex(pprev=%s, pnext=%s, nHeight=%d, moneysupply=%d, type=%s, nStakeModifier=%s, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
+                pprev ? pprev->GetBlockHash().ToString() : hashPrev.ToString(), pnext ? pnext->GetBlockHash().ToString() : hashNext.ToString(), nHeight, nMoneySupply,
                 IsProofOfStake() ? "PoS" : "PoW",
                 nStakeModifierOld.ToString(),
                 nVersion, nTime, nBits, nNonce, nBirthdayA, nBirthdayB,
@@ -528,7 +528,7 @@ public:
         else
 
             return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, moneysupply=%d, type=%s, nStakeModifierOld=%s, nStakeModifier=%x, version=%d, nTime=%u, nBits=%x, nNonce=%u, nBirthdayA=%u, nBirthdayB=%u, merkle=%s, hashBlock=%s)",
-                pprev, pnext, nHeight, nMoneySupply,
+                pprev ? pprev->GetBlockHash().ToString() : hashPrev.ToString(), pnext ? pnext->GetBlockHash().ToString() : hashNext.ToString(), nHeight, nMoneySupply,
                 fIsProofOfStake ? "PoS" : "PoW",
                 nStakeModifierOld.ToString(),
                 nStakeModifier,
