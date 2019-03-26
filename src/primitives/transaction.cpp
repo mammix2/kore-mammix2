@@ -86,18 +86,13 @@ uint256 CTxOut::GetHash() const
 std::string CTxOut::ToString() const
 {
 	if (IsEmpty()) return "CTxOut(empty)";
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey));
+    return strprintf("CTxOut(nValue=%d, scriptPubKey=%s)", nValue, HexStr(scriptPubKey));
 }
 
 bool CTxOut::IsCoinStake() const
-    {
-        vector<vector<unsigned char> > vSolutions;
-        txnouttype whichType;
-        if (!Solver(scriptPubKey, whichType, vSolutions))
-            return false;
-
-        return whichType == TX_LOCKSTAKE;
-    }
+{
+    return scriptPubKey.IsStakeLockScript();
+}
 
 CMutableTransaction::CMutableTransaction() : nVersion(2), nTime(0), nLockTime(0) {}
 CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.GetVersion()), nTime(tx.nTime), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}

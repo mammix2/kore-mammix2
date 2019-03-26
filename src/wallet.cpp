@@ -3605,6 +3605,7 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, 
     CBlockIndex* pindexPrev = pindexBestHeader;
     txNew.vin.clear();
     txNew.vout.clear();
+    txNew.SetVersion(1);
 
     // Mark coin stake transaction
     CScript scriptEmpty;

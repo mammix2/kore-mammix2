@@ -79,10 +79,10 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock)
         CCoinsMap::iterator itOld = it++;
         mapCoins.erase(itOld);
     }
-    if (hashBlock != uint256(0))
+    if (hashBlock != uint256(0)) 
         BatchWriteHashBestChain(batch, hashBlock);
 
-    LogPrint("coindb", "Committing %u changed transactions (out of %u) to coin database...\n", (unsigned int)changed, (unsigned int)count);
+    LogPrintf("Committing %u changed transactions (out of %u) to coin database...\n", (unsigned int)changed, (unsigned int)count);
     return db.WriteBatch(batch);
 }
 
@@ -368,7 +368,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
             if (pcursor->GetKey(key) && key.first == DB_BLOCK_INDEX) {
                 CDiskBlockIndex diskindex;
                 if (pcursor->GetValue(diskindex)) {
-                    // Construct block index object
+                    // Construct block index object=
                     bool useLegacyCode = UseLegacyCode(diskindex.nHeight);
                     LogPrintf("Reading Block: %d \n", diskindex.nHeight);
                     LogPrintf("BlockInfo %s \n", diskindex.ToString());
@@ -402,6 +402,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
 
                     LogPrintf("LoadBlockIndexGuts : useLegacy ?: %s \n", useLegacyCode ? "true" : "false");
                     LogPrintf("LoadBlockIndexGuts block: %d, POS ? %s Status value %u \n", pindexNew->nHeight, isProofOfStake ? "true" : "false", pindexNew->nStatus);
+                    LogPrintf("LoadBlockIndexGuts BLOCK: %s \n", pindexNew->ToString());
                     if (!isProofOfStake && (pindexNew->nStatus & BLOCK_HAVE_DATA)) {
                         if (useLegacyCode) {
                             if (!CheckProofOfWork_Legacy(pindexNew->GetBlockHash(), pindexNew->nBits))

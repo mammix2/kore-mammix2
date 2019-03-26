@@ -730,6 +730,7 @@ inline CMutableTransaction CreateCoinbaseTransaction_Legacy(const CScript& scrip
     txNew.vin[0].prevout.SetNull();
     txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
     txNew.nTime = GetAdjustedTime();
+    txNew.SetVersion(1);    
 
     if (fProofOfStake) {
         txNew.vout.resize(1);
@@ -1291,7 +1292,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             ProcessBlockFound(pblock, *pwallet, reservekey);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
-            MilliSleep(Params().GetTargetSpacingForStake());
+            MilliSleep(Params().GetTargetSpacingForStake() * 1000);
             continue;
         }
 
@@ -1324,7 +1325,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                     LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
                     ProcessBlockFound(pblock, *pwallet, reservekey);
                     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                    MilliSleep(Params().GetTargetSpacing());
+                    MilliSleep(Params().GetTargetSpacing() * 1000);
 
                     // In regression test mode, stop mining after a block is found. This
                     // allows developers to controllably generate a block on demand.
@@ -1469,7 +1470,7 @@ void ThreadStakeMinter_Legacy(CWallet* pwallet)
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
             ProcessBlockFound_Legacy(pblock, chainparams);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
-            MilliSleep(Params().GetTargetSpacingForStake());
+            MilliSleep(Params().GetTargetSpacingForStake() * 1000);
         }
 
         MilliSleep(500);
@@ -1501,6 +1502,11 @@ void KoreMiner_Legacy()
 
         // This thread should exit, if it has reached last
         while (!ShutdownRequested() && UseLegacyCode(GetnHeight(chainActive.Tip()) + 1)) {
+            if (chainActive.Tip()->nHeight > Params().GetLastPoWBlock() ) {
+                if (fDebug)
+                    LogPrintf("Pow Period has ended, we need to exit this thread \n");
+                break;
+            }
             if (chainparams.DoesMiningRequiresPeers()) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
@@ -1568,7 +1574,7 @@ void KoreMiner_Legacy()
                         SetThreadPriority(THREAD_PRIORITY_NORMAL);
                         ProcessBlockFound_Legacy(pblock, chainparams);
                         SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                        MilliSleep(Params().GetTargetSpacing());
+                        MilliSleep(Params().GetTargetSpacing() * 1000);
                         break;
                     }
                 }

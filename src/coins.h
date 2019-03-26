@@ -171,6 +171,26 @@ public:
         return !(a == b);
     }
 
+    std::string ToString() const
+    {
+        std::stringstream s;
+        s << "CCoins (" << endl;
+        s << "   nHeight   : " << nHeight << endl;
+        s << "   nVersion  : " << nVersion << endl;
+        s << "   nTime     : " << nTime << endl;
+        s << "   fCoinBase : " << (fCoinBase ? "true" : "false") << endl;
+        s << "   fCoinStake: " << (fCoinStake ? "true" : "false") << endl;
+        s << "   vout      : size: " << vout.size() << endl;
+        for (unsigned int i = 0; i < vout.size(); i++)
+        {
+            s << "       vout[" << i << "] : " << vout[i].ToString() << endl;
+        }
+        s << "   )" << endl;
+
+        return s.str();
+    }
+
+
     void CalcMaskSize(unsigned int& nBytes, unsigned int& nNonzeroBytes) const;
 
     bool IsCoinBase() const
@@ -204,6 +224,7 @@ public:
                 nSize += ::GetSerializeSize(CTxOutCompressor(REF(vout[i])), nType, nVersion);
         // height
         nSize += ::GetSerializeSize(VARINT(nHeight), nType, nVersion);
+        // ntime
         nSize += ::GetSerializeSize(nTime, nType, nVersion);
         return nSize;
     }
@@ -487,7 +508,6 @@ public:
      * allowed.
      */
     CCoinsModifier ModifyCoins(const uint256& txid);
-    CCoinsModifier ModifyCoins_Legacy(const uint256& txid);
 
     /**
      * Return a modifiable reference to a CCoins. Assumes that no entry with the given
@@ -498,7 +518,7 @@ public:
      * would not properly overwrite the first coinbase of the pair. Simultaneous modifications
      * are not allowed.
      */
-    CCoinsModifier ModifyNewCoins_Legacy(const uint256& txid);
+    CCoinsModifier ModifyNewCoins(const uint256& txid);
 
     /**
      * Push the modifications applied to this cache to its base.

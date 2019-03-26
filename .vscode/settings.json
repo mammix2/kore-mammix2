@@ -76,7 +76,7 @@
         "**/*.pc": true,
         "**/kore_*.qm": true,
         "**/moc_*": true,
-        "**/ui_*.h": true,
+        "**/qt/ui_*.h": true,
         "**/obj*/": true,
         "**/libtool{,.m4}": true,
         "aclocbuilt": true,

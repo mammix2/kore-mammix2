@@ -4674,10 +4674,6 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
         <translation>Bind till given adress att lyssna efter JSON-RPC anslutningar. Använd [värd]:port notation för IPv6. Detta alternativ kan specifieras flera gånger (standard: bind till alla gränssnitt)</translation>
     </message>
     <message>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation>Beräknade ackumulator kontrollstation är inte vad som sparats av block index</translation>
-    </message>
-    <message>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation>Kan ej låsa in på data katalog %s. KORE Kärna körs förmodligen redan.</translation>
     </message>
@@ -4956,10 +4952,6 @@ Minta antingen högre valörer (så att färre inputs behövs) eller spendera mi
     <message>
         <source>Block creation options:</source>
         <translation>Block skapande alternative:</translation>
-    </message>
-    <message>
-        <source>Calculating missing accumulators...</source>
-        <translation>Beräknar fattandes ackumulatorer...</translation>
     </message>
     <message>
         <source>Can't denominate: no compatible inputs left.</source>

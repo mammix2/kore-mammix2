@@ -104,7 +104,7 @@ public:
 
     /** New block has been accepted */
     boost::signals2::signal<void(const uint256& hash)> NotifyBlockTip;
-        /** New block has been accepted */
+    /** New block has been accepted */
     boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyBlockTip_Legacy;
 
     /** New block has been accepted and is over a certain size */

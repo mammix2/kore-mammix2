@@ -4790,10 +4790,6 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Forbind til den opgivne adresse og lyt efter JSON-.RPC forbindelser. Brug [host]:port notation for IPv6. Der kan indsættes flere linier (standard: Forbind til alle interfaces)</translation>
     </message>
     <message>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation>Beregnet akkumulator kontrolpunkt er ikke det, der er registreret af blok indeks</translation>
-    </message>
-    <message>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation>Kan ikke låse datamappen %s. KORE core kører sandsynligvis allerede.</translation>
     </message>
@@ -5071,10 +5067,6 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
         <translation>Bloker optioner for oprettelse:</translation>
     </message>
     <message>
-        <source>Calculating missing accumulators...</source>
-        <translation>Beregning af manglende akkumulatorer ...</translation>
-    </message>
-    <message>
         <source>Can't denominate: no compatible inputs left.</source>
         <translation>Kan ikke designere: Ingen kompatible inputs tilbage.</translation>
     </message>
@@ -5265,10 +5257,6 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
     <message>
         <source>Error: You already have pending entries in the Obfuscation pool</source>
         <translation>Fejl! De har allerede ventende transaktioner i tilsløringsgruppen</translation>
-    </message>
-    <message>
-        <source>Failed to calculate accumulator checkpoint</source>
-        <translation>Kunne ikke beregne akkumulatorkontrolpunktet</translation>
     </message>
     <message>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
@@ -5485,10 +5473,6 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
     <message>
         <source>Attempt to force blockchain corruption recovery</source>
         <translation>Forsøg at gennemtvinge reparation af korrumperet blokkæde</translation>
-    </message>
-    <message>
-        <source>CoinSpend: Accumulator witness does not verify</source>
-        <translation>CoinSpend: Akkumulator vidne bekræfter ikke</translation>
     </message>
     <message>
         <source>Display the stake modifier calculations in the debug.log file.</source>
@@ -5765,10 +5749,6 @@ Enten mint højere nomineringer (så færre input er nødvendige) eller reducere
     <message>
         <source>Receive and display P2P network alerts (default: %u)</source>
         <translation>Modtag og vis P2P netværksalarmer (default: %u)</translation>
-    </message>
-    <message>
-        <source>Reindex the accumulator database</source>
-        <translation>Reindex akkumulatiedatabasen</translation>
     </message>
     <message>
         <source>Relay and mine data carrier transactions (default: %u)</source>

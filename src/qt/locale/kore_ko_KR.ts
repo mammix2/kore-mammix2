@@ -4819,10 +4819,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>JSON-RPC연결 수신을 위해 주어진 주소를 지정합니다. [host]: IPv6 포트 표기법 사용. 이 옵션은 여러번 지정할 수 있습니다. (기본값 : 모든 인터페이스에 지정)</translation>
     </message>
     <message>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation>계산된 누산기 체크포인트는 블록 인덱스에 의해 기록되는 것이 아닙니다.</translation>
-    </message>
-    <message>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation>        &lt;translation&gt;잠겨진 데이터 디렉토리 %s 를 가져올 수 없습니다. KORE Core는 이미 실행 중입니다.</translation>
     </message>
@@ -5099,10 +5095,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>블록 생성 옵션:</translation>
     </message>
     <message>
-        <source>Calculating missing accumulators...</source>
-        <translation>누락된 누산기 계산중...</translation>
-    </message>
-    <message>
         <source>Can't denominate: no compatible inputs left.</source>
         <translation>표시할 수 없음: 남아있는 호환된 연결이 없습니다.</translation>
     </message>
@@ -5293,10 +5285,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <source>Error: You already have pending entries in the Obfuscation pool</source>
         <translation>오류 : 이미 난독화 그룹에 보류중인 항목들이 있습니다.</translation>
-    </message>
-    <message>
-        <source>Failed to calculate accumulator checkpoint</source>
-        <translation>축 압기 체크 포인트를 계산하지 못했습니다.</translation>
     </message>
     <message>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
@@ -5513,10 +5501,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <source>Attempt to force blockchain corruption recovery</source>
         <translation>블록체인 손상 복구 시도</translation>
-    </message>
-    <message>
-        <source>CoinSpend: Accumulator witness does not verify</source>
-        <translation>CoinSpend: 누산기가 제대로 작동하지 않았습니다.</translation>
     </message>
     <message>
         <source>Display the stake modifier calculations in the debug.log file.</source>
@@ -5793,10 +5777,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <source>Receive and display P2P network alerts (default: %u)</source>
         <translation>P2P 네크워크로 부터 경고를 받고 보여줍니다 (기본값: %u)</translation>
-    </message>
-    <message>
-        <source>Reindex the accumulator database</source>
-        <translation>누적 기 데이터베이스 다시 색인화</translation>
     </message>
     <message>
         <source>Relay and mine data carrier transactions (default: %u)</source>

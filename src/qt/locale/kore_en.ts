@@ -6280,11 +6280,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation type="unfinished">Bind to given address to listen for JSON-RPC connections. Use [host]:port notation for IPv6. This option can be specified multiple times (default: bind to all interfaces)</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location line="+2"/>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation type="unfinished"></translation>
@@ -6651,11 +6646,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     </message>
     <message>
         <location line="+1"/>
-        <source>Calculating missing accumulators...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
         <source>Can&apos;t denominate: no compatible inputs left.</source>
         <translation type="unfinished">Can&apos;t denominate: no compatible inputs left.</translation>
     </message>
@@ -6892,11 +6882,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <location line="+1"/>
         <source>Error: You already have pending entries in the Obfuscation pool</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Failed to calculate accumulator checkpoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7189,11 +7174,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <location line="+8"/>
         <source>Attempt to force blockchain corruption recovery</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>CoinSpend: Accumulator witness does not verify</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7555,11 +7535,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <location line="+1"/>
         <source>Receive and display P2P network alerts (default: %u)</source>
         <translation type="unfinished">Receive and display P2P network alerts (default: %u)</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Reindex the accumulator database</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>

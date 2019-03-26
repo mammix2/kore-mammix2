@@ -347,8 +347,7 @@ void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfterHeight
  */
 void UnlinkPrunedFiles(std::set<int>& setFilesToPrune);
 
-bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
-bool ActivateBestChain_Legacy(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
+bool ActivateBestChain(CValidationState& state, const CBlock* pblock = NULL);
 CAmount GetProofOfStakeSubsidy_Legacy(int nHeight, CAmount input);
 CAmount GetBlockValue(int nHeight);
 
@@ -510,7 +509,6 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight);
-void UpdateCoins_Legacy(const CTransaction& tx, CValidationState& state, CCoinsViewCache& inputs, int nHeight);
 
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
@@ -519,7 +517,6 @@ bool IsTransactionInChain(const uint256& txId, int& nHeightTx);
 bool IsBlockHashInChain(const uint256& hashBlock);
 bool ValidOutPoint(const COutPoint out, int nHeight);
 bool RecalculateKORESupply(int nHeightStart);
-bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError);
 
 /**
  * Check if transaction will be final in the next block to be created.

@@ -380,7 +380,6 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-pid=<file>", strprintf(_("Specify pid file (default: %s)"), "kored.pid"));
 #endif
     strUsage += HelpMessageOpt("-reindex", _("Rebuild block chain index from current blk000??.dat files") + " " + _("on startup"));
-    strUsage += HelpMessageOpt("-reindexaccumulators", _("Reindex the accumulator database") + " " + _("on startup"));
     strUsage += HelpMessageOpt("-reindexmoneysupply", _("Reindex the KORE and zKORE money supply statistics") + " " + _("on startup"));
     strUsage += HelpMessageOpt("-resync", _("Delete blockchain folders and resync from scratch") + " " + _("on startup"));
 #if !defined(WIN32)
@@ -1527,20 +1526,6 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
                 // Populate list of invalid/fraudulent outpoints that are banned from the chain
                 invalid_out::LoadOutpoints();
-#ifdef ACCUMULATORS
-                invalid_out::LoadSerials();
-
-                // KORE: recalculate Accumulator Checkpoints that failed to database properly
-                if (!listAccCheckpointsNoDB.empty()) {
-                    uiInterface.InitMessage(_("Calculating missing accumulators..."));
-                    LogPrintf("%s : finding missing checkpoints\n", __func__);
-
-                    string strError;
-                    if (!ReindexAccumulators(listAccCheckpointsNoDB, strError))
-                        return InitError(strError);
-                }
-
-#endif //ACCUMULATORS
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
                 // Flag sent to validation code to let it know it can skip certain checks
@@ -1788,13 +1773,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
-    if (UseLegacyCode(GetnHeight(chainActive.Tip()))) {
-        if (!ActivateBestChain_Legacy(state, chainparams))
-            strErrors << "Failed to connect best block";
-    } else {
-        if (!ActivateBestChain(state))
-            strErrors << "Failed to connect best block";
-    }
+    if (!ActivateBestChain(state))
+        strErrors << "Failed to connect best block";
 
     std::vector<boost::filesystem::path> vImportFiles;
     if (mapArgs.count("-loadblock")) {

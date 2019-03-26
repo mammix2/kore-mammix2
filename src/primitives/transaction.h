@@ -391,6 +391,11 @@ struct CMutableTransaction {
      */
     uint256 GetHash() const;
 
+    void SetVersion(int32_t v)
+    {
+        nVersion = v;
+    }    
+
     std::string ToString() const;
 
     friend bool operator==(const CMutableTransaction& a, const CMutableTransaction& b)

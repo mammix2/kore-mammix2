@@ -43,7 +43,7 @@ struct TestingSetup {
         boost::filesystem::create_directories(pathTemp);
         mapArgs["-datadir"] = pathTemp.string();
         mapArgs["-printstakemodifier"] = "1";
-        InitializeDBTest();
+        InitializeDBTest(pathTemp);
         nScriptCheckThreads = 3;
         for (int i=0; i < nScriptCheckThreads-1; i++)
             threadGroup.create_thread(&ThreadScriptCheck);
