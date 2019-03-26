@@ -1756,6 +1756,8 @@ CAmount CWallet::GetStakedBalance() const
                 nTotal += pcoin->GetStakedCredit();
         }
     }
+
+    return nTotal;
 }
 
 CAmount CWallet::GetUnlockedCoins() const
