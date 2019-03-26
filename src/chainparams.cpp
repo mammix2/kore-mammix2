@@ -394,9 +394,9 @@ public:
         nCoinbaseMaturity = nStakeMinConfirmations    = 5;                           // Lico should be 25;
         nDefaultPort                                  = 11743;
         nEnsureMintableCoinsInterval                  = 5;
-        nHeightToBanOldWallets                        = 10;
-        nHeightToFork                                 = 400;
-        nLastPOWBlock                                 = 200;                        // 1000
+        nHeightToBanOldWallets                        = 120;
+        nHeightToFork                                 = 67000;
+        nLastPOWBlock                                 = 10000;                       // 10000
         nMajorityBlockUpgradeToCheck                  = 100;
         nMasternodeBudgetPaymentCycle                 = 30;                          // Every 60 blocks, it will check if it is necessary to pay. A superblock will have 140 cycle
         nMasternodeMinConfirmations                   = 2;
