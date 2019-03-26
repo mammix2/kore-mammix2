@@ -1032,6 +1032,7 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
             //cout << "CPUMiner : proof-of-stake block was signed " << pblock->GetHash().ToString() << endl;
             BOOST_CHECK(ProcessBlockFound(pblock, *pwallet, reservekey));
             LogBlockFound(pwallet, j, pblock, nExtraNonce, fProofOfStake, logToStdout);
+            cout << "Current nHeight: " << chainActive.Tip()->nHeight << endl;
             j++;
             continue;
         }
@@ -1098,6 +1099,9 @@ void GenerateBlocks(int startBlock, int endBlock, CWallet* pwallet, CScript& scr
     }
 
     // lets check if we have generated the munber of blocks requested
+    cout << "old Height :" << oldnHeight << endl;
+    cout << "should generate: " << endBlock - startBlock << endl;
+    cout << "actual generated: " << chainActive.Tip()->nHeight - oldnHeight << endl;
     BOOST_CHECK(oldnHeight + endBlock - startBlock == chainActive.Tip()->nHeight);
 }
 
