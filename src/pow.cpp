@@ -29,6 +29,7 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
 {
     int64_t nActualSpacing = pindexLast->GetBlockTime() - nFirstBlockTime;
     int64_t nTargetSpacing = Params().GetTargetSpacing();
+    int64_t nTargetTimespan = Params().GetTargetTimespan();
 
     // Limit adjustment step
 
@@ -43,8 +44,8 @@ unsigned int CalculateNextWorkRequired_Legacy(const CBlockIndex* pindexLast, int
     }
     bnNew.SetCompact(pindexLast->nBits);
     bnOld = bnNew;
-    bnNew *= ((Params().GetDifficultyAdjustmentInterval() - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-    bnNew /= ((Params().GetDifficultyAdjustmentInterval() + 1) * nTargetSpacing);
+    bnNew *= (((nTargetTimespan / nTargetSpacing) - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+    bnNew /= (((nTargetTimespan / nTargetSpacing) + 1) * nTargetSpacing);
 
     if (bnNew <= 0 || bnNew > bnPowLimit)
         bnNew = bnPowLimit;

@@ -89,9 +89,7 @@ public:
     int32_t                   GetDefaultPort() const                   { return nDefaultPort; }
     /** Spork key and Masternode Handling **/
     std::string               GetDevFundPubKey() const                 { return strDevFundPubKey; }
-    int64_t                   GetDifficultyAdjustmentInterval() const  { return nTargetTimespan / nTargetSpacing; }
     int64_t                   GetEnsureMintableCoinsInterval() const   { return nEnsureMintableCoinsInterval; }
-    int64_t                   GetInterval() const                      { return nTargetTimespan / nTargetSpacing; }
     int32_t                   GetLastPoWBlock() const                  { return nLastPOWBlock; }
     int32_t                   GetMajorityBlockUpgradeToCheck() const   { return nMajorityBlockUpgradeToCheck; }
     int64_t                   GetMasternodeBudgetPaymentCycle() const  { return nMasternodeBudgetPaymentCycle; }

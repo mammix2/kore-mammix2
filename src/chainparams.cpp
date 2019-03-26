@@ -390,13 +390,13 @@ public:
         nBlockEnforceInvalidUTXO                      = 9902850;                     //Start enforcing the invalid UTXO's
         nBudgetFeeConfirmations                       = 2;                           // Number of confirmations for the finalization fee. We have to make this very short here because we only have a 8 block finalization window on testnet
         nBudgetVoteUpdate                             = 1 * 60;                      // can only change vote after 1 minute
-        nClientMintableCoinsInterval                  = 45;                          // Every 45 seconds
+        nClientMintableCoinsInterval                  = 15;                          // Every 45 seconds
         nCoinbaseMaturity = nStakeMinConfirmations    = 10;                           // Lico should be 25;
-        nDefaultPort                                  = 11743;
+        nDefaultPort                                  = 11769;
         nEnsureMintableCoinsInterval                  = 5;
-        nHeightToBanOldWallets                        = 120;
-        nHeightToFork                                 = 67000;
-        nLastPOWBlock                                 = 10000;                       // 10000
+        nHeightToBanOldWallets                        = 10;
+        nHeightToFork                                 = 100;
+        nLastPOWBlock                                 = 50;                       // 10000
         nMajorityBlockUpgradeToCheck                  = 100;
         nMasternodeBudgetPaymentCycle                 = 30;                          // Every 60 blocks, it will check if it is necessary to pay. A superblock will have 140 cycle
         nMasternodeMinConfirmations                   = 2;
@@ -411,12 +411,12 @@ public:
         nMasternodeFinalizationWindow                 = 15;                          // 13 + 1 finalization confirmations + 1 minutes buffer for propagation
         nMaxTipAge                                    = 0x7fffffff;
         nMinerThreads                                 = 0;
-        nModifierInterval                             = 60;                          // Modifier interval: time to elapse before new modifier is computed
+        nModifierInterval                             = 30;                          // Modifier interval: time to elapse before new modifier is computed
         nPastBlocksMax                                = 64;
         nPastBlocksMin                                = 64;
         nPoolMaxTransactions                          = 2;
-        nStakeLockInterval                            = 7 * 60;                     // Stake remains locked for 30 minutes
-        nStakeMinAge                                  = nCoinbaseMaturity * 60;                     // It will stake after 30 minutes
+        nStakeLockInterval                            = 5 * 60;                     // Stake remains locked for 30 minutes
+        nStakeMinAge                                  = nCoinbaseMaturity * 60;      // It will stake after 30 minutes
         nStartMasternodePayments                      = 1533841307;                  //genesis block time
         nSporkKeyEnforceNew                           = 1521604800;                  //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nTargetTimespan                               = 1 * 60;                      // KORE: 1 minute

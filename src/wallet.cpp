@@ -3744,14 +3744,12 @@ bool CWallet::CreateCoinStake_Legacy(const CKeyStore& keystore, CBlock* pblock, 
         txNew.vout[2].nValue = nCredit - txNew.vout[1].nValue;
         txNew.vout.resize(4);
         txNew.vout[3].nValue = devsubsidy;
-        txNew.vout[3].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
-        ;
+        txNew.vout[3].scriptPubKey = CScript() << ParseHex(Params().GetDevFundPubKey()) << OP_CHECKSIG;
     } else {
         txNew.vout[1].nValue = nCredit;
         txNew.vout.resize(3);
         txNew.vout[2].nValue = devsubsidy;
-        txNew.vout[2].scriptPubKey = CScript() << ParseHex("02f391f21dd01129757e2bb37318309c4453ecbbeaed6bb15b97d2f800e888058b") << OP_CHECKSIG;
-        ;
+        txNew.vout[2].scriptPubKey = CScript() << ParseHex(Params().GetDevFundPubKey()) << OP_CHECKSIG;
     }
 
     FillBlockPayee_Legacy(txNew, 0, true);
