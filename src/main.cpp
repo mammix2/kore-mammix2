@@ -2864,11 +2864,6 @@ bool RecalculateKORESupply(int nHeightStart)
     return true;
 }
 
-bool ReindexAccumulators(list<uint256>& listMissingCheckpoints, string& strError)
-{
-    return true;
-}
-
 int32_t ComputeBlockVersion_Legacy(const CBlockIndex* pindexPrev)
 {
     LOCK(cs_main);
@@ -6020,8 +6015,6 @@ bool static LoadBlockIndexDB()
     // If this is written true before the next client init, then we know the shutdown process failed
     pblocktree->WriteFlag("shutdown", false);
 
-    uint256 opa = pcoinsTip->GetBestBlock();
-
     // Load pointer to end of best chain
     BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
     if (it == mapBlockIndex.end())
@@ -6162,10 +6155,6 @@ void UnloadBlockIndex_Legacy()
 
 void UnloadBlockIndex()
 {
-    bool bola = true;
-    while (bola)
-        cout << "waiting\n";
-
     mapBlockIndex.clear();
     setBlockIndexCandidates.clear();
     chainActive.SetTip(NULL);

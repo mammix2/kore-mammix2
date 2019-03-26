@@ -4907,10 +4907,6 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>Bind naar het opgegeven adres om te luisteren naar JSON-RPC verbindingen. Gebruik [host]:poort notatie voor IPv6. Deze optie kan meerdere keren worden opgegeven (standaard: bind aan alle interfaces)</translation>
     </message>
     <message>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation>Het berekende accumulatie controlepunt is niet wat wordt geregistreerd door de blokindex</translation>
-    </message>
-    <message>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation>Kan geen vergrendeling op data directory %s verkrijgen. KORE Core loopt waarschijnlijk al.</translation>
     </message>
@@ -5203,10 +5199,6 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
         <translation>Block creatie opties:</translation>
     </message>
     <message>
-        <source>Calculating missing accumulators...</source>
-        <translation>Calculeren van ontbrekende accumulators...</translation>
-    </message>
-    <message>
         <source>Can't denominate: no compatible inputs left.</source>
         <translation>Kan niet denomineren: er zijn geen compatibele inputs over.</translation>
     </message>
@@ -5397,10 +5389,6 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
     <message>
         <source>Error: You already have pending entries in the Obfuscation pool</source>
         <translation>Fout: U heeft al entries in afwachting in de verduistering pool</translation>
-    </message>
-    <message>
-        <source>Failed to calculate accumulator checkpoint</source>
-        <translation>Kon het controlepunt van de accumulator niet berekenen</translation>
     </message>
     <message>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
@@ -5637,10 +5625,6 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
     <message>
         <source>Attempt to force blockchain corruption recovery</source>
         <translation>Poging om blockchain corruptie herstel te forceren</translation>
-    </message>
-    <message>
-        <source>CoinSpend: Accumulator witness does not verify</source>
-        <translation>CoinSpend: Accumulator witness controleert niet</translation>
     </message>
     <message>
         <source>Display the stake modifier calculations in the debug.log file.</source>
@@ -5929,10 +5913,6 @@ Ofwel het munten van hogere denominaties (dus minder invoer nodig) of het te bes
     <message>
         <source>Receive and display P2P network alerts (default: %u)</source>
         <translation>Ontvang en laat P2P netwerkmeldingen zien (standaard: %u)</translation>
-    </message>
-    <message>
-        <source>Reindex the accumulator database</source>
-        <translation>Herindexeer de verzameldatabase</translation>
     </message>
     <message>
         <source>Relay and mine data carrier transactions (default: %u)</source>

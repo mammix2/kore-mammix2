@@ -286,12 +286,6 @@ Deterministic Zerocoin Generation
 
 Zerocoins, or zKORE, are now deterministically generated using a unique 256 bit seed. Each wallet will generate a new seed on its first run. The deterministic seed is used to generate a string of zKORE that can be recalculated at any time using the seed. Deterministic zKORE allows for users to backup all of their future zKORE by simply recording their seed and keeping it in a safe place (similar to backing up a private key for KORE). The zKORE seed needs to remain in the wallet in order to spend the zKORE after it is generated, if the seed is changed then the coins will not be spendable because the wallet will not have the ability to regenerate all of the private zKORE data from the seed. It is important that users record & backup their seed after their first run of the wallet. If the wallet is locked during the first run, then the seed will be generated the first time the wallet is unlocked.
 
-Zerocoin Modulus
---------------
-
-KORE's zerocoin implementation used the same code from the ZCoin project to import the modulus use for the zerocoin protocol. The chosen modulus is the 2048 bit RSA number created for the RSA factoring challenge. The ZCoin project's implementation (which KORE used) improperly imported the modulus into the code. This flaw was discovered by user GOAT from the [Civitas Project](https://github.com/eastcoastcrypto/Civitas/), and reported to KORE using the bug bounty program. The modulus is now correctly imported and KORE's accumulators have been changed to use the new proper modulus.
-
-
 *3.1.0* Change log
 --------------
 

@@ -4791,10 +4791,6 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>Escuchar únicamente a la tarjeta de red indicada para conexiones JSON-RPC. Use la notación [host]:puerto para IPv6. Esta opción puede ser especificada varias veces (por defecto: escuchar en todas las tarjetas de red)</translation>
     </message>
     <message>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation>El punto de chequeo del acumulador que hemos calculado no coincide con lo guardado en el índice de bloques</translation>
-    </message>
-    <message>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation>No se puede obtener un bloqueo sobre el directorio de datos %s. KORE Core esta probablemente en ejecución.</translation>
     </message>
@@ -5071,10 +5067,6 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
         <translation>Opciones de creación de bloque:</translation>
     </message>
     <message>
-        <source>Calculating missing accumulators...</source>
-        <translation>Calculando acumuladores pendientes...</translation>
-    </message>
-    <message>
         <source>Can't denominate: no compatible inputs left.</source>
         <translation>No se puede denominar: quedaron entradas no compatibles.</translation>
     </message>
@@ -5265,10 +5257,6 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
     <message>
         <source>Error: You already have pending entries in the Obfuscation pool</source>
         <translation>Error: Ya tienes entradas pendientes en el pool de Ofuscación</translation>
-    </message>
-    <message>
-        <source>Failed to calculate accumulator checkpoint</source>
-        <translation>Error al calcular el punto de control del acumulador</translation>
     </message>
     <message>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
@@ -5485,10 +5473,6 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
     <message>
         <source>Attempt to force blockchain corruption recovery</source>
         <translation>Intentar forzar la recuperación de la cadena de bloques corrupta</translation>
-    </message>
-    <message>
-        <source>CoinSpend: Accumulator witness does not verify</source>
-        <translation>CoinSpend: testemunha do acumulador não verifica</translation>
     </message>
     <message>
         <source>Display the stake modifier calculations in the debug.log file.</source>
@@ -5765,10 +5749,6 @@ También mint las denominaciones más altas (por lo tanto, se necesitan menos da
     <message>
         <source>Receive and display P2P network alerts (default: %u)</source>
         <translation>Recibir y mostrar alertas de red P2P (predeterminado: %u)</translation>
-    </message>
-    <message>
-        <source>Reindex the accumulator database</source>
-        <translation>Reindexar la base de datos del acumulador</translation>
     </message>
     <message>
         <source>Relay and mine data carrier transactions (default: %u)</source>

@@ -4907,10 +4907,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Pridržavajte se na navedenu adresu da biste slušali veze JSON-RPC. Koristite [host]: port notation za IPv6. Ova se opcija može odrediti više puta (zadano: vezati se na sva sučelja)</translation>
     </message>
     <message>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation>Izračunata kontrolna točka akumulatora nije ono što se bilježi indeksom blokova</translation>
-    </message>
-    <message>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation>Nije moguće dobiti zaključavanje na direktoriju podataka %s. KORE Core vjerojatno već radi.</translation>
     </message>
@@ -5203,10 +5199,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
         <translation>Opcije izrade blokova:</translation>
     </message>
     <message>
-        <source>Calculating missing accumulators...</source>
-        <translation>Izračun akumulatora koji nedostaju ...</translation>
-    </message>
-    <message>
         <source>Can't denominate: no compatible inputs left.</source>
         <translation>Nije moguće denominirati: nema kompatibilnih ulaza.</translation>
     </message>
@@ -5398,10 +5390,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <source>Error: You already have pending entries in the Obfuscation pool</source>
         <translation>Pogreška: već imate unose čekanja u grupi za Prekrivanje</translation>
-    </message>
-    <message>
-        <source>Failed to calculate accumulator checkpoint</source>
-        <translation>Nije uspjelo izračunavanje kontrolne točke akumulatora</translation>
     </message>
     <message>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
@@ -5637,10 +5625,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <source>Attempt to force blockchain corruption recovery</source>
         <translation>Pokušaj prisiljavanja blokiranja korupcije na oporavak</translation>
-    </message>
-    <message>
-        <source>CoinSpend: Accumulator witness does not verify</source>
-        <translation>CoinSpend: Svjedok akumulatora ne potvrđuje</translation>
     </message>
     <message>
         <source>Display the stake modifier calculations in the debug.log file.</source>
@@ -5929,10 +5913,6 @@ Either mint higher denominations (so fewer inputs are needed) or reduce the amou
     <message>
         <source>Receive and display P2P network alerts (default: %u)</source>
         <translation>Primanje i prikaz upozorenja P2P mreže (zadano: %u)</translation>
-    </message>
-    <message>
-        <source>Reindex the accumulator database</source>
-        <translation>Ponovno indeksirati bazu podataka akumulatora</translation>
     </message>
     <message>
         <source>Relay and mine data carrier transactions (default: %u)</source>

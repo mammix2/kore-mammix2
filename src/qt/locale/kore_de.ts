@@ -4897,10 +4897,6 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>Binde an die angegebene Adresse und höre auf JSON-RPC verbindungen. Benutze [host]:port Notation für IPv6. Diese Option kann mehrere Male aufgerufen werden (Standard: Binde an alle Schnittstellen)</translation>
     </message>
     <message>
-        <source>Calculated accumulator checkpoint is not what is recorded by block index</source>
-        <translation>Der berechnete Akkumulator-Checkpoint stimmt nicht mit dem vom Blockindex aufgezeichneten überein</translation>
-    </message>
-    <message>
         <source>Cannot obtain a lock on data directory %s. KORE Core is probably already running.</source>
         <translation>Kann keine Sperre für das Datenverzeichnis %s erhalten. KORE Core läuft wahrscheinlich bereits.</translation>
     </message>
@@ -5193,10 +5189,6 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
         <translation>Block-Erzeugungs-Optionen:</translation>
     </message>
     <message>
-        <source>Calculating missing accumulators...</source>
-        <translation>Fehlende Akkus berechnen ...</translation>
-    </message>
-    <message>
         <source>Can't denominate: no compatible inputs left.</source>
         <translation>Kann nicht denominieren: keine kompatiblen Eingänge übrig.</translation>
     </message>
@@ -5387,10 +5379,6 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
     <message>
         <source>Error: You already have pending entries in the Obfuscation pool</source>
         <translation>Fehler: Sie haben bereits ausstehende Einträge im Obfuscation-Pool</translation>
-    </message>
-    <message>
-        <source>Failed to calculate accumulator checkpoint</source>
-        <translation>Fehler beim Berechnen des Akku-Checkpoints</translation>
     </message>
     <message>
         <source>Failed to listen on any port. Use -listen=0 if you want this.</source>
@@ -5627,10 +5615,6 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
     <message>
         <source>Attempt to force blockchain corruption recovery</source>
         <translation>Versuche die Wiederherstellung der fehlerhaften Blockchain zu forcieren</translation>
-    </message>
-    <message>
-        <source>CoinSpend: Accumulator witness does not verify</source>
-        <translation>CoinSpend: Akkumulator-Zeuge verifiziert nicht</translation>
     </message>
     <message>
         <source>Display the stake modifier calculations in the debug.log file.</source>
@@ -5919,10 +5903,6 @@ Präge entweder höhere Stückelungen (damit weniger Eingaben benötigt werdenn)
     <message>
         <source>Receive and display P2P network alerts (default: %u)</source>
         <translation>Empfange P2P-Netzwerk-Warnsignale und zeige diese an (Standard: %u)</translation>
-    </message>
-    <message>
-        <source>Reindex the accumulator database</source>
-        <translation>Reinde die Akkumulator-Datenbank neu</translation>
     </message>
     <message>
         <source>Relay and mine data carrier transactions (default: %u)</source>
