@@ -18,7 +18,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef WIN32
 #include <sys/mman.h>
+#endif
 
 #define HUGEPAGE_THRESHOLD		(12 * 1024 * 1024)
 
