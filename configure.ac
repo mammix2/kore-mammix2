@@ -100,6 +100,13 @@ AC_ARG_ENABLE([wallet],
   [disable wallet (enabled by default)])],
   [enable_wallet=$enableval],
   [enable_wallet=yes])
+  
+# Enable obfuscation
+AC_ARG_ENABLE([obfuscation],
+  [AS_HELP_STRING([--enable-obfuscation],
+  [disable obfuscation (disabled by default)])],
+  [enable_obfuscation=$enableval],
+  [enable_obfuscation=no]) 
 
 AC_ARG_WITH([miniupnpc],
   [AS_HELP_STRING([--with-miniupnpc],
@@ -999,6 +1006,16 @@ else
   AC_MSG_RESULT(no)
 fi
 
+dnl enable obfuscation
+AC_MSG_CHECKING([if obfuscation should be enabled])
+if test x$enable_obfuscation != xno; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE_UNQUOTED([ENABLE_OBFUSCATION],[1],[Define to 1 to enable obfuscation functions])
+
+else
+  AC_MSG_RESULT(no)
+fi
+
 dnl enable upnp support
 AC_MSG_CHECKING([whether to build with support for UPnP])
 if test x$have_miniupnpc = xno; then
@@ -1094,6 +1111,7 @@ AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
 AM_CONDITIONAL([TARGET_LINUX], [test x$TARGET_OS = xlinux])
 AM_CONDITIONAL([ENABLE_WALLET],[test x$enable_wallet = xyes])
 AM_CONDITIONAL([ENABLE_TESTS],[test x$use_tests = xyes])
+AM_CONDITIONAL([ENABLE_OBFUSCATION],[test x$enable_obfuscation = xyes])
 AM_CONDITIONAL([ENABLE_QT],[test x$bitcoin_enable_qt = xyes])
 AM_CONDITIONAL([HAVE_QT5], [test x$bitcoin_qt_got_major_vers = x5])
 AM_CONDITIONAL([ENABLE_QT_TESTS],[test x$use_tests$bitcoin_enable_qt_test = xyesyes])
