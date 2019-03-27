@@ -152,16 +152,24 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
         ui->frameObfuscation->setVisible(false);
     } else {
         if (fMasterNode) {
-            ui->toggleObfuscation->setText("(" + tr("Disabled") + ")");
+            ui->toggleObfuscation->setText("(" + tr("Obfuscation Disabled") + ")");
             ui->obfuscationAuto->setText("(" + tr("Disabled") + ")");
             ui->obfuscationReset->setText("(" + tr("Disabled") + ")");
             ui->frameObfuscation->setEnabled(false);
         } else {
+#ifdef ENABLE_OBFUSCATION
             if (!fEnableObfuscation) {
                 ui->toggleObfuscation->setText(tr("Start Obfuscation"));
             } else {
                 ui->toggleObfuscation->setText(tr("Stop Obfuscation"));
             }
+#else
+            ui->toggleObfuscation->setText("(" + tr("Obfuscation Disabled") + ")");
+            ui->obfuscationAuto->setText("(" + tr("Disabled") + ")");
+            ui->obfuscationReset->setText("(" + tr("Disabled") + ")");
+            ui->frameObfuscation->setEnabled(false);
+#endif
+
             timer = new QTimer(this);
             connect(timer, SIGNAL(timeout()), this, SLOT(obfuScationStatus()));
             timer->start(1000);
@@ -290,7 +298,9 @@ void OverviewPage::setWalletModel(WalletModel* model)
 
         connect(ui->obfuscationAuto, SIGNAL(clicked()), this, SLOT(obfuscationAuto()));
         connect(ui->obfuscationReset, SIGNAL(clicked()), this, SLOT(obfuscationReset()));
+#ifdef ENABLE_OBFUSCATION
         connect(ui->toggleObfuscation, SIGNAL(clicked()), this, SLOT(toggleObfuscation()));
+#endif
         updateWatchOnlyLabels(model->haveWatchOnly());
         connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyLabels(bool)));
     }
@@ -455,9 +465,11 @@ void OverviewPage::obfuScationStatus()
             obfuScationPool.cachedNumBlocks = nBestHeight;
             updateObfuscationProgress();
 
-            ui->obfuscationEnabled->setText(tr("Disabled"));
+            ui->obfuscationEnabled->setText(tr("Obfuscation Disabled"));
             ui->obfuscationStatus->setText("");
+#ifdef ENABLE_OBFUSCATION
             ui->toggleObfuscation->setText(tr("Start Obfuscation"));
+#endif
         }
 
         return;
@@ -544,7 +556,7 @@ void OverviewPage::toggleObfuscation()
 
     fEnableObfuscation = !fEnableObfuscation;
     obfuScationPool.cachedNumBlocks = std::numeric_limits<int>::max();
-
+#ifdef ENABLE_OBFUSCATION
     if (!fEnableObfuscation) {
         ui->toggleObfuscation->setText(tr("Start Obfuscation"));
         obfuScationPool.UnlockCoins();
@@ -559,4 +571,9 @@ void OverviewPage::toggleObfuscation()
             dlg.exec();
         }
     }
+#else
+    ui->toggleObfuscation->setText(tr("Obfuscation Disabled"));
+#endif
+
+
 }
