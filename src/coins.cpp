@@ -68,6 +68,28 @@ bool CCoins::Spend_Legacy(uint32_t nPos)
     return true;
 }
 
+void CCoins::FromTx(const CTransaction& tx, int nHeightIn)
+{
+    fCoinBase = tx.IsCoinBase();
+    fCoinStake = tx.IsCoinStake();
+    vout = tx.vout;
+    nHeight = nHeightIn;
+    nVersion = tx.GetVersion();
+    nTime = tx.nTime;
+    ClearUnspendable();
+}
+
+void CCoins::FromUndo(const CTxInUndo& undo)
+{
+    Clear();
+    fCoinBase = undo.fCoinBase;
+    fCoinStake = undo.fCoinStake;
+    nHeight = undo.nHeight;
+    nVersion = undo.nVersion;
+    nHeight = undo.nHeight;
+    nTime = undo.nTime;
+}
+
 
 bool CCoinsView::GetCoins(const uint256& txid, CCoins& coins) const { return false; }
 bool CCoinsView::HaveCoins(const uint256& txid) const { return false; }
@@ -143,9 +165,11 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
             // The parent view does not have this entry; mark it as fresh.
             ret.first->second.coins.Clear();
             ret.first->second.flags = CCoinsCacheEntry::FRESH;
+            if (fDebug) LogPrintf("The parent view does not have this entry; mark it as fresh \n");
         } else if (ret.first->second.coins.IsPruned()) {
             // The parent view only has a pruned entry for this; mark it as fresh.
             ret.first->second.flags = CCoinsCacheEntry::FRESH;
+            if (fDebug) LogPrintf("The parent view only has a pruned entry for this; mark it as fresh. \n");
         }
     } else {
         cachedCoinUsage = ret.first->second.coins.DynamicMemoryUsage();

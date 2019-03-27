@@ -94,16 +94,9 @@ public:
 
     unsigned int nTime;
 
-    void FromTx(const CTransaction& tx, int nHeightIn)
-    {
-        fCoinBase = tx.IsCoinBase();
-        fCoinStake = tx.IsCoinStake();
-        vout = tx.vout;
-        nHeight = nHeightIn;
-        nVersion = tx.GetVersion();
-        nTime = tx.nTime;
-        ClearUnspendable();
-    }
+    void FromTx(const CTransaction& tx, int nHeightIn);
+    
+    void FromUndo(const CTxInUndo& undo);
 
     //! construct a CCoins from a CTransaction, at a given height
     CCoins(const CTransaction& tx, int nHeightIn)

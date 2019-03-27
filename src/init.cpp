@@ -1459,6 +1459,11 @@ bool AppInit2()
         std::string strLoadError;
 
         uiInterface.InitMessage(_("Loading block index..."));
+        
+        bool opa = false;
+        while ( opa != true)
+          cout << "waiting to be changed !!!" << endl;
+          
 
         nStart = GetTimeMillis();
         do {
