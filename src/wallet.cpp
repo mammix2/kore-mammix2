@@ -1211,9 +1211,7 @@ CAmount CWalletTx::GetCredit(const isminefilter& filter) const
 // coin will be accepted on the mempool of any other node.
 bool CWalletTx::IsStakeSpendable() const
 {
-    uint32_t medianPassedTime = (GetTime() + chainActive.Tip()->GetMedianTimePast() - (2 * this->nTime)) / 2;
-
-    return medianPassedTime >= Params().GetStakeLockInterval();
+    return GetAdjustedTime() + chainActive.Tip()->GetMedianTimeSpacing() >= nTime + Params().GetStakeLockInterval();
 }
 
 CAmount CWalletTx::GetStakedCredit() const
@@ -1226,11 +1224,8 @@ CAmount CWalletTx::GetStakedCredit() const
     for (unsigned int i = 0; i < vout.size(); i++) {
         if (!pwallet->IsSpent(hashTx, i)) {
             const CTxOut& txout = vout[i];
-            if (txout.IsCoinStake()) {
-                CAmount nOutCredit = pwallet->GetCredit(txout, ISMINE_STAKE);
-                if (nOutCredit > 0 && !IsStakeSpendable())
-                    nCredit += nOutCredit;
-            }
+            if (txout.IsCoinStake() && pwallet->IsMine(txout) == ISMINE_STAKE && !IsStakeSpendable())
+                nCredit += txout.nValue;
 
             if (!MoneyRange(nCredit))
                 throw std::runtime_error("CWalletTx::GetStakedCredit() : value out of range");
@@ -1262,15 +1257,9 @@ CAmount CWalletTx::GetAvailableCredit() const
     for (unsigned int i = 0; i < vout.size(); i++) {
         if (!pwallet->IsSpent(hashTx, i)) {
             const CTxOut& txout = vout[i];
-            CAmount nOutCredit = pwallet->GetCredit(txout, ISMINE_SPENDABLE);
-
-            if (nOutCredit > 0)
-                nCredit += nOutCredit;
-            else if (txout.IsCoinStake()) {
-                nOutCredit = pwallet->GetCredit(txout, ISMINE_STAKE);
-                if (nOutCredit > 0 && IsStakeSpendable())
-                    nCredit += nOutCredit;
-            }
+            isminetype mineType = pwallet->IsMine(txout);
+            if (mineType == ISMINE_SPENDABLE || (mineType == ISMINE_STAKE && IsStakeSpendable()))
+                nCredit += txout.nValue;
 
             if (!MoneyRange(nCredit))
                 throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");

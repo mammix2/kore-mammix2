@@ -150,39 +150,6 @@ inline CBlockIndex* GetParentIndex(CBlockIndex* index)
     return index->pprev;
 }
 
-int64_t GetMedianTimeSpacing(const CBlockIndex* pindexLast)
-{
-    if (pindexLast->nHeight != 0)
-      return 0;
-    int64_t nActualTimespan = 0;
-    const CBlockIndex* BlockReading = pindexLast;
-    int64_t CountBlocks = 0;
-    int64_t LastBlockTime = 0;
-    int64_t PastBlocksMin = Params().GetPastBlocksMin();
-    int64_t PastBlocksMax = Params().GetPastBlocksMax();
-
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
-        if (PastBlocksMax > 0 && i > PastBlocksMax) {
-            break;
-        }
-        CountBlocks++;
-
-        if (LastBlockTime > 0) {
-            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
-            nActualTimespan += Diff;
-        }
-        LastBlockTime = BlockReading->GetBlockTime();
-
-        if (BlockReading->pprev == NULL) {
-            assert(BlockReading);
-            break;
-        }
-        BlockReading = BlockReading->pprev;
-    }
-
-    return nActualTimespan/CountBlocks;
-}
-
 uint32_t GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake)
 {
     // Lico
@@ -209,7 +176,7 @@ uint32_t GetNextTarget(const CBlockIndex* pindexLast, const CBlockHeader* pblock
         int64_t nTargetSpacing = Params().GetTargetSpacing();
         int64_t nTargetTimespan = Params().GetTargetTimespan();
 
-        int64_t nMedianTimeSpacing = GetMedianTimeSpacing(pindexLast);
+        int64_t nMedianTimeSpacing = pindexLast->GetMedianTimeSpacing();
         int64_t nMyBlockSpacing = pblock->GetBlockTime() - pindexLast->GetBlockTime();
 
         // ppcoin: target change every block

@@ -6,6 +6,8 @@
 
 #include "chain.h"
 
+#include "chainparams.h"
+
 using namespace std;
 
 /**
@@ -81,6 +83,40 @@ uint256 CBlockIndex::GetBlockTrust() const
         return bnPoWTrust > 1 ? bnPoWTrust : 1;
     }
 }
+
+int64_t CBlockIndex::GetMedianTimeSpacing() const
+{
+    if (nHeight != 0)
+    return 0;
+    int64_t nActualTimespan = 0;
+    const CBlockIndex* BlockReading = this;
+    int64_t CountBlocks = 0;
+    int64_t LastBlockTime = 0;
+    int64_t PastBlocksMin = Params().GetPastBlocksMin();
+    int64_t PastBlocksMax = Params().GetPastBlocksMax();
+
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
+        if (PastBlocksMax > 0 && i > PastBlocksMax) {
+            break;
+        }
+        CountBlocks++;
+
+        if (LastBlockTime > 0) {
+            int64_t Diff = (LastBlockTime - BlockReading->GetBlockTime());
+            nActualTimespan += Diff;
+        }
+        LastBlockTime = BlockReading->GetBlockTime();
+
+        if (BlockReading->pprev == NULL) {
+            assert(BlockReading);
+            break;
+        }
+        BlockReading = BlockReading->pprev;
+    }
+
+    return nActualTimespan/CountBlocks;
+}
+
 const CBlockIndex* GetLastBlockIndex_Legacy(const CBlockIndex* pindex, bool fProofOfStake)
 {
     while (pindex && pindex->pprev && (pindex->IsProofOfStake() != fProofOfStake))
