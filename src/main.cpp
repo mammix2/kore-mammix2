@@ -4846,7 +4846,7 @@ bool CheckBlock(const CBlock& block, const int height, CValidationState& state, 
     // because we receive the wrong transactions for it.
 
     // Size limits
-    unsigned int nMaxBlockSize = MAX_BLOCK_SIZE_CURRENT;
+    unsigned int nMaxBlockSize = MAX_BLOCK_SIZE;
     if (block.vtx.empty() || block.vtx.size() > nMaxBlockSize || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > nMaxBlockSize)
         return state.DoS(100, error("CheckBlock(): size limits failed"),
             REJECT_INVALID, "bad-blk-length");
@@ -6288,7 +6288,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
     int nLoaded = 0;
     try {
         // This takes over fileIn and calls fclose() on it in the CBufferedFile destructor
-        CBufferedFile blkdat(fileIn, 2 * MAX_BLOCK_SIZE_CURRENT, MAX_BLOCK_SIZE_CURRENT + 8, SER_DISK, CLIENT_VERSION);
+        CBufferedFile blkdat(fileIn, 2 * MAX_BLOCK_SIZE, MAX_BLOCK_SIZE + 8, SER_DISK, CLIENT_VERSION);
         uint64_t nRewind = blkdat.GetPos();
         while (!blkdat.eof()) {
             boost::this_thread::interruption_point();
@@ -6307,7 +6307,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
                     continue;
                 // read size
                 blkdat >> nSize;
-                if (nSize < 80 || nSize > MAX_BLOCK_SIZE_CURRENT)
+                if (nSize < 80 || nSize > MAX_BLOCK_SIZE)
                     continue;
             } catch (const std::exception&) {
                 // no valid block header found; don't complain
@@ -8050,12 +8050,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 //       it was the one which was commented out
 int ActiveProtocol()
 {
-#ifdef LICO
-  we dont need to enforce spork for now, maybe in the future
-    if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
-            return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
-#endif
-
     return UseLegacyCode() ? MIN_PEER_PROTO_VERSION_PRE_FORK : MIN_PEER_PROTO_VERSION;
 }
 
@@ -8298,7 +8292,6 @@ bool SendMessages(CNode* pto)
     // Except during reindex, importing and IBD, when old wallet
     // transactions become unconfirmed and spams other nodes.
     if (!fReindex && !fImporting && !IsInitialBlockDownload()) {
-        // LICO can be without nTimeBestReceived ???
         //GetMainSignals().Broadcast(nTimeBestReceived);
         GetMainSignals().Broadcast();
     }

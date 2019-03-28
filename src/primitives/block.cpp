@@ -31,22 +31,6 @@ uint256 CBlockHeader::GetMidHash() const
     return Hash(BEGIN(nVersion), END(nNonce));
 }
 
-#ifdef LICO
-uint256 CBlockHeader::GetVerifiedHash() const
-{
- 
- 	uint256 midHash = GetMidHash();
- 		    	
-	uint256 r = Hash(BEGIN(nVersion), END(nBirthdayB));
-
- 	if(!bts::momentum_verify( midHash, nBirthdayA, nBirthdayB)){
- 		return uint256S("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeee");
- 	}
-   
-     return r;
-}
-#endif
-
 uint256 CBlockHeader::CalculateBestBirthdayHash()
 {
     uint256 midHash = GetMidHash();
