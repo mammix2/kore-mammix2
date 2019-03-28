@@ -378,8 +378,6 @@ private:
     int64_t m_value;
 };
 
-// LICO, instead of getting prevector from Legacy, trying
-// to use the same as current code;
 typedef std::vector<unsigned char> CScriptBase;
 
 /** Serialized script, used inside transaction inputs and outputs */

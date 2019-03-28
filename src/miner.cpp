@@ -445,7 +445,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
     // Limit to betweeen 1K and MAX_BLOCK_SIZE-1K for sanity:
-    unsigned int nBlockMaxSizeNetwork = MAX_BLOCK_SIZE_CURRENT;
+    unsigned int nBlockMaxSizeNetwork = MAX_BLOCK_SIZE;
     nBlockMaxSize = std::max((unsigned int)1000, std::min((nBlockMaxSizeNetwork - 1000), nBlockMaxSize));
 
     // How much of the block should be dedicated to high-priority transactions,

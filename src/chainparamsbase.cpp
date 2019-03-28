@@ -103,7 +103,9 @@ void SelectBaseParams(CBaseChainParams::Network network)
 CBaseChainParams::Network NetworkIdFromCommandLine()
 {
     bool fRegTest = GetBoolArg("-regtest", false);
-    bool fTestNet = GetBoolArg("-testnet", false);
+    // Lico, forcing testnet while using public testnet
+    // TODO change this when deliver for mainnet
+    bool fTestNet = GetBoolArg("-testnet", true);
 
     if (fTestNet && fRegTest)
         return CBaseChainParams::MAX_NETWORK_TYPES;

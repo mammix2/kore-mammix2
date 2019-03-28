@@ -301,16 +301,6 @@ void OptionsDialog::doProxyIpChecks(QValidatedLineEdit* pUiProxyIp, QLineEdit* p
     const std::string strAddrProxy = pUiProxyIp->text().toStdString();
     CService addrProxy;
 
-    /* TODO LICO - merge with tor
-    // Check for a valid IPv4 / IPv6 address
-    if (!(fProxyIpValid = LookupNumeric(strAddrProxy.c_str(), addrProxy))) {
-        disableOkButton();
-        pUiProxyIp->setValid(false);
-        ui->statusLabel->setStyleSheet("QLabel { color: red; }");
-        ui->statusLabel->setText(tr("The supplied proxy address is invalid."));
-        return;
-    }
-    */
     // Check proxy port
     if (!pUiProxyPort->hasAcceptableInput()){
         disableOkButton();
