@@ -879,6 +879,23 @@ color:#e62e00;
 margin-left:0px;
 }
 
+QWidget .QFrame#frame .QLabel#labelStakedText { /* Staked Amount Label */
+qproperty-alignment: 'AlignVCenter | AlignRight';
+min-width:160px;
+font-size:12px;
+background-color:transparent;
+color:#6C6262;
+margin-right:5px;
+padding-right:5px;
+}
+
+QWidget .QFrame#frame .QLabel#labelStaked { /* Staked Amount */
+qproperty-alignment: 'AlignVCenter | AlignLeft';
+font-size:12px;
+margin-left:0px;
+}
+
+
 QWidget .QFrame#frame .QLabel#labelWatchAvailable { /* Watch-only Balance */
 qproperty-alignment: 'AlignVCenter | AlignLeft';
 font-size:12px;
