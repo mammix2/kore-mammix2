@@ -92,6 +92,8 @@ tools/masternode/*.activation
 *.dmg
 
 *.json.h
+!/src/invalid_outpoints.json.h
+!/src/invalid_serials.json.h
 *.raw.h
 
 #libtool object files
